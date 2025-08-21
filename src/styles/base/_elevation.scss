@@ -1,0 +1,70 @@
+// 阴影和立体感系统
+:root {
+  // 阴影层级
+  --shadow-none: none;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.2);
+
+  // 内阴影
+  --shadow-inset-sm: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-inset-md: inset 0 0 30px rgba(0, 0, 0, 0.05);
+  --shadow-inset-lg: inset 0 0 50px rgba(0, 0, 0, 0.02);
+
+  // 组合阴影
+  --shadow-border-light: inset 0 0 50px rgba(0, 0, 0, 0.02), 0 0 30px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 0 6px rgba(0, 0, 0, 0.3);
+
+  // Z-index 层级
+  --z-base: 1;
+  --z-dropdown: 10;
+  --z-sticky: 20;
+  --z-fixed: 30;
+  --z-modal-backdrop: 40;
+  --z-modal: 50;
+  --z-popover: 60;
+  --z-tooltip: 70;
+  --z-toast: 80;
+  --z-max: 999;
+}
+
+// 阴影工具类
+.shadow-none {
+  box-shadow: var(--shadow-none);
+}
+.shadow-sm {
+  box-shadow: var(--shadow-sm);
+}
+.shadow-md {
+  box-shadow: var(--shadow-md);
+}
+.shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
+.shadow-xl {
+  box-shadow: var(--shadow-xl);
+}
+.shadow-inset {
+  box-shadow: var(--shadow-inset-md);
+}
+
+// 立体感效果
+.elevated {
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-1px) scale(1.02);
+  }
+}
+
+.elevated-subtle {
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: var(--shadow-md);
+  }
+}
