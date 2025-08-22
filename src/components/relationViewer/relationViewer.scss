@@ -1,0 +1,141 @@
+@use '@/styles/main.scss' as *;
+
+.relation-viewer {
+  margin-bottom: var(--space-md);
+  @include font-mono;
+}
+
+.relation-card {
+  @include card-base;
+
+  &:hover {
+    .relation-header::before {
+      left: 100%;
+    }
+  }
+}
+
+.relation-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md) var(--space-lg);
+  background: linear-gradient(
+    135deg,
+    var(--color-background-muted) 0%,
+    var(--color-background-dark) 100%
+  );
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  list-style: none;
+  transition: all 0.2s ease;
+  position: relative;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &:hover {
+    background: linear-gradient(
+      135deg,
+      var(--color-background-dark) 0%,
+      var(--color-background-darker) 100%
+    );
+  }
+
+  // 动画效果
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, var(--color-hover), transparent);
+    transition: all 0.5s ease;
+  }
+}
+
+.relation-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 80px;
+}
+
+.relation-type {
+  @include text-small-caps;
+  color: var(--color-text-light);
+  margin-bottom: var(--space-xs);
+}
+
+.relation-content {
+  flex: 1;
+  font-size: var(--font-size-xl);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
+}
+
+.expand-indicator {
+  color: var(--color-text-light);
+  font-size: var(--font-size-md);
+  transition: all 0.2s ease;
+}
+
+.relation-card[open] .expand-indicator {
+  transform: rotate(0deg);
+}
+
+.chevron {
+  @include font-system;
+}
+
+.relation-body {
+  position: relative;
+  background: var(--color-background-soft);
+}
+
+.connection-line {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--color-primary-light), transparent);
+  transform: translateX(-50%);
+  opacity: var(--opacity-light);
+}
+
+.relation-blocks {
+  padding: var(--space-lg);
+}
+
+.block-container {
+  position: relative;
+  margin-top: var(--space-md);
+
+  &.to .direction-label {
+    color: var(--color-text-soft);
+  }
+
+  &.from .direction-label {
+    color: var(--color-text-muted);
+  }
+}
+
+.direction-label {
+  @include text-small-caps;
+  color: var(--color-text-light);
+  margin-bottom: var(--space-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+
+  &::before {
+    content: '';
+    width: var(--space-xl);
+    height: 1px;
+    background: var(--color-secondary-lighter);
+  }
+}

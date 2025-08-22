@@ -1,0 +1,138 @@
+@use '@/styles/main.scss' as *;
+
+.focus-explorer {
+  width: 100%;
+  color: var(--color-text);
+  font-family: monospace;
+  position: relative;
+  overflow: hidden;
+}
+
+.focus-explorer-content {
+  display: flex;
+  flex-direction: row;
+  transform: translateX(calc(100% * 0.04));
+  transition: all 0.3s ease;
+}
+
+// 入向关系栏
+.in-relations {
+  position: absolute;
+  left: -27%;
+  top: 0;
+  width: 30%;
+  transition: all 0.3s ease;
+  z-index: var(--z-dropdown);
+  display: flex;
+  flex-direction: column;
+}
+
+.focus-explorer.negative-expanded .in-relations {
+  left: 0;
+}
+
+// 渐变遮罩 - 收起状态下隐藏分界线
+.fade-mask {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 12%;
+  height: 100%;
+  background: linear-gradient(to left, transparent, var(--color-background));
+  pointer-events: none;
+  opacity: 1;
+  transition: all 0.3s ease;
+  z-index: var(--z-sticky);
+}
+
+.focus-explorer.negative-expanded .fade-mask {
+  opacity: 0;
+}
+
+.focus-explorer.negative-expanded .focus-explorer-content {
+  transform: translateX(calc(100% * 0.3));
+}
+
+.focus-block {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 60%;
+  position: relative;
+  padding: 0 var(--space-lg);
+  gap: var(--space-lg);
+  transition: all 0.3s ease;
+}
+
+.focus-block .focus-block-editor {
+  border-radius: var(--radius-md);
+}
+
+.focus-toolbar {
+  display: flex;
+  gap: var(--space-sm);
+  z-index: var(--z-sticky);
+}
+
+.action-btn {
+  @include button-base;
+  backdrop-filter: blur(var(--blur-amount));
+
+  &.primary {
+    @include button-primary;
+  }
+}
+
+.btn-text {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-normal);
+}
+
+.out-relations {
+  display: flex;
+  flex-direction: column;
+  width: 30%;
+  height: 100%;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.relations-container {
+  flex: 1;
+  overflow-y: auto;
+  @include scrollbar-thin;
+}
+
+.relation-item {
+  margin-bottom: var(--space-md);
+}
+
+.empty-relations {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--color-secondary-lighter);
+}
+
+.empty-text {
+  font-size: var(--font-size-2xl);
+  color: var(--color-text-light);
+}
+
+.relations-info {
+  position: absolute;
+  bottom: var(--space-lg);
+  right: var(--space-lg);
+  z-index: var(--z-sticky);
+}
+
+.relation-count {
+  @include text-small-caps;
+  color: var(--color-text-light);
+  background: rgba(255, 255, 255, 0.8);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-light);
+  backdrop-filter: blur(var(--blur-amount));
+}

@@ -16,104 +16,10 @@
 </template>
 
 <script setup lang="ts">
-import type { Block } from '../../types/blocks'
-const props = defineProps<{ block: Block | null }>()
+import type { BlockEditorProps } from './blockEditorTypes'
+const props = defineProps<BlockEditorProps>()
 </script>
 
 <style lang="scss" scoped>
-@use '@/styles/main.scss' as *;
-
-.block-editor {
-  position: relative;
-  max-height: 100%;
-  background: var(--color-background);
-  color: var(--color-text);
-  @include font-mono;
-  border: 1px solid var(--color-border);
-}
-
-.editor-container {
-  display: flex;
-  flex-direction: column;
-  max-height: inherit;
-}
-
-.block-footer {
-  display: flex;
-  justify-content: flex-end;
-  padding: var(--space-sm) var(--space-lg);
-  border-bottom: 1px solid var(--color-border);
-  background: linear-gradient(
-    90deg,
-    var(--color-background-dark) 100%,
-    var(--color-background-muted) 0%
-  );
-  font-size: var(--font-size-xl);
-}
-
-.footer-item {
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: var(--letter-spacing-wider);
-  font-weight: var(--font-weight-semibold);
-  margin-right: var(--space-sm);
-}
-
-.block-id {
-  @include text-small-caps;
-  color: var(--color-text-soft);
-}
-
-.status-indicator {
-  width: var(--space-sm);
-  height: var(--space-sm);
-  background: var(--color-text-muted);
-  border-radius: var(--radius-full);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.block-content {
-  min-height: 200px;
-  max-height: 60vh;
-  padding: var(--space-xl);
-  background: var(--color-background);
-  color: var(--color-text);
-  border: none;
-  outline: none;
-  font-family: inherit;
-  font-size: var(--font-size-3xl);
-  line-height: var(--line-height-relaxed);
-  resize: none;
-  overflow-y: auto;
-  transition: all 0.3s ease;
-  border-radius: var(--radius-md);
-  @include scrollbar-thin;
-
-  &:focus {
-    background: var(--color-background-soft);
-    box-shadow: var(--shadow-inset-md);
-  }
-}
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--color-text-light);
-}
-
-.empty-icon {
-  font-size: var(--font-size-8xl);
-  margin-bottom: var(--space-lg);
-  color: var(--color-secondary-lighter);
-  animation: rotate 8s linear infinite;
-}
-
-.empty-text {
-  font-size: var(--font-size-xl);
-  letter-spacing: var(--letter-spacing-widest);
-  text-transform: uppercase;
-  color: var(--color-text-lighter);
-}
+@use './blockEditor.scss' as *;
 </style>
