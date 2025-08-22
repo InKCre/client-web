@@ -1,49 +1,67 @@
 <template>
-  <div class="focus-explorer" :class="{ 'negative-expanded': isNegativeExpanded }">
-    <div class="in-relations" @mouseenter="onNegativeEnter" @mouseleave="onNegativeLeave">
-      <div class="relations-container">
-        <div v-for="relation in incomingRelations" :key="relation.id" class="relation-item">
+  <div class="focus-explorer" :class="{ 'focus-explorer--negative-expanded': isNegativeExpanded }">
+    <div
+      class="focus-explorer__in-relations"
+      @mouseenter="onNegativeEnter"
+      @mouseleave="onNegativeLeave"
+    >
+      <div class="focus-explorer__relations-container">
+        <div
+          v-for="relation in incomingRelations"
+          :key="relation.id"
+          class="focus-explorer__relation-item"
+        >
           <RelationViewer :relation="relation" :from="true">
             <template #from_block>
               <BlockViewer :block-id="relation.from_" @click="onBlockSelect" />
             </template>
           </RelationViewer>
         </div>
-        <div v-if="incomingRelations.length === 0" class="empty-relations">
-          <span class="empty-text">暂无入向关系</span>
+
+        <div v-if="incomingRelations.length === 0" class="focus-explorer__empty-relations">
+          <span class="focus-explorer__empty-text">暂无入向关系</span>
         </div>
+
+        <div class="focus-explorer__fade-mask"></div>
       </div>
-      <!-- 收起状态的渐变遮罩 -->
-      <div class="fade-mask"></div>
     </div>
 
-    <div class="focus-explorer-content">
-      <div class="focus-block">
+    <div class="focus-explorer__content">
+      <div class="focus-explorer__focus-block">
         <BlockEditor class="focus-block-editor" :block="focusedBlock" @jump="onJump" />
-        <div class="focus-toolbar">
-          <InkButton class="action-btn" variant="primary" @click="onJump">
-            <span class="btn-text">跳转</span>
+        <div class="focus-explorer__toolbar">
+          <InkButton
+            class="focus-explorer__action-btn focus-explorer__action-btn--primary"
+            variant="primary"
+            @click="onJump"
+          >
+            <span class="focus-explorer__btn-text">跳转</span>
           </InkButton>
-          <InkButton class="action-btn" @click="onForward">
-            <span class="btn-text">前进</span>
+          <InkButton class="focus-explorer__action-btn" @click="onForward">
+            <span class="focus-explorer__btn-text">前进</span>
           </InkButton>
-          <InkButton class="action-btn" @click="onBack">
-            <span class="btn-text">返回</span>
+          <InkButton class="focus-explorer__action-btn" @click="onBack">
+            <span class="focus-explorer__btn-text">返回</span>
           </InkButton>
         </div>
       </div>
 
-      <div class="out-relations">
-        <div class="relations-container">
-          <div v-for="relation in relations" :key="relation.id" class="relation-item">
+      <div class="focus-explorer__out-relations">
+        <div class="focus-explorer__relations-container">
+          <div
+            v-for="relation in relations"
+            :key="relation.id"
+            class="focus-explorer__relation-item"
+          >
             <RelationViewer :relation="relation" :to="true">
               <template #to_block>
                 <BlockViewer :block-id="relation.to_" @click="onBlockSelect" />
               </template>
             </RelationViewer>
           </div>
-          <div v-if="relations.length === 0" class="empty-relations">
-            <span class="empty-text">暂无关系</span>
+
+          <div v-if="relations.length === 0" class="focus-explorer__empty-relations">
+            <span class="focus-explorer__empty-text">暂无关系</span>
           </div>
         </div>
       </div>
@@ -59,12 +77,12 @@ import RelationViewer from '../relationViewer/relationViewer.vue'
 import BlockEditor from '../blockEditor/blockEditor.vue'
 import InkButton from '../inkButton/inkButton.vue'
 import type { Block } from '../../types/blocks'
-import type { FocusExplorerProps } from './focusExplorerTypes'
+import type { FocusExplorerProps } from './focusExplorerTypes.ts'
 
 const props = defineProps<FocusExplorerProps>()
 const emit = defineEmits(['update:modelValue'])
 
-const focusedBlock = computed({
+const focusedBlock = computed<Block | null>({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val),
 })
@@ -77,7 +95,7 @@ const relations = computed(() => {
   return relationsStore.getByBlock(focusedBlock.value.id, true)
 })
 
-// 入向关系（新增的）
+// 入向关系
 const incomingRelations = computed(() => {
   if (!focusedBlock.value) return []
   return relationsStore.getByBlock(focusedBlock.value.id, false)
@@ -87,19 +105,19 @@ const incomingRelations = computed(() => {
 const isNegativeExpanded = ref(false)
 
 function onJump() {
-  // 跳转逻辑
+  // TODO: implement jump behavior
 }
 
 function onForward() {
-  // 前进逻辑
+  // TODO: implement forward behavior
 }
 
 function onBack() {
-  // 返回逻辑
+  // TODO: implement back behavior
 }
 
 function onBlockSelect(blockId: number) {
-  // 处理块选择逻辑
+  // forward click from BlockViewer
   console.log('Block selected:', blockId)
 }
 

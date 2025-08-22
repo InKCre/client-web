@@ -1,21 +1,23 @@
 @use '@/styles/main.scss' as *;
 
+/* BEM: block = relation-viewer */
 .relation-viewer {
   margin-bottom: var(--space-md);
   @include font-mono;
 }
 
-.relation-card {
+/* card element */
+.relation-viewer__card {
   @include card-base;
 
   &:hover {
-    .relation-header::before {
+    .relation-viewer__header::before {
       left: 100%;
     }
   }
 }
 
-.relation-header {
+.relation-viewer__header {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -43,7 +45,7 @@
     );
   }
 
-  // 动画效果
+  /* animation */
   &::before {
     content: '';
     position: absolute;
@@ -56,20 +58,20 @@
   }
 }
 
-.relation-info {
+.relation-viewer__info {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   min-width: 80px;
 }
 
-.relation-type {
+.relation-viewer__type {
   @include text-small-caps;
   color: var(--color-text-light);
   margin-bottom: var(--space-xs);
 }
 
-.relation-content {
+.relation-viewer__content {
   flex: 1;
   font-size: var(--font-size-xl);
   color: var(--color-text-muted);
@@ -77,26 +79,26 @@
   letter-spacing: var(--letter-spacing-wider);
 }
 
-.expand-indicator {
+.relation-viewer__expand-indicator {
   color: var(--color-text-light);
   font-size: var(--font-size-md);
   transition: all 0.2s ease;
 }
 
-.relation-card[open] .expand-indicator {
+.relation-viewer__card[open] .relation-viewer__expand-indicator {
   transform: rotate(0deg);
 }
 
-.chevron {
+.relation-viewer__chevron {
   @include font-system;
 }
 
-.relation-body {
+.relation-viewer__body {
   position: relative;
   background: var(--color-background-soft);
 }
 
-.connection-line {
+.relation-viewer__connection-line {
   position: absolute;
   top: 0;
   left: 50%;
@@ -107,24 +109,24 @@
   opacity: var(--opacity-light);
 }
 
-.relation-blocks {
+.relation-viewer__blocks {
   padding: var(--space-lg);
 }
 
-.block-container {
+.relation-viewer__block-container {
   position: relative;
   margin-top: var(--space-md);
 
-  &.to .direction-label {
+  &--to .relation-viewer__direction-label {
     color: var(--color-text-soft);
   }
 
-  &.from .direction-label {
+  &--from .relation-viewer__direction-label {
     color: var(--color-text-muted);
   }
 }
 
-.direction-label {
+.relation-viewer__direction-label {
   @include text-small-caps;
   color: var(--color-text-light);
   margin-bottom: var(--space-sm);

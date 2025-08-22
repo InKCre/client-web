@@ -1,5 +1,6 @@
 @use '@/styles/main.scss' as *;
 
+/* BEM: block = focus-explorer */
 .focus-explorer {
   width: 100%;
   color: var(--color-text);
@@ -8,15 +9,15 @@
   overflow: hidden;
 }
 
-.focus-explorer-content {
+.focus-explorer__content {
   display: flex;
   flex-direction: row;
   transform: translateX(calc(100% * 0.04));
   transition: all 0.3s ease;
 }
 
-// 入向关系栏
-.in-relations {
+/* inbound relations panel */
+.focus-explorer__in-relations {
   position: absolute;
   left: -27%;
   top: 0;
@@ -27,12 +28,12 @@
   flex-direction: column;
 }
 
-.focus-explorer.negative-expanded .in-relations {
+.focus-explorer--negative-expanded .focus-explorer__in-relations {
   left: 0;
 }
 
-// 渐变遮罩 - 收起状态下隐藏分界线
-.fade-mask {
+/* fade mask - hidden divider when collapsed */
+.focus-explorer__fade-mask {
   position: absolute;
   right: 0;
   top: 0;
@@ -45,15 +46,15 @@
   z-index: var(--z-sticky);
 }
 
-.focus-explorer.negative-expanded .fade-mask {
+.focus-explorer--negative-expanded .focus-explorer__fade-mask {
   opacity: 0;
 }
 
-.focus-explorer.negative-expanded .focus-explorer-content {
+.focus-explorer--negative-expanded .focus-explorer__content {
   transform: translateX(calc(100% * 0.3));
 }
 
-.focus-block {
+.focus-explorer__focus-block {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -64,31 +65,31 @@
   transition: all 0.3s ease;
 }
 
-.focus-block .focus-block-editor {
+.focus-explorer__focus-block .focus-block-editor {
   border-radius: var(--radius-md);
 }
 
-.focus-toolbar {
+.focus-explorer__toolbar {
   display: flex;
   gap: var(--space-sm);
   z-index: var(--z-sticky);
 }
 
-.action-btn {
+.focus-explorer__action-btn {
   @include button-base;
   backdrop-filter: blur(var(--blur-amount));
 
-  &.primary {
+  &--primary {
     @include button-primary;
   }
 }
 
-.btn-text {
+.focus-explorer__btn-text {
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-normal);
 }
 
-.out-relations {
+.focus-explorer__out-relations {
   display: flex;
   flex-direction: column;
   width: 30%;
@@ -97,17 +98,17 @@
   transition: all 0.3s ease;
 }
 
-.relations-container {
+.focus-explorer__relations-container {
   flex: 1;
   overflow-y: auto;
   @include scrollbar-thin;
 }
 
-.relation-item {
+.focus-explorer__relation-item {
   margin-bottom: var(--space-md);
 }
 
-.empty-relations {
+.focus-explorer__empty-relations {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -115,19 +116,19 @@
   color: var(--color-secondary-lighter);
 }
 
-.empty-text {
+.focus-explorer__empty-text {
   font-size: var(--font-size-2xl);
   color: var(--color-text-light);
 }
 
-.relations-info {
+.focus-explorer__relations-info {
   position: absolute;
   bottom: var(--space-lg);
   right: var(--space-lg);
   z-index: var(--z-sticky);
 }
 
-.relation-count {
+.focus-explorer__relation-count {
   @include text-small-caps;
   color: var(--color-text-light);
   background: rgba(255, 255, 255, 0.8);

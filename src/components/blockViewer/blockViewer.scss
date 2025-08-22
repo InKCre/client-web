@@ -1,5 +1,6 @@
 @use '@/styles/main.scss' as *;
 
+/* BEM: block = block-viewer */
 .block-viewer {
   position: relative;
   @include card-elevated;
@@ -12,7 +13,7 @@
     border-color: var(--color-primary-light);
     transform: translateZ(0) scale(1.02);
 
-    .port {
+    .block-viewer__port {
       border-color: var(--color-primary-light);
       background: var(--color-primary-light);
       box-shadow: var(--shadow-glow);
@@ -20,7 +21,7 @@
   }
 }
 
-.block-footer {
+.block-viewer__footer {
   display: flex;
   justify-content: flex-end;
   padding: var(--space-xs) var(--space-md);
@@ -32,18 +33,18 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-.block-id {
+.block-viewer__id {
   @include text-small-caps;
   color: var(--color-text-soft);
 }
 
-.block-type {
+.block-viewer__type {
   @include text-small-caps;
   font-size: var(--font-size-xs);
   color: var(--color-text-light);
 }
 
-.block-preview {
+.block-viewer__preview {
   padding: var(--space-lg) var(--space-md);
   min-height: 60px;
   display: flex;
@@ -51,7 +52,7 @@
   justify-content: center;
 }
 
-.content-placeholder {
+.block-viewer__content-placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -60,39 +61,39 @@
   color: var(--color-text-light);
 }
 
-.content-icon {
+.block-viewer__content-icon {
   font-size: var(--font-size-5xl);
   animation: pulse 2s ease-in-out infinite;
 }
 
-.loading-text {
+.block-viewer__loading-text {
   @include text-small-caps;
 }
 
-.block-footer {
+.block-viewer__footer-secondary {
   padding: var(--space-sm) var(--space-md);
   border-top: 1px solid var(--color-border);
   background: var(--color-background-soft);
 }
 
-.connection-ports {
+.block-viewer__connection-ports {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.port {
+.block-viewer__port {
   width: var(--space-sm);
   height: var(--space-sm);
   border: 1px solid var(--color-border);
   background: var(--color-background);
   transition: all 0.2s ease;
 
-  &.in {
+  &--in {
     border-radius: var(--radius-xs);
   }
 
-  &.out {
+  &--out {
     border-radius: var(--radius-full);
   }
 }
