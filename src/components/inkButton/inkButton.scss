@@ -1,0 +1,10 @@
+@use '@/styles/main.scss' as *;
+
+.ink-button {
+  @include button-base;
+  backdrop-filter: blur(var(--blur-amount));
+
+  &.primary {
+    @include button-primary;
+  }
+}

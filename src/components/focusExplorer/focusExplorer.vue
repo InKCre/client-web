@@ -21,15 +21,15 @@
       <div class="focus-block">
         <BlockEditor class="focus-block-editor" :block="focusedBlock" @jump="onJump" />
         <div class="focus-toolbar">
-          <button class="action-btn primary" @click="onJump">
+          <InkButton class="action-btn" variant="primary" @click="onJump">
             <span class="btn-text">跳转</span>
-          </button>
-          <button class="action-btn" @click="onForward">
+          </InkButton>
+          <InkButton class="action-btn" @click="onForward">
             <span class="btn-text">前进</span>
-          </button>
-          <button class="action-btn" @click="onBack">
+          </InkButton>
+          <InkButton class="action-btn" @click="onBack">
             <span class="btn-text">返回</span>
-          </button>
+          </InkButton>
         </div>
       </div>
 
@@ -57,6 +57,7 @@ import { useRelationsStore } from '../../stores/relations'
 import BlockViewer from '../blockViewer/blockViewer.vue'
 import RelationViewer from '../relationViewer/relationViewer.vue'
 import BlockEditor from '../blockEditor/blockEditor.vue'
+import InkButton from '../inkButton/inkButton.vue'
 import type { Block } from '../../types/blocks'
 
 const props = defineProps<{
@@ -136,7 +137,6 @@ function onNegativeLeave() {
   left: -27%;
   top: 0;
   width: 30%;
-  height: 100%;
   transition: all 0.3s ease;
   z-index: var(--z-dropdown);
   display: flex;
