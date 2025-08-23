@@ -6,22 +6,32 @@
   @include font-mono;
 }
 
-/* card element */
-.relation-viewer__card {
-  @include card-base;
-
-  &:hover {
-    .relation-viewer__header::before {
-      left: 100%;
-    }
-  }
+/* Loading and error states */
+.relation-viewer__loading,
+.relation-viewer__error {
+  padding: var(--space-md);
+  text-align: center;
+  color: var(--color-text-light);
+  font-style: italic;
 }
 
+.relation-viewer__error {
+  color: var(--color-error);
+  background: var(--color-error-light);
+  border-radius: var(--radius-sm);
+}
+
+/* Card component */
+.relation-viewer__card {
+  @include card-base;
+  overflow: hidden;
+}
+
+/* Header with relation content and action buttons */
 .relation-viewer__header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: var(--space-md) var(--space-lg);
+  padding: var(--space-sm) var(--space-lg);
   background: linear-gradient(
     135deg,
     var(--color-background-muted) 0%,
@@ -29,13 +39,8 @@
   );
   border-bottom: 1px solid var(--color-border);
   cursor: pointer;
-  list-style: none;
   transition: all 0.2s ease;
   position: relative;
-
-  &::-webkit-details-marker {
-    display: none;
-  }
 
   &:hover {
     background: linear-gradient(
@@ -45,7 +50,7 @@
     );
   }
 
-  /* animation */
+  /* Hover animation */
   &::before {
     content: '';
     position: absolute;
@@ -56,19 +61,10 @@
     background: linear-gradient(90deg, transparent, var(--color-hover), transparent);
     transition: all 0.5s ease;
   }
-}
 
-.relation-viewer__info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  min-width: 80px;
-}
-
-.relation-viewer__type {
-  @include text-small-caps;
-  color: var(--color-text-light);
-  margin-bottom: var(--space-xs);
+  &:hover::before {
+    left: 100%;
+  }
 }
 
 .relation-viewer__content {
@@ -77,22 +73,106 @@
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: var(--letter-spacing-wider);
+  margin-right: var(--space-md);
 }
 
-.relation-viewer__expand-indicator {
-  color: var(--color-text-light);
-  font-size: var(--font-size-md);
+.relation-viewer__actions {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
+}
+
+.relation-viewer__action-btn {
+  background: none;
+  border: none;
+  padding: var(--space-xs);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+
+  &:hover {
+    background: var(--color-background-dark);
+  }
+
+  &--danger:hover {
+    background: var(--color-error-light);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* Edit form */
+.relation-viewer__edit-form {
+  padding: var(--space-md);
+  background: var(--color-background-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.relation-viewer__edit-input {
+  width: 100%;
+  padding: var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  margin-bottom: var(--space-sm);
+  background: var(--color-background);
+  color: var(--color-text);
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+}
+
+.relation-viewer__edit-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.relation-viewer__edit-btn {
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
   transition: all 0.2s ease;
+
+  &:first-child {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+
+    &:hover:not(:disabled) {
+      background: var(--color-primary-dark);
+    }
+  }
+
+  &:last-child {
+    background: var(--color-background);
+    color: var(--color-text);
+
+    &:hover {
+      background: var(--color-background-dark);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 
-.relation-viewer__card[open] .relation-viewer__expand-indicator {
-  transform: rotate(0deg);
-}
-
-.relation-viewer__chevron {
-  @include font-system;
-}
-
+/* Card body with connection line and block content */
 .relation-viewer__body {
   position: relative;
   background: var(--color-background-soft);
@@ -102,42 +182,35 @@
   position: absolute;
   top: 0;
   left: 50%;
-  width: 1px;
+  width: 2px;
   height: 100%;
-  background: linear-gradient(to bottom, var(--color-primary-light), transparent);
+  background: linear-gradient(
+    to bottom,
+    var(--color-primary-light),
+    var(--color-primary-lighter),
+    transparent
+  );
   transform: translateX(-50%);
-  opacity: var(--opacity-light);
+  opacity: 0.6;
 }
 
-.relation-viewer__blocks {
-  padding: var(--space-lg);
-}
-
-.relation-viewer__block-container {
+.relation-viewer__block-content {
+  padding: var(--space-lg) var(--space-md) var(--space-md) var(--space-md);
   position: relative;
-  margin-top: var(--space-md);
-
-  &--to .relation-viewer__direction-label {
-    color: var(--color-text-soft);
-  }
-
-  &--from .relation-viewer__direction-label {
-    color: var(--color-text-muted);
-  }
 }
 
-.relation-viewer__direction-label {
-  @include text-small-caps;
-  color: var(--color-text-light);
-  margin-bottom: var(--space-sm);
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
+/* Mode-specific styles */
+.relation-viewer--wrap_a_block {
+  .relation-viewer__card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
 
-  &::before {
-    content: '';
-    width: var(--space-xl);
-    height: 1px;
-    background: var(--color-secondary-lighter);
+  .relation-viewer__header {
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+
+  .relation-viewer__body {
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
   }
 }

@@ -1,7 +1,11 @@
-# BlockEditor
+> 展示并编辑选中的 block。
 
-展示并编辑选中的 block。组件接收以下 props：
+## 参数
 
-- `block: Block | null` — 当前选中的 block，若为空则显示空状态。
+- `v-model:blockId?: BlockID`：要编辑的块；未定义则代表新建
 
-样式已拆分到 `blockEditor.scss`，类型声明在 `blockEditorTypes.ts`。
+## 方法
+
+### Save
+
+保存/新建块；暴露为公开方法

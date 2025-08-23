@@ -17,6 +17,13 @@
   font-weight: var(--font-weight-semibold);
 }
 
+@mixin text-mono-caps {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
+  font-weight: var(--font-weight-bold);
+}
+
 @mixin text-uppercase-spaced {
   text-transform: uppercase;
   letter-spacing: var(--letter-spacing-wider);
@@ -66,6 +73,12 @@
     border-color: var(--color-primary-light);
     box-shadow: var(--shadow-md);
   }
+}
+
+@mixin card-flat {
+  background: var(--color-background);
+  border: none;
+  color: var(--color-text);
 }
 
 @mixin card-elevated {

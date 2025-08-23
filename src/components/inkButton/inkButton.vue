@@ -18,6 +18,4 @@ const emit = defineEmits(['click'])
 const variantClass = props.variant === 'primary' ? 'primary' : ''
 </script>
 
-<style lang="scss" scoped>
-@use './inkButton.scss' as *;
-</style>
+<style lang="scss" src="./inkButton.scss" scoped></style>

@@ -1,22 +1,15 @@
-<script setup lang="ts">
-import FocusExplorer from './components/focusExplorer/focusExplorer.vue'
-import { useBlocksStore } from './stores/blocks'
-import { ref } from 'vue'
-import type { Block } from './types/blocks'
-
-const blocksStore = useBlocksStore()
-const block = ref<Block | null>(blocksStore.getById(1) || null)
-</script>
+<script setup lang="ts"></script>
 
 <template>
   <div class="app-container">
     <div class="app-header">
       <div class="brand">
-        <span class="brand-name">InKCre</span>
+        <img class="brand-logo" src="/favicon.ico" alt="InKCre Logo" />
+        <router-link to="/" class="brand-name" style="text-decoration: none"> InKCre </router-link>
       </div>
     </div>
     <div class="app-content">
-      <FocusExplorer v-model="block" />
+      <router-view />
     </div>
   </div>
 </template>
@@ -25,13 +18,10 @@ const block = ref<Block | null>(blocksStore.getById(1) || null)
 @use './styles/main.scss' as *;
 
 .app-container {
-  height: 100vh;
-  width: 100vw;
   display: flex;
   flex-direction: column;
-  background: var(--color-background);
+  height: 100vh;
   color: var(--color-text);
-  position: relative;
   overflow: hidden;
 }
 
@@ -39,7 +29,7 @@ const block = ref<Block | null>(blocksStore.getById(1) || null)
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-md) var(--space-xl);
+  padding: var(--space-sm) var(--space-lg);
   background: linear-gradient(
     90deg,
     var(--color-background) 0%,
@@ -55,10 +45,11 @@ const block = ref<Block | null>(blocksStore.getById(1) || null)
   gap: var(--space-md);
 }
 
-.brand-icon {
-  font-size: var(--font-size-4xl);
-  color: var(--color-text-soft);
-  animation: rotate 1s linear infinite;
+.brand-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  display: block;
 }
 
 .brand-name {
@@ -90,26 +81,10 @@ const block = ref<Block | null>(blocksStore.getById(1) || null)
 
 .app-content {
   flex: 1;
-  display: flex;
-  overflow: hidden;
-  margin: var(--space-4xl) var(--space-8xl);
-
+  overflow-x: hidden;
+  overflow-y: scroll;
   @include mobile {
     margin: var(--space-lg) var(--space-xl);
   }
-}
-
-// 边缘阴影效果
-.app-container::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-border-light);
-  pointer-events: none;
-  z-index: var(--z-dropdown);
 }
 </style>

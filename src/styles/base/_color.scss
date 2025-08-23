@@ -37,7 +37,13 @@
   --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.15);
   --shadow-md: 0 0 30px rgba(0, 0, 0, 0.05);
   --shadow-lg: inset 0 0 50px rgba(0, 0, 0, 0.02), 0 0 30px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 0 10px rgba(0, 0, 0, 0.2);
   --shadow-inset: inset 0 0 30px rgba(0, 0, 0, 0.05);
+
+  // 透明度
+  --opacity-light: 0.3;
+  --opacity-medium: 0.5;
+  --opacity-heavy: 0.8;
 }
 
 // SCSS 变量 (用于计算和函数)

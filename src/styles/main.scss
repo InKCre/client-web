@@ -22,17 +22,12 @@
 @forward 'base/shape';
 
 // 3. 全局基础样式和重置
-* {
+body {
+  @include font-mono;
+  color: var(--color-text);
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
-
-body {
-  @include font-mono;
-  background: var(--color-background);
-  color: var(--color-text);
-  overflow: hidden;
 }
 
 // 4. 全局选择样式
@@ -43,7 +38,7 @@ body {
 
 // 5. 全局滚动条样式
 ::-webkit-scrollbar {
-  width: 3px;
+  width: 0px;
 }
 
 ::-webkit-scrollbar-track {
