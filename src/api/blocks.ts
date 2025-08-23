@@ -1,13 +1,16 @@
-import { apiClient } from './client'
-import type {
-  Block,
-  CreateBlockRequest,
-  UpdateBlockRequest,
-  GetRecentBlocksParams,
-  GetBlocksByEmbeddingParams,
-  GetBlockIterationParams,
-  BlockIterationResponse,
-} from './types'
+import { z } from "zod";
+import { apiClient } from "./client";
+import { Block } from "./models";
+import {
+  BlockSchema,
+  BlockIterationResponseSchema,
+  type CreateBlockRequest,
+  type UpdateBlockRequest,
+  type GetRecentBlocksParams,
+  type GetBlocksByEmbeddingParams,
+  type GetBlockIterationParams,
+  type BlockIterationResponse,
+} from "./schemas";
 
 /**
  * Block相关的API方法
@@ -19,7 +22,8 @@ export class BlocksApi {
    * @param organize 是否自动整理，默认为true
    */
   async createBlock(data: CreateBlockRequest, organize: boolean = true): Promise<Block> {
-    return apiClient.post<Block>('/blocks', data, { organize })
+    const response = await apiClient.postWithValidation("/blocks", BlockSchema, data, { organize });
+    return new Block(response);
   }
 
   /**
@@ -27,7 +31,8 @@ export class BlocksApi {
    * @param blockId 块ID
    */
   async getBlock(blockId: number): Promise<Block> {
-    return apiClient.get<Block>(`/blocks/${blockId}`)
+    const response = await apiClient.getWithValidation(`/blocks/${blockId}`, BlockSchema);
+    return new Block(response);
   }
 
   /**
@@ -36,7 +41,8 @@ export class BlocksApi {
    * @param data 更新数据
    */
   async updateBlock(blockId: number, data: UpdateBlockRequest): Promise<Block> {
-    return apiClient.patch<Block>(`/blocks/${blockId}`, data)
+    const response = await apiClient.patchWithValidation(`/blocks/${blockId}`, BlockSchema, data);
+    return new Block(response);
   }
 
   /**
@@ -44,17 +50,25 @@ export class BlocksApi {
    * @param params 查询参数
    */
   async getRecentBlocks(params?: GetRecentBlocksParams): Promise<Block[]> {
-    return apiClient.get<Block[]>('/blocks/recent', params)
+    const response = await apiClient.getWithValidation(
+      "/blocks/recent",
+      z.array(BlockSchema),
+      params,
+    );
+    return response.map((data) => new Block(data));
   }
 
   /**
    * 向量检索块
    * @param params 检索参数
    */
-  async getBlocksByEmbedding(
-    params: GetBlocksByEmbeddingParams,
-  ): Promise<(Block | import('./types').Relation)[]> {
-    return apiClient.get<(Block | import('./types').Relation)[]>('/blocks/by_embedding', params)
+  async getBlocksByEmbedding(params: GetBlocksByEmbeddingParams): Promise<Block[]> {
+    const response = await apiClient.getWithValidation(
+      "/blocks/by_embedding",
+      z.array(BlockSchema),
+      params,
+    );
+    return response.map((data) => new Block(data));
   }
 
   /**
@@ -66,9 +80,13 @@ export class BlocksApi {
     blockId: number,
     params?: GetBlockIterationParams,
   ): Promise<BlockIterationResponse> {
-    return apiClient.get<BlockIterationResponse>(`/blocks/${blockId}/iteration`, params)
+    return apiClient.getWithValidation(
+      `/blocks/${blockId}/iteration`,
+      BlockIterationResponseSchema,
+      params,
+    );
   }
 }
 
 // 创建默认实例
-export const blocksApi = new BlocksApi()
+export const blocksApi = new BlocksApi();
