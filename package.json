@@ -12,11 +12,14 @@
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
-    "format": "prettier --write src/"
+    "format": "prettier --write src/",
+    "start": "node server.js",
+    "heroku-postbuild": "npm run build"
   },
   "dependencies": {
     "@module-federation/vite": "^1.7.1",
     "@vueuse/core": "^13.7.0",
+    "express": "^5.1.0",
     "konva": "^9.3.22",
     "pinia": "^3.0.3",
     "vue": "^3.5.18",
