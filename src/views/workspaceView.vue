@@ -22,7 +22,7 @@
             :disabled="blocks.loading.value"
             class="workspace__action-btn"
           >
-            {{ blocks.loading.value ? 'LOADING...' : 'REFRESH' }}
+            {{ blocks.loading.value ? "LOADING..." : "REFRESH" }}
           </button>
         </header>
 
@@ -111,7 +111,9 @@
           <div class="workspace__stats-grid">
             <div class="workspace__stat-item">
               <span class="workspace__stat-label">BLOCKS</span>
-              <span class="workspace__stat-value">{{ blocks.blocks.value.length }}</span>
+              <span class="workspace__stat-value">{{
+                blocks.blocks.value.length
+              }}</span>
             </div>
             <div class="workspace__stat-item">
               <span class="workspace__stat-label">RELATIONS</span>
@@ -131,47 +133,47 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useInKCreAPI } from '@/api'
-import BlockViewer from '@/components/blockViewer/blockViewer.vue'
+import { ref, computed, onMounted, nextTick, onUnmounted } from "vue";
+import { useRouter } from "vue-router";
+import { useInKCreAPI } from "../../deprecated/api";
+import BlockViewer from "@/components/blockViewer/blockViewer.vue";
 
 // 路由
-const router = useRouter()
+const router = useRouter();
 
 // 使用组合式API
-const { blocks, relations, isLoading, hasError, allErrors } = useInKCreAPI()
+const { blocks, relations, isLoading, hasError, allErrors } = useInKCreAPI();
 
 // 本地状态
-const newBlockContent = ref('')
-const newBlockResolver = ref('text')
+const newBlockContent = ref("");
+const newBlockResolver = ref("text");
 const newRelation = ref({
   from_: null as number | null,
   to_: null as number | null,
-  content: '',
-})
+  content: "",
+});
 
 // 瀑布流相关
 // 布局状态
-const gridColumns = ref(0)
-const gridLoaded = ref(false)
-const blocksGridRef = ref<HTMLElement>()
+const gridColumns = ref(0);
+const gridLoaded = ref(false);
+const blocksGridRef = ref<HTMLElement>();
 
 // 动态内容监听
-const resizeObserver = ref<ResizeObserver>()
-const mutationObserver = ref<MutationObserver>()
-const contentObservers = ref<Map<Element, ResizeObserver>>(new Map())
-const layoutThrottleTimer = ref<number>()
+const resizeObserver = ref<ResizeObserver>();
+const mutationObserver = ref<MutationObserver>();
+const contentObservers = ref<Map<Element, ResizeObserver>>(new Map());
+const layoutThrottleTimer = ref<number>();
 
 // 节流的布局更新函数
 const throttledLayout = () => {
   if (layoutThrottleTimer.value) {
-    clearTimeout(layoutThrottleTimer.value)
+    clearTimeout(layoutThrottleTimer.value);
   }
   layoutThrottleTimer.value = window.setTimeout(() => {
-    applyMasonryLayout()
-  }, 100)
-}
+    applyMasonryLayout();
+  }, 100);
+};
 
 // 计算属性
 const canCreateRelation = computed(() => {
@@ -180,294 +182,305 @@ const canCreateRelation = computed(() => {
     newRelation.value.to_ &&
     newRelation.value.content.trim() &&
     newRelation.value.from_ !== newRelation.value.to_
-  )
-})
+  );
+});
 
 const systemStatus = computed(() => {
-  if (hasError.value) return 'ERROR'
-  if (isLoading.value) return 'LOADING'
-  return 'READY'
-})
+  if (hasError.value) return "ERROR";
+  if (isLoading.value) return "LOADING";
+  return "READY";
+});
 
 const lastUpdateTime = computed(() => {
-  if (blocks.blocks.value.length === 0) return 'NO_DATA'
-  const latest = blocks.blocks.value[0]
-  const date = new Date(latest.updated_at)
-  return date.toLocaleTimeString('en-US', {
+  if (blocks.blocks.value.length === 0) return "NO_DATA";
+  const latest = blocks.blocks.value[0];
+  const date = new Date(latest.updated_at);
+  return date.toLocaleTimeString("en-US", {
     hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-})
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+});
 
 // 计算列数和应用瀑布流布局
 const calculateColumns = () => {
-  if (!blocksGridRef.value || !gridLoaded.value) return
+  if (!blocksGridRef.value || !gridLoaded.value) return;
 
-  const containerWidth = blocksGridRef.value.offsetWidth
-  const minColumnWidth = 340
-  const gap = 24
-  const columns = Math.max(1, Math.floor((containerWidth + gap) / (minColumnWidth + gap)))
+  const containerWidth = blocksGridRef.value.offsetWidth;
+  const minColumnWidth = 340;
+  const gap = 24;
+  const columns = Math.max(
+    1,
+    Math.floor((containerWidth + gap) / (minColumnWidth + gap))
+  );
 
-  gridColumns.value = columns
+  gridColumns.value = columns;
 
   // 立即应用布局
   nextTick(() => {
-    applyMasonryLayout()
-  })
-}
+    applyMasonryLayout();
+  });
+};
 
 const applyMasonryLayout = async () => {
-  await nextTick()
+  await nextTick();
 
-  if (!blocksGridRef.value) return
+  if (!blocksGridRef.value) return;
 
-  const items = Array.from(blocksGridRef.value.children) as HTMLElement[]
-  if (items.length === 0) return
+  const items = Array.from(blocksGridRef.value.children) as HTMLElement[];
+  if (items.length === 0) return;
 
-  const gap = 16
+  const gap = 16;
   const columnWidth =
-    (blocksGridRef.value.offsetWidth - (gridColumns.value - 1) * gap) / gridColumns.value
+    (blocksGridRef.value.offsetWidth - (gridColumns.value - 1) * gap) /
+    gridColumns.value;
 
   // 初始化列高度数组
-  const columnHeights = new Array(gridColumns.value).fill(0)
+  const columnHeights = new Array(gridColumns.value).fill(0);
 
   // 先重置所有元素的样式，确保能正确测量高度
   items.forEach((item) => {
-    item.style.position = 'static'
-    item.style.width = `${columnWidth}px`
-    item.style.opacity = '0'
-  })
+    item.style.position = "static";
+    item.style.width = `${columnWidth}px`;
+    item.style.opacity = "0";
+  });
 
   // 等待一帧确保重新渲染
-  await new Promise((resolve) => requestAnimationFrame(resolve))
+  await new Promise((resolve) => requestAnimationFrame(resolve));
 
   items.forEach((item, index) => {
     // 测量实际高度
-    const itemHeight = item.offsetHeight
+    const itemHeight = item.offsetHeight;
 
     // 找到最短的列
-    const shortestColumnIndex = columnHeights.indexOf(Math.min(...columnHeights))
+    const shortestColumnIndex = columnHeights.indexOf(
+      Math.min(...columnHeights)
+    );
 
     // 设置项目的位置
-    item.style.position = 'absolute'
-    item.style.left = `${shortestColumnIndex * (columnWidth + gap)}px`
-    item.style.top = `${columnHeights[shortestColumnIndex]}px`
-    item.style.opacity = '1'
+    item.style.position = "absolute";
+    item.style.left = `${shortestColumnIndex * (columnWidth + gap)}px`;
+    item.style.top = `${columnHeights[shortestColumnIndex]}px`;
+    item.style.opacity = "1";
 
     // 添加动画延迟
-    item.style.setProperty('--index', index.toString())
+    item.style.setProperty("--index", index.toString());
 
     // 更新列高度
-    columnHeights[shortestColumnIndex] += itemHeight + gap
-  })
+    columnHeights[shortestColumnIndex] += itemHeight + gap;
+  });
 
   // 设置容器高度
-  const maxHeight = Math.max(...columnHeights)
-  blocksGridRef.value.style.height = `${maxHeight}px`
+  const maxHeight = Math.max(...columnHeights);
+  blocksGridRef.value.style.height = `${maxHeight}px`;
 
   // 为每个块添加内容变化监听
-  setupContentObservers(items)
-}
+  setupContentObservers(items);
+};
 
 // 设置内容变化监听器
 const setupContentObservers = (items: HTMLElement[]) => {
   // 清理旧的观察器
-  contentObservers.value.forEach((observer) => observer.disconnect())
-  contentObservers.value.clear()
+  contentObservers.value.forEach((observer) => observer.disconnect());
+  contentObservers.value.clear();
 
   items.forEach((item) => {
     // 为每个块项创建ResizeObserver
     const observer = new ResizeObserver((entries) => {
       // 当块的尺寸发生变化时，重新布局
-      throttledLayout()
-    })
+      throttledLayout();
+    });
 
-    observer.observe(item)
-    contentObservers.value.set(item, observer)
+    observer.observe(item);
+    contentObservers.value.set(item, observer);
 
     // 监听图片加载
-    const images = item.querySelectorAll('img')
+    const images = item.querySelectorAll("img");
     images.forEach((img) => {
       if (!img.complete) {
-        img.addEventListener('load', throttledLayout, { once: true })
-        img.addEventListener('error', throttledLayout, { once: true })
+        img.addEventListener("load", throttledLayout, { once: true });
+        img.addEventListener("error", throttledLayout, { once: true });
       }
-    })
+    });
 
     // 监听内容变化（比如异步加载的文本）
-    const textElements = item.querySelectorAll('[class*="content"], [class*="text"]')
+    const textElements = item.querySelectorAll(
+      '[class*="content"], [class*="text"]'
+    );
     textElements.forEach((el) => {
       if (!contentObservers.value.has(el)) {
         const textObserver = new ResizeObserver(() => {
-          throttledLayout()
-        })
-        textObserver.observe(el)
-        contentObservers.value.set(el, textObserver)
+          throttledLayout();
+        });
+        textObserver.observe(el);
+        contentObservers.value.set(el, textObserver);
       }
-    })
-  })
-}
+    });
+  });
+};
 
 // 方法
 const navigateToBlock = (blockId: number) => {
-  router.push({ name: 'FocusExplorer', params: { blockId } })
-}
+  router.push({ name: "FocusExplorer", params: { blockId } });
+};
 
 const refreshBlocks = async () => {
   try {
-    await blocks.fetchRecentBlocks(20)
-    gridLoaded.value = true
+    await blocks.fetchRecentBlocks(20);
+    gridLoaded.value = true;
     // 重新应用瀑布流布局
-    await nextTick()
-    setTimeout(applyMasonryLayout, 100)
+    await nextTick();
+    setTimeout(applyMasonryLayout, 100);
   } catch (err) {
-    console.error('刷新块失败:', err)
+    console.error("刷新块失败:", err);
   }
-}
+};
 
 const handleCreateBlock = async () => {
-  if (!newBlockContent.value.trim()) return
+  if (!newBlockContent.value.trim()) return;
 
   try {
     const newBlock = await blocks.createBlock({
       content: newBlockContent.value.trim(),
       resolver: newBlockResolver.value,
-      storage: newBlockResolver.value === 'url' ? 'url' : null,
-    })
+      storage: newBlockResolver.value === "url" ? "url" : null,
+    });
 
     // 清空表单
-    newBlockContent.value = ''
-    newBlockResolver.value = 'text'
+    newBlockContent.value = "";
+    newBlockResolver.value = "text";
 
     // 重新布局
-    await nextTick()
-    setTimeout(applyMasonryLayout, 100)
+    await nextTick();
+    setTimeout(applyMasonryLayout, 100);
 
     // 跳转到新创建的块
-    navigateToBlock(newBlock.id)
+    navigateToBlock(newBlock.id);
   } catch (err) {
-    console.error('创建块失败:', err)
+    console.error("创建块失败:", err);
   }
-}
+};
 
 const createNewRelation = async () => {
-  if (!canCreateRelation.value) return
+  if (!canCreateRelation.value) return;
 
   try {
     const newRelationData = await relations.createRelation({
       from_: newRelation.value.from_!,
       to_: newRelation.value.to_!,
       content: newRelation.value.content.trim(),
-    })
+    });
 
     // 清空表单
     newRelation.value = {
       from_: null,
       to_: null,
-      content: '',
-    }
+      content: "",
+    };
 
     // 提示成功创建
-    console.log('关系创建成功:', newRelationData)
+    console.log("关系创建成功:", newRelationData);
   } catch (err) {
-    console.error('创建关系失败:', err)
+    console.error("创建关系失败:", err);
   }
-}
+};
 
 // 监听窗口大小变化
 const handleResize = () => {
-  calculateColumns()
-}
+  calculateColumns();
+};
 
 // 设置DOM变化监听器
 const setupMutationObserver = () => {
-  if (!blocksGridRef.value) return
+  if (!blocksGridRef.value) return;
 
   mutationObserver.value = new MutationObserver((mutations) => {
-    let shouldReLayout = false
+    let shouldReLayout = false;
 
     mutations.forEach((mutation) => {
-      if (mutation.type === 'childList') {
+      if (mutation.type === "childList") {
         // 有子元素添加或删除
-        if (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0) {
-          shouldReLayout = true
-        }
-      } else if (mutation.type === 'attributes') {
-        // 元素属性变化（可能影响尺寸）
-        const target = mutation.target as HTMLElement
         if (
-          target.classList.contains('workspace__block-item') ||
-          target.closest('.workspace__block-item')
+          mutation.addedNodes.length > 0 ||
+          mutation.removedNodes.length > 0
         ) {
-          shouldReLayout = true
+          shouldReLayout = true;
+        }
+      } else if (mutation.type === "attributes") {
+        // 元素属性变化（可能影响尺寸）
+        const target = mutation.target as HTMLElement;
+        if (
+          target.classList.contains("workspace__block-item") ||
+          target.closest(".workspace__block-item")
+        ) {
+          shouldReLayout = true;
         }
       }
-    })
+    });
 
     if (shouldReLayout) {
-      throttledLayout()
+      throttledLayout();
     }
-  })
+  });
 
   mutationObserver.value.observe(blocksGridRef.value, {
     childList: true,
     subtree: true,
     attributes: true,
-    attributeFilter: ['class', 'style'],
-  })
-}
+    attributeFilter: ["class", "style"],
+  });
+};
 
 // 初始化
 onMounted(async () => {
-  await refreshBlocks()
+  await refreshBlocks();
 
   // 设置 ResizeObserver 监听容器大小变化
   if (blocksGridRef.value) {
     resizeObserver.value = new ResizeObserver(() => {
-      calculateColumns()
-    })
-    resizeObserver.value.observe(blocksGridRef.value)
+      calculateColumns();
+    });
+    resizeObserver.value.observe(blocksGridRef.value);
 
     // 设置DOM变化监听器
-    setupMutationObserver()
+    setupMutationObserver();
   }
 
   // 监听窗口大小变化
-  window.addEventListener('resize', handleResize)
+  window.addEventListener("resize", handleResize);
 
   // 初始布局
-  await nextTick()
-  setTimeout(calculateColumns, 100)
-})
+  await nextTick();
+  setTimeout(calculateColumns, 100);
+});
 
 onUnmounted(() => {
   // 清理ResizeObserver
   if (resizeObserver.value) {
-    resizeObserver.value.disconnect()
+    resizeObserver.value.disconnect();
   }
 
   // 清理MutationObserver
   if (mutationObserver.value) {
-    mutationObserver.value.disconnect()
+    mutationObserver.value.disconnect();
   }
 
   // 清理内容观察器
-  contentObservers.value.forEach((observer) => observer.disconnect())
-  contentObservers.value.clear()
+  contentObservers.value.forEach((observer) => observer.disconnect());
+  contentObservers.value.clear();
 
   // 清理定时器
   if (layoutThrottleTimer.value) {
-    clearTimeout(layoutThrottleTimer.value)
+    clearTimeout(layoutThrottleTimer.value);
   }
 
   // 清理窗口事件监听器
-  window.removeEventListener('resize', handleResize)
-})
+  window.removeEventListener("resize", handleResize);
+});
 </script>
 
 <style lang="scss" scoped>
-@use '@/styles/main.scss' as *;
+@use "@/styles/main.scss" as *;
 
 /* BEM: block = workspace */
 .workspace {
@@ -620,9 +633,7 @@ onUnmounted(() => {
 }
 
 .workspace__block-item {
-  transition:
-    transform 0.2s ease,
-    opacity 0.2s ease;
+  transition: transform 0.2s ease, opacity 0.2s ease;
   height: fit-content;
   opacity: 0;
   animation: fadeInUp 0.4s ease forwards;

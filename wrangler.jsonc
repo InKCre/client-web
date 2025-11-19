@@ -5,7 +5,8 @@
     "compatibility_date": "2025-02-14",
     "vars": {
         "INKCRE_CORE_URL": "",
-        "INKCRE_EXT_MF_URL": ""
+        "INKCRE_PGREST_URL": "",
+        "INKCRE_JWT_SECRET": ""
     },
     "assets": {
         "binding": "ASSETS",

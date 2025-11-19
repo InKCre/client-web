@@ -5,7 +5,7 @@ import { createInstance } from '@module-federation/runtime'
 import App from './App.vue'
 import router from './router'
 import VueKonva from 'vue-konva'
-import { initAppConfig, MF_CONFIG } from '@/api/config'
+import { initAppConfig } from '@/config'
 
 // 导入全局样式
 import '@/styles/main.scss'
@@ -21,11 +21,8 @@ initAppConfig().then(() => {
     createInstance({
         name: 'host',
         remotes: [
-            {
-                name: 'inkcreTwitter',
-                entry: MF_CONFIG.INKCRE_TWITTER_URL,
-            },
         ],
-    })
-    app.mount('#app')
+    });
 })
+
+app.mount('#app');
