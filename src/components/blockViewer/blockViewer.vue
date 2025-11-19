@@ -74,7 +74,7 @@
         {{ internalBlock.resolver }}
       </span>
       <span v-if="internalBlock" class="block-viewer__updated">
-        {{ formatDate(internalBlock.updated_at) }}
+        {{ formatDate(internalBlock.updated_at!) }}
       </span>
     </div>
   </div>

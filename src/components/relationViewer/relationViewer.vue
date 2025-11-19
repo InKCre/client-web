@@ -181,13 +181,13 @@ const saveEdit = async () => {
     saving.value = true
     editError.value = null
 
-    const updatedRelation = await api.relations.updateRelation(
-      internalRelation.value.id,
+        const updatedRelation = await api.relations.updateRelation(
+      internalRelation.value.id!,
       editContent.value.trim(),
     )
 
-    internalRelation.value = updatedRelation
-    emit('relation-updated', updatedRelation)
+    internalRelation.value = updatedRelation as any
+    emit('relation-updated', updatedRelation as any)
     isEditing.value = false
     editContent.value = ''
   } catch (err) {
@@ -203,10 +203,10 @@ const deleteRelation = async () => {
     return
   }
 
-  try {
+    try {
     deleting.value = true
-    await api.relations.deleteRelation(internalRelation.value.id)
-    emit('relation-deleted', internalRelation.value.id)
+    await api.relations.deleteRelation(internalRelation.value.id!)
+    emit('relation-deleted', internalRelation.value.id!)
   } catch (err) {
     editError.value = err instanceof Error ? err.message : '删除关系失败'
     console.error('删除关系失败:', err)

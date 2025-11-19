@@ -12,13 +12,13 @@
           class="focus-explorer__relation-item"
         >
           <RelationViewer
-            :relation="relation"
+            :relation="relation as any"
             whichBlock="from"
-            :fold="!expandedInRelationId || expandedInRelationId !== relation.id"
-            @relation-updated="onRelationUpdated"
+            :fold="!expandedInRelationId || expandedInRelationId !== relation.id!"
+                        @relation-updated="onRelationUpdated"
             @relation-deleted="onRelationDeleted"
             @click-block="() => onRelationBlockClick(relation.from_)"
-            @update:fold="(fold) => onInRelationFoldChange(relation.id, fold)"
+            @update:fold="(fold) => onInRelationFoldChange(relation.id!, fold)"
           />
         </div>
 
@@ -64,13 +64,13 @@
             class="focus-explorer__relation-item"
           >
             <RelationViewer
-              :relation="relation"
+              :relation="relation as any"
               whichBlock="to"
-              :fold="!expandedRelationId || expandedRelationId !== relation.id"
-              @relation-updated="onRelationUpdated"
+              :fold="!expandedRelationId || expandedRelationId !== relation.id!"
+                            @relation-updated="onRelationUpdated"
               @relation-deleted="onRelationDeleted"
               @click-block="() => onRelationBlockClick(relation.to_)"
-              @update:fold="(fold) => onRelationFoldChange(relation.id, fold)"
+              @update:fold="(fold) => onRelationFoldChange(relation.id!, fold)"
             />
           </div>
           <div class="focus-explorer__create-relation">

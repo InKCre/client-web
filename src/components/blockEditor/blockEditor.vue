@@ -95,8 +95,6 @@ const saveBlock = async () => {
     error.value = null
 
     const updatedBlock = await api.blocks.updateBlock(props.block.id, {
-      id: props.block.id,
-      updated_at: props.block.updated_at,
       content: localContent.value,
     })
 

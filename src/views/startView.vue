@@ -28,9 +28,9 @@
 
         <div class="workspace__blocks-grid" ref="blocksGridRef">
           <BlockViewer
-            v-for="block in blocks.blocks.value"
+                        v-for="block in blocks.blocks.value"
             :key="block.id"
-            :block="block"
+            :block="block as any"
             mode="preview"
             :show-details="false"
             @click="(blockId) => navigateToBlock(blockId)"
@@ -205,9 +205,9 @@ const systemStatus = computed(() => {
 });
 
 const lastUpdateTime = computed(() => {
-  if (blocks.blocks.value.length === 0) return "NO_DATA";
+    if (blocks.blocks.value.length === 0) return "NO_DATA";
   const latest = blocks.blocks.value[0];
-  const date = new Date(latest.updated_at);
+  const date = new Date(latest.updated_at!);
   return date.toLocaleTimeString("en-US", {
     hour12: false,
     hour: "2-digit",
@@ -371,8 +371,8 @@ const handleCreateBlock = async () => {
     await nextTick();
     setTimeout(applyMasonryLayout, 100);
 
-    // 跳转到新创建的块
-    navigateToBlock(newBlock.id);
+        // 跳转到新创建的块
+    navigateToBlock(newBlock.id!);
   } catch (err) {
     console.error("创建块失败:", err);
   }
