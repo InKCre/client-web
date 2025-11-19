@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import InKCreWorkspace from '@/views/workspaceView.vue'
+import StartView from '@/views/startView.vue'
 import FocusExplorerView from '@/views/focusExplorerView.vue'
+import ExtensionView from '@/views/extensionView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -8,18 +9,23 @@ const router = createRouter({
     {
       path: '/',
       name: 'Home',
-      component: InKCreWorkspace,
+      component: StartView,
     },
     {
       path: '/workspace',
       name: 'Workspace',
-      component: InKCreWorkspace,
+      component: StartView,
     },
     {
       path: '/focus/:blockId',
       name: 'FocusExplorer',
       component: FocusExplorerView,
       props: (route) => ({ blockId: Number(route.params.blockId) }),
+    },
+    {
+      path: '/extensions',
+      name: 'Extensions',
+      component: ExtensionView,
     },
   ],
 })

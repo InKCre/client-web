@@ -1,10 +1,10 @@
 ---
-applyTo: '**'
+applyTo: "**"
 ---
 
 ## 项目概览
 
-- 这是InKCre，一款信息管理工具的web前端
+- 这是 InKCre，一款信息管理工具的 web 前端
 
 ## 技术栈
 
@@ -32,4 +32,8 @@ applyTo: '**'
 ## 标准
 
 - 界面风格与样式代码参考 `./style.instruction.md`
-- Vue组件参考 `./vue-component.instruction.md`
+- Vue 组件参考 `./vue-component.instruction.md`
+
+### TypeScript
+
+- 使用 `Promise` 而不是 `await` / `async`
