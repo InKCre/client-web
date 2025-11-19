@@ -1,0 +1,24 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "inkcre-web",
+    "main": "server/index.ts",
+    "compatibility_date": "2025-02-14",
+    "vars": {
+        "INKCRE_CORE_URL": "",
+        "INKCRE_EXT_MF_URL": ""
+    },
+    "assets": {
+        "binding": "ASSETS",
+        "directory": "./dist",
+        "not_found_handling": "single-page-application"
+    },
+    "observability": {
+        "enabled": true
+    },
+    "routes": [
+        {
+            "pattern": "inkcre.lanzhijiang.dev",
+            "custom_domain": true
+        }
+    ]
+}

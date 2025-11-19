@@ -1,33 +1,17 @@
-# inkcre-web
+# InKCre Web Client
 
-This template should help get you started developing with Vue 3 in Vite.
+第三尺寸网页客户端
 
-## Recommended IDE Setup
+## Deployment
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+### Cloudflare Worker
 
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
-pnpm install
+```bash
+pnpm run deploy:cf
 ```
 
-### Compile and Hot-Reload for Development
+执行该命令时：
 
-```sh
-pnpm dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-pnpm build
-```
+- Vite 将载入 `.env.cloudflare` 文件定义的环境变量
+- 编译和打包到 `dist/`
+- 部署到 Cloudflare Worker

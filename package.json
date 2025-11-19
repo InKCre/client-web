@@ -1,6 +1,6 @@
 {
   "name": "inkcre-web",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -12,11 +12,13 @@
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
-    "format": "prettier --write src/"
+    "format": "prettier --write src/",
+    "deploy:cf": "npm run build -- --mode cloudflare && wrangler deploy"
   },
   "dependencies": {
-    "@module-federation/vite": "^1.7.1",
+    "@module-federation/runtime": "^0.21.4",
     "@vueuse/core": "^13.7.0",
+    "hono": "^4.10.6",
     "konva": "^9.3.22",
     "pinia": "^3.0.3",
     "vue": "^3.5.18",
@@ -24,6 +26,7 @@
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251119.0",
     "@tsconfig/node22": "^22.0.2",
     "@types/node": "^22.16.5",
     "@vitejs/plugin-vue": "^6.0.1",
@@ -33,6 +36,7 @@
     "typescript": "~5.8.0",
     "vite": "^7.0.6",
     "vite-plugin-vue-devtools": "^8.0.0",
-    "vue-tsc": "^3.0.4"
+    "vue-tsc": "^3.0.4",
+    "wrangler": "^4.49.0"
   }
 }
