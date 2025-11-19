@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { Z } from 'zod-class'
 import { DBAPIClient, CoreAPIClient } from './base'
 import { useAuthStore, createAuthStoreAdapter } from '../stores/auth'
 
@@ -16,30 +17,15 @@ export type BlockRef = number
 export type BlockType = z.infer<typeof BlockZ>
 export const BlockProp = BlockZ
 
-// Block business class
-export class Block {
-  id?: number
-  updated_at?: string
-  storage?: 'url' | null
-  resolver: string
-  content: string
-  embedding?: number[] | null
-
-  // Static API clients
-  static dbApi: DBAPIClient
-  static coreApi: CoreAPIClient
-
-  constructor(data: Partial<BlockType>) {
-    // Validate input data with Zod
-    const validated = BlockZ.partial().parse(data)
-    
-    // Assign validated data to instance
-    Object.assign(this, validated)
-    
-    // Ensure required fields
-    if (!this.resolver) this.resolver = ''
-    if (!this.content) this.content = ''
-  }
+// Block business class extending zod-class
+export class Block extends Z.class({
+  id: z.number().optional(),
+  updated_at: z.string().optional(),
+  storage: z.enum(['url']).nullable().optional(),
+  resolver: z.string(),
+  content: z.string(),
+  embedding: z.array(z.number()).nullable().optional(),
+}) {
   // Static API clients
   static dbApi: DBAPIClient
   static coreApi: CoreAPIClient

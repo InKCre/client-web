@@ -17,13 +17,13 @@ export type RelationRef = number
 export const RelationProp = RelationZ
 
 // Relation business class extending zod-class
-export class Relation extends Z.class(RelationZ) {
-  // Declare properties to make them accessible
-  declare id?: number
-  declare updated_at?: string
-  declare from_: number
-  declare to_: number
-  declare content: string
+export class Relation extends Z.class({
+  id: z.number().optional(),
+  updated_at: z.string().optional(),
+  from_: z.number(),
+  to_: z.number(),
+  content: z.string(),
+}) {
   // Static API clients
   static dbApi: DBAPIClient
   static coreApi: CoreAPIClient
