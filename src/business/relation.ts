@@ -17,16 +17,15 @@ export class Relation extends Z.class({
     content: z.string(),
 }) {
 
-    static dbApi: DBAPIClient = new DBAPIClient('relations')
+    static dbApi = new DBAPIClient<Relation>('relations', Relation)
     static coreApi: CoreAPIClient = new CoreAPIClient('/relation', Relation)
 
     static async get(id: RelationRef): Promise<Relation> {
-        return new Relation((await this.dbApi.select().eq('id', id)).data![0])
+        return this.dbApi.parseSingle((await this.dbApi.select().eq('id', id)).data![0])
     }
 
     public async update(): Promise<Relation> {
-        return new Relation((await Relation.dbApi.upsert(this).select()).data![0])
-        // TODO remove new Relation (move schema parsing into dbApi)
+        return Relation.dbApi.parseSingle((await Relation.dbApi.upsert(this).select()).data![0])
     }
 
 }
@@ -37,7 +36,7 @@ export class RelationForm extends Z.class({
 }) {
 
     public async create() {
-        return new Relation((await Relation.dbApi.insert(this).select()).data![0])
+        return Relation.dbApi.parseSingle((await Relation.dbApi.insert(this).select()).data![0])
     }
 
 }

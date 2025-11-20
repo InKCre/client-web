@@ -1,4 +1,4 @@
-import { z, ZodSchema } from 'zod'
+import { z, type ZodSchema } from 'zod'
 import { PostgrestQueryBuilder } from '@supabase/postgrest-js'
 import { CONFIG } from '../config'
 import { useAuthStore } from '@/stores/auth'
@@ -113,12 +113,12 @@ export class CoreAPIClient<DT = any> {
 /**
  * PostgREST API Client for database operations using @supabase/postgrest-js
  */
-export class DBAPIClient extends PostgrestQueryBuilder<any, any, any> {
+export class DBAPIClient<SchemaType = any> extends PostgrestQueryBuilder<any, any, any> {
     static authStore = useAuthStore(stores)
 
     constructor(
         protected relation: string,
-        protected defSchema?: { parse<T>(input: unknown): T },
+        protected defSchema?: { parse(input: unknown): SchemaType },
         protected schemaName: string = 'public',
         protected baseUrl: string = CONFIG.INKCRE_PGREST_URL,
     ) {
@@ -129,6 +129,26 @@ export class DBAPIClient extends PostgrestQueryBuilder<any, any, any> {
             schema: schemaName,
             fetch,
         })
+    }
+
+    /**
+     * Parse a single item using the default schema if provided
+     */
+    parseSingle(data: any): SchemaType {
+        if (this.defSchema && data) {
+            return this.defSchema.parse(data)
+        }
+        return data
+    }
+
+    /**
+     * Parse an array of items using the default schema if provided
+     */
+    parseArray(data: any[]): SchemaType[] {
+        if (this.defSchema && data) {
+            return data.map(item => this.defSchema!.parse(item))
+        }
+        return data
     }
 
 }
