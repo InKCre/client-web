@@ -1,6 +1,8 @@
-> 展示与操作关系（Relation）的组件
+# 组件：Relation 关系
 
-## 界面与功能
+## Users
+
+## Specification
 
 ### mode:wrap_a_block
 
@@ -10,9 +12,9 @@
 - 卡片内容是 `comp:BlockViewer(blockId=whichBlock)`
 - 用一条居中的线连接块和卡片标题
 
-## 实现
+## Implementation
 
-### 参数
+### Props
 
 - `relation?: Relation`： 关系对象
 - `relationId?: RelationID`： 关系ID（与关系对象二选一）
@@ -21,14 +23,14 @@
 - `mode?: 'wrap_a_block' = 'wrap_a_block'`： 展示模式
 - `v-model:fold: boolean = true`：控制折叠状态（仅展示模式可折叠时生效）
 
-### 事件
+### Events
 
 - `click-block(block: Block)`：块被点击
 - `update:fold(fold: boolean)`：折叠状态更新
 - `relation-updated(relation: Relation)`：关系被更新
 - `relation-deleted(relationId: number)`：关系被删除
 
-## 实现细节
+## Notes
 
 - 组件支持通过 `relation` 或 `relationId` 参数传入关系数据
 - 当提供 `relationId` 时，组件会自动获取关系数据

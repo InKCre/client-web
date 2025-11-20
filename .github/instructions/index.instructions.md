@@ -15,24 +15,21 @@ applyTo: "**"
 
 - src/
   - types/
-  - api/
+  - business/
   - router/
   - stores/
+  - composables/
   - components/
-    - <compName>/
-      - <compName>.md
-      - <compName>.vue
-      - <compName>Types.ts
-      - <compName>.scss
   - views/
+  - utils/
   - App.vue
   - main.ts
 - docs/
 
 ## 标准
 
-- 界面风格与样式代码参考 `./style.instruction.md`
-- Vue 组件参考 `./vue-component.instruction.md`
+- 界面风格与样式代码参考 `./style.instructions.md`
+- Vue 组件参考 `./vue-component.instructions.md`
 
 ### TypeScript
 

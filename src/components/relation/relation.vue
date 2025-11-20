@@ -21,12 +21,8 @@
           <button @click="startEditing" class="relation-viewer__action-btn" title="编辑关系">
             ✏️
           </button>
-          <button
-            @click="deleteRelation"
-            class="relation-viewer__action-btn relation-viewer__action-btn--danger"
-            title="删除关系"
-            :disabled="deleting"
-          >
+          <button @click="deleteRelation" class="relation-viewer__action-btn relation-viewer__action-btn--danger"
+            title="删除关系" :disabled="deleting">
             {{ deleting ? '...' : '🗑️' }}
           </button>
           <button class="relation-viewer__action-btn" title="展开/折叠" @click="toggleFold">
@@ -37,14 +33,8 @@
 
       <!-- 编辑模式 -->
       <div v-if="isEditing" class="relation-viewer__edit-form">
-        <input
-          v-model="editContent"
-          @keydown.enter="saveEdit"
-          @keydown.escape="cancelEdit"
-          ref="editInput"
-          class="relation-viewer__edit-input"
-          placeholder="输入关系描述..."
-        />
+        <input v-model="editContent" @keydown.enter="saveEdit" @keydown.escape="cancelEdit" ref="editInput"
+          class="relation-viewer__edit-input" placeholder="输入关系描述..." />
         <div class="relation-viewer__edit-actions">
           <button @click="saveEdit" :disabled="saving" class="relation-viewer__edit-btn">
             {{ saving ? '保存中...' : '保存' }}
@@ -71,21 +61,12 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { api } from '@/api'
-import type { Relation } from '../../types/relations'
-import type { RelationViewerProps } from './relationViewerTypes'
-import BlockViewer from '../blockViewer/blockViewer.vue'
+import { relationProps, relationEmits } from './relation';
+import { Relation } from '@/business/relation';
+import BlockViewer from '../blockViewer/blockViewer.vue';
 
-const props = withDefaults(defineProps<RelationViewerProps>(), {
-  mode: 'wrap_a_block',
-  fold: true,
-})
-
-const emit = defineEmits<{
-  'update:fold': [fold: boolean]
-  'click-block': [block_id: number]
-  'relation-updated': [relation: Relation]
-  'relation-deleted': [relationId: number]
-}>()
+const props = defineProps(relationProps);
+const emit = defineEmits(relationEmits);
 
 // 内部状态
 const internalRelation = ref<Relation | null>(props.relation || null)

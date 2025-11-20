@@ -7,40 +7,79 @@ applyTo: "src/business/**"
 ## 文件结构
 
 - `src/business`
-  - `api.ts`: APIClient
+  - `base.ts`: CoreAPIClient, DBAPIClient
   - `block.ts`
   - `relation.ts`
+  - ... other business modules
 
 ## 最佳实践
 
-## 定义数据模型类
-
 - 继承 `Z.class(zod-schema)`，传入 Zod Schema。
-- 添加类型别名如 `type <XXX>Ref` 表示主键类型。
-- 添加常量 `const <XXX>Z =` 表示 Zod Schema。
-- 添加常量 `const <XXX>Prop =` 表示用于定义 Vue 组件属性时，type 字段的值
+- 添加类型别名如 `type <XXX>Ref` 以复用主键类型。
+- 添加常量 `const <XXX>Z` 表示 Zod Schema。
+- 添加常量 `make<XXX>Prop` 以便利定义 Vue 组件属性。
 - 通过常量保存复杂的 Zod Schema 以便复用。
 
 ```typescript
-export type LocationRef = string;
+// src/business/entity.ts
+export type EntityRef = string;
 
-export class Location extends Z.class(
+export class Entity extends Z.class(
   v.object({
-    address: v.array(v.string()),
-    friendly_address: v.string(),
-    lat: v.number(),
-    lng: v.number(),
-    _id: v.optional(v.string()),
+    id: DomainRef,
+    name: v.string(),
+    // ... other fields
   })
 ) {
-  // 类实现
+  // 在类中定义  `coreApi`, `dbApi` 静态属性，用于请求后端
+  static coreApi = new CoreAPIClient("entity");
+  static dbApi = new DBAPIClient("/entity");
+
+  public static async getById(id: EntityRef): Promise<Entity> {
+    return new Entity((await this.dbApi.select().eq("id", id)).data![0]);
+  }
+  // or
+  public static async getById(id: EntityRef): Promise<Entity> {
+    return new Entity(
+      (
+        await Entity.coreApi.requestHTTP({
+          method: "GET",
+          url: `/entity/${id}`,
+        })
+      ).data
+    );
+  }
+}
+
+export class EntityForm extends Z.class({
+  ...EntityZ.shape,
+  id: v.undefined(),
+}) {
+  public static async create(data: EntityForm): Promise<Entity> {
+    return new Entity(
+      (
+        await Entity.coreApi.requestHTTP({
+          method: "POST",
+          url: `/entity`,
+          data: data,
+        })
+      ).data
+    );
+  }
 }
 ```
 
-### 集成 APIClient
+组件中使用
 
-- 在类中定义 `api` （或者 `coreApi`, `dbApi`）静态属性，保存 `APIClient` 实例。
+```typescript
+// 定义组件 Props 时
 
-### 实现业务逻辑方法
+export const componentProps = defineProps({
+  entity: makeRelationProp(),
+  entityId: makeRelationRefProp(),
+  ...
+});
 
-- 实例方法处理对象级业务逻辑，如 `put`, `post`, `get` 等 。
+// 定义 ref 时
+const entity = ref<Entity | null>(null);
+```
