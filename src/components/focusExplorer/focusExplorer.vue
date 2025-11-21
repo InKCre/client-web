@@ -1,25 +1,12 @@
 <template>
   <div class="focus-explorer" :class="{ 'focus-explorer--negative-expanded': isNegativeExpanded }">
-    <div
-      class="focus-explorer__in-relations"
-      @mouseenter="onNegativeEnter"
-      @mouseleave="onNegativeLeave"
-    >
+    <div class="focus-explorer__in-relations" @mouseenter="onNegativeEnter" @mouseleave="onNegativeLeave">
       <div class="focus-explorer__relations-container">
-        <div
-          v-for="relation in incomingRelations"
-          :key="relation.id"
-          class="focus-explorer__relation-item"
-        >
-          <RelationViewer
-            :relation="relation"
-            whichBlock="from"
-            :fold="!expandedInRelationId || expandedInRelationId !== relation.id"
-            @relation-updated="onRelationUpdated"
-            @relation-deleted="onRelationDeleted"
-            @click-block="() => onRelationBlockClick(relation.from_)"
-            @update:fold="(fold) => onInRelationFoldChange(relation.id, fold)"
-          />
+        <div v-for="relation in incomingRelations" :key="relation.id" class="focus-explorer__relation-item">
+          <RelationViewer :relation="relation" whichBlock="from"
+            :fold="!expandedInRelationId || expandedInRelationId !== relation.id" @relation-updated="onRelationUpdated"
+            @relation-deleted="onRelationDeleted" @click-block="() => onRelationBlockClick(relation.from_)"
+            @update:fold="(fold) => onInRelationFoldChange(relation.id, fold)" />
         </div>
 
         <div class="focus-explorer__create-relation">
@@ -45,11 +32,8 @@
             </InkButton>
           </div>
           <div class="focus-explorer__toolbar-right">
-            <InkButton
-              class="focus-explorer__action-btn focus-explorer__action-btn--primary"
-              variant="primary"
-              @click="onSave"
-            >
+            <InkButton class="focus-explorer__action-btn focus-explorer__action-btn--primary" variant="primary"
+              @click="onSave">
               <span class="focus-explorer__btn-text">保存</span>
             </InkButton>
           </div>
@@ -58,20 +42,11 @@
 
       <div class="focus-explorer__out-relations">
         <div class="focus-explorer__relations-container">
-          <div
-            v-for="relation in relations"
-            :key="relation.id"
-            class="focus-explorer__relation-item"
-          >
-            <RelationViewer
-              :relation="relation"
-              whichBlock="to"
-              :fold="!expandedRelationId || expandedRelationId !== relation.id"
-              @relation-updated="onRelationUpdated"
-              @relation-deleted="onRelationDeleted"
-              @click-block="() => onRelationBlockClick(relation.to_)"
-              @update:fold="(fold) => onRelationFoldChange(relation.id, fold)"
-            />
+          <div v-for="relation in relations" :key="relation.id" class="focus-explorer__relation-item">
+            <RelationViewer :relation="relation" whichBlock="to"
+              :fold="!expandedRelationId || expandedRelationId !== relation.id" @relation-updated="onRelationUpdated"
+              @relation-deleted="onRelationDeleted" @click-block="() => onRelationBlockClick(relation.to_)"
+              @update:fold="(fold) => onRelationFoldChange(relation.id, fold)" />
           </div>
           <div class="focus-explorer__create-relation">
             <InkButton class="focus-explorer__create-btn" @click="onCreateRelation">
@@ -86,13 +61,12 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { api } from '@/api'
-import type { Relation } from '@/api'
+import { Relation } from '@/business/relation.ts'
 import BlockViewer from '../blockViewer/blockViewer.vue'
-import RelationViewer from '../relationViewer/relationViewer.vue'
+import RelationViewer from '../relation/relation.vue'
 import BlockEditor from '../blockEditor/blockEditor.vue'
 import InkButton from '../inkButton/inkButton.vue'
-import type { Block } from '../../types/blocks'
+import type { Block } from '@/types/blocks'
 import type { FocusExplorerProps } from './focusExplorerTypes.ts'
 
 const props = defineProps<FocusExplorerProps>()

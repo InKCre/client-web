@@ -1,12 +1,15 @@
 ---
-applyTo: '**/*.scss'
+applyTo: "**/*.scss, **/*.vue"
+description: "UI/UX 设计顶层指导"
 ---
 
-## 风格
+## 视觉风格
 
-类似Dieter Rams，极简单色（Monochrome Minimalism）+ 复古未来主义（Retro-Futuristic）。
+- Dieter Rams
+- 极简单色 (Monochrome Minimalism)
+- 复古未来主义 (Retro-Futuristic)
 
-### 设计哲学
+## 设计哲学
 
 - 极简主义：移除一切非必要元素，优先保持信息和功能的纯净
 - 功能优先：先满足功能逻辑，再进行视觉修饰
@@ -15,23 +18,7 @@ applyTo: '**/*.scss'
 - 复古未来感：结合单色简洁与点阵、等宽元素，兼顾科技感与人文温度
 - 诚实信息：不伪装功能，不夸张描述
 
-### 配色方案
+## 配色方案
 
 - 主色：黑，白，灰
 - 强调色：红色或青绿色用于关键提示与状态
-
-###
-
-## 样式代码
-
-### 使用 BEM
-
-其中，
-
-- B是Block，一般是一个根节点、容器
-- E是Element，是Block中的子节点
-- M是Element的不同状态、类型，被称为Modifier
-
-### 使用 SCSS
-
-- 适度使用嵌套（配合BEM风格），一般而言不要超过三层，且嵌套应当反映HTML结构关系

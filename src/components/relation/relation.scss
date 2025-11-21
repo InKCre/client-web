@@ -1,4 +1,4 @@
-@use '@/styles/main.scss' as *;
+@use "@/styles/main.scss" as *;
 
 /* BEM: block = relation-viewer */
 .relation-viewer {
@@ -52,13 +52,18 @@
 
   /* Hover animation */
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     right: 0;
     bottom: 0;
-    background: linear-gradient(90deg, transparent, var(--color-hover), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--color-hover),
+      transparent
+    );
     transition: all 0.5s ease;
   }
 
