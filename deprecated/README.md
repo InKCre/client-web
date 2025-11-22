@@ -1,1 +1,1 @@
-Do not reference code under `deprecated` unless user specified.
+Never reference code under `deprecated` unless user specified.

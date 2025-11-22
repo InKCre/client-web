@@ -60,7 +60,6 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted } from 'vue'
-import { api } from '@/api'
 import { relationProps, relationEmits } from './relation';
 import { Relation } from '@/business/relation';
 import BlockViewer from '../blockViewer/blockViewer.vue';
@@ -113,7 +112,7 @@ const fetchRelation = async () => {
   try {
     loading.value = true
     error.value = null
-    internalRelation.value = await api.relations.getRelation(props.relationId)
+    internalRelation.value = await Relation.get(props.relationId)
   } catch (err) {
     error.value = err instanceof Error ? err.message : '获取关系失败'
     console.error('获取关系失败:', err)
@@ -217,4 +216,4 @@ onMounted(() => {
 })
 </script>
 
-<style lang="scss" src="./relationViewer.scss" scoped></style>
+<style lang="scss" src="./relation.scss" scoped></style>

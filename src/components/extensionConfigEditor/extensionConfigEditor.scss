@@ -1,0 +1,172 @@
+@use "@/styles/main.scss" as *;
+
+/* BEM: block = extension-config-editor */
+.extension-config-editor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+
+  &--visible {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+.extension-config-editor__modal {
+  @include card-elevated;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  width: 90vw;
+  max-width: 600px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(20px);
+  transition: transform 0.2s ease;
+
+  .extension-config-editor--visible & {
+    transform: translateY(0);
+  }
+}
+
+.extension-config-editor__header {
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.extension-config-editor__title {
+  @include text-mono-caps;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.extension-config-editor__close-btn {
+  @include text-small-caps;
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--color-background-muted);
+    border-color: var(--color-primary-light);
+  }
+}
+
+.extension-config-editor__content {
+  flex: 1;
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.extension-config-editor__editor {
+  flex: 1;
+  min-height: 300px;
+  resize: none;
+  @include font-mono;
+  font-size: var(--font-size-sm);
+  padding: var(--space-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-background-soft);
+  color: var(--color-text);
+  line-height: 1.5;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary-light);
+  }
+
+  &--error {
+    border-color: var(--color-text);
+    background: var(--color-background-dark);
+  }
+}
+
+.extension-config-editor__error {
+  @include text-small-caps;
+  color: var(--color-text);
+  font-size: var(--font-size-xs);
+  margin-top: var(--space-sm);
+  padding: var(--space-sm);
+  background: var(--color-background-dark);
+  border: 1px solid var(--color-text-light);
+}
+
+.extension-config-editor__actions {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border-light);
+}
+
+.extension-config-editor__action-btn {
+  @include text-small-caps;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--color-background-muted);
+    border-color: var(--color-primary-light);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &--primary {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-background);
+
+    &:hover:not(:disabled) {
+      background: var(--color-primary-light);
+      border-color: var(--color-primary-light);
+    }
+  }
+
+  &--secondary {
+    margin-left: auto;
+  }
+}
+
+// 响应式设计
+@include mobile {
+  .extension-config-editor__modal {
+    width: 95vw;
+    max-height: 95vh;
+  }
+
+  .extension-config-editor__header,
+  .extension-config-editor__content {
+    padding: var(--space-md);
+  }
+
+  .extension-config-editor__actions {
+    flex-direction: column;
+  }
+}

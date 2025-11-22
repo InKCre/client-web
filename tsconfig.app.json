@@ -4,7 +4,8 @@
     "env.d.ts",
     "src/**/*",
     "src/**/*.vue",
-    "deprecated/api"
+    "deprecated/api",
+    "deprecated/startView.vue"
   ],
   "exclude": [
     "src/**/__tests__/*"

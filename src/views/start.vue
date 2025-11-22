@@ -1,141 +1,15 @@
 <template>
   <div class="workspace">
-    <!-- 错误显示 -->
-    <div v-if="hasError" class="workspace__error-bar">
-      {{ allErrors }}
-    </div>
-
-    <!-- 加载状态 -->
-    <div v-if="isLoading" class="workspace__loading-bar">
-      <span class="workspace__loading-icon">▢</span>
-      <span class="workspace__loading-text">LOADING...</span>
-    </div>
-
     <!-- 主要工作区域 -->
     <main class="workspace__main">
-      <!-- 块浏览网格 -->
-      <section class="workspace__blocks">
-        <header class="workspace__section-header">
-          <h2 class="workspace__section-title">RECENT_BLOCKS</h2>
-          <button
-            @click="refreshBlocks"
-            :disabled="blocks.loading.value"
-            class="workspace__action-btn"
-          >
-            {{ blocks.loading.value ? "LOADING..." : "REFRESH" }}
-          </button>
-        </header>
-
-        <div class="workspace__blocks-grid" ref="blocksGridRef">
-          <BlockViewer
-            v-for="block in blocks.blocks.value"
-            :key="block.id"
-            :block="block"
-            mode="preview"
-            :show-details="false"
-            @click="(blockId) => navigateToBlock(blockId)"
-            class="workspace__block-item"
-          />
-        </div>
-      </section>
 
       <!-- 控制面板 -->
       <aside class="workspace__control-panel">
-        <!-- 创建器 -->
-        <section class="workspace__section workspace__creator">
-          <h3 class="workspace__section-title">CREATE</h3>
-
-          <!-- 块创建器 -->
-          <div class="workspace__creator-block">
-            <h4 class="workspace__creator-title">NEW_BLOCK</h4>
-            <div class="workspace__creator-form">
-              <textarea
-                v-model="newBlockContent"
-                rows="3"
-                placeholder="ENTER_CONTENT..."
-                class="workspace__creator-input workspace__creator-input--textarea"
-              ></textarea>
-              <select
-                v-model="newBlockResolver"
-                class="workspace__creator-input workspace__creator-input--select"
-              >
-                <option value="text">TEXT</option>
-                <option value="url">URL</option>
-                <option value="image">IMAGE</option>
-              </select>
-              <button
-                @click="handleCreateBlock"
-                :disabled="!newBlockContent.trim()"
-                class="workspace__creator-btn"
-              >
-                CREATE
-              </button>
-            </div>
-          </div>
-
-          <!-- 关系创建器 -->
-          <div class="workspace__creator-relation">
-            <h4 class="workspace__creator-title">NEW_RELATION</h4>
-            <div class="workspace__creator-form">
-              <input
-                v-model="newRelation.from_"
-                type="number"
-                placeholder="FROM_ID"
-                class="workspace__creator-input"
-              />
-              <input
-                v-model="newRelation.to_"
-                type="number"
-                placeholder="TO_ID"
-                class="workspace__creator-input"
-              />
-              <input
-                v-model="newRelation.content"
-                placeholder="RELATION_CONTENT"
-                class="workspace__creator-input"
-              />
-              <button
-                @click="createNewRelation"
-                :disabled="!canCreateRelation"
-                class="workspace__creator-btn"
-              >
-                LINK
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <!-- 系统统计 -->
-        <section class="workspace__section workspace__stats">
-          <h3 class="workspace__section-title">SYSTEM</h3>
-          <div class="workspace__stats-grid">
-            <div class="workspace__stat-item">
-              <span class="workspace__stat-label">BLOCKS</span>
-              <span class="workspace__stat-value">{{
-                blocks.blocks.value.length
-              }}</span>
-            </div>
-            <div class="workspace__stat-item">
-              <span class="workspace__stat-label">RELATIONS</span>
-              <span class="workspace__stat-value">{{
-                relations.relations?.value?.length || 0
-              }}</span>
-            </div>
-            <div class="workspace__stat-item">
-              <span class="workspace__stat-label">UPDATED</span>
-              <span class="workspace__stat-value">{{ lastUpdateTime }}</span>
-            </div>
-          </div>
-        </section>
-
         <!-- 管理入口 -->
         <section class="workspace__section workspace__management">
           <h3 class="workspace__section-title">MANAGE</h3>
           <div class="workspace__management-actions">
-            <button
-              @click="navigateToExtensions"
-              class="workspace__action-btn workspace__action-btn--block"
-            >
+            <button @click="navigateToExtensions" class="workspace__action-btn workspace__action-btn--block">
               EXTENSIONS
             </button>
           </div>
@@ -148,23 +22,22 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
-import { useInKCreAPI } from "@/api";
 import BlockViewer from "@/components/blockViewer/blockViewer.vue";
+import { Block } from "@/business/block";
+import { usePromise } from "@/business/use";
+import { Relation } from "@/business/relation";
+import { anyTrue } from "@/utils/base";
 
 // 路由
 const router = useRouter();
 
-// 使用组合式API
-const { blocks, relations, isLoading, hasError, allErrors } = useInKCreAPI();
+const blocks = ref<Block[]>([]);
+// const { result: blocks, state: blocksState } = usePromise(Block.getAll, []);
+// const { result: relations, state: relationsState } = usePromise(Relation.getAll, []);
+// const isLoading = anyTrue(blocksState.loading, relationsState.loading);
+// const hasError = anyTrue(() => blocksState.hasError(), () => relationsState.hasError());
 
 // 本地状态
-const newBlockContent = ref("");
-const newBlockResolver = ref("text");
-const newRelation = ref({
-  from_: null as number | null,
-  to_: null as number | null,
-  content: "",
-});
 
 // 瀑布流相关
 // 布局状态
@@ -188,25 +61,9 @@ const throttledLayout = () => {
   }, 100);
 };
 
-// 计算属性
-const canCreateRelation = computed(() => {
-  return (
-    newRelation.value.from_ &&
-    newRelation.value.to_ &&
-    newRelation.value.content.trim() &&
-    newRelation.value.from_ !== newRelation.value.to_
-  );
-});
-
-const systemStatus = computed(() => {
-  if (hasError.value) return "ERROR";
-  if (isLoading.value) return "LOADING";
-  return "READY";
-});
-
 const lastUpdateTime = computed(() => {
-  if (blocks.blocks.value.length === 0) return "NO_DATA";
-  const latest = blocks.blocks.value[0];
+  if (blocks.value.length === 0) return "NO_DATA";
+  const latest = blocks.value[0];
   const date = new Date(latest.updated_at);
   return date.toLocaleTimeString("en-US", {
     hour12: false,
@@ -343,62 +200,13 @@ const navigateToExtensions = () => {
 
 const refreshBlocks = async () => {
   try {
-    await blocks.fetchRecentBlocks(20);
+    blocks.value = await Block.getRecent(20);
     gridLoaded.value = true;
     // 重新应用瀑布流布局
     await nextTick();
     setTimeout(applyMasonryLayout, 100);
   } catch (err) {
     console.error("刷新块失败:", err);
-  }
-};
-
-const handleCreateBlock = async () => {
-  if (!newBlockContent.value.trim()) return;
-
-  try {
-    const newBlock = await blocks.createBlock({
-      content: newBlockContent.value.trim(),
-      resolver: newBlockResolver.value,
-      storage: newBlockResolver.value === "url" ? "url" : null,
-    });
-
-    // 清空表单
-    newBlockContent.value = "";
-    newBlockResolver.value = "text";
-
-    // 重新布局
-    await nextTick();
-    setTimeout(applyMasonryLayout, 100);
-
-    // 跳转到新创建的块
-    navigateToBlock(newBlock.id);
-  } catch (err) {
-    console.error("创建块失败:", err);
-  }
-};
-
-const createNewRelation = async () => {
-  if (!canCreateRelation.value) return;
-
-  try {
-    const newRelationData = await relations.createRelation({
-      from_: newRelation.value.from_!,
-      to_: newRelation.value.to_!,
-      content: newRelation.value.content.trim(),
-    });
-
-    // 清空表单
-    newRelation.value = {
-      from_: null,
-      to_: null,
-      content: "",
-    };
-
-    // 提示成功创建
-    console.log("关系创建成功:", newRelationData);
-  } catch (err) {
-    console.error("创建关系失败:", err);
   }
 };
 
@@ -498,11 +306,6 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 @use "@/styles/main.scss" as *;
-
-/* BEM: block = workspace */
-.workspace {
-  @include font-mono;
-}
 
 .workspace__system-bar {
   @include card-flat;
@@ -681,6 +484,7 @@ onUnmounted(() => {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

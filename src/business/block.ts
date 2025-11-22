@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Z } from "zod-class";
-import { DBAPIClient, CoreAPIClient } from "./base";
+import { DBAPIClient, CoreAPIClient } from "./api";
 import { makeNumberProp, makeObjectProp } from "@/utils/vue-props";
 
 export type BlockRef = number;
@@ -27,6 +27,19 @@ export class Block extends Z.class({
 
   static async get(id: BlockRef): Promise<Block> {
     return new Block((await this.dbApi.select().eq("id", id)).data![0]);
+  }
+
+  static async getAll(): Promise<Block[]> {
+    return (await this.dbApi.select()).data!.map((d) => new Block(d));
+  }
+
+  static async getRecent(limit: number = 10): Promise<Block[]> {
+    return (
+      await this.dbApi
+        .select()
+        .order("updated_at", { ascending: false })
+        .limit(limit)
+    ).data!.map((d) => new Block(d));
   }
 
   public async update(): Promise<Block> {

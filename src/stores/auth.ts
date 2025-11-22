@@ -1,53 +1,52 @@
-import { defineStore } from 'pinia'
-import jwt from 'jsonwebtoken'
-import { CONFIG } from '../config'
+import { defineStore } from "pinia";
+import { SignJWT } from "jose";
+import { CONFIG } from "../config";
 
 interface AuthState {
-    token?: string
+  token?: string;
 }
 
-export const useAuthStore = defineStore('auth', {
-    state: (): AuthState => ({
-        token: undefined
-    }),
+export const useAuthStore = defineStore("auth", {
+  state: (): AuthState => ({
+    token: undefined,
+  }),
 
-    getters: {
-        getToken: (state): string | undefined => state.token,
+  actions: {
+    /**
+     * Sign a new JWT token using the JWT secret from config
+     */
+    async newToken(): Promise<string> {
+      if (!CONFIG.INKCRE_JWT_SECRET) {
+        throw new Error("JWT_SECRET not configured");
+      }
+
+      try {
+        // Create a new token with 24 hour expiration
+
+        const secret = new TextEncoder().encode(CONFIG.INKCRE_JWT_SECRET);
+        const token = await new SignJWT({
+          role: "authenticated",
+        })
+          .setProtectedHeader({ alg: "HS256" })
+          .setIssuedAt()
+          .setExpirationTime("24h")
+          .setIssuer("inkcre-client-web")
+          .setAudience("inkcre-client-web")
+          .sign(secret);
+
+        this.token = token;
+        return this.token;
+      } catch (error) {
+        console.error("Failed to sign a new token:", error);
+        throw new Error("Failed to sign a new token");
+      }
     },
 
-    actions: {
-        /**
-         * Sign a new JWT token using the JWT secret from config
-         */
-        newToken(): string {
-            if (!CONFIG.INKCRE_JWT_SECRET) {
-                throw new Error('JWT_SECRET not configured')
-            }
-
-            try {
-                // Create a new token with 24 hour expiration
-                const payload = {
-                    iat: Math.floor(Date.now() / 1000),
-                    exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 hours
-                    sub: 'user',
-                    iss: 'inkcre-client-web',
-                }
-
-                const token = jwt.sign(payload, CONFIG.INKCRE_JWT_SECRET)
-
-                this.token = token
-                return this.token
-            } catch (error) {
-                console.error('Failed to sign a new token:', error)
-                throw new Error('Failed to sign a new token')
-            }
-        },
-
-        getToken(): string {
-            if (!this.token) {
-                return this.newToken();
-            }
-            return this.token;
-        }
+    async getToken(): Promise<string> {
+      if (!this.token) {
+        return await this.newToken();
+      }
+      return this.token;
     },
-})
+  },
+});

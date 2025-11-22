@@ -1,15 +1,8 @@
 <template>
   <div class="block-editor">
     <div v-if="block" class="block-editor__editor-container">
-      <div
-        class="block-editor__content"
-        contenteditable
-        @input="onContentChange"
-        @blur="onContentBlur"
-        @keydown.meta.s.prevent="saveBlock"
-        @keydown.ctrl.s.prevent="saveBlock"
-        ref="contentEl"
-      >
+      <div class="block-editor__content" contenteditable @input="onContentChange" @blur="onContentBlur"
+        @keydown.meta.s.prevent="saveBlock" @keydown.ctrl.s.prevent="saveBlock" ref="contentEl">
         {{ localContent }}
       </div>
       <div class="block-editor__footer" v-if="block">
@@ -34,12 +27,12 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
-import { api } from '@/api'
+import { Block } from '@/business/block';
 import type { BlockEditorProps } from './blockEditorTypes'
 
 const props = defineProps<BlockEditorProps>()
 const emit = defineEmits<{
-  'block-updated': [block: import('@/api').Block]
+  'block-updated': [block: Block]
 }>()
 
 // 响应式数据
@@ -94,11 +87,12 @@ const saveBlock = async () => {
     saving.value = true
     error.value = null
 
-    const updatedBlock = await api.blocks.updateBlock(props.block.id, {
+    const block = Block.parse({
       id: props.block.id,
       updated_at: props.block.updated_at,
       content: localContent.value,
     })
+    const updatedBlock = await block.update()
 
     lastSaved.value = new Date().toISOString()
     emit('block-updated', updatedBlock)
