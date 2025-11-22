@@ -1,69 +1,77 @@
 @use "@/styles/index.scss" as *;
 
 .ink-button {
+  @include apply-typo("label-md");
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-xxs);
-  padding: var(--space-xs) var(--space-md);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: var(--color-background);
-  color: var(--color-text);
+  gap: fn.sys-var("space", "scale", "xxs");
+  padding: fn.sys-var("space", "scale", "xs") fn.sys-var("space", "scale", "md");
+  border-radius: fn.sys-var("space", "radius", "sm");
+  border: fn.sys-var("space", "border", "thin")
+    solid fn.sys-var("color", "surface", "border", "base");
+  background: fn.sys-var("color", "surface", "bg", "base");
+  color: fn.sys-var("color", "content", "text", "primary");
   cursor: pointer;
-  font: inherit;
   text-decoration: none;
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease,
     box-shadow 0.2s ease;
 
-  &:hover {
-    background: var(--color-background-dark);
+  &:hover:not(:disabled):not(.ink-button--disabled) {
+    background: fn.sys-var("color", "surface", "bg", "muted");
+    border-color: fn.sys-var("color", "surface", "border", "strong");
   }
 
   &--primary {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    color: white;
+    background: fn.sys-var("color", "action", "bg", "primary");
+    border-color: fn.sys-var("color", "action", "bg", "primary");
+    color: fn.sys-var("color", "action", "text", "primary");
 
     &:hover:not(:disabled):not(.ink-button--disabled) {
-      background: var(--color-primary-dark);
-      border-color: var(--color-primary-dark);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 25%, transparent);
+      background: fn.sys-var("color", "action", "state", "hover");
+      border-color: fn.sys-var("color", "action", "state", "active");
+      box-shadow: 0 0 0 3px
+        color-mix(in srgb, #{fn.sys-var("color", "action", "state", "focus")} 25%, transparent);
     }
   }
 
   &--danger {
-    background: var(--color-error-light);
-    border-color: var(--color-error);
-    color: var(--color-error-dark);
+    background: fn.sys-var("color", "action", "bg", "danger");
+    border-color: fn.sys-var("color", "action", "border", "danger");
+    color: fn.sys-var("color", "action", "text", "danger");
 
     &:hover:not(:disabled):not(.ink-button--disabled) {
-      background: var(--color-error);
-      color: white;
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-error) 20%, transparent);
+      background: color-mix(
+        in srgb,
+        #{fn.sys-var("color", "action", "bg", "danger")} 92%,
+        black
+      );
+      border-color: fn.sys-var("color", "action", "state", "active");
+      box-shadow: 0 0 0 3px
+        color-mix(in srgb, #{fn.sys-var("color", "feedback", "text", "danger")} 20%, transparent);
+      color: fn.sys-var("color", "feedback", "text", "danger");
     }
   }
 
   &--ghost {
     background: transparent;
     border-color: transparent;
-    color: var(--color-text-muted);
+    color: fn.sys-var("color", "content", "text", "secondary");
 
     &:hover:not(:disabled):not(.ink-button--disabled) {
-      background: var(--color-background-dark);
-      color: var(--color-text);
-      border-color: var(--color-border);
+      background: fn.sys-var("color", "surface", "bg", "muted");
+      color: fn.sys-var("color", "content", "text", "primary");
+      border-color: fn.sys-var("color", "surface", "border", "base");
     }
   }
 
   &--sm {
-    padding: var(--space-xxs) var(--space-sm);
-    font-size: var(--font-size-sm);
+    @include apply-typo("label-sm");
+    padding: fn.sys-var("space", "scale", "xxs") fn.sys-var("space", "scale", "sm");
   }
 
   &--md {
-    padding: var(--space-xs) var(--space-md);
-    font-size: var(--font-size-base);
+    padding: fn.sys-var("space", "scale", "xs") fn.sys-var("space", "scale", "md");
   }
 
   &--block {
@@ -73,7 +81,7 @@
   &:disabled,
   &--disabled {
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: fn.sys-var("opacity", "muted");
     box-shadow: none;
   }
 }
