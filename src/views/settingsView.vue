@@ -9,17 +9,12 @@
         <section class="settings-view__section">
           <h3 class="settings-view__section-title">{{ t('settings.languageLabel') }}</h3>
           <p class="settings-view__section-description">{{ t('settings.languageDescription') }}</p>
-          
+
           <div class="settings-view__language-selector">
-            <button
-              v-for="locale in supportedLocales"
-              :key="locale.value"
-              @click="changeLanguage(locale.value)"
-              :class="[
-                'settings-view__language-btn',
-                { 'settings-view__language-btn--active': currentLocale === locale.value }
-              ]"
-            >
+            <button v-for="locale in supportedLocales" :key="locale.value" @click="changeLanguage(locale.value)" :class="[
+              'settings-view__language-btn',
+              { 'settings-view__language-btn--active': currentLocale === locale.value }
+            ]">
               {{ locale.label }}
             </button>
           </div>
@@ -32,13 +27,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { setLocale, SUPPORT_LOCALES, LOCALE_NAMES, type SupportLocale } from '@/i18n'
+import { setLocale, SUPPORT_LOCALES, LOCALE_NAMES, type SupportLocale } from '@/locales'
 
 const { t, locale } = useI18n()
 
 const currentLocale = computed(() => locale.value)
 
-const supportedLocales = computed(() => 
+const supportedLocales = computed(() =>
   SUPPORT_LOCALES.map(value => ({
     value,
     label: LOCALE_NAMES[value]

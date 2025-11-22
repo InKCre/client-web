@@ -1,27 +1,26 @@
-import { createApp } from 'vue'
-import { createInstance } from '@module-federation/runtime'
+import { createApp } from "vue";
+import { createInstance } from "@module-federation/runtime";
 
-import App from './App.vue'
-import router from './router'
-import VueKonva from 'vue-konva'
-import i18n from './i18n'
+import App from "./App.vue";
+import router from "./router";
+import VueKonva from "vue-konva";
+import i18n from "./locales";
 
 // 导入全局样式
-import '@/styles/main.scss'
-import store from './stores'
+import "@/styles/main.scss";
+import store from "./stores";
 
-const app = createApp(App)
+const app = createApp(App);
 
-app.use(VueKonva)
-app.use(i18n)
+app.use(VueKonva);
+app.use(i18n);
 
-app.use(store)
-app.use(router)
+app.use(store);
+app.use(router);
 
 createInstance({
-    name: 'host',
-    remotes: [
-    ],
+  name: "host",
+  remotes: [],
 });
 
-app.mount('#app');
+app.mount("#app");
