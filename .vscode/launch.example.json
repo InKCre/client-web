@@ -1,0 +1,14 @@
+{
+  "configurations": [
+    {
+      "name": "Dev(Attach)",
+      "type": "chrome",
+      "request": "launch",
+      "runtimeExecutable": "Your/Path/To/Chrome.exe",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/src",
+      "preLaunchTask": "start dev server",
+      "postDebugTask": "stop dev server"
+    }
+  ]
+}

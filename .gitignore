@@ -20,6 +20,9 @@ coverage
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/*.code-snippets
 .idea
 *.suo
 *.ntvs*
@@ -32,4 +35,4 @@ pnpm-lock.yaml
 .__mf__temp
 
 # env files
-.env
+.env 

@@ -1,0 +1,38 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "start dev server",
+            "type": "shell",
+            "command": "pnpm run dev",
+            "isBackground": true,
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": {
+                "owner": "custom",
+                "pattern": {
+                    "regexp": ".",
+                    "file": 1,
+                    "location": 2,
+                    "message": 3
+                },
+                // ⚠️ 关键：告诉 VSCode dev server ready 了
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "starting dev server",
+                    "endsPattern": "Local:"
+                }
+            }
+        },
+        {
+            "label": "stop dev server",
+            "command": "echo killing",
+            "type": "shell",
+            "problemMatcher": [],
+            "runOptions": {
+                "terminateOnIdle": true
+            }
+        }
+    ]
+}
