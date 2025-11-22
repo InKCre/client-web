@@ -46,11 +46,12 @@ const changeLanguage = async (newLocale: SupportLocale) => {
 
 <style lang="scss" scoped>
 @use '@/styles/index.scss' as *;
+@use '@/styles/abstract/functions' as fn;
 
 .settings-view {
   min-height: calc(100vh - 80px);
-  background: var(--color-background);
-  padding: var(--space-xl);
+  background: fn.sys-var('color', 'surface', 'bg', 'base');
+  padding: fn.sys-var('space', 'scale', 'xl');
 }
 
 .settings-view__container {
@@ -61,69 +62,69 @@ const changeLanguage = async (newLocale: SupportLocale) => {
 .settings-view__main {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xl);
-  margin-top: var(--space-2xl);
+  gap: fn.sys-var('space', 'scale', 'xl');
+  margin-top: fn.sys-var('space', 'scale', '2xl');
 }
 
 .settings-view__section {
   @include card-flat;
-  border: 1px solid var(--color-border);
-  background: var(--color-background);
-  padding: var(--space-lg);
+  border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
+  background: fn.sys-var('color', 'surface', 'bg', 'base');
+  padding: fn.sys-var('space', 'scale', 'lg');
 }
 
 .settings-view__section-title {
   @include text-mono-caps;
-  font-size: var(--font-size-lg);
+  font-size: fn.sys-var('type', 'title-sm', 'size');
   font-weight: 600;
-  color: var(--color-text);
-  margin: 0 0 var(--space-sm) 0;
+  color: fn.sys-var('color', 'content', 'text', 'primary');
+  margin: 0 0 fn.sys-var('space', 'scale', 'sm') 0;
 }
 
 .settings-view__section-description {
   @include text-small-caps;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  margin: 0 0 var(--space-lg) 0;
+  color: fn.sys-var('color', 'content', 'text', 'muted');
+  font-size: fn.sys-var('type', 'body-sm', 'size');
+  margin: 0 0 fn.sys-var('space', 'scale', 'lg') 0;
 }
 
 .settings-view__language-selector {
   display: flex;
-  gap: var(--space-md);
+  gap: fn.sys-var('space', 'scale', 'md');
   flex-wrap: wrap;
 }
 
 .settings-view__language-btn {
   @include text-small-caps;
-  padding: var(--space-md) var(--space-lg);
-  border: 1px solid var(--color-border);
-  background: var(--color-background);
-  color: var(--color-text);
+  padding: fn.sys-var('space', 'scale', 'md') fn.sys-var('space', 'scale', 'lg');
+  border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
+  background: fn.sys-var('color', 'surface', 'bg', 'base');
+  color: fn.sys-var('color', 'content', 'text', 'primary');
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 120px;
 
   &:hover {
-    background: var(--color-background-muted);
-    border-color: var(--color-primary-light);
+    background: fn.sys-var('color', 'surface', 'bg', 'raised');
+    border-color: fn.sys-var('color', 'action', 'state', 'hover');
   }
 
   &--active {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    color: var(--color-background);
+    background: fn.sys-var('color', 'action', 'bg', 'primary');
+    border-color: fn.sys-var('color', 'action', 'bg', 'primary');
+    color: fn.sys-var('color', 'surface', 'bg', 'base');
     font-weight: 600;
 
     &:hover {
-      background: var(--color-primary-light);
-      border-color: var(--color-primary-light);
+      background: fn.sys-var('color', 'action', 'state', 'hover');
+      border-color: fn.sys-var('color', 'action', 'state', 'hover');
     }
   }
 }
 
 @include mobile {
   .settings-view {
-    padding: var(--space-lg);
+    padding: fn.sys-var('space', 'scale', 'lg');
   }
 
   .settings-view__language-selector {

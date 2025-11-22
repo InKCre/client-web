@@ -199,11 +199,12 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 @use "@/styles/index.scss" as *;
+@use "@/styles/abstract/functions" as fn;
 
 /* BEM: block = extensions-view */
 .extensions-view {
     min-height: 100vh;
-    background: var(--color-background);
+    background: fn.sys-var('color', 'surface', 'bg', 'base');
     @include font-mono;
 }
 
@@ -211,81 +212,81 @@ onMounted(async () => {
 
 .extensions-view__error {
     @include card-flat;
-    background: var(--color-background-dark);
-    color: var(--color-text);
-    padding: var(--space-md) var(--space-xl);
-    border-bottom: 1px solid var(--color-border);
+    background: fn.sys-var('color', 'surface', 'bg', 'strong');
+    color: fn.sys-var('color', 'content', 'text', 'primary');
+    padding: fn.sys-var('space', 'scale', 'md') fn.sys-var('space', 'scale', 'xl');
+    border-bottom: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
     text-align: center;
     @include text-small-caps;
 }
 
 .extensions-view__loading {
     @include card-flat;
-    padding: var(--space-xl);
+    padding: fn.sys-var('space', 'scale', 'xl');
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--space-md);
-    background: var(--color-background-soft);
+    gap: fn.sys-var('space', 'scale', 'md');
+    background: fn.sys-var('color', 'surface', 'bg', 'muted');
 
     .extensions-view__loading-icon {
-        font-size: var(--font-size-xl);
+        font-size: fn.sys-var('type', 'display-sm', 'size');
         animation: pulse 2s infinite;
     }
 
     .extensions-view__loading-text {
         @include text-small-caps;
-        color: var(--color-text-muted);
+        color: fn.sys-var('color', 'content', 'text', 'muted');
     }
 }
 
 .extensions-view__content {
-    padding: var(--space-xl);
+    padding: fn.sys-var('space', 'scale', 'xl');
     display: flex;
     flex-direction: column;
-    gap: var(--space-xl);
+    gap: fn.sys-var('space', 'scale', 'xl');
     max-width: 1200px;
     margin: 0 auto;
 }
 
 .extensions-view__section {
     @include card-flat;
-    border: 1px solid var(--color-border);
-    background: var(--color-background);
-    padding: var(--space-lg);
+    border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
+    background: fn.sys-var('color', 'surface', 'bg', 'base');
+    padding: fn.sys-var('space', 'scale', 'lg');
 }
 
 .extensions-view__section-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: var(--space-lg);
+    margin-bottom: fn.sys-var('space', 'scale', 'lg');
 }
 
 .extensions-view__section-title {
     @include text-mono-caps;
-    font-size: var(--font-size-lg);
+    font-size: fn.sys-var('type', 'title-sm', 'size');
     font-weight: 600;
-    color: var(--color-text);
-    margin: 0 0 var(--space-lg) 0;
+    color: fn.sys-var('color', 'content', 'text', 'primary');
+    margin: 0 0 fn.sys-var('space', 'scale', 'lg') 0;
 }
 
 .extensions-view__refresh-btn {
     @include text-small-caps;
-    padding: var(--space-sm) var(--space-md);
-    border: 1px solid var(--color-border);
-    background: var(--color-background);
-    color: var(--color-text);
+    padding: fn.sys-var('space', 'scale', 'sm') fn.sys-var('space', 'scale', 'md');
+    border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
+    background: fn.sys-var('color', 'surface', 'bg', 'base');
+    color: fn.sys-var('color', 'content', 'text', 'primary');
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover:not(:disabled) {
-        background: var(--color-background-muted);
-        border-color: var(--color-primary-light);
+        background: fn.sys-var('color', 'surface', 'bg', 'raised');
+        border-color: fn.sys-var('color', 'action', 'state', 'hover');
     }
 
     &:disabled {
-        opacity: 0.5;
+        opacity: fn.sys-var('opacity', 'muted');
         cursor: not-allowed;
     }
 }
@@ -293,36 +294,36 @@ onMounted(async () => {
 .extensions-view__install-form {
     display: flex;
     flex-direction: column;
-    gap: var(--space-md);
+    gap: fn.sys-var('space', 'scale', 'md');
 }
 
 .extensions-view__form-row {
     display: flex;
-    gap: var(--space-md);
+    gap: fn.sys-var('space', 'scale', 'md');
     align-items: center;
 }
 
 .extensions-view__input {
     @include font-mono;
-    padding: var(--space-sm);
-    border: 1px solid var(--color-border);
-    background: var(--color-background-soft);
-    color: var(--color-text);
-    font-size: var(--font-size-sm);
+    padding: fn.sys-var('space', 'scale', 'sm');
+    border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
+    background: fn.sys-var('color', 'surface', 'bg', 'muted');
+    color: fn.sys-var('color', 'content', 'text', 'primary');
+    font-size: fn.sys-var('type', 'body-sm', 'size');
     flex: 1;
 
     &::placeholder {
-        color: var(--color-text-light);
+        color: fn.sys-var('color', 'content', 'text', 'subtle');
         @include text-small-caps;
     }
 
     &:focus {
         outline: none;
-        border-color: var(--color-primary-light);
+        border-color: fn.sys-var('color', 'action', 'state', 'hover');
     }
 
     &:disabled {
-        opacity: 0.5;
+        opacity: fn.sys-var('opacity', 'muted');
         cursor: not-allowed;
     }
 }
@@ -330,7 +331,7 @@ onMounted(async () => {
 .extensions-view__checkbox-label {
     display: flex;
     align-items: center;
-    gap: var(--space-sm);
+    gap: fn.sys-var('space', 'scale', 'sm');
     cursor: pointer;
 }
 
@@ -340,43 +341,43 @@ onMounted(async () => {
 
 .extensions-view__checkbox-text {
     @include text-small-caps;
-    color: var(--color-text-muted);
-    font-size: var(--font-size-sm);
+    color: fn.sys-var('color', 'content', 'text', 'muted');
+    font-size: fn.sys-var('type', 'body-sm', 'size');
 }
 
 .extensions-view__install-btn {
     @include text-small-caps;
-    padding: var(--space-sm) var(--space-lg);
-    border: 1px solid var(--color-primary);
-    background: var(--color-primary);
-    color: var(--color-background);
+    padding: fn.sys-var('space', 'scale', 'sm') fn.sys-var('space', 'scale', 'lg');
+    border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'action', 'bg', 'primary');
+    background: fn.sys-var('color', 'action', 'bg', 'primary');
+    color: fn.sys-var('color', 'surface', 'bg', 'base');
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover:not(:disabled) {
-        background: var(--color-primary-light);
-        border-color: var(--color-primary-light);
+        background: fn.sys-var('color', 'action', 'state', 'hover');
+        border-color: fn.sys-var('color', 'action', 'state', 'hover');
     }
 
     &:disabled {
-        opacity: 0.5;
+        opacity: fn.sys-var('opacity', 'muted');
         cursor: not-allowed;
     }
 }
 
 .extensions-view__empty {
     @include text-small-caps;
-    color: var(--color-text-muted);
+    color: fn.sys-var('color', 'content', 'text', 'muted');
     text-align: center;
-    padding: var(--space-xl);
-    background: var(--color-background-soft);
-    border: 1px solid var(--color-border-light);
+    padding: fn.sys-var('space', 'scale', 'xl');
+    background: fn.sys-var('color', 'surface', 'bg', 'muted');
+    border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'subtle');
 }
 
 .extensions-view__extensions-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: var(--space-lg);
+    gap: fn.sys-var('space', 'scale', 'lg');
 }
 
 .extensions-view__extension-card {
@@ -391,11 +392,11 @@ onMounted(async () => {
 @include mobile {
 
     .extensions-view__content {
-        padding: var(--space-md);
+        padding: fn.sys-var('space', 'scale', 'md');
     }
 
     .extensions-view__section {
-        padding: var(--space-md);
+        padding: fn.sys-var('space', 'scale', 'md');
     }
 
     .extensions-view__form-row {
@@ -409,7 +410,7 @@ onMounted(async () => {
 
     .extensions-view__section-header {
         flex-direction: column;
-        gap: var(--space-sm);
+        gap: fn.sys-var('space', 'scale', 'sm');
         align-items: stretch;
     }
 }
@@ -428,7 +429,7 @@ onMounted(async () => {
     }
 
     50% {
-        opacity: 0.5;
+        opacity: fn.sys-var('opacity', 'muted');
     }
 }
 </style>
