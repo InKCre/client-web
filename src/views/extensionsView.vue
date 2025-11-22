@@ -75,7 +75,7 @@ import { ref, onMounted } from "vue";
 import { Extension, ExtensionForm } from "@/business/extension";
 import ExtensionCard from "@/components/extensionCard/extensionCard.vue";
 import ExtensionConfigEditor from "@/components/extensionConfigEditor/extensionConfigEditor.vue";
-import InkHeader from "@/components/inkHeader/inkHeader.vue";
+import InkHeader from "@/components/common/inkHeader/inkHeader.vue";
 
 // Local State
 const extensions = ref<Extension[]>([]);

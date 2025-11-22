@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import InkHeader from './components/inkHeader/inkHeader.vue'
+import InkHeader from './components/common/inkHeader/inkHeader.vue'
 </script>
 
 <template>

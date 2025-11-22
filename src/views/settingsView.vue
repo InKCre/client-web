@@ -26,7 +26,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { setLocale, SUPPORT_LOCALES, LOCALE_NAMES, type SupportLocale } from '@/locales'
-import InkHeader from '@/components/inkHeader/inkHeader.vue'
+import InkHeader from '@/components/common/inkHeader/inkHeader.vue'
 
 const { t, locale } = useI18n()
 
