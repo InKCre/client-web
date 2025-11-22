@@ -39,13 +39,13 @@
               <span class="workspace__stat-label">BLOCKS</span>
               <span class="workspace__stat-value">{{
                 blocks?.length || 0
-              }}</span>
+                }}</span>
             </div>
             <div class="workspace__stat-item">
               <span class="workspace__stat-label">RELATIONS</span>
               <span class="workspace__stat-value">{{
                 relations?.length || 0
-              }}</span>
+                }}</span>
             </div>
             <div class="workspace__stat-item">
               <span class="workspace__stat-label">UPDATED</span>
@@ -236,15 +236,6 @@ const setupContentObservers = (items: HTMLElement[]) => {
       }
     });
   });
-};
-
-// 方法
-const navigateToBlock = (blockId: number) => {
-  router.push({ name: "FocusExplorer", params: { blockId } });
-};
-
-const navigateToExtensions = () => {
-  router.push({ name: "Extensions" });
 };
 
 const refreshBlocks = async () => {

@@ -5,7 +5,9 @@
     "src/**/*",
     "src/**/*.vue",
     "deprecated/api",
-    "deprecated/startView.vue"
+    "deprecated/startView.vue",
+    "deprecated/focusExplorer",
+    "deprecated/focusExplorerView.vue"
   ],
   "exclude": [
     "src/**/__tests__/*"

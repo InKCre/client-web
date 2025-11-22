@@ -1,13 +1,9 @@
 <template>
-  <FocusExplorer
-    class="focus-explorer-view"
-    :block-id="blockId"
-    @update:block-id="onBlockIdUpdate"
-  />
+  <FocusExplorer class="focus-explorer-view" :block-id="blockId" @update:block-id="onBlockIdUpdate" />
 </template>
 
 <script setup lang="ts">
-import FocusExplorer from '@/components/focusExplorer/focusExplorer.vue'
+import FocusExplorer from '../../deprecated/focusExplorer/focusExplorer.vue'
 import router from '@/router'
 
 // Props

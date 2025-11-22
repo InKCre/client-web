@@ -20,8 +20,8 @@ coverage
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-!.vscode/launch.json
-!.vscode/tasks.json
+!.vscode/launch.example.json
+!.vscode/tasks.example.json
 !.vscode/*.code-snippets
 .idea
 *.suo
@@ -36,3 +36,6 @@ pnpm-lock.yaml
 
 # env files
 .env 
+
+# Browser profile
+.browser-profile/*

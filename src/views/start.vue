@@ -312,7 +312,7 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@use "@/styles/main.scss" as *;
+@use "@/styles/index.scss" as *;
 
 .workspace__system-bar {
   @include card-flat;

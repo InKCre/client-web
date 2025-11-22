@@ -1,6 +1,8 @@
 {
   "recommendations": [
     "Vue.volar",
-    "esbenp.prettier-vscode"
+    "esbenp.prettier-vscode",
+    "mrmlnc.vscode-scss",
+    "lokalise.i18n-ally"
   ]
 }

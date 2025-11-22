@@ -198,7 +198,7 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
-@use "@/styles/main.scss" as *;
+@use "@/styles/index.scss" as *;
 
 /* BEM: block = extensions-view */
 .extensions-view {

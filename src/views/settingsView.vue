@@ -45,7 +45,7 @@ const changeLanguage = async (newLocale: SupportLocale) => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/styles/main.scss' as *;
+@use '@/styles/index.scss' as *;
 
 .settings-view {
   min-height: calc(100vh - 80px);

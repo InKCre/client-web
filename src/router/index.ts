@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
 import StartView from "@/views/start.vue";
-import FocusExplorerView from "@/views/focusExplorerView.vue";
 import ExtensionsView from "@/views/extensionsView.vue";
 import SettingsView from "@/views/settingsView.vue";
 
@@ -11,12 +10,6 @@ const router = createRouter({
       path: "/",
       name: "Home",
       component: StartView,
-    },
-    {
-      path: "/focus/:blockId",
-      name: "FocusExplorer",
-      component: FocusExplorerView,
-      props: (route) => ({ blockId: Number(route.params.blockId) }),
     },
     {
       path: "/extensions",
