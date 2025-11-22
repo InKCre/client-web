@@ -127,10 +127,11 @@ design-system/
 ├── src/  
 │ ├── scss/  
 │ │ ├── abstract/  
-│ │ │ ├── \_variables.scss (Generated CSS Vars)  
-│ │ │ ├── \_tokens.scss (Generated Deep Maps)  
-│ │ │ ├── \_functions.scss (Accessors)  
-│ │ │ └── \_mixins.scss  
+│ │ │ ├── \_variables.scss (Generated CSS Vars)
+│ │ │ ├── \_ref.scss (Generated Reference Maps)
+│ │ │ ├── \_semantic.scss (Generated Semantic Maps)
+│ │ │ ├── \_functions.scss (Accessors)
+│ │ │ └── \_mixins.scss
 │ │ └── components/  
 │ └──...
 
@@ -227,7 +228,7 @@ JSON
 
 ### **5.2 SCSS Map 的深度利用**
 
-为了在 SCSS 中优雅地使用这些复合令牌，我们需要构建系统输出一个“深度 Map”（Deep Map）到 \_tokens.scss 文件中。Style Dictionary 的 scss/map-deep 格式可以完美保留 JSON 的层级结构 21。
+为了在 SCSS 中优雅地使用这些复合令牌，我们需要构建系统输出“深度 Map”（Deep Map），将参考层写入 \_ref.scss，将语义层写入 \_semantic.scss。Style Dictionary 的 scss/map-deep 格式可以完美保留 JSON 的层级结构 21。
 
 **生成的 SCSS Map:**
 

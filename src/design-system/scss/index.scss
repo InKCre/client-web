@@ -1,25 +1,26 @@
 @use 'sass:map';
-@use './abstract/tokens' as tokens;
+@use './abstract/ref';
+@use './abstract/semantic' as semantic;
 @use './abstract/functions' as fn;
 @use './mixins' as *;
 
 // Emit reference tokens as CSS variables for cross-layer consumption
 :root {
   color-scheme: light;
-  @include fn.emit-css-variables(tokens.$ref-tokens, 'ref');
-  @include fn.emit-css-variables(map.get(tokens.$semantic-tokens, 'light'));
+  @include fn.emit-css-variables(ref.$ref-tokens, 'ref');
+  @include fn.emit-css-variables(map.get(semantic.$semantic-tokens, 'light'));
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    @include fn.emit-css-variables(map.get(tokens.$semantic-tokens, 'dark'));
+    @include fn.emit-css-variables(map.get(semantic.$semantic-tokens, 'dark'));
   }
 }
 
 // Component token registration for future component-scoped overrides
 :root {
-  @include fn.emit-css-variables(tokens.$component-tokens, 'comp');
+  @include fn.emit-css-variables(semantic.$component-tokens, 'comp');
 }
 
 * {

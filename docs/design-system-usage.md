@@ -3,9 +3,9 @@
 This guide summarizes how to consume the design system that implements the CTI+S design token model described in `docs/Design Token 管理方案设计.md`. It focuses on day-to-day usage rather than implementation details.
 
 ## Token layers and source files
-- **Reference tokens** live in `src/design-system/scss/abstract/_tokens.scss` as `$ref-tokens` and expose raw values (palette, spacing, typography, elevation, layout).
-- **Semantic system tokens** are defined in the same file as `$semantic-tokens`, producing `--sys-` CSS variables for light and dark themes.
-- **Component tokens** are registered in `src/design-system/scss/abstract/_tokens.scss` as `$component-tokens` and emitted as `--comp-` variables for component-level overrides.
+- **Reference tokens** live in `src/design-system/scss/abstract/_ref.scss` as `$ref-tokens` and expose raw values (palette, spacing, typography, elevation, layout).
+- **Semantic system tokens** reside in `src/design-system/scss/abstract/_semantic.scss` as `$semantic-tokens`, producing `--sys-` CSS variables for light and dark themes.
+- **Component tokens** are registered alongside the semantic map in `src/design-system/scss/abstract/_semantic.scss` as `$component-tokens` and emitted as `--comp-` variables for component-level overrides.
 
 The entry file `src/design-system/scss/index.scss` emits all CSS custom properties and sets up defaults such as `color-scheme`.
 
