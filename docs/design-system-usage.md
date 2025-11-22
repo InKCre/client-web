@@ -7,7 +7,7 @@ This guide summarizes how to consume the design system that implements the CTI+S
 - **Semantic system tokens** are defined in the same file as `$semantic-tokens`, producing `--sys-` CSS variables for light and dark themes.
 - **Component tokens** are registered in `src/design-system/scss/abstract/_tokens.scss` as `$component-tokens` and emitted as `--comp-` variables for component-level overrides.
 
-The entry file `src/design-system/scss/index.scss` emits all CSS custom properties and sets up defaults such as `color-scheme`. Legacy variable aliases remain available for components that have not migrated yet.
+The entry file `src/design-system/scss/index.scss` emits all CSS custom properties and sets up defaults such as `color-scheme`.
 
 ## Consuming tokens in SCSS
 1. Import the shared entry once globally (already done in `src/main.ts` via `@/styles/main.scss`).
@@ -28,5 +28,5 @@ Keep overrides semantic: prefer system tokens over raw reference values so theme
 - If you need component-specific overrides, register them under `$component-tokens` so they are emitted as `--comp-...` variables and reference them with `fn.comp-var`.
 
 ## Migration notes
-- Legacy CSS variable aliases remain available (e.g., `--color-primary`, `--color-text`) to ease incremental adoption. New work should rely on `--sys-...` or `fn.sys-var` paths to avoid future breaking changes.
+- Align new work to `--sys-...` variables or helper functions (`fn.sys-var`) to avoid future breaking changes.
 - Avoid importing old styling utilities; the SCSS entry and UnoCSS theme are now the single sources of truth for design tokens.

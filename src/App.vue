@@ -36,7 +36,7 @@
     var(--sys-color-surface-bg-muted) 100%
   );
   border-bottom: 1px solid var(--sys-color-surface-border-strong);
-  z-index: var(--z-fixed);
+  z-index: var(--ref-layout-layer-fixed);
 }
 
 .brand {
@@ -56,7 +56,7 @@
   font-size: var(--sys-type-display-sm-size);
   font-weight: var(--sys-type-display-sm-weight);
   color: var(--sys-color-content-text-primary);
-  letter-spacing: var(--letter-spacing-widest);
+  letter-spacing: var(--sys-type-label-sm-letter);
   text-transform: uppercase;
 }
 
