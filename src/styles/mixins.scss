@@ -1,0 +1,90 @@
+@use 'sass:map';
+@use './abstract/ref' as ref;
+@use './abstract/functions' as fn;
+
+// Typography helpers
+@mixin apply-text-style($token) {
+  font-family: fn.sys-var('type', $token, 'family');
+  font-size: fn.sys-var('type', $token, 'size');
+  font-weight: fn.sys-var('type', $token, 'weight');
+  line-height: fn.sys-var('type', $token, 'line-height');
+  letter-spacing: fn.sys-var('type', $token, 'letter');
+}
+
+@mixin font-mono {
+  font-family: fn.sys-var('type', 'code', 'family');
+}
+
+@mixin font-system {
+  font-family: fn.sys-var('type', 'body-md', 'family');
+}
+
+// Text utility mixes that lean on typography tokens
+@mixin text-small-caps {
+  @include apply-text-style('label-sm');
+  text-transform: uppercase;
+}
+
+@mixin text-mono-caps {
+  @include font-mono;
+  text-transform: uppercase;
+  letter-spacing: fn.sys-var('type', 'label-sm', 'letter');
+  font-weight: fn.sys-var('type', 'label-sm', 'weight');
+}
+
+@mixin text-uppercase-spaced {
+  text-transform: uppercase;
+  letter-spacing: fn.sys-var('type', 'label-sm', 'letter');
+}
+
+// Layout helpers
+@mixin surface-card {
+  background: fn.sys-var('color', 'surface', 'bg', 'raised');
+  border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'strong');
+  border-radius: fn.sys-var('space', 'radius', 'md');
+  box-shadow: fn.sys-var('elevation', 'mid');
+  color: fn.sys-var('color', 'content', 'text', 'primary');
+}
+
+@mixin button-primitive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: fn.sys-var('space', 'scale', 'xs');
+  padding: fn.sys-var('space', 'scale', 'xs') fn.sys-var('space', 'scale', 'lg');
+  border-radius: fn.sys-var('space', 'radius', 'sm');
+  border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'strong');
+  background: fn.sys-var('color', 'action', 'bg', 'primary');
+  color: fn.sys-var('color', 'content', 'text', 'primary');
+  font-weight: fn.sys-var('type', 'title-sm', 'weight');
+  cursor: pointer;
+  transition: background 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+
+  &:hover {
+    background: fn.sys-var('color', 'action', 'state', 'hover');
+    box-shadow: fn.sys-var('elevation', 'mid');
+  }
+
+  &:active {
+    background: fn.sys-var('color', 'action', 'state', 'active');
+  }
+}
+
+// Responsive helpers built from reference breakpoints
+@mixin mobile {
+  @media (max-width: map.get(ref.$layout, 'breakpoint', 'mobile')) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (min-width: calc(map.get(ref.$layout, 'breakpoint', 'mobile') + 1px)) and (max-width: map.get(ref.$layout, 'breakpoint', 'tablet')) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: calc(map.get(ref.$layout, 'breakpoint', 'tablet') + 1px)) {
+    @content;
+  }
+}

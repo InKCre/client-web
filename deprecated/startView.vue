@@ -354,7 +354,7 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@use "@/styles/main.scss" as *;
+@use "@/styles/index.scss" as *;
 
 /* BEM: block = workspace */
 .workspace {

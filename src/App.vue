@@ -10,7 +10,7 @@ import InkHeader from './components/inkHeader/inkHeader.vue'
 </template>
 
 <style lang="scss" scoped>
-@use './styles/main.scss' as *;
+@use './styles/index.scss' as *;
 
 .app-content {
   flex: 1;
@@ -18,7 +18,7 @@ import InkHeader from './components/inkHeader/inkHeader.vue'
   overflow-y: scroll;
 
   @include mobile {
-    margin: var(--space-lg) var(--space-xl);
+    margin: var(--sys-space-scale-lg) var(--sys-space-scale-xl);
   }
 }
 </style>

@@ -1,0 +1,55 @@
+@use 'sass:map';
+@use './ref';
+
+// Typography tokens derived from reference families with hard-coded metrics
+$typo-tokens: (
+  body-sm: (
+    family: map.get(ref.$font, 'family', 'sans'),
+    size: 14px,
+    weight: 400,
+    line-height: 20px,
+    letter: 0em,
+  ),
+  body-md: (
+    family: map.get(ref.$font, 'family', 'sans'),
+    size: 16px,
+    weight: 400,
+    line-height: 24px,
+    letter: 0em,
+  ),
+  body-lg: (
+    family: map.get(ref.$font, 'family', 'sans'),
+    size: 18px,
+    weight: 400,
+    line-height: 28px,
+    letter: 0.02em,
+  ),
+  label-sm: (
+    family: map.get(ref.$font, 'family', 'mono'),
+    size: 12px,
+    weight: 600,
+    line-height: 16px,
+    letter: 0.04em,
+  ),
+  title-sm: (
+    family: map.get(ref.$font, 'family', 'sans'),
+    size: 20px,
+    weight: 600,
+    line-height: 32px,
+    letter: 0.02em,
+  ),
+  display-sm: (
+    family: map.get(ref.$font, 'family', 'sans'),
+    size: 24px,
+    weight: 700,
+    line-height: 36px,
+    letter: -0.01em,
+  ),
+  code: (
+    family: map.get(ref.$font, 'family', 'mono'),
+    size: 14px,
+    weight: 500,
+    line-height: 20px,
+    letter: 0em,
+  ),
+);

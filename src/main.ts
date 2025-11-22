@@ -7,7 +7,8 @@ import VueKonva from "vue-konva";
 import i18n from "./locales";
 
 // 导入全局样式
-import "@/styles/main.scss";
+import "@/styles/index.scss";
+import "uno.css";
 import store from "./stores";
 
 const app = createApp(App);
