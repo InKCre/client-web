@@ -7,15 +7,15 @@
   justify-content: center;
   gap: sys-var("space", "scale", "xxs");
   padding: sys-var("space", "scale", "xs") sys-var("space", "scale", "md");
-  border-radius: sys-var("space", "radius", "sm");
-  border: sys-var("space", "border", "thin")
-    solid sys-var("color", "surface", "border", "base");
+  border-radius: sys-var("space", "radius", "none");
+  border: sys-var("space", "border", "thin") solid
+    sys-var("color", "surface", "border", "base");
   background: sys-var("color", "surface", "bg", "base");
   color: sys-var("color", "content", "text", "primary");
   cursor: pointer;
   text-decoration: none;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease,
+    border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:hover:not(:disabled):not(.ink-button--disabled) {
     background: sys-var("color", "surface", "bg", "muted");
@@ -31,7 +31,11 @@
       background: sys-var("color", "action", "state", "hover");
       border-color: sys-var("color", "action", "state", "active");
       box-shadow: 0 0 0 3px
-        color-mix(in srgb, #{sys-var("color", "action", "state", "focus")} 25%, transparent);
+        color-mix(
+          in srgb,
+          #{sys-var("color", "action", "state", "focus")} 25%,
+          transparent
+        );
     }
   }
 
@@ -48,7 +52,11 @@
       );
       border-color: sys-var("color", "action", "state", "active");
       box-shadow: 0 0 0 3px
-        color-mix(in srgb, #{sys-var("color", "feedback", "text", "danger")} 20%, transparent);
+        color-mix(
+          in srgb,
+          #{sys-var("color", "feedback", "text", "danger")} 20%,
+          transparent
+        );
       color: sys-var("color", "feedback", "text", "danger");
     }
   }
