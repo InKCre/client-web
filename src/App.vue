@@ -15,7 +15,7 @@
 </template>
 
 <style lang="scss" scoped>
-@use './styles/main.scss' as *;
+@use './styles/index.scss' as *;
 
 .app-container {
   display: flex;

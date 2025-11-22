@@ -6,7 +6,7 @@ import router from './router'
 import VueKonva from 'vue-konva'
 
 // 导入全局样式
-import '@/styles/main.scss'
+import '@/styles/index.scss'
 import 'uno.css'
 import store from './stores'
 

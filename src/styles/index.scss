@@ -1,7 +1,7 @@
 @use './abstract/ref';
 @use './abstract/semantic' as semantic;
 @use './abstract/functions' as fn;
-@use './mixins' as *;
+@forward './mixins';
 
 // Consolidate reference primitives for CSS variable emission
 $ref-registry: (
