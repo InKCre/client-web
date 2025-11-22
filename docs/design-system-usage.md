@@ -1,0 +1,32 @@
+# Design System Usage Guide
+
+This guide summarizes how to consume the design system that implements the CTI+S design token model described in `docs/Design Token 管理方案设计.md`. It focuses on day-to-day usage rather than implementation details.
+
+## Token layers and source files
+- **Reference tokens** live in `src/design-system/scss/abstract/_tokens.scss` as `$ref-tokens` and expose raw values (palette, spacing, typography, elevation, layout).
+- **Semantic system tokens** are defined in the same file as `$semantic-tokens`, producing `--sys-` CSS variables for light and dark themes.
+- **Component tokens** are registered in `src/design-system/scss/abstract/_tokens.scss` as `$component-tokens` and emitted as `--comp-` variables for component-level overrides.
+
+The entry file `src/design-system/scss/index.scss` emits all CSS custom properties and sets up defaults such as `color-scheme`. Legacy variable aliases remain available for components that have not migrated yet.
+
+## Consuming tokens in SCSS
+1. Import the shared entry once globally (already done in `src/main.ts` via `@/styles/main.scss`).
+2. In component styles, access tokens through CSS custom properties or the provided helpers:
+   - **Direct variables:** `var(--sys-color-surface-bg-base)`, `var(--sys-space-scale-md)`, etc.
+   - **Helper functions:** `@use '@/design-system/scss/abstract/functions' as fn;` then call `fn.sys-var('color', 'content', 'text', 'primary')` or `fn.comp-var('button', 'md', 'padding')` to keep paths readable.
+   - **Mixins:** `@use '@/styles/main.scss' as *;` forwards `src/design-system/scss/mixins.scss` so you can apply primitives like `@include button-primitive` or responsive helpers such as `@include mobile { ... }` without extra plumbing.
+
+Keep overrides semantic: prefer system tokens over raw reference values so theme adjustments cascade automatically.
+
+## UnoCSS integration
+- `uno.config.ts` reads the same system CSS variables to drive the UnoCSS theme (colors, spacing, radii, shadows, typography). Utility classes automatically stay in sync with SCSS tokens.
+- Shortcuts like `app-shell` and `card-surface` are available for common layouts. Additional utilities can be composed as usual with UnoCSS presets.
+- Global preflight keeps `color-scheme` aligned with the emitted variables; prefer CSS variables over hard-coded values when authoring new shortcuts.
+
+## Theming behavior
+- Both light and dark semantic token sets are emitted; user preference (`prefers-color-scheme`) selects the active set automatically.
+- If you need component-specific overrides, register them under `$component-tokens` so they are emitted as `--comp-...` variables and reference them with `fn.comp-var`.
+
+## Migration notes
+- Legacy CSS variable aliases remain available (e.g., `--color-primary`, `--color-text`) to ease incremental adoption. New work should rely on `--sys-...` or `fn.sys-var` paths to avoid future breaking changes.
+- Avoid importing old styling utilities; the SCSS entry and UnoCSS theme are now the single sources of truth for design tokens.
