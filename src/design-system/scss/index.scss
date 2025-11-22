@@ -1,20 +1,21 @@
-@use 'sass:map';
 @use './abstract/ref';
 @use './abstract/semantic' as semantic;
 @use './abstract/functions' as fn;
 @use './mixins' as *;
 
 // Emit reference tokens as CSS variables for cross-layer consumption
-:root {
+:root,
+html[data-theme='light'] {
   color-scheme: light;
   @include fn.emit-css-variables(ref.$ref-tokens, 'ref');
-  @include fn.emit-css-variables(map.get(semantic.$semantic-tokens, 'light'));
+  @include fn.emit-css-variables(semantic.$light);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]),
+  html[data-theme='dark'] {
     color-scheme: dark;
-    @include fn.emit-css-variables(map.get(semantic.$semantic-tokens, 'dark'));
+    @include fn.emit-css-variables(semantic.$dark);
   }
 }
 
