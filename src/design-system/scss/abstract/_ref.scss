@@ -1,111 +1,99 @@
 // Reference tokens capture raw values without semantic meaning
+$palette: (
+  brand: (
+    40: #6b4cd3,
+    60: #4c3ba7,
+    80: #d5cbff,
+    90: #ede9fe,
+  ),
+  neutral: (
+    2: #0b1220,
+    6: #111827,
+    12: #1f2937,
+    20: #27303f,
+    40: #4b5565,
+    60: #6b7280,
+    80: #e5e7eb,
+    90: #f3f4f6,
+    94: #f7f7fb,
+    98: #fbfcff,
+  ),
+  accent: (
+    40: #1f9aa5,
+    90: #d0f4f4,
+  ),
+  danger: (
+    40: #d12d3d,
+    90: #ffe5e8,
+  ),
+);
+
+$font: (
+  family: (
+    sans: 'Inter, "SF Pro Text", system-ui, -apple-system, sans-serif',
+    mono: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace',
+  ),
+);
+
+$space: (
+  scale: (
+    3xs: 2px,
+    2xs: 4px,
+    xs: 8px,
+    sm: 12px,
+    md: 16px,
+    lg: 24px,
+    xl: 32px,
+    2xl: 48px,
+  ),
+);
+
+$shape: (
+  radius: (
+    xs: 4px,
+    sm: 8px,
+    md: 12px,
+    lg: 20px,
+    full: 999px,
+  ),
+  border: (
+    thin: 1px,
+    thick: 2px,
+  ),
+);
+
+$elevation: (
+  low: 0 1px 2px rgba(12, 21, 48, 0.08),
+  mid: 0 6px 20px rgba(12, 21, 48, 0.12),
+  high: 0 12px 32px rgba(12, 21, 48, 0.16),
+);
+
+$opacity: (
+  muted: 0.72,
+  medium: 0.84,
+  strong: 0.92,
+);
+
+$layout: (
+  breakpoint: (
+    mobile: 768px,
+    tablet: 1024px,
+    desktop: 1280px,
+  ),
+  layer: (
+    base: 1,
+    floating: 12,
+    fixed: 24,
+    modal: 48,
+  ),
+);
+
 $ref-tokens: (
-  palette: (
-    brand: (
-      40: #6b4cd3,
-      60: #4c3ba7,
-      80: #d5cbff,
-      90: #ede9fe,
-    ),
-    neutral: (
-      2: #0b1220,
-      6: #111827,
-      12: #1f2937,
-      20: #27303f,
-      40: #4b5565,
-      60: #6b7280,
-      80: #e5e7eb,
-      90: #f3f4f6,
-      94: #f7f7fb,
-      98: #fbfcff,
-    ),
-    accent: (
-      40: #1f9aa5,
-      90: #d0f4f4,
-    ),
-    danger: (
-      40: #d12d3d,
-      90: #ffe5e8,
-    ),
-  ),
-  font: (
-    family: (
-      sans: 'Inter, "SF Pro Text", system-ui, -apple-system, sans-serif',
-      mono: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace',
-    ),
-    size: (
-      90: 12px,
-      100: 14px,
-      200: 16px,
-      300: 18px,
-      400: 20px,
-      500: 24px,
-    ),
-    line-height: (
-      90: 16px,
-      100: 20px,
-      200: 24px,
-      300: 28px,
-      400: 32px,
-      500: 36px,
-    ),
-    weight: (
-      regular: 400,
-      medium: 500,
-      semibold: 600,
-      bold: 700,
-    ),
-    letter: (
-      tight: -0.01em,
-      base: 0em,
-      wide: 0.02em,
-      wider: 0.04em,
-    ),
-  ),
-  space: (
-    scale: (
-      3xs: 2px,
-      2xs: 4px,
-      xs: 8px,
-      sm: 12px,
-      md: 16px,
-      lg: 24px,
-      xl: 32px,
-      2xl: 48px,
-    ),
-    radius: (
-      xs: 4px,
-      sm: 8px,
-      md: 12px,
-      lg: 20px,
-      full: 999px,
-    ),
-    border: (
-      thin: 1px,
-      thick: 2px,
-    ),
-  ),
-  elevation: (
-    low: 0 1px 2px rgba(12, 21, 48, 0.08),
-    mid: 0 6px 20px rgba(12, 21, 48, 0.12),
-    high: 0 12px 32px rgba(12, 21, 48, 0.16),
-  ),
-  opacity: (
-    muted: 0.72,
-    medium: 0.84,
-    strong: 0.92,
-  ),
-  layout: (
-    breakpoint: (
-      mobile: 768px,
-      tablet: 1024px,
-      desktop: 1280px,
-    ),
-    layer: (
-      base: 1,
-      floating: 12,
-      fixed: 24,
-      modal: 48,
-    ),
-  ),
+  palette: $palette,
+  font: $font,
+  space: $space,
+  shape: $shape,
+  elevation: $elevation,
+  opacity: $opacity,
+  layout: $layout,
 );

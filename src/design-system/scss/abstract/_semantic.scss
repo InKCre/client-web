@@ -1,181 +1,133 @@
 @use 'sass:map';
 @use './ref';
-
-// Typography system tokens derived from reference values
-$type-tokens: (
-  body-sm: (
-    family: map.get(ref.$ref-tokens, 'font', 'family', 'sans'),
-    size: map.get(ref.$ref-tokens, 'font', 'size', 100),
-    weight: map.get(ref.$ref-tokens, 'font', 'weight', 'regular'),
-    line-height: map.get(ref.$ref-tokens, 'font', 'line-height', 100),
-    letter: map.get(ref.$ref-tokens, 'font', 'letter', 'base'),
-  ),
-  body-md: (
-    family: map.get(ref.$ref-tokens, 'font', 'family', 'sans'),
-    size: map.get(ref.$ref-tokens, 'font', 'size', 200),
-    weight: map.get(ref.$ref-tokens, 'font', 'weight', 'regular'),
-    line-height: map.get(ref.$ref-tokens, 'font', 'line-height', 200),
-    letter: map.get(ref.$ref-tokens, 'font', 'letter', 'base'),
-  ),
-  body-lg: (
-    family: map.get(ref.$ref-tokens, 'font', 'family', 'sans'),
-    size: map.get(ref.$ref-tokens, 'font', 'size', 300),
-    weight: map.get(ref.$ref-tokens, 'font', 'weight', 'regular'),
-    line-height: map.get(ref.$ref-tokens, 'font', 'line-height', 300),
-    letter: map.get(ref.$ref-tokens, 'font', 'letter', 'wide'),
-  ),
-  label-sm: (
-    family: map.get(ref.$ref-tokens, 'font', 'family', 'mono'),
-    size: map.get(ref.$ref-tokens, 'font', 'size', 90),
-    weight: map.get(ref.$ref-tokens, 'font', 'weight', 'semibold'),
-    line-height: map.get(ref.$ref-tokens, 'font', 'line-height', 90),
-    letter: map.get(ref.$ref-tokens, 'font', 'letter', 'wider'),
-  ),
-  title-sm: (
-    family: map.get(ref.$ref-tokens, 'font', 'family', 'sans'),
-    size: map.get(ref.$ref-tokens, 'font', 'size', 400),
-    weight: map.get(ref.$ref-tokens, 'font', 'weight', 'semibold'),
-    line-height: map.get(ref.$ref-tokens, 'font', 'line-height', 400),
-    letter: map.get(ref.$ref-tokens, 'font', 'letter', 'wide'),
-  ),
-  display-sm: (
-    family: map.get(ref.$ref-tokens, 'font', 'family', 'sans'),
-    size: map.get(ref.$ref-tokens, 'font', 'size', 500),
-    weight: map.get(ref.$ref-tokens, 'font', 'weight', 'bold'),
-    line-height: map.get(ref.$ref-tokens, 'font', 'line-height', 500),
-    letter: map.get(ref.$ref-tokens, 'font', 'letter', 'tight'),
-  ),
-  code: (
-    family: map.get(ref.$ref-tokens, 'font', 'family', 'mono'),
-    size: map.get(ref.$ref-tokens, 'font', 'size', 100),
-    weight: map.get(ref.$ref-tokens, 'font', 'weight', 'medium'),
-    line-height: map.get(ref.$ref-tokens, 'font', 'line-height', 100),
-    letter: map.get(ref.$ref-tokens, 'font', 'letter', 'base'),
-  ),
-);
+@use './typography';
 
 // System tokens (semantic layer) for light and dark themes
+$light: (
+  color: (
+    surface: (
+      bg: (
+        base: map.get(ref.$ref-tokens, 'palette', 'neutral', 98),
+        muted: map.get(ref.$ref-tokens, 'palette', 'neutral', 94),
+        raised: map.get(ref.$ref-tokens, 'palette', 'neutral', 90),
+        strong: map.get(ref.$ref-tokens, 'palette', 'neutral', 80),
+      ),
+      border: (
+        subtle: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 80) 45%, transparent),
+        strong: map.get(ref.$ref-tokens, 'palette', 'neutral', 80),
+      ),
+    ),
+    content: (
+      text: (
+        primary: map.get(ref.$ref-tokens, 'palette', 'neutral', 6),
+        secondary: map.get(ref.$ref-tokens, 'palette', 'neutral', 12),
+        muted: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 6) 70%, transparent),
+        subtle: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 6) 55%, transparent),
+        quiet: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 6) 35%, transparent),
+      ),
+    ),
+    action: (
+      bg: (
+        primary: map.get(ref.$ref-tokens, 'palette', 'brand', 40),
+        secondary: map.get(ref.$ref-tokens, 'palette', 'brand', 80),
+      ),
+      state: (
+        hover: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'brand', 40) 88%, white),
+        active: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'brand', 60) 94%, black),
+        focus: map.get(ref.$ref-tokens, 'palette', 'brand', 60),
+      ),
+    ),
+    accent: (
+      bg: map.get(ref.$ref-tokens, 'palette', 'accent', 90),
+      text: map.get(ref.$ref-tokens, 'palette', 'accent', 40),
+    ),
+    feedback: (
+      bg: (
+        danger: map.get(ref.$ref-tokens, 'palette', 'danger', 90),
+      ),
+      text: (
+        danger: map.get(ref.$ref-tokens, 'palette', 'danger', 40),
+      ),
+    ),
+    overlay: (
+      scrim: rgba(map.get(ref.$ref-tokens, 'palette', 'neutral', 2), 0.48),
+    ),
+  ),
+  space: (
+    scale: map.get(ref.$ref-tokens, 'space', 'scale'),
+    radius: map.get(ref.$ref-tokens, 'shape', 'radius'),
+    border: map.get(ref.$ref-tokens, 'shape', 'border'),
+  ),
+  type: typography.$typo-tokens,
+  elevation: map.get(ref.$ref-tokens, 'elevation'),
+  opacity: map.get(ref.$ref-tokens, 'opacity'),
+  layout: map.get(ref.$ref-tokens, 'layout'),
+);
+
+$dark: (
+  color: (
+    surface: (
+      bg: (
+        base: map.get(ref.$ref-tokens, 'palette', 'neutral', 12),
+        muted: map.get(ref.$ref-tokens, 'palette', 'neutral', 20),
+        raised: map.get(ref.$ref-tokens, 'palette', 'neutral', 6),
+        strong: map.get(ref.$ref-tokens, 'palette', 'neutral', 2),
+      ),
+      border: (
+        subtle: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 80) 25%, transparent),
+        strong: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 80) 55%, transparent),
+      ),
+    ),
+    content: (
+      text: (
+        primary: map.get(ref.$ref-tokens, 'palette', 'neutral', 98),
+        secondary: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 98) 85%, transparent),
+        muted: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 98) 70%, transparent),
+        subtle: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 98) 55%, transparent),
+        quiet: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 98) 40%, transparent),
+      ),
+    ),
+    action: (
+      bg: (
+        primary: map.get(ref.$ref-tokens, 'palette', 'brand', 80),
+        secondary: map.get(ref.$ref-tokens, 'palette', 'brand', 90),
+      ),
+      state: (
+        hover: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'brand', 80) 90%, white),
+        active: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'brand', 60) 90%, black),
+        focus: map.get(ref.$ref-tokens, 'palette', 'brand', 60),
+      ),
+    ),
+    accent: (
+      bg: map.get(ref.$ref-tokens, 'palette', 'accent', 40),
+      text: map.get(ref.$ref-tokens, 'palette', 'accent', 90),
+    ),
+    feedback: (
+      bg: (
+        danger: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'danger', 40) 16%, transparent),
+      ),
+      text: (
+        danger: map.get(ref.$ref-tokens, 'palette', 'danger', 90),
+      ),
+    ),
+    overlay: (
+      scrim: rgba(map.get(ref.$ref-tokens, 'palette', 'neutral', 2), 0.6),
+    ),
+  ),
+  space: (
+    scale: map.get(ref.$ref-tokens, 'space', 'scale'),
+    radius: map.get(ref.$ref-tokens, 'shape', 'radius'),
+    border: map.get(ref.$ref-tokens, 'shape', 'border'),
+  ),
+  type: typography.$typo-tokens,
+  elevation: map.get(ref.$ref-tokens, 'elevation'),
+  opacity: map.get(ref.$ref-tokens, 'opacity'),
+  layout: map.get(ref.$ref-tokens, 'layout'),
+);
+
 $semantic-tokens: (
-  light: (
-    color: (
-      surface: (
-        bg: (
-          base: map.get(ref.$ref-tokens, 'palette', 'neutral', 98),
-          muted: map.get(ref.$ref-tokens, 'palette', 'neutral', 94),
-          raised: map.get(ref.$ref-tokens, 'palette', 'neutral', 90),
-          strong: map.get(ref.$ref-tokens, 'palette', 'neutral', 80),
-        ),
-        border: (
-          subtle: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 80) 45%, transparent),
-          strong: map.get(ref.$ref-tokens, 'palette', 'neutral', 80),
-        ),
-      ),
-      content: (
-        text: (
-          primary: map.get(ref.$ref-tokens, 'palette', 'neutral', 6),
-          secondary: map.get(ref.$ref-tokens, 'palette', 'neutral', 12),
-          muted: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 6) 70%, transparent),
-          subtle: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 6) 55%, transparent),
-          quiet: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 6) 35%, transparent),
-        ),
-      ),
-      action: (
-        bg: (
-          primary: map.get(ref.$ref-tokens, 'palette', 'brand', 40),
-          secondary: map.get(ref.$ref-tokens, 'palette', 'brand', 80),
-        ),
-        state: (
-          hover: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'brand', 40) 88%, white),
-          active: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'brand', 60) 94%, black),
-          focus: map.get(ref.$ref-tokens, 'palette', 'brand', 60),
-        ),
-      ),
-      accent: (
-        bg: map.get(ref.$ref-tokens, 'palette', 'accent', 90),
-        text: map.get(ref.$ref-tokens, 'palette', 'accent', 40),
-      ),
-      feedback: (
-        bg: (
-          danger: map.get(ref.$ref-tokens, 'palette', 'danger', 90),
-        ),
-        text: (
-          danger: map.get(ref.$ref-tokens, 'palette', 'danger', 40),
-        ),
-      ),
-      overlay: (
-        scrim: rgba(map.get(ref.$ref-tokens, 'palette', 'neutral', 2), 0.48),
-      ),
-    ),
-    space: (
-      scale: map.get(ref.$ref-tokens, 'space', 'scale'),
-      radius: map.get(ref.$ref-tokens, 'space', 'radius'),
-      border: map.get(ref.$ref-tokens, 'space', 'border'),
-    ),
-    type: $type-tokens,
-    elevation: map.get(ref.$ref-tokens, 'elevation'),
-    opacity: map.get(ref.$ref-tokens, 'opacity'),
-    layout: map.get(ref.$ref-tokens, 'layout'),
-  ),
-  dark: (
-    color: (
-      surface: (
-        bg: (
-          base: map.get(ref.$ref-tokens, 'palette', 'neutral', 12),
-          muted: map.get(ref.$ref-tokens, 'palette', 'neutral', 20),
-          raised: map.get(ref.$ref-tokens, 'palette', 'neutral', 6),
-          strong: map.get(ref.$ref-tokens, 'palette', 'neutral', 2),
-        ),
-        border: (
-          subtle: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 80) 25%, transparent),
-          strong: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 80) 55%, transparent),
-        ),
-      ),
-      content: (
-        text: (
-          primary: map.get(ref.$ref-tokens, 'palette', 'neutral', 98),
-          secondary: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 98) 85%, transparent),
-          muted: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 98) 70%, transparent),
-          subtle: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 98) 55%, transparent),
-          quiet: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 98) 40%, transparent),
-        ),
-      ),
-      action: (
-        bg: (
-          primary: map.get(ref.$ref-tokens, 'palette', 'brand', 80),
-          secondary: map.get(ref.$ref-tokens, 'palette', 'brand', 90),
-        ),
-        state: (
-          hover: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'brand', 80) 90%, white),
-          active: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'brand', 60) 90%, black),
-          focus: map.get(ref.$ref-tokens, 'palette', 'brand', 60),
-        ),
-      ),
-      accent: (
-        bg: map.get(ref.$ref-tokens, 'palette', 'accent', 40),
-        text: map.get(ref.$ref-tokens, 'palette', 'accent', 90),
-      ),
-      feedback: (
-        bg: (
-          danger: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'danger', 40) 16%, transparent),
-        ),
-        text: (
-          danger: map.get(ref.$ref-tokens, 'palette', 'danger', 90),
-        ),
-      ),
-      overlay: (
-        scrim: rgba(map.get(ref.$ref-tokens, 'palette', 'neutral', 2), 0.6),
-      ),
-    ),
-    space: (
-      scale: map.get(ref.$ref-tokens, 'space', 'scale'),
-      radius: map.get(ref.$ref-tokens, 'space', 'radius'),
-      border: map.get(ref.$ref-tokens, 'space', 'border'),
-    ),
-    type: $type-tokens,
-    elevation: map.get(ref.$ref-tokens, 'elevation'),
-    opacity: map.get(ref.$ref-tokens, 'opacity'),
-    layout: map.get(ref.$ref-tokens, 'layout'),
-  ),
+  light: $light,
+  dark: $dark,
 );
 
 // Component scoped tokens that extend system semantics
