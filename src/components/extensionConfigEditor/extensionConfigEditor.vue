@@ -6,9 +6,9 @@
                 <h2 class="extension-config-editor__title">
                     EDIT_CONFIG: {{ extension.id }}
                 </h2>
-                <button @click="handleClose" class="extension-config-editor__close-btn">
+                <InkButton @click="handleClose" class="extension-config-editor__close-btn" variant="ghost">
                     CLOSE
-                </button>
+                </InkButton>
             </header>
 
             <div class="extension-config-editor__content">
@@ -21,19 +21,19 @@
                 </div>
 
                 <div class="extension-config-editor__actions">
-                    <button @click="handleSave" :disabled="hasError || isSaving"
-                        class="extension-config-editor__action-btn extension-config-editor__action-btn--primary">
+                    <InkButton @click="handleSave" :disabled="hasError || isSaving"
+                        class="extension-config-editor__action-btn extension-config-editor__action-btn--primary" variant="primary">
                         {{ isSaving ? 'SAVING...' : 'SAVE' }}
-                    </button>
+                    </InkButton>
 
-                    <button @click="handleReset" :disabled="isSaving" class="extension-config-editor__action-btn">
+                    <InkButton @click="handleReset" :disabled="isSaving" class="extension-config-editor__action-btn">
                         RESET
-                    </button>
+                    </InkButton>
 
-                    <button @click="handleClose" :disabled="isSaving"
-                        class="extension-config-editor__action-btn extension-config-editor__action-btn--secondary">
+                    <InkButton @click="handleClose" :disabled="isSaving"
+                        class="extension-config-editor__action-btn extension-config-editor__action-btn--secondary" variant="ghost">
                         CANCEL
-                    </button>
+                    </InkButton>
                 </div>
             </div>
         </div>
@@ -42,6 +42,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
+import InkButton from "@/components/common/inkButton/inkButton.vue";
 import type { ExtensionConfigEditorProps, ExtensionConfigEditorEmits } from "./extensionConfigEditorTypes";
 
 // Props & Emits

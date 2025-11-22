@@ -76,7 +76,7 @@
   background: fn.sys-var("color", "surface", "bg", "base");
   border: fn.sys-var("shape", "border", "thin") solid
     fn.sys-var("color", "surface", "border", "base");
-  border-radius: fn.sys-var("shape", "radius", "md");
+  border-radius: fn.sys-var("shape", "radius", "xs");
   color: fn.sys-var("color", "content", "text", "primary");
   transition: all 0.3s ease;
   overflow: hidden;

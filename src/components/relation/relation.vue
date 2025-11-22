@@ -18,16 +18,16 @@
         </div>
         <!-- 右侧图标按钮 -->
         <div class="relation-viewer__actions" @click.stop>
-          <button @click="startEditing" class="relation-viewer__action-btn" title="编辑关系">
+          <InkButton @click="startEditing" class="relation-viewer__action-btn" title="编辑关系" variant="ghost">
             ✏️
-          </button>
-          <button @click="deleteRelation" class="relation-viewer__action-btn relation-viewer__action-btn--danger"
+          </InkButton>
+          <InkButton @click="deleteRelation" class="relation-viewer__action-btn relation-viewer__action-btn--danger"
             title="删除关系" :disabled="deleting">
             {{ deleting ? '...' : '🗑️' }}
-          </button>
-          <button class="relation-viewer__action-btn" title="展开/折叠" @click="toggleFold">
+          </InkButton>
+          <InkButton class="relation-viewer__action-btn" title="展开/折叠" @click="toggleFold" variant="ghost">
             {{ isFolded ? '▼' : '▲' }}
-          </button>
+          </InkButton>
         </div>
       </div>
 
@@ -36,10 +36,10 @@
         <input v-model="editContent" @keydown.enter="saveEdit" @keydown.escape="cancelEdit" ref="editInput"
           class="relation-viewer__edit-input" placeholder="输入关系描述..." />
         <div class="relation-viewer__edit-actions">
-          <button @click="saveEdit" :disabled="saving" class="relation-viewer__edit-btn">
+          <InkButton @click="saveEdit" :disabled="saving" class="relation-viewer__edit-btn" variant="primary">
             {{ saving ? '保存中...' : '保存' }}
-          </button>
-          <button @click="cancelEdit" class="relation-viewer__edit-btn">取消</button>
+          </InkButton>
+          <InkButton @click="cancelEdit" class="relation-viewer__edit-btn" variant="ghost">取消</InkButton>
         </div>
         <div v-if="editError" class="relation-viewer__error">{{ editError }}</div>
       </div>
@@ -63,6 +63,7 @@ import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { relationProps, relationEmits } from './relation';
 import { Relation } from '@/business/relation';
 import BlockViewer from '../blockViewer/blockViewer.vue';
+import InkButton from '@/components/common/inkButton/inkButton.vue';
 
 const props = defineProps(relationProps);
 const emit = defineEmits(relationEmits);

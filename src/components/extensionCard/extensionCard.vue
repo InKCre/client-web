@@ -21,16 +21,16 @@
         </header>
 
         <div class="extension-card__actions">
-            <button @click="toggleEnabled" :disabled="isLoading" class="extension-card__action-btn" :class="{
+            <InkButton @click="toggleEnabled" :disabled="isLoading" class="extension-card__action-btn" :class="{
                 'extension-card__action-btn--primary': extension.disabled,
                 'extension-card__action-btn--danger': !extension.disabled
-            }">
+            }" :variant="extension.disabled ? 'primary' : 'danger'">
                 {{ extension.disabled ? 'ENABLE' : 'DISABLE' }}
-            </button>
+            </InkButton>
 
-            <button @click="editConfig" :disabled="isLoading" class="extension-card__action-btn">
+            <InkButton @click="editConfig" :disabled="isLoading" class="extension-card__action-btn">
                 EDIT CONFIG
-            </button>
+            </InkButton>
         </div>
 
         <div v-if="showConfig && extension.config" class="extension-card__config">
@@ -43,7 +43,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, withDefaults } from "vue";
+import InkButton from "@/components/common/inkButton/inkButton.vue";
 import type { ExtensionCardProps, ExtensionCardEmits } from "./extensionCardTypes";
 
 // Props & Emits
