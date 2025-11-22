@@ -21,7 +21,7 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  color: var(--color-text);
+  color: var(--sys-color-content-text-primary);
   overflow: hidden;
 }
 
@@ -29,20 +29,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-sm) var(--space-lg);
+  padding: var(--sys-space-scale-sm) var(--sys-space-scale-xl);
   background: linear-gradient(
     90deg,
-    var(--color-background) 0%,
-    var(--color-background-muted) 100%
+    var(--sys-color-surface-bg-base) 0%,
+    var(--sys-color-surface-bg-muted) 100%
   );
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--sys-color-surface-border-strong);
   z-index: var(--z-fixed);
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
+  gap: var(--sys-space-scale-md);
 }
 
 .brand-logo {
@@ -53,9 +53,9 @@
 }
 
 .brand-name {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
+  font-size: var(--sys-type-display-sm-size);
+  font-weight: var(--sys-type-display-sm-weight);
+  color: var(--sys-color-content-text-primary);
   letter-spacing: var(--letter-spacing-widest);
   text-transform: uppercase;
 }
@@ -63,19 +63,19 @@
 .system-status {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: var(--sys-space-scale-sm);
 }
 
 .status-text {
   @include text-small-caps;
-  color: var(--color-text-light);
+  color: var(--sys-color-content-text-subtle);
 }
 
 .status-light {
-  width: var(--space-sm);
-  height: var(--space-sm);
-  background: var(--color-text-muted);
-  border-radius: var(--radius-full);
+  width: var(--sys-space-scale-sm);
+  height: var(--sys-space-scale-sm);
+  background: var(--sys-color-content-text-muted);
+  border-radius: var(--sys-space-radius-full);
   animation: pulse 2s ease-in-out infinite;
 }
 
@@ -84,7 +84,7 @@
   overflow-x: hidden;
   overflow-y: scroll;
   @include mobile {
-    margin: var(--space-lg) var(--space-xl);
+    margin: var(--sys-space-scale-lg) var(--sys-space-scale-xl);
   }
 }
 </style>

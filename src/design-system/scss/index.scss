@@ -1,0 +1,168 @@
+@use 'sass:map';
+@use './abstract/tokens' as tokens;
+@use './abstract/functions' as fn;
+@use './mixins' as *;
+
+// Emit reference tokens as CSS variables for cross-layer consumption
+:root {
+  color-scheme: light;
+  @include fn.emit-css-variables(tokens.$ref-tokens, 'ref');
+  @include fn.emit-css-variables(map.get(tokens.$semantic-tokens, 'light'));
+
+  // Legacy aliases to keep existing components working while the new CTI+S tokens roll out
+  $legacy-aliases: (
+    color-primary: fn.sys-var('color', 'action', 'bg', 'primary'),
+    color-primary-light: fn.sys-var('color', 'action', 'state', 'hover'),
+    color-primary-lighter: color-mix(in srgb, fn.sys-var('color', 'action', 'bg', 'primary') 60%, white),
+    color-primary-dark: fn.sys-var('color', 'action', 'state', 'active'),
+    color-secondary: fn.sys-var('color', 'accent', 'text'),
+    color-secondary-light: color-mix(in srgb, fn.sys-var('color', 'accent', 'text') 70%, white),
+    color-secondary-lighter: color-mix(in srgb, fn.sys-var('color', 'accent', 'text') 45%, white),
+    color-background: fn.sys-var('color', 'surface', 'bg', 'base'),
+    color-background-soft: fn.sys-var('color', 'surface', 'bg', 'raised'),
+    color-background-muted: fn.sys-var('color', 'surface', 'bg', 'muted'),
+    color-background-dark: fn.sys-var('color', 'surface', 'bg', 'strong'),
+    color-background-darker: color-mix(in srgb, fn.sys-var('color', 'surface', 'bg', 'strong') 85%, black),
+    color-border: fn.sys-var('color', 'surface', 'border', 'strong'),
+    color-border-light: fn.sys-var('color', 'surface', 'border', 'subtle'),
+    color-border-dark: fn.sys-var('color', 'surface', 'border', 'strong'),
+    color-text: fn.sys-var('color', 'content', 'text', 'primary'),
+    color-text-soft: fn.sys-var('color', 'content', 'text', 'secondary'),
+    color-text-muted: fn.sys-var('color', 'content', 'text', 'muted'),
+    color-text-light: fn.sys-var('color', 'content', 'text', 'subtle'),
+    color-text-lighter: fn.sys-var('color', 'content', 'text', 'quiet'),
+    color-text-lightest: fn.sys-var('color', 'content', 'text', 'quiet'),
+    color-hover: color-mix(in srgb, fn.sys-var('color', 'action', 'bg', 'primary') 12%, transparent),
+    color-active: color-mix(in srgb, fn.sys-var('color', 'action', 'bg', 'primary') 20%, transparent),
+    color-selection: color-mix(in srgb, fn.sys-var('color', 'action', 'bg', 'primary') 24%, transparent),
+    color-error: fn.sys-var('color', 'feedback', 'text', 'danger'),
+    color-error-light: fn.sys-var('color', 'feedback', 'bg', 'danger'),
+    font-mono: fn.sys-var('type', 'code', 'family'),
+    font-system: fn.sys-var('type', 'body-md', 'family'),
+    font-size-xs: fn.sys-var('type', 'label-sm', 'size'),
+    font-size-sm: fn.sys-var('type', 'body-sm', 'size'),
+    font-size-md: fn.sys-var('type', 'body-md', 'size'),
+    font-size-lg: fn.sys-var('type', 'body-lg', 'size'),
+    font-size-xl: fn.sys-var('type', 'title-sm', 'size'),
+    font-size-2xl: fn.sys-var('type', 'display-sm', 'size'),
+    font-size-3xl: calc(var(--sys-type-display-sm-size) * 1.08),
+    font-size-4xl: calc(var(--sys-type-display-sm-size) * 1.15),
+    font-size-5xl: calc(var(--sys-type-display-sm-size) * 1.25),
+    font-size-6xl: calc(var(--sys-type-display-sm-size) * 1.35),
+    font-size-7xl: calc(var(--sys-type-display-sm-size) * 1.55),
+    font-size-8xl: calc(var(--sys-type-display-sm-size) * 1.8),
+    font-weight-normal: 400,
+    font-weight-medium: 500,
+    font-weight-semibold: 600,
+    font-weight-bold: 700,
+    line-height-tight: 1.2,
+    line-height-normal: 1.4,
+    line-height-relaxed: 1.6,
+    line-height-loose: 1.8,
+    letter-spacing-tight: -0.01em,
+    letter-spacing-normal: 0em,
+    letter-spacing-wide: 0.02em,
+    letter-spacing-wider: 0.04em,
+    letter-spacing-widest: 0.08em,
+    space-3xs: fn.sys-var('space', 'scale', '3xs'),
+    space-2xs: fn.sys-var('space', 'scale', '2xs'),
+    space-xs: fn.sys-var('space', 'scale', 'xs'),
+    space-sm: fn.sys-var('space', 'scale', 'sm'),
+    space-md: fn.sys-var('space', 'scale', 'md'),
+    space-lg: fn.sys-var('space', 'scale', 'lg'),
+    space-xl: fn.sys-var('space', 'scale', 'xl'),
+    space-2xl: fn.sys-var('space', 'scale', '2xl'),
+    space-3xl: calc(var(--sys-space-scale-2xl) * 1.25),
+    space-4xl: calc(var(--sys-space-scale-2xl) * 1.5),
+    padding-xs: fn.sys-var('space', 'scale', 'xs'),
+    padding-sm: fn.sys-var('space', 'scale', 'sm'),
+    padding-md: fn.sys-var('space', 'scale', 'md'),
+    padding-lg: fn.sys-var('space', 'scale', 'lg'),
+    padding-xl: fn.sys-var('space', 'scale', 'xl'),
+    margin-xs: fn.sys-var('space', 'scale', 'xs'),
+    margin-sm: fn.sys-var('space', 'scale', 'sm'),
+    margin-md: fn.sys-var('space', 'scale', 'md'),
+    margin-lg: fn.sys-var('space', 'scale', 'lg'),
+    margin-xl: fn.sys-var('space', 'scale', 'xl'),
+    radius-sm: fn.sys-var('space', 'radius', 'xs'),
+    radius-md: fn.sys-var('space', 'radius', 'sm'),
+    radius-lg: fn.sys-var('space', 'radius', 'md'),
+    radius-xl: fn.sys-var('space', 'radius', 'lg'),
+    radius-full: fn.sys-var('space', 'radius', 'full'),
+    radius-round: fn.sys-var('space', 'radius', 'full'),
+    border-width-thin: fn.sys-var('space', 'border', 'thin'),
+    border-style-solid: solid,
+    shadow-sm: fn.sys-var('elevation', 'low'),
+    shadow-md: fn.sys-var('elevation', 'mid'),
+    shadow-lg: fn.sys-var('elevation', 'high'),
+    opacity-light: fn.sys-var('opacity', 'muted'),
+    opacity-medium: fn.sys-var('opacity', 'medium'),
+    opacity-strong: fn.sys-var('opacity', 'strong'),
+    z-base: map.get(tokens.$ref-tokens, 'layout', 'layer', 'base'),
+    z-floating: map.get(tokens.$ref-tokens, 'layout', 'layer', 'floating'),
+    z-fixed: map.get(tokens.$ref-tokens, 'layout', 'layer', 'fixed'),
+    z-modal: map.get(tokens.$ref-tokens, 'layout', 'layer', 'modal'),
+    header-height: 64px,
+    toolbar-height: 48px,
+    sidebar-width: 320px,
+    content-max-width: 1200px,
+  );
+
+  @each $name, $value in $legacy-aliases {
+    --#{$name}: #{$value};
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    @include fn.emit-css-variables(map.get(tokens.$semantic-tokens, 'dark'));
+  }
+}
+
+// Component token registration for future component-scoped overrides
+:root {
+  @include fn.emit-css-variables(tokens.$component-tokens, 'comp');
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: fn.sys-var('color', 'surface', 'bg', 'base');
+  color: fn.sys-var('color', 'content', 'text', 'primary');
+  font-family: fn.sys-var('type', 'body-md', 'family');
+  font-size: fn.sys-var('type', 'body-md', 'size');
+  line-height: fn.sys-var('type', 'body-md', 'line-height');
+  letter-spacing: fn.sys-var('type', 'body-md', 'letter');
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: fn.sys-var('color', 'action', 'state', 'hover');
+  color: fn.sys-var('color', 'content', 'text', 'primary');
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: fn.sys-var('opacity', 'muted');
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

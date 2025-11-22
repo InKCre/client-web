@@ -7,6 +7,7 @@ import VueKonva from 'vue-konva'
 
 // 导入全局样式
 import '@/styles/main.scss'
+import 'uno.css'
 import store from './stores'
 
 const app = createApp(App)
