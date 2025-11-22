@@ -1,19 +1,32 @@
 @use "../../styles/main.scss" as *;
 
+/* Base header styles */
 .ink-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border-bottom: 1px solid var(--color-border);
+  z-index: var(--z-fixed);
+}
+
+/* Default mode - original brand header */
+.ink-header--default {
   padding: var(--space-sm) var(--space-lg);
   background: linear-gradient(
     90deg,
     var(--color-background) 0%,
     var(--color-background-muted) 100%
   );
-  border-bottom: 1px solid var(--color-border);
-  z-index: var(--z-fixed);
 }
 
+/* Page mode - generalized page header */
+.ink-header--page {
+  @include card-flat;
+  padding: var(--space-lg) var(--space-xl);
+  background: var(--color-background-soft);
+}
+
+/* Brand elements (default mode) */
 .brand {
   display: flex;
   align-items: center;
@@ -33,4 +46,55 @@
   color: var(--color-text);
   letter-spacing: var(--letter-spacing-widest);
   text-transform: uppercase;
+}
+
+/* Page header elements (page mode) */
+.ink-header__title {
+  @include text-mono-caps;
+  font-size: var(--font-size-xxl);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.ink-header__nav {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.ink-header__nav-link {
+  @include text-small-caps;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  text-decoration: none;
+  background: var(--color-background);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--color-background-muted);
+    border-color: var(--color-primary-light);
+  }
+}
+
+/* Responsive design */
+@include mobile {
+  .ink-header--page {
+    flex-direction: column;
+    gap: var(--space-md);
+    align-items: stretch;
+    text-align: center;
+    padding: var(--space-md);
+  }
+
+  .ink-header__nav {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+@include tablet {
+  .ink-header--page {
+    padding: var(--space-lg) var(--space-xl);
+  }
 }

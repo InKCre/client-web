@@ -1,14 +1,7 @@
 <template>
     <div class="extensions-view">
         <!-- Header -->
-        <header class="extensions-view__header">
-            <h1 class="extensions-view__title">EXTENSIONS</h1>
-            <nav class="extensions-view__nav">
-                <router-link to="/" class="extensions-view__nav-link">
-                    BACK_TO_HOME
-                </router-link>
-            </nav>
-        </header>
+        <InkHeader mode="page" title="EXTENSIONS" :navLinks="[{ to: '/', label: 'BACK_TO_HOME' }]" />
 
         <!-- Error Display -->
         <div v-if="errorMessage" class="extensions-view__error">
@@ -82,6 +75,7 @@ import { ref, onMounted } from "vue";
 import { Extension, ExtensionForm } from "@/business/extension";
 import ExtensionCard from "@/components/extensionCard/extensionCard.vue";
 import ExtensionConfigEditor from "@/components/extensionConfigEditor/extensionConfigEditor.vue";
+import InkHeader from "@/components/inkHeader/inkHeader.vue";
 
 // Local State
 const extensions = ref<Extension[]>([]);
@@ -213,43 +207,7 @@ onMounted(async () => {
     @include font-mono;
 }
 
-.extensions-view__header {
-    @include card-flat;
-    border-bottom: 1px solid var(--color-border);
-    padding: var(--space-lg) var(--space-xl);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--color-background-soft);
-}
 
-.extensions-view__title {
-    @include text-mono-caps;
-    font-size: var(--font-size-xxl);
-    font-weight: 700;
-    color: var(--color-text);
-    margin: 0;
-}
-
-.extensions-view__nav {
-    display: flex;
-    gap: var(--space-md);
-}
-
-.extensions-view__nav-link {
-    @include text-small-caps;
-    padding: var(--space-sm) var(--space-md);
-    border: 1px solid var(--color-border);
-    color: var(--color-text);
-    text-decoration: none;
-    background: var(--color-background);
-    transition: all 0.2s ease;
-
-    &:hover {
-        background: var(--color-background-muted);
-        border-color: var(--color-primary-light);
-    }
-}
 
 .extensions-view__error {
     @include card-flat;
@@ -431,13 +389,6 @@ onMounted(async () => {
 
 // 响应式设计
 @include mobile {
-    .extensions-view__header {
-        flex-direction: column;
-        gap: var(--space-md);
-        align-items: stretch;
-        text-align: center;
-        padding: var(--space-md);
-    }
 
     .extensions-view__content {
         padding: var(--space-md);
