@@ -24,8 +24,8 @@
 
 .extension-config-editor__modal {
   @include card-elevated;
-  background: var(--color-background);
-  border: 1px solid var(--color-border);
+  background: var(--sys-color-surface-bg-base);
+  border: 1px solid var(--sys-color-surface-border-base);
   width: 90vw;
   max-width: 600px;
   max-height: 90vh;
@@ -40,39 +40,40 @@
 }
 
 .extension-config-editor__header {
-  padding: var(--space-lg);
-  border-bottom: 1px solid var(--color-border);
+  padding: var(--sys-space-scale-lg);
+  border-bottom: 1px solid var(--sys-color-surface-border-base);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .extension-config-editor__title {
-  @include text-mono-caps;
-  font-size: var(--font-size-lg);
-  font-weight: 600;
-  color: var(--color-text);
+  @include font-mono;
+  @include apply-typo("body-md");
+  text-transform: uppercase;
+  color: var(--sys-color-content-text-primary);
   margin: 0;
 }
 
 .extension-config-editor__close-btn {
-  @include text-small-caps;
-  padding: var(--space-xs) var(--space-sm);
-  border: 1px solid var(--color-border);
-  background: var(--color-background);
-  color: var(--color-text);
+  @include font-mono;
+  @include apply-typo("label-sm");
+  padding: var(--sys-space-scale-xs) var(--sys-space-scale-sm);
+  border: 1px solid var(--sys-color-action-border-subtle);
+  background: var(--sys-color-action-bg-subtle);
+  color: var(--sys-color-action-text-subtle);
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
-    background: var(--color-background-muted);
-    border-color: var(--color-primary-light);
+    background: var(--sys-color-action-bg-muted);
+    border-color: var(--sys-color-action-border-subtle);
   }
 }
 
 .extension-config-editor__content {
   flex: 1;
-  padding: var(--space-lg);
+  padding: var(--sys-space-scale-lg);
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -83,54 +84,53 @@
   min-height: 300px;
   resize: none;
   @include font-mono;
-  font-size: var(--font-size-sm);
-  padding: var(--space-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-background-soft);
-  color: var(--color-text);
+  @include apply-typo("label-sm");
+  padding: var(--sys-space-scale-md);
+  border: 1px solid var(--sys-color-surface-border-base);
+  background: var(--sys-color-surface-bg-muted);
+  color: var(--sys-color-content-text-primary);
   line-height: 1.5;
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary-light);
+    border-color: var(--sys-color-surface-border-subtle);
   }
 
   &--error {
-    border-color: var(--color-text);
-    background: var(--color-background-dark);
+    border-color: var(--sys-color-content-text-primary);
+    background: var(--sys-color-surface-bg-danger);
   }
 }
 
 .extension-config-editor__error {
-  @include text-small-caps;
-  color: var(--color-text);
-  font-size: var(--font-size-xs);
-  margin-top: var(--space-sm);
-  padding: var(--space-sm);
-  background: var(--color-background-dark);
-  border: 1px solid var(--color-text-light);
+  @include apply-typo("label-sm");
+  color: var(--sys-color-content-text-primary);
+  margin-top: var(--sys-space-scale-sm);
+  padding: var(--sys-space-scale-sm);
+  background: var(--sys-color-surface-bg-danger);
+  border: 1px solid var(--sys-color-content-text-primary);
 }
 
 .extension-config-editor__actions {
   display: flex;
-  gap: var(--space-sm);
-  margin-top: var(--space-lg);
-  padding-top: var(--space-md);
-  border-top: 1px solid var(--color-border-light);
+  gap: var(--sys-space-scale-sm);
+  margin-top: var(--sys-space-scale-lg);
+  padding-top: var(--sys-space-scale-md);
+  border-top: 1px solid var(--sys-color-surface-border-base);
 }
 
 .extension-config-editor__action-btn {
-  @include text-small-caps;
-  padding: var(--space-sm) var(--space-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-background);
-  color: var(--color-text);
+  @include apply-typo("label-sm");
+  padding: var(--sys-space-scale-sm) var(--sys-space-scale-md);
+  border: 1px solid var(--sys-color-surface-border-base);
+  background: var(--sys-color-surface-bg-base);
+  color: var(--sys-color-content-text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover:not(:disabled) {
-    background: var(--color-background-muted);
-    border-color: var(--color-primary-light);
+    background: var(--sys-color-surface-bg-muted);
+    border-color: var(--sys-color-action-border-subtle);
   }
 
   &:disabled {
@@ -139,13 +139,13 @@
   }
 
   &--primary {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    color: var(--color-background);
+    background: var(--sys-color-action-bg-primary);
+    border-color: var(--sys-color-action-border-primary);
+    color: var(--sys-color-action-text-primary);
 
     &:hover:not(:disabled) {
-      background: var(--color-primary-light);
-      border-color: var(--color-primary-light);
+      background: var(--sys-color-action-bg-primary-hover);
+      border-color: var(--sys-color-action-border-primary-hover);
     }
   }
 

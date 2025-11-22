@@ -1,14 +1,5 @@
 // 通用 Mixins - 只保留使用频率高的和复杂的样式组合
 
-// 字体 Mixins（使用频率高）
-@mixin font-mono {
-  font-family: var(--font-mono);
-}
-
-@mixin font-system {
-  font-family: var(--font-system);
-}
-
 // 复杂文本样式组合
 @mixin text-small-caps {
   font-size: var(--font-size-xs);

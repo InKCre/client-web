@@ -45,18 +45,37 @@ $light: (
             map.get(ref.$palette, "neutral", 6) 35%,
             transparent
           ),
+        danger: map.get(ref.$palette, "danger", 40),
       ),
     ),
     action: (
       bg: (
-        primary: map.get(ref.$palette, "brand", 40),
+        subtle: map.get(ref.$palette, "brand", 98),
+        primary: map.get(ref.$palette, "brand", 10),
         secondary: map.get(ref.$palette, "brand", 80),
+        danger: map.get(ref.$palette, "danger", 40),
       ),
       state: (
         hover: color-mix(in srgb, map.get(ref.$palette, "brand", 40) 88%, white),
         active:
           color-mix(in srgb, map.get(ref.$palette, "brand", 60) 94%, black),
         focus: map.get(ref.$palette, "brand", 60),
+      ),
+      text: (
+        subtle: map.get(ref.$palette, "brand", 10),
+        primary: map.get(ref.$palette, "brand", 98),
+        secondary: map.get(ref.$palette, "brand", 20),
+        danger: map.get(ref.$palette, "danger", 98),
+      ),
+      border: (
+        primary: map.get(ref.$palette, "brand", 20),
+        secondary: map.get(ref.$palette, "brand", 80),
+        danger:
+          color-mix(
+            in srgb,
+            map.get(ref.$palette, "neutral", 80) 45%,
+            transparent
+          ),
       ),
     ),
     accent: (

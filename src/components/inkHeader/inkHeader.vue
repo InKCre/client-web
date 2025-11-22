@@ -5,9 +5,9 @@
         'ink-header--section': mode === 'section'
     }">
         <!-- Default Brand Mode -->
-        <div v-if="mode === 'default'" class="brand">
-            <img class="brand-logo" src="/favicon.ico" alt="InKCre Logo" />
-            <router-link to="/" class="brand-name" style="text-decoration: none"> InKCre </router-link>
+        <div v-if="mode === 'default'" class="application">
+            <img class="application-logo" src="/favicon.ico" alt="InKCre Logo" />
+            <router-link to="/" class="application-name"> {{ title }} </router-link>
         </div>
 
         <!-- Page Header Mode -->

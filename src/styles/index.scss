@@ -1,7 +1,8 @@
-@use './abstract/ref';
-@use './abstract/semantic' as semantic;
-@use './abstract/functions' as fn;
-@forward './mixins';
+@use "./abstract/ref";
+@use "./abstract/semantic" as semantic;
+@use "./abstract/functions" as fn;
+@forward "./mixins";
+@forward "./abstract/functions";
 
 // Consolidate reference primitives for CSS variable emission
 $ref-registry: (
@@ -16,15 +17,15 @@ $ref-registry: (
 
 // Emit reference tokens as CSS variables for cross-layer consumption
 :root,
-html[data-theme='light'] {
+html[data-theme="light"] {
   color-scheme: light;
-  @include fn.emit-css-variables($ref-registry, 'ref');
+  @include fn.emit-css-variables($ref-registry, "ref");
   @include fn.emit-css-variables(semantic.$light);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]),
-  html[data-theme='dark'] {
+  html[data-theme="dark"] {
     color-scheme: dark;
     @include fn.emit-css-variables(semantic.$dark);
   }
@@ -32,7 +33,7 @@ html[data-theme='light'] {
 
 // Component token registration for future component-scoped overrides
 :root {
-  @include fn.emit-css-variables(semantic.$component-tokens, 'comp');
+  @include fn.emit-css-variables(semantic.$component-tokens, "comp");
 }
 
 * {
@@ -41,19 +42,19 @@ html[data-theme='light'] {
 
 body {
   margin: 0;
-  background: fn.sys-var('color', 'surface', 'bg', 'base');
-  color: fn.sys-var('color', 'content', 'text', 'primary');
-  font-family: fn.sys-var('type', 'body-md', 'family');
-  font-size: fn.sys-var('type', 'body-md', 'size');
-  line-height: fn.sys-var('type', 'body-md', 'line-height');
-  letter-spacing: fn.sys-var('type', 'body-md', 'letter');
+  background: fn.sys-var("color", "surface", "bg", "base");
+  color: fn.sys-var("color", "content", "text", "primary");
+  font-family: fn.sys-var("type", "body-md", "family");
+  font-size: fn.sys-var("type", "body-md", "size");
+  line-height: fn.sys-var("type", "body-md", "line-height");
+  letter-spacing: fn.sys-var("type", "body-md", "letter");
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
-  background: fn.sys-var('color', 'action', 'state', 'hover');
-  color: fn.sys-var('color', 'content', 'text', 'primary');
+  background: fn.sys-var("color", "action", "state", "hover");
+  color: fn.sys-var("color", "content", "text", "primary");
 }
 
 @keyframes pulse {
@@ -62,7 +63,7 @@ body {
     opacity: 1;
   }
   50% {
-    opacity: fn.sys-var('opacity', 'muted');
+    opacity: fn.sys-var("opacity", "muted");
   }
 }
 

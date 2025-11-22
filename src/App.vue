@@ -3,7 +3,7 @@ import InkHeader from './components/inkHeader/inkHeader.vue'
 </script>
 
 <template>
-  <InkHeader />
+  <InkHeader title="InKCre" />
   <div class="app-content">
     <router-view />
   </div>

@@ -1,4 +1,4 @@
-@use "../../styles/index.scss" as *;
+@use "@/styles/index.scss" as *;
 
 /* Base header styles */
 .ink-header {
@@ -22,75 +22,70 @@
 /* Page mode - generalized page header */
 .ink-header--page {
   @include card-flat;
-  padding: var(--space-lg) var(--space-xl);
-  background: var(--color-background-soft);
+  padding: var(--sys-space-scale-lg) var(--sys-space-scale-xl);
+  background: var(--sys-color-surface-bg-muted);
 }
 
 /* Section mode - simple section header */
 .ink-header--section {
-  padding: var(--space-lg) 0;
+  padding: var(--sys-space-scale-lg) 0;
   background: transparent;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--sys-color-surface-border-strong);
 }
 
-/* Brand elements (default mode) */
-.brand {
+/* Application mode */
+.application {
   display: flex;
   align-items: center;
   gap: var(--sys-space-scale-md);
 }
 
-.brand-logo {
+.application-logo {
   width: 32px;
   height: 32px;
   object-fit: contain;
   display: block;
 }
 
-.brand-name {
-  // TODO use mixin
-  font-size: var(--sys-type-display-sm-size);
-  font-weight: var(--sys-type-display-sm-weight);
+.application-name {
   color: var(--sys-color-content-text-primary);
-  letter-spacing: var(--sys-type-label-sm-letter);
-  text-transform: uppercase;
+  text-decoration: none;
+  @include apply-typo("label-lg");
 }
 
 /* Page header elements (page mode) */
 .ink-header__title {
-  @include text-mono-caps;
-  font-size: var(--font-size-xxl);
-  font-weight: 700;
-  color: var(--color-text);
+  @include font-mono;
+  @include apply-typo("display-sm");
+  color: var(--sys-color-content-text-primary);
   margin: 0;
 }
 
 /* Section header elements (section mode) */
 .ink-header__section-title {
-  @include text-mono-caps;
-  font-size: var(--font-size-2xl);
-  font-weight: 700;
-  color: var(--color-text);
+  @include font-mono;
+  @include apply-typo("display-sm");
+  color: var(--sys-color-content-text-primary);
   margin: 0;
 }
 
 .ink-header__nav {
   display: flex;
-  gap: var(--space-md);
+  gap: var(--sys-space-scale-md);
 }
 
 .ink-header__nav-link {
-  @include text-small-caps;
-  padding: var(--space-sm) var(--space-md);
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
+  @include apply-typo("label-lg");
+  padding: var(--sys-space-scale-sm) var(--sys-space-scale-md);
+  border: 1px solid var(--sys-color-surface-border);
+  color: var(--sys-color-content-text);
   text-decoration: none;
-  background: var(--color-background);
+  background: var(--sys-color-surface-bg-base);
   transition: all 0.2s ease;
 
   &:hover {
-    background: var(--color-background-muted);
-    border-color: var(--color-primary-light);
+    background: var(--sys-color-surface-bg-muted);
+    border-color: var(--sys-color-action-bg-primary-light);
   }
 }
 
@@ -98,10 +93,10 @@
 @include mobile {
   .ink-header--page {
     flex-direction: column;
-    gap: var(--space-md);
+    gap: var(--sys-space-scale-md);
     align-items: stretch;
     text-align: center;
-    padding: var(--space-md);
+    padding: var(--sys-space-scale-md);
   }
 
   .ink-header__nav {
@@ -112,6 +107,6 @@
 
 @include tablet {
   .ink-header--page {
-    padding: var(--space-lg) var(--space-xl);
+    padding: var(--sys-space-scale-lg) var(--sys-space-scale-xl);
   }
 }

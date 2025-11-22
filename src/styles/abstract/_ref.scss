@@ -1,10 +1,16 @@
 // Reference tokens capture raw values without semantic meaning
 $palette: (
   brand: (
-    40: #6b4cd3,
-    60: #4c3ba7,
-    80: #d5cbff,
-    90: #ede9fe,
+    0: #000000,
+    10: #1b1b1b,
+    20: #303030,
+    30: #474747,
+    40: #5e5e5e,
+    60: #919191,
+    80: #c6c6c6,
+    90: #e2e2e2,
+    98: #fbfcff,
+    100: #ffffff,
   ),
   neutral: (
     2: #0b1220,
@@ -25,13 +31,15 @@ $palette: (
   danger: (
     40: #d12d3d,
     90: #ffe5e8,
+    98: #fff8f7,
   ),
 );
 
 $font: (
   family: (
-    sans: 'Inter, "SF Pro Text", system-ui, -apple-system, sans-serif',
-    mono: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace',
+    sans: "system-ui, -apple-system, sans-serif",
+    mono:
+      '"SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace',
   ),
 );
 

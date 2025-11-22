@@ -3,19 +3,19 @@
 /* BEM: block = extension-card */
 .extension-card {
   @include card-elevated;
-  padding: var(--space-lg);
-  background: var(--color-background);
-  border: 1px solid var(--color-border);
+  padding: var(--sys-space-scale-lg);
+  background: var(--sys-color-surface-bg-base);
+  border: 1px solid var(--sys-color-surface-border-strong);
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: var(--color-primary-light);
-    box-shadow: var(--shadow-md);
+    border-color: var(--sys-color-action-bg-primary);
+    box-shadow: var(--sys-elevation-md);
   }
 
   &--disabled {
     opacity: 0.6;
-    background: var(--color-background-soft);
+    background: var(--sys-color-surface-bg-muted);
   }
 }
 
@@ -23,7 +23,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--sys-space-scale-md);
 }
 
 .extension-card__info {
@@ -31,7 +31,7 @@
 }
 
 .extension-card__id {
-  @include text-mono-caps;
+  @include font-mono;
   font-size: var(--font-size-lg);
   font-weight: 600;
   color: var(--color-text);
@@ -39,67 +39,64 @@
 }
 
 .extension-card__nickname {
-  @include text-small-caps;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  margin: 0 0 var(--space-xs) 0;
+  @include apply-typo("label-sm");
+  text-transform: uppercase;
+  color: var(--sys-color-content-text-muted);
+  margin: 0 0 var(--sys-space-scale-xs) 0;
 }
 
 .extension-card__version {
-  @include text-small-caps;
-  color: var(--color-text-light);
-  font-size: var(--font-size-xs);
+  @include apply-typo("label-xs");
+  color: var(--sys-color-content-text-muted);
 }
 
 .extension-card__status {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: var(--sys-space-scale-sm);
 }
 
 .extension-card__status-indicator {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--color-text-light);
+  background: var(--sys-color-content-text-muted);
 
   &--enabled {
-    background: var(--color-primary);
+    background: var(--sys-color-action-bg-primary);
   }
 
   &--disabled {
-    background: var(--color-text-light);
+    background: var(--sys-color-content-text-muted);
   }
 }
 
 .extension-card__status-text {
-  @include text-small-caps;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
+  @include apply-typo("label-sm");
+  color: var(--sys-color-content-text-muted);
 }
 
 .extension-card__actions {
   display: flex;
-  gap: var(--space-sm);
-  margin-top: var(--space-md);
-  padding-top: var(--space-md);
-  border-top: 1px solid var(--color-border-light);
+  gap: var(--sys-space-scale-sm);
+  margin-top: var(--sys-space-scale-md);
+  padding-top: var(--sys-space-scale-md);
+  border-top: 1px solid var(--sys-color-surface-border-light);
 }
 
 .extension-card__action-btn {
-  @include text-small-caps;
-  padding: var(--space-xs) var(--space-sm);
-  border: 1px solid var(--color-border);
-  background: var(--color-background);
-  color: var(--color-text);
+  @include apply-typo("label-sm");
+  padding: var(--sys-space-scale-xs) var(--sys-space-scale-sm);
+  border: 1px solid var(--sys-color-surface-border-base);
+  background: var(--sys-color-action-bg-subtle);
+  color: var(--sys-color-action-text-subtle);
   cursor: pointer;
-  font-size: var(--font-size-xs);
   transition: all 0.2s ease;
   text-decoration: none;
 
   &:hover:not(:disabled) {
-    background: var(--color-background-muted);
-    border-color: var(--color-primary-light);
+    background: var(--sys-color-surface-bg-muted);
+    border-color: var(--sys-color-action-bg-primary-light);
   }
 
   &:disabled {
@@ -108,47 +105,46 @@
   }
 
   &--primary {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    color: var(--color-background);
+    background: var(--sys-color-action-bg-primary);
+    border-color: var(--sys-color-action-border-primary);
+    color: var(--sys-color-action-fg-primary);
 
     &:hover:not(:disabled) {
-      background: var(--color-primary-light);
-      border-color: var(--color-primary-light);
+      background: var(--sys-color-action-bg-primary-light);
+      border-color: var(--sys-color-action-bg-primary-light);
     }
   }
 
   &--danger {
-    color: var(--color-text);
-    border-color: var(--color-text-light);
+    color: var(--sys-color-content-text-danger);
+    border-color: var(--sys-color-action-border-danger);
 
     &:hover:not(:disabled) {
-      background: var(--color-background-dark);
-      border-color: var(--color-text);
+      background: var(--sys-color-surface-bg-muted);
+      border-color: var(--sys-color-content-text);
     }
   }
 }
 
 .extension-card__config {
-  margin-top: var(--space-md);
-  padding-top: var(--space-md);
-  border-top: 1px solid var(--color-border-light);
+  margin-top: var(--sys-space-scale-md);
+  padding-top: var(--sys-space-scale-md);
+  border-top: 1px solid var(--sys-color-surface-border-light);
 }
 
 .extension-card__config-header {
-  @include text-small-caps;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  margin-bottom: var(--space-sm);
+  @include apply-typo("label-sm");
+  color: var(--sys-color-content-text-muted);
+  margin-bottom: var(--sys-space-scale-sm);
 }
 
 .extension-card__config-content {
   @include font-mono;
-  font-size: var(--font-size-xs);
-  padding: var(--space-sm);
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border-light);
-  color: var(--color-text);
+  font-size: var(--sys-font-size-xs);
+  padding: var(--sys-space-scale-sm);
+  background: var(--sys-color-surface-bg-muted);
+  border: 1px solid var(--sys-color-surface-border-light);
+  color: var(--sys-color-content-text);
   white-space: pre-wrap;
   word-break: break-all;
   max-height: 200px;
@@ -158,12 +154,12 @@
 // 响应式设计
 @include mobile {
   .extension-card {
-    padding: var(--space-md);
+    padding: var(--sys-space-scale-md);
   }
 
   .extension-card__header {
     flex-direction: column;
-    gap: var(--space-sm);
+    gap: var(--sys-space-scale-sm);
     align-items: stretch;
   }
 

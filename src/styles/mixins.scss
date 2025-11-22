@@ -3,7 +3,7 @@
 @use "./abstract/functions" as fn;
 
 // Typography helpers
-@mixin apply-text-style($token) {
+@mixin apply-typo($token) {
   font-family: fn.sys-var("type", $token, "family");
   font-size: fn.sys-var("type", $token, "size");
   font-weight: fn.sys-var("type", $token, "weight");
@@ -12,7 +12,7 @@
 }
 
 @mixin font-mono {
-  font-family: fn.sys-var("type", "code", "family");
+  font-family: fn.ref-var("font", "family", "mono");
 }
 
 @mixin font-system {
@@ -21,7 +21,7 @@
 
 // Text utility mixes that lean on typography tokens
 @mixin text-small-caps {
-  @include apply-text-style("label-sm");
+  @include apply-typo("label-sm");
   text-transform: uppercase;
 }
 

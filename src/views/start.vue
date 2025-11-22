@@ -313,87 +313,86 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 @use "@/styles/index.scss" as *;
-@use "@/styles/abstract/functions" as fn;
 
 .workspace__system-bar {
   @include card-flat;
-  border-bottom: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
-  padding: fn.sys-var('space', 'scale', 'lg') fn.sys-var('space', 'scale', 'xl');
+  border-bottom: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'base');
+  padding: sys-var('space', 'scale', 'lg') sys-var('space', 'scale', 'xl');
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: fn.sys-var('color', 'surface', 'bg', 'muted');
+  background: sys-var('color', 'surface', 'bg', 'muted');
 }
 
 .workspace__system-info {
   display: flex;
   align-items: center;
-  gap: fn.sys-var('space', 'scale', 'lg');
+  gap: sys-var('space', 'scale', 'lg');
 }
 
 .workspace__system-title {
   @include text-mono-caps;
-  font-size: fn.sys-var('type', 'display-sm', 'size');
+  font-size: sys-var('type', 'display-sm', 'size');
   font-weight: 700;
-  color: fn.sys-var('color', 'content', 'text', 'primary');
+  color: sys-var('color', 'content', 'text', 'primary');
 }
 
 .workspace__system-status {
   @include text-small-caps;
-  color: fn.sys-var('color', 'content', 'text', 'muted');
-  padding: fn.sys-var('space', 'scale', 'xs') fn.sys-var('space', 'scale', 'sm');
-  border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
-  background: fn.sys-var('color', 'surface', 'bg', 'base');
+  color: sys-var('color', 'content', 'text', 'muted');
+  padding: sys-var('space', 'scale', 'xs') sys-var('space', 'scale', 'sm');
+  border: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'base');
+  background: sys-var('color', 'surface', 'bg', 'base');
 }
 
 .workspace__nav {
   display: flex;
-  gap: fn.sys-var('space', 'scale', 'md');
+  gap: sys-var('space', 'scale', 'md');
 }
 
 .workspace__nav-link {
   @include text-small-caps;
-  padding: fn.sys-var('space', 'scale', 'sm') fn.sys-var('space', 'scale', 'md');
-  border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
-  color: fn.sys-var('color', 'content', 'text', 'primary');
+  padding: sys-var('space', 'scale', 'sm') sys-var('space', 'scale', 'md');
+  border: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'base');
+  color: sys-var('color', 'content', 'text', 'primary');
   text-decoration: none;
-  background: fn.sys-var('color', 'surface', 'bg', 'base');
+  background: sys-var('color', 'surface', 'bg', 'base');
   transition: all 0.2s ease;
 
   &:hover {
-    background: fn.sys-var('color', 'surface', 'bg', 'raised');
-    border-color: fn.sys-var('color', 'action', 'state', 'hover');
+    background: sys-var('color', 'surface', 'bg', 'raised');
+    border-color: sys-var('color', 'action', 'state', 'hover');
   }
 }
 
 .workspace__error-bar {
   @include card-flat;
-  background: fn.sys-var('color', 'surface', 'bg', 'strong');
-  color: fn.sys-var('color', 'content', 'text', 'primary');
-  padding: fn.sys-var('space', 'scale', 'md') fn.sys-var('space', 'scale', 'xl');
-  border-bottom: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
+  background: sys-var('color', 'surface', 'bg', 'strong');
+  color: sys-var('color', 'content', 'text', 'primary');
+  padding: sys-var('space', 'scale', 'md') sys-var('space', 'scale', 'xl');
+  border-bottom: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'base');
   text-align: center;
   @include text-small-caps;
 }
 
 .workspace__loading-bar {
   @include card-flat;
-  padding: fn.sys-var('space', 'scale', 'xl');
+  padding: sys-var('space', 'scale', 'xl');
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: fn.sys-var('space', 'scale', 'md');
-  background: fn.sys-var('color', 'surface', 'bg', 'muted');
-  border-bottom: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
+  gap: sys-var('space', 'scale', 'md');
+  background: sys-var('color', 'surface', 'bg', 'muted');
+  border-bottom: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'base');
 
   .workspace__loading-icon {
-    font-size: fn.sys-var('type', 'display-sm', 'size');
+    font-size: sys-var('type', 'display-sm', 'size');
     animation: pulse 2s infinite;
   }
 
   .workspace__loading-text {
     @include text-small-caps;
-    color: fn.sys-var('color', 'content', 'text', 'muted');
+    color: sys-var('color', 'content', 'text', 'muted');
   }
 }
 
@@ -404,34 +403,34 @@ onUnmounted(() => {
 }
 
 .workspace__blocks {
-  padding: fn.sys-var('space', 'scale', 'xl');
-  border-right: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
-  background: fn.sys-var('color', 'surface', 'bg', 'base');
+  padding: sys-var('space', 'scale', 'xl');
+  border-right: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'base');
+  background: sys-var('color', 'surface', 'bg', 'base');
 }
 
 .workspace__section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: fn.sys-var('space', 'scale', 'xl');
-  padding-bottom: fn.sys-var('space', 'scale', 'md');
-  border-bottom: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
+  margin-bottom: sys-var('space', 'scale', 'xl');
+  padding-bottom: sys-var('space', 'scale', 'md');
+  border-bottom: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'base');
 }
 
 .workspace__section-title {
   @include text-mono-caps;
-  font-size: fn.sys-var('type', 'title-sm', 'size');
+  font-size: sys-var('type', 'title-sm', 'size');
   font-weight: 600;
-  color: fn.sys-var('color', 'content', 'text', 'primary');
+  color: sys-var('color', 'content', 'text', 'primary');
   margin: 0;
 }
 
 .workspace__action-btn {
   @include text-small-caps;
-  padding: fn.sys-var('space', 'scale', 'sm') fn.sys-var('space', 'scale', 'md');
-  border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
-  background: fn.sys-var('color', 'surface', 'bg', 'base');
-  color: fn.sys-var('color', 'content', 'text', 'primary');
+  padding: sys-var('space', 'scale', 'sm') sys-var('space', 'scale', 'md');
+  border: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'base');
+  background: sys-var('color', 'surface', 'bg', 'base');
+  color: sys-var('color', 'content', 'text', 'primary');
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
@@ -439,12 +438,12 @@ onUnmounted(() => {
   text-align: center;
 
   &:hover:not(:disabled) {
-    background: fn.sys-var('color', 'surface', 'bg', 'raised');
-    border-color: fn.sys-var('color', 'action', 'state', 'hover');
+    background: sys-var('color', 'surface', 'bg', 'raised');
+    border-color: sys-var('color', 'action', 'state', 'hover');
   }
 
   &:disabled {
-    opacity: fn.sys-var('opacity', 'muted');
+    opacity: sys-var('opacity', 'muted');
     cursor: not-allowed;
   }
 
@@ -479,10 +478,10 @@ onUnmounted(() => {
   // 移除默认的margin-bottom，由瀑布流布局控制间距
   :deep(.block-viewer) {
     margin-bottom: 0;
-    box-shadow: fn.sys-var('elevation', 'low');
+    box-shadow: sys-var('elevation', 'low');
 
     &:hover {
-      box-shadow: fn.sys-var('elevation', 'high');
+      box-shadow: sys-var('elevation', 'high');
     }
   }
 }
@@ -500,66 +499,66 @@ onUnmounted(() => {
 }
 
 .workspace__control-panel {
-  background: fn.sys-var('color', 'surface', 'bg', 'muted');
-  padding: fn.sys-var('space', 'scale', 'lg');
+  background: sys-var('color', 'surface', 'bg', 'muted');
+  padding: sys-var('space', 'scale', 'lg');
   display: flex;
   flex-direction: column;
-  gap: fn.sys-var('space', 'scale', 'lg');
+  gap: sys-var('space', 'scale', 'lg');
 }
 
 .workspace__section {
   @include card-flat;
-  border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
-  background: fn.sys-var('color', 'surface', 'bg', 'base');
-  padding: fn.sys-var('space', 'scale', 'lg');
+  border: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'base');
+  background: sys-var('color', 'surface', 'bg', 'base');
+  padding: sys-var('space', 'scale', 'lg');
 }
 
 .workspace__creator {
   display: flex;
   flex-direction: column;
-  gap: fn.sys-var('space', 'scale', 'lg');
+  gap: sys-var('space', 'scale', 'lg');
 }
 
 .workspace__creator-block,
 .workspace__creator-relation {
   display: flex;
   flex-direction: column;
-  gap: fn.sys-var('space', 'scale', 'md');
-  padding: fn.sys-var('space', 'scale', 'md');
-  border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'subtle');
-  background: fn.sys-var('color', 'surface', 'bg', 'muted');
+  gap: sys-var('space', 'scale', 'md');
+  padding: sys-var('space', 'scale', 'md');
+  border: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'subtle');
+  background: sys-var('color', 'surface', 'bg', 'muted');
 }
 
 .workspace__creator-title {
   @include text-small-caps;
-  font-size: fn.sys-var('type', 'body-sm', 'size');
+  font-size: sys-var('type', 'body-sm', 'size');
   font-weight: 600;
-  color: fn.sys-var('color', 'content', 'text', 'muted');
+  color: sys-var('color', 'content', 'text', 'muted');
   margin: 0;
 }
 
 .workspace__creator-form {
   display: flex;
   flex-direction: column;
-  gap: fn.sys-var('space', 'scale', 'sm');
+  gap: sys-var('space', 'scale', 'sm');
 }
 
 .workspace__creator-input {
   @include font-mono;
-  padding: fn.sys-var('space', 'scale', 'sm');
-  border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
-  background: fn.sys-var('color', 'surface', 'bg', 'base');
-  color: fn.sys-var('color', 'content', 'text', 'primary');
-  font-size: fn.sys-var('type', 'body-sm', 'size');
+  padding: sys-var('space', 'scale', 'sm');
+  border: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'base');
+  background: sys-var('color', 'surface', 'bg', 'base');
+  color: sys-var('color', 'content', 'text', 'primary');
+  font-size: sys-var('type', 'body-sm', 'size');
 
   &::placeholder {
-    color: fn.sys-var('color', 'content', 'text', 'subtle');
+    color: sys-var('color', 'content', 'text', 'subtle');
     @include text-small-caps;
   }
 
   &:focus {
     outline: none;
-    border-color: fn.sys-var('color', 'action', 'state', 'hover');
+    border-color: sys-var('color', 'action', 'state', 'hover');
   }
 
   &--textarea {
@@ -575,20 +574,20 @@ onUnmounted(() => {
 
 .workspace__creator-btn {
   @include text-small-caps;
-  padding: fn.sys-var('space', 'scale', 'sm') fn.sys-var('space', 'scale', 'md');
-  border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'action', 'bg', 'primary');
-  background: fn.sys-var('color', 'action', 'bg', 'primary');
-  color: fn.sys-var('color', 'surface', 'bg', 'base');
+  padding: sys-var('space', 'scale', 'sm') sys-var('space', 'scale', 'md');
+  border: sys-var('space', 'border', 'thin') solid sys-var('color', 'action', 'bg', 'primary');
+  background: sys-var('color', 'action', 'bg', 'primary');
+  color: sys-var('color', 'surface', 'bg', 'base');
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover:not(:disabled) {
-    background: fn.sys-var('color', 'action', 'state', 'hover');
-    border-color: fn.sys-var('color', 'action', 'state', 'hover');
+    background: sys-var('color', 'action', 'state', 'hover');
+    border-color: sys-var('color', 'action', 'state', 'hover');
   }
 
   &:disabled {
-    opacity: fn.sys-var('opacity', 'muted');
+    opacity: sys-var('opacity', 'muted');
     cursor: not-allowed;
   }
 }
@@ -596,15 +595,15 @@ onUnmounted(() => {
 .workspace__stats-grid {
   display: flex;
   flex-direction: column;
-  gap: fn.sys-var('space', 'scale', 'sm');
+  gap: sys-var('space', 'scale', 'sm');
 }
 
 .workspace__stat-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: fn.sys-var('space', 'scale', 'sm') 0;
-  border-bottom: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'subtle');
+  padding: sys-var('space', 'scale', 'sm') 0;
+  border-bottom: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'subtle');
 
   &:last-child {
     border-bottom: none;
@@ -613,32 +612,32 @@ onUnmounted(() => {
 
 .workspace__stat-label {
   @include text-small-caps;
-  color: fn.sys-var('color', 'content', 'text', 'muted');
-  font-size: fn.sys-var('type', 'label-sm', 'size');
+  color: sys-var('color', 'content', 'text', 'muted');
+  font-size: sys-var('type', 'label-sm', 'size');
 }
 
 .workspace__stat-value {
   @include font-mono;
-  color: fn.sys-var('color', 'content', 'text', 'primary');
+  color: sys-var('color', 'content', 'text', 'primary');
   font-weight: 600;
 }
 
 .workspace__management {
   display: flex;
   flex-direction: column;
-  gap: fn.sys-var('space', 'scale', 'md');
+  gap: sys-var('space', 'scale', 'md');
 }
 
 .workspace__management-actions {
   display: flex;
   flex-direction: column;
-  gap: fn.sys-var('space', 'scale', 'sm');
+  gap: sys-var('space', 'scale', 'sm');
 }
 
 .workspace__actions-grid {
   display: flex;
   flex-direction: column;
-  gap: fn.sys-var('space', 'scale', 'sm');
+  gap: sys-var('space', 'scale', 'sm');
 }
 
 // 响应式设计
@@ -649,11 +648,11 @@ onUnmounted(() => {
 
   .workspace__control-panel {
     order: -1;
-    padding: fn.sys-var('space', 'scale', 'md');
+    padding: sys-var('space', 'scale', 'md');
   }
 
   .workspace__blocks {
-    padding: fn.sys-var('space', 'scale', 'md');
+    padding: sys-var('space', 'scale', 'md');
   }
 
   .workspace__blocks-grid {
@@ -661,7 +660,7 @@ onUnmounted(() => {
     position: static;
     display: flex;
     flex-direction: column;
-    gap: fn.sys-var('space', 'scale', 'sm');
+    gap: sys-var('space', 'scale', 'sm');
 
     .workspace__block-item {
       position: static !important;
@@ -673,7 +672,7 @@ onUnmounted(() => {
 
   .workspace__system-bar {
     flex-direction: column;
-    gap: fn.sys-var('space', 'scale', 'md');
+    gap: sys-var('space', 'scale', 'md');
     align-items: stretch;
     text-align: center;
   }
@@ -685,8 +684,8 @@ onUnmounted(() => {
   }
 
   .workspace__control-panel {
-    padding: fn.sys-var('space', 'scale', 'md');
-    gap: fn.sys-var('space', 'scale', 'md');
+    padding: sys-var('space', 'scale', 'md');
+    gap: sys-var('space', 'scale', 'md');
   }
 }
 
