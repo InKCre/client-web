@@ -1,7 +1,8 @@
 <template>
     <header class="ink-header" :class="{
         'ink-header--default': mode === 'default',
-        'ink-header--page': mode === 'page'
+        'ink-header--page': mode === 'page',
+        'ink-header--section': mode === 'section'
     }">
         <!-- Default Brand Mode -->
         <div v-if="mode === 'default'" class="brand">
@@ -23,6 +24,9 @@
                 </template>
             </nav>
         </template>
+
+        <!-- Section Header Mode -->
+        <h1 v-else-if="mode === 'section'" class="ink-header__section-title">{{ title }}</h1>
     </header>
 </template>
 

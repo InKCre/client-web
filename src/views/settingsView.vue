@@ -1,9 +1,7 @@
 <template>
   <div class="settings-view">
     <div class="settings-view__container">
-      <header class="settings-view__header">
-        <h1 class="settings-view__title">{{ t('settings.title') }}</h1>
-      </header>
+      <ink-header mode="section" :title="t('settings.title')" />
 
       <main class="settings-view__main">
         <section class="settings-view__section">
@@ -28,6 +26,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { setLocale, SUPPORT_LOCALES, LOCALE_NAMES, type SupportLocale } from '@/locales'
+import InkHeader from '@/components/inkHeader/inkHeader.vue'
 
 const { t, locale } = useI18n()
 
@@ -59,24 +58,11 @@ const changeLanguage = async (newLocale: SupportLocale) => {
   margin: 0 auto;
 }
 
-.settings-view__header {
-  margin-bottom: var(--space-2xl);
-  padding-bottom: var(--space-lg);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.settings-view__title {
-  @include text-mono-caps;
-  font-size: var(--font-size-2xl);
-  font-weight: 700;
-  color: var(--color-text);
-  margin: 0;
-}
-
 .settings-view__main {
   display: flex;
   flex-direction: column;
   gap: var(--space-xl);
+  margin-top: var(--space-2xl);
 }
 
 .settings-view__section {

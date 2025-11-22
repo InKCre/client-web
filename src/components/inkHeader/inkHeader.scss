@@ -26,6 +26,13 @@
   background: var(--color-background-soft);
 }
 
+/* Section mode - simple section header */
+.ink-header--section {
+  padding: var(--space-lg) 0;
+  background: transparent;
+  border-bottom: 1px solid var(--color-border);
+}
+
 /* Brand elements (default mode) */
 .brand {
   display: flex;
@@ -52,6 +59,15 @@
 .ink-header__title {
   @include text-mono-caps;
   font-size: var(--font-size-xxl);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+/* Section header elements (section mode) */
+.ink-header__section-title {
+  @include text-mono-caps;
+  font-size: var(--font-size-2xl);
   font-weight: 700;
   color: var(--color-text);
   margin: 0;

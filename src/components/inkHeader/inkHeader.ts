@@ -5,9 +5,9 @@ export interface NavLink {
 }
 
 export interface InkHeaderProps {
-  mode?: "default" | "page";
+  mode?: "default" | "page" | "section";
   title?: string;
   navLinks?: NavLink[];
 }
 
-export type InkHeaderMode = "default" | "page";
+export type InkHeaderMode = "default" | "page" | "section";
