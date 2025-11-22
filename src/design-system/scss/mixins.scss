@@ -72,19 +72,19 @@
 
 // Responsive helpers built from reference breakpoints
 @mixin mobile {
-  @media (max-width: map.get(ref.$ref-tokens, 'layout', 'breakpoint', 'mobile')) {
+  @media (max-width: map.get(ref.$layout, 'breakpoint', 'mobile')) {
     @content;
   }
 }
 
 @mixin tablet {
-  @media (min-width: calc(map.get(ref.$ref-tokens, 'layout', 'breakpoint', 'mobile') + 1px)) and (max-width: map.get(ref.$ref-tokens, 'layout', 'breakpoint', 'tablet')) {
+  @media (min-width: calc(map.get(ref.$layout, 'breakpoint', 'mobile') + 1px)) and (max-width: map.get(ref.$layout, 'breakpoint', 'tablet')) {
     @content;
   }
 }
 
 @mixin desktop {
-  @media (min-width: calc(map.get(ref.$ref-tokens, 'layout', 'breakpoint', 'tablet') + 1px)) {
+  @media (min-width: calc(map.get(ref.$layout, 'breakpoint', 'tablet') + 1px)) {
     @content;
   }
 }

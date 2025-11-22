@@ -7,127 +7,122 @@ $light: (
   color: (
     surface: (
       bg: (
-        base: map.get(ref.$ref-tokens, 'palette', 'neutral', 98),
-        muted: map.get(ref.$ref-tokens, 'palette', 'neutral', 94),
-        raised: map.get(ref.$ref-tokens, 'palette', 'neutral', 90),
-        strong: map.get(ref.$ref-tokens, 'palette', 'neutral', 80),
+        base: map.get(ref.$palette, 'neutral', 98),
+        muted: map.get(ref.$palette, 'neutral', 94),
+        raised: map.get(ref.$palette, 'neutral', 90),
+        strong: map.get(ref.$palette, 'neutral', 80),
       ),
       border: (
-        subtle: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 80) 45%, transparent),
-        strong: map.get(ref.$ref-tokens, 'palette', 'neutral', 80),
+        subtle: color-mix(in srgb, map.get(ref.$palette, 'neutral', 80) 45%, transparent),
+        strong: map.get(ref.$palette, 'neutral', 80),
       ),
     ),
     content: (
       text: (
-        primary: map.get(ref.$ref-tokens, 'palette', 'neutral', 6),
-        secondary: map.get(ref.$ref-tokens, 'palette', 'neutral', 12),
-        muted: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 6) 70%, transparent),
-        subtle: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 6) 55%, transparent),
-        quiet: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 6) 35%, transparent),
+        primary: map.get(ref.$palette, 'neutral', 6),
+        secondary: map.get(ref.$palette, 'neutral', 12),
+        muted: color-mix(in srgb, map.get(ref.$palette, 'neutral', 6) 70%, transparent),
+        subtle: color-mix(in srgb, map.get(ref.$palette, 'neutral', 6) 55%, transparent),
+        quiet: color-mix(in srgb, map.get(ref.$palette, 'neutral', 6) 35%, transparent),
       ),
     ),
     action: (
       bg: (
-        primary: map.get(ref.$ref-tokens, 'palette', 'brand', 40),
-        secondary: map.get(ref.$ref-tokens, 'palette', 'brand', 80),
+        primary: map.get(ref.$palette, 'brand', 40),
+        secondary: map.get(ref.$palette, 'brand', 80),
       ),
       state: (
-        hover: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'brand', 40) 88%, white),
-        active: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'brand', 60) 94%, black),
-        focus: map.get(ref.$ref-tokens, 'palette', 'brand', 60),
+        hover: color-mix(in srgb, map.get(ref.$palette, 'brand', 40) 88%, white),
+        active: color-mix(in srgb, map.get(ref.$palette, 'brand', 60) 94%, black),
+        focus: map.get(ref.$palette, 'brand', 60),
       ),
     ),
     accent: (
-      bg: map.get(ref.$ref-tokens, 'palette', 'accent', 90),
-      text: map.get(ref.$ref-tokens, 'palette', 'accent', 40),
+      bg: map.get(ref.$palette, 'accent', 90),
+      text: map.get(ref.$palette, 'accent', 40),
     ),
     feedback: (
       bg: (
-        danger: map.get(ref.$ref-tokens, 'palette', 'danger', 90),
+        danger: map.get(ref.$palette, 'danger', 90),
       ),
       text: (
-        danger: map.get(ref.$ref-tokens, 'palette', 'danger', 40),
+        danger: map.get(ref.$palette, 'danger', 40),
       ),
     ),
     overlay: (
-      scrim: rgba(map.get(ref.$ref-tokens, 'palette', 'neutral', 2), 0.48),
+      scrim: rgba(map.get(ref.$palette, 'neutral', 2), 0.48),
     ),
   ),
   space: (
-    scale: map.get(ref.$ref-tokens, 'space', 'scale'),
-    radius: map.get(ref.$ref-tokens, 'shape', 'radius'),
-    border: map.get(ref.$ref-tokens, 'shape', 'border'),
+    scale: map.get(ref.$space, 'scale'),
+    radius: map.get(ref.$shape, 'radius'),
+    border: map.get(ref.$shape, 'border'),
   ),
   type: typography.$typo-tokens,
-  elevation: map.get(ref.$ref-tokens, 'elevation'),
-  opacity: map.get(ref.$ref-tokens, 'opacity'),
-  layout: map.get(ref.$ref-tokens, 'layout'),
+  elevation: ref.$elevation,
+  opacity: ref.$opacity,
+  layout: ref.$layout,
 );
 
 $dark: (
   color: (
     surface: (
       bg: (
-        base: map.get(ref.$ref-tokens, 'palette', 'neutral', 12),
-        muted: map.get(ref.$ref-tokens, 'palette', 'neutral', 20),
-        raised: map.get(ref.$ref-tokens, 'palette', 'neutral', 6),
-        strong: map.get(ref.$ref-tokens, 'palette', 'neutral', 2),
+        base: map.get(ref.$palette, 'neutral', 12),
+        muted: map.get(ref.$palette, 'neutral', 20),
+        raised: map.get(ref.$palette, 'neutral', 6),
+        strong: map.get(ref.$palette, 'neutral', 2),
       ),
       border: (
-        subtle: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 80) 25%, transparent),
-        strong: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 80) 55%, transparent),
+        subtle: color-mix(in srgb, map.get(ref.$palette, 'neutral', 80) 25%, transparent),
+        strong: color-mix(in srgb, map.get(ref.$palette, 'neutral', 80) 55%, transparent),
       ),
     ),
     content: (
       text: (
-        primary: map.get(ref.$ref-tokens, 'palette', 'neutral', 98),
-        secondary: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 98) 85%, transparent),
-        muted: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 98) 70%, transparent),
-        subtle: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 98) 55%, transparent),
-        quiet: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'neutral', 98) 40%, transparent),
+        primary: map.get(ref.$palette, 'neutral', 98),
+        secondary: color-mix(in srgb, map.get(ref.$palette, 'neutral', 98) 85%, transparent),
+        muted: color-mix(in srgb, map.get(ref.$palette, 'neutral', 98) 70%, transparent),
+        subtle: color-mix(in srgb, map.get(ref.$palette, 'neutral', 98) 55%, transparent),
+        quiet: color-mix(in srgb, map.get(ref.$palette, 'neutral', 98) 40%, transparent),
       ),
     ),
     action: (
       bg: (
-        primary: map.get(ref.$ref-tokens, 'palette', 'brand', 80),
-        secondary: map.get(ref.$ref-tokens, 'palette', 'brand', 90),
+        primary: map.get(ref.$palette, 'brand', 80),
+        secondary: map.get(ref.$palette, 'brand', 90),
       ),
       state: (
-        hover: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'brand', 80) 90%, white),
-        active: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'brand', 60) 90%, black),
-        focus: map.get(ref.$ref-tokens, 'palette', 'brand', 60),
+        hover: color-mix(in srgb, map.get(ref.$palette, 'brand', 80) 90%, white),
+        active: color-mix(in srgb, map.get(ref.$palette, 'brand', 60) 90%, black),
+        focus: map.get(ref.$palette, 'brand', 60),
       ),
     ),
     accent: (
-      bg: map.get(ref.$ref-tokens, 'palette', 'accent', 40),
-      text: map.get(ref.$ref-tokens, 'palette', 'accent', 90),
+      bg: map.get(ref.$palette, 'accent', 40),
+      text: map.get(ref.$palette, 'accent', 90),
     ),
     feedback: (
       bg: (
-        danger: color-mix(in srgb, map.get(ref.$ref-tokens, 'palette', 'danger', 40) 16%, transparent),
+        danger: color-mix(in srgb, map.get(ref.$palette, 'danger', 40) 16%, transparent),
       ),
       text: (
-        danger: map.get(ref.$ref-tokens, 'palette', 'danger', 90),
+        danger: map.get(ref.$palette, 'danger', 90),
       ),
     ),
     overlay: (
-      scrim: rgba(map.get(ref.$ref-tokens, 'palette', 'neutral', 2), 0.6),
+      scrim: rgba(map.get(ref.$palette, 'neutral', 2), 0.6),
     ),
   ),
   space: (
-    scale: map.get(ref.$ref-tokens, 'space', 'scale'),
-    radius: map.get(ref.$ref-tokens, 'shape', 'radius'),
-    border: map.get(ref.$ref-tokens, 'shape', 'border'),
+    scale: map.get(ref.$space, 'scale'),
+    radius: map.get(ref.$shape, 'radius'),
+    border: map.get(ref.$shape, 'border'),
   ),
   type: typography.$typo-tokens,
-  elevation: map.get(ref.$ref-tokens, 'elevation'),
-  opacity: map.get(ref.$ref-tokens, 'opacity'),
-  layout: map.get(ref.$ref-tokens, 'layout'),
-);
-
-$semantic-tokens: (
-  light: $light,
-  dark: $dark,
+  elevation: ref.$elevation,
+  opacity: ref.$opacity,
+  layout: ref.$layout,
 );
 
 // Component scoped tokens that extend system semantics
