@@ -17,7 +17,7 @@ export default defineConfig({
   },
   build: {
     target: "esnext",
-    sourcemap: true,
+    sourcemap: "inline",
   },
   css: {
     devSourcemap: true,
