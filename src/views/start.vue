@@ -12,6 +12,9 @@
             <button @click="navigateToExtensions" class="workspace__action-btn workspace__action-btn--block">
               EXTENSIONS
             </button>
+            <button @click="navigateToSettings" class="workspace__action-btn workspace__action-btn--block">
+              SETTINGS
+            </button>
           </div>
         </section>
       </aside>
@@ -196,6 +199,10 @@ const navigateToBlock = (blockId: number) => {
 
 const navigateToExtensions = () => {
   router.push({ name: "Extensions" });
+};
+
+const navigateToSettings = () => {
+  router.push({ name: "Settings" });
 };
 
 const refreshBlocks = async () => {
