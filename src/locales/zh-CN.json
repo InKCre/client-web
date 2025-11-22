@@ -1,0 +1,16 @@
+{
+  "common": {
+    "settings": "设置",
+    "language": "语言",
+    "save": "保存",
+    "cancel": "取消"
+  },
+  "header": {
+    "brand": "第三尺寸"
+  },
+  "settings": {
+    "title": "设置",
+    "languageLabel": "语言",
+    "languageDescription": "选择您的首选语言"
+  }
+}

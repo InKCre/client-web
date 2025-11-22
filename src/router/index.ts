@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import StartView from "@/views/start.vue";
 import FocusExplorerView from "@/views/focusExplorerView.vue";
 import ExtensionsView from "@/views/extensionsView.vue";
+import SettingsView from "@/views/settingsView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,6 +22,11 @@ const router = createRouter({
       path: "/extensions",
       name: "Extensions",
       component: ExtensionsView,
+    },
+    {
+      path: "/settings",
+      name: "Settings",
+      component: SettingsView,
     },
   ],
 });

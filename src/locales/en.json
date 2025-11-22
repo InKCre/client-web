@@ -1,0 +1,16 @@
+{
+  "common": {
+    "settings": "Settings",
+    "language": "Language",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "header": {
+    "brand": "InKCre"
+  },
+  "settings": {
+    "title": "Settings",
+    "languageLabel": "Language",
+    "languageDescription": "Select your preferred language"
+  }
+}
