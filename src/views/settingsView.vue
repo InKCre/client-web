@@ -30,18 +30,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { setLocale, SUPPORT_LOCALES, type SupportLocale } from '@/i18n'
+import { setLocale, SUPPORT_LOCALES, LOCALE_NAMES, type SupportLocale } from '@/i18n'
 
 const { t, locale } = useI18n()
 
 const currentLocale = computed(() => locale.value)
 
-const supportedLocales = ref<Array<{ value: SupportLocale; label: string }>>([
-  { value: 'en', label: 'English' },
-  { value: 'zh-CN', label: '简体中文' },
-])
+const supportedLocales = computed(() => 
+  SUPPORT_LOCALES.map(value => ({
+    value,
+    label: LOCALE_NAMES[value]
+  }))
+)
 
 const changeLanguage = async (newLocale: SupportLocale) => {
   await setLocale(newLocale)

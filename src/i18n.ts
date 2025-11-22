@@ -5,6 +5,12 @@ export type SupportLocale = typeof SUPPORT_LOCALES[number]
 
 const STORAGE_KEY = 'inkcre-locale'
 
+// Locale display names for UI
+export const LOCALE_NAMES: Record<SupportLocale, string> = {
+  'en': 'English',
+  'zh-CN': '简体中文',
+}
+
 // Get saved locale from localStorage or use browser default
 function getInitialLocale(): SupportLocale {
   const saved = localStorage.getItem(STORAGE_KEY)
@@ -12,12 +18,21 @@ function getInitialLocale(): SupportLocale {
     return saved as SupportLocale
   }
   
-  // Try to match browser language
+  // Try to match browser language with explicit mapping
   const browserLang = navigator.language
-  if (browserLang.startsWith('zh')) {
-    return 'zh-CN'
+  
+  // Exact match first
+  if (SUPPORT_LOCALES.includes(browserLang as SupportLocale)) {
+    return browserLang as SupportLocale
   }
   
+  // Language code prefix matching
+  const langCode = browserLang.split('-')[0]
+  if (langCode === 'zh') {
+    return 'zh-CN' // Default to Simplified Chinese for Chinese variants
+  }
+  
+  // Default fallback
   return 'en'
 }
 
@@ -45,7 +60,13 @@ export async function loadLocaleMessages(locale: SupportLocale) {
     i18n.global.setLocaleMessage(locale, messages.default)
     loadedLanguages.add(locale)
   } catch (error) {
-    console.error(`Failed to load locale "${locale}":`, error)
+    console.error(
+      `Failed to load locale "${locale}". Falling back to already loaded locales.`,
+      'Available locales:',
+      Array.from(loadedLanguages),
+      'Error:',
+      error
+    )
   }
 }
 
