@@ -28,12 +28,19 @@
     {
       "label": "stop dev server",
       "type": "shell",
-      "command": "powershell",
-      "args": [
-        "-Command",
-        "$p = (Get-NetTCPConnection -LocalPort 5173 -State Listen).OwningProcess; if ($p) { taskkill /PID $p /F /T }"
-      ],
-      "problemMatcher": []
+      "command": "echo ${input:terminate}",
+      "problemMatcher": [],
+      "presentation": {
+        "close": true
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "terminate",
+      "type": "command",
+      "command": "workbench.action.tasks.terminate",
+      "args": "start dev server"
     }
   ]
 }

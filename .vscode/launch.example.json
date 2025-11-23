@@ -8,6 +8,7 @@
       "runtimeArgs": ["--user-data-dir=${workspaceFolder}\\.browser-profile"],
       "url": "http://localhost:5173",
       "webRoot": "${workspaceFolder}/src",
+      "sourceMaps": true,
       "preLaunchTask": "start dev server",
       "postDebugTask": "stop dev server"
     }
