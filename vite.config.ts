@@ -22,5 +22,19 @@ export default defineConfig({
   },
   css: {
     devSourcemap: true,
+    preprocessorOptions: {
+      scss: {
+        additionalData: (source, file) => {
+          if (
+            file.includes("src/components/") ||
+            file.includes("src/views/") ||
+            file.includes("src/App.vue")
+          ) {
+            return `@use "@inkcre/web-design/styles/mixins" as *;@use "@inkcre/web-design/styles/functions" as *;@use "@/styles/index.scss" as *;${source}`;
+          }
+          return source;
+        },
+      },
+    },
   },
 });

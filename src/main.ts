@@ -7,7 +7,7 @@ import VueKonva from "vue-konva";
 import i18n from "./locales";
 
 // 导入全局样式
-import "@/styles/index.scss";
+import "@inkcre/web-design/styles";
 import "uno.css";
 import store from "./stores";
 

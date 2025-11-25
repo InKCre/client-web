@@ -1,5 +1,3 @@
-@use "@/styles/index.scss" as *;
-
 .ink-button {
   @include apply-typo("label-md");
   display: inline-flex;

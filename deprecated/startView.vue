@@ -39,13 +39,13 @@
               <span class="workspace__stat-label">BLOCKS</span>
               <span class="workspace__stat-value">{{
                 blocks?.length || 0
-                }}</span>
+              }}</span>
             </div>
             <div class="workspace__stat-item">
               <span class="workspace__stat-label">RELATIONS</span>
               <span class="workspace__stat-value">{{
                 relations?.length || 0
-                }}</span>
+              }}</span>
             </div>
             <div class="workspace__stat-item">
               <span class="workspace__stat-label">UPDATED</span>
@@ -345,8 +345,6 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@use "@/styles/index.scss" as *;
-
 /* BEM: block = workspace */
 .workspace {
   @include font-mono;

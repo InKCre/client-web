@@ -10,8 +10,6 @@ import InkHeader from './components/common/inkHeader/inkHeader.vue'
 </template>
 
 <style lang="scss" scoped>
-@use './styles/index.scss' as *;
-
 .app-content {
   flex: 1;
   overflow-x: hidden;

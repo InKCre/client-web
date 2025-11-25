@@ -1,5 +1,3 @@
-@use "@/styles/index.scss" as *;
-
 /* BEM: block = extension-card */
 .extension-card {
   @include card-elevated;

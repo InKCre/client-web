@@ -312,8 +312,6 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@use "@/styles/index.scss" as *;
-
 .workspace__system-bar {
   @include card-flat;
   border-bottom: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'base');

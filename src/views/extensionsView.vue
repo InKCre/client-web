@@ -198,95 +198,90 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
-@use "@/styles/index.scss" as *;
-@use "@/styles/abstract/functions" as fn;
-
 /* BEM: block = extensions-view */
 .extensions-view {
     min-height: 100vh;
-    background: fn.sys-var('color', 'surface', 'bg', 'base');
+    background: sys-var('color', 'surface', 'bg', 'base');
     @include font-mono;
 }
 
-
-
 .extensions-view__error {
     @include card-flat;
-    background: fn.sys-var('color', 'surface', 'bg', 'strong');
-    color: fn.sys-var('color', 'content', 'text', 'primary');
-    padding: fn.sys-var('space', 'scale', 'md') fn.sys-var('space', 'scale', 'xl');
-    border-bottom: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
+    background: sys-var('color', 'surface', 'bg', 'strong');
+    color: sys-var('color', 'content', 'text', 'primary');
+    padding: sys-var('space', 'scale', 'md') sys-var('space', 'scale', 'xl');
+    border-bottom: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'base');
     text-align: center;
     @include text-small-caps;
 }
 
 .extensions-view__loading {
     @include card-flat;
-    padding: fn.sys-var('space', 'scale', 'xl');
+    padding: sys-var('space', 'scale', 'xl');
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: fn.sys-var('space', 'scale', 'md');
-    background: fn.sys-var('color', 'surface', 'bg', 'muted');
+    gap: sys-var('space', 'scale', 'md');
+    background: sys-var('color', 'surface', 'bg', 'muted');
 
     .extensions-view__loading-icon {
-        font-size: fn.sys-var('type', 'display-sm', 'size');
+        font-size: sys-var('type', 'display-sm', 'size');
         animation: pulse 2s infinite;
     }
 
     .extensions-view__loading-text {
         @include text-small-caps;
-        color: fn.sys-var('color', 'content', 'text', 'muted');
+        color: sys-var('color', 'content', 'text', 'muted');
     }
 }
 
 .extensions-view__content {
-    padding: fn.sys-var('space', 'scale', 'xl');
+    padding: sys-var('space', 'scale', 'xl');
     display: flex;
     flex-direction: column;
-    gap: fn.sys-var('space', 'scale', 'xl');
+    gap: sys-var('space', 'scale', 'xl');
     max-width: 1200px;
     margin: 0 auto;
 }
 
 .extensions-view__section {
     @include card-flat;
-    border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
-    background: fn.sys-var('color', 'surface', 'bg', 'base');
-    padding: fn.sys-var('space', 'scale', 'lg');
+    border: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'base');
+    background: sys-var('color', 'surface', 'bg', 'base');
+    padding: sys-var('space', 'scale', 'lg');
 }
 
 .extensions-view__section-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: fn.sys-var('space', 'scale', 'lg');
+    margin-bottom: sys-var('space', 'scale', 'lg');
 }
 
 .extensions-view__section-title {
     @include text-mono-caps;
-    font-size: fn.sys-var('type', 'title-sm', 'size');
+    font-size: sys-var('type', 'title-sm', 'size');
     font-weight: 600;
-    color: fn.sys-var('color', 'content', 'text', 'primary');
-    margin: 0 0 fn.sys-var('space', 'scale', 'lg') 0;
+    color: sys-var('color', 'content', 'text', 'primary');
+    margin: 0 0 sys-var('space', 'scale', 'lg') 0;
 }
 
 .extensions-view__refresh-btn {
     @include text-small-caps;
-    padding: fn.sys-var('space', 'scale', 'sm') fn.sys-var('space', 'scale', 'md');
-    border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
-    background: fn.sys-var('color', 'surface', 'bg', 'base');
-    color: fn.sys-var('color', 'content', 'text', 'primary');
+    padding: sys-var('space', 'scale', 'sm') sys-var('space', 'scale', 'md');
+    border: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'base');
+    background: sys-var('color', 'surface', 'bg', 'base');
+    color: sys-var('color', 'content', 'text', 'primary');
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover:not(:disabled) {
-        background: fn.sys-var('color', 'surface', 'bg', 'raised');
-        border-color: fn.sys-var('color', 'action', 'state', 'hover');
+        background: sys-var('color', 'surface', 'bg', 'raised');
+        border-color: sys-var('color', 'action', 'state', 'hover');
     }
 
     &:disabled {
-        opacity: fn.sys-var('opacity', 'muted');
+        opacity: sys-var('opacity', 'muted');
         cursor: not-allowed;
     }
 }
@@ -294,36 +289,36 @@ onMounted(async () => {
 .extensions-view__install-form {
     display: flex;
     flex-direction: column;
-    gap: fn.sys-var('space', 'scale', 'md');
+    gap: sys-var('space', 'scale', 'md');
 }
 
 .extensions-view__form-row {
     display: flex;
-    gap: fn.sys-var('space', 'scale', 'md');
+    gap: sys-var('space', 'scale', 'md');
     align-items: center;
 }
 
 .extensions-view__input {
     @include font-mono;
-    padding: fn.sys-var('space', 'scale', 'sm');
-    border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
-    background: fn.sys-var('color', 'surface', 'bg', 'muted');
-    color: fn.sys-var('color', 'content', 'text', 'primary');
-    font-size: fn.sys-var('type', 'body-sm', 'size');
+    padding: sys-var('space', 'scale', 'sm');
+    border: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'base');
+    background: sys-var('color', 'surface', 'bg', 'muted');
+    color: sys-var('color', 'content', 'text', 'primary');
+    font-size: sys-var('type', 'body-sm', 'size');
     flex: 1;
 
     &::placeholder {
-        color: fn.sys-var('color', 'content', 'text', 'subtle');
+        color: sys-var('color', 'content', 'text', 'subtle');
         @include text-small-caps;
     }
 
     &:focus {
         outline: none;
-        border-color: fn.sys-var('color', 'action', 'state', 'hover');
+        border-color: sys-var('color', 'action', 'state', 'hover');
     }
 
     &:disabled {
-        opacity: fn.sys-var('opacity', 'muted');
+        opacity: sys-var('opacity', 'muted');
         cursor: not-allowed;
     }
 }
@@ -331,7 +326,7 @@ onMounted(async () => {
 .extensions-view__checkbox-label {
     display: flex;
     align-items: center;
-    gap: fn.sys-var('space', 'scale', 'sm');
+    gap: sys-var('space', 'scale', 'sm');
     cursor: pointer;
 }
 
@@ -341,43 +336,43 @@ onMounted(async () => {
 
 .extensions-view__checkbox-text {
     @include text-small-caps;
-    color: fn.sys-var('color', 'content', 'text', 'muted');
-    font-size: fn.sys-var('type', 'body-sm', 'size');
+    color: sys-var('color', 'content', 'text', 'muted');
+    font-size: sys-var('type', 'body-sm', 'size');
 }
 
 .extensions-view__install-btn {
     @include text-small-caps;
-    padding: fn.sys-var('space', 'scale', 'sm') fn.sys-var('space', 'scale', 'lg');
-    border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'action', 'bg', 'primary');
-    background: fn.sys-var('color', 'action', 'bg', 'primary');
-    color: fn.sys-var('color', 'surface', 'bg', 'base');
+    padding: sys-var('space', 'scale', 'sm') sys-var('space', 'scale', 'lg');
+    border: sys-var('space', 'border', 'thin') solid sys-var('color', 'action', 'bg', 'primary');
+    background: sys-var('color', 'action', 'bg', 'primary');
+    color: sys-var('color', 'surface', 'bg', 'base');
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover:not(:disabled) {
-        background: fn.sys-var('color', 'action', 'state', 'hover');
-        border-color: fn.sys-var('color', 'action', 'state', 'hover');
+        background: sys-var('color', 'action', 'state', 'hover');
+        border-color: sys-var('color', 'action', 'state', 'hover');
     }
 
     &:disabled {
-        opacity: fn.sys-var('opacity', 'muted');
+        opacity: sys-var('opacity', 'muted');
         cursor: not-allowed;
     }
 }
 
 .extensions-view__empty {
     @include text-small-caps;
-    color: fn.sys-var('color', 'content', 'text', 'muted');
+    color: sys-var('color', 'content', 'text', 'muted');
     text-align: center;
-    padding: fn.sys-var('space', 'scale', 'xl');
-    background: fn.sys-var('color', 'surface', 'bg', 'muted');
-    border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'subtle');
+    padding: sys-var('space', 'scale', 'xl');
+    background: sys-var('color', 'surface', 'bg', 'muted');
+    border: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'subtle');
 }
 
 .extensions-view__extensions-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: fn.sys-var('space', 'scale', 'lg');
+    gap: sys-var('space', 'scale', 'lg');
 }
 
 .extensions-view__extension-card {
@@ -392,11 +387,11 @@ onMounted(async () => {
 @include mobile {
 
     .extensions-view__content {
-        padding: fn.sys-var('space', 'scale', 'md');
+        padding: sys-var('space', 'scale', 'md');
     }
 
     .extensions-view__section {
-        padding: fn.sys-var('space', 'scale', 'md');
+        padding: sys-var('space', 'scale', 'md');
     }
 
     .extensions-view__form-row {
@@ -410,7 +405,7 @@ onMounted(async () => {
 
     .extensions-view__section-header {
         flex-direction: column;
-        gap: fn.sys-var('space', 'scale', 'sm');
+        gap: sys-var('space', 'scale', 'sm');
         align-items: stretch;
     }
 }
@@ -429,7 +424,7 @@ onMounted(async () => {
     }
 
     50% {
-        opacity: fn.sys-var('opacity', 'muted');
+        opacity: sys-var('opacity', 'muted');
     }
 }
 </style>

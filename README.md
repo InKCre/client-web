@@ -16,6 +16,10 @@ pnpm run deploy:cf
 - 编译和打包到 `dist/`
 - 部署到 Cloudflare Worker
 
+## Development
+
+本项目依赖 `@inkcre/web-design` 包，本地开发时推荐通过 `pnpm link path/to/package` 的方式安装。
+
 ## Documentation
 
 - Design token proposal: [`docs/Design Token 管理方案设计.md`](docs/Design%20Token%20%E7%AE%A1%E7%90%86%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1.md)

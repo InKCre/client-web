@@ -45,13 +45,10 @@ const changeLanguage = async (newLocale: SupportLocale) => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/styles/index.scss' as *;
-@use '@/styles/abstract/functions' as fn;
-
 .settings-view {
   min-height: calc(100vh - 80px);
-  background: fn.sys-var('color', 'surface', 'bg', 'base');
-  padding: fn.sys-var('space', 'scale', 'xl');
+  background: sys-var('color', 'surface', 'bg', 'base');
+  padding: sys-var('space', 'scale', 'xl');
 }
 
 .settings-view__container {
@@ -62,69 +59,69 @@ const changeLanguage = async (newLocale: SupportLocale) => {
 .settings-view__main {
   display: flex;
   flex-direction: column;
-  gap: fn.sys-var('space', 'scale', 'xl');
-  margin-top: fn.sys-var('space', 'scale', '2xl');
+  gap: sys-var('space', 'scale', 'xl');
+  margin-top: sys-var('space', 'scale', '2xl');
 }
 
 .settings-view__section {
   @include card-flat;
-  border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
-  background: fn.sys-var('color', 'surface', 'bg', 'base');
-  padding: fn.sys-var('space', 'scale', 'lg');
+  border: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'base');
+  background: sys-var('color', 'surface', 'bg', 'base');
+  padding: sys-var('space', 'scale', 'lg');
 }
 
 .settings-view__section-title {
   @include text-mono-caps;
-  font-size: fn.sys-var('type', 'title-sm', 'size');
+  font-size: sys-var('type', 'title-sm', 'size');
   font-weight: 600;
-  color: fn.sys-var('color', 'content', 'text', 'primary');
-  margin: 0 0 fn.sys-var('space', 'scale', 'sm') 0;
+  color: sys-var('color', 'content', 'text', 'primary');
+  margin: 0 0 sys-var('space', 'scale', 'sm') 0;
 }
 
 .settings-view__section-description {
   @include text-small-caps;
-  color: fn.sys-var('color', 'content', 'text', 'muted');
-  font-size: fn.sys-var('type', 'body-sm', 'size');
-  margin: 0 0 fn.sys-var('space', 'scale', 'lg') 0;
+  color: sys-var('color', 'content', 'text', 'muted');
+  font-size: sys-var('type', 'body-sm', 'size');
+  margin: 0 0 sys-var('space', 'scale', 'lg') 0;
 }
 
 .settings-view__language-selector {
   display: flex;
-  gap: fn.sys-var('space', 'scale', 'md');
+  gap: sys-var('space', 'scale', 'md');
   flex-wrap: wrap;
 }
 
 .settings-view__language-btn {
   @include text-small-caps;
-  padding: fn.sys-var('space', 'scale', 'md') fn.sys-var('space', 'scale', 'lg');
-  border: fn.sys-var('space', 'border', 'thin') solid fn.sys-var('color', 'surface', 'border', 'base');
-  background: fn.sys-var('color', 'surface', 'bg', 'base');
-  color: fn.sys-var('color', 'content', 'text', 'primary');
+  padding: sys-var('space', 'scale', 'md') sys-var('space', 'scale', 'lg');
+  border: sys-var('space', 'border', 'thin') solid sys-var('color', 'surface', 'border', 'base');
+  background: sys-var('color', 'surface', 'bg', 'base');
+  color: sys-var('color', 'content', 'text', 'primary');
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 120px;
 
   &:hover {
-    background: fn.sys-var('color', 'surface', 'bg', 'raised');
-    border-color: fn.sys-var('color', 'action', 'state', 'hover');
+    background: sys-var('color', 'surface', 'bg', 'raised');
+    border-color: sys-var('color', 'action', 'state', 'hover');
   }
 
   &--active {
-    background: fn.sys-var('color', 'action', 'bg', 'primary');
-    border-color: fn.sys-var('color', 'action', 'bg', 'primary');
-    color: fn.sys-var('color', 'surface', 'bg', 'base');
+    background: sys-var('color', 'action', 'bg', 'primary');
+    border-color: sys-var('color', 'action', 'bg', 'primary');
+    color: sys-var('color', 'surface', 'bg', 'base');
     font-weight: 600;
 
     &:hover {
-      background: fn.sys-var('color', 'action', 'state', 'hover');
-      border-color: fn.sys-var('color', 'action', 'state', 'hover');
+      background: sys-var('color', 'action', 'state', 'hover');
+      border-color: sys-var('color', 'action', 'state', 'hover');
     }
   }
 }
 
 @include mobile {
   .settings-view {
-    padding: fn.sys-var('space', 'scale', 'lg');
+    padding: sys-var('space', 'scale', 'lg');
   }
 
   .settings-view__language-selector {
