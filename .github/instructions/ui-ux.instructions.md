@@ -1,24 +1,18 @@
 ---
-applyTo: "**/*.scss, **/*.vue"
-description: "UI/UX 设计顶层指导"
+applyTo: "**/*.scss, **/*.vue, **/*.css"
 ---
 
-## 视觉风格
+## Visual Style
 
 - Dieter Rams
-- 极简单色 (Monochrome Minimalism)
-- 复古未来主义 (Retro-Futuristic)
+- Monochrome Minimalism
+- Retro-Futuristic
 
-## 设计哲学
+## Design Principles
 
-- 极简主义：移除一切非必要元素，优先保持信息和功能的纯净
-- 功能优先：先满足功能逻辑，再进行视觉修饰
-- 模块化布局：信息和功能以独立模块呈现，方便扩展和替换
-- 视觉一致性：颜色、字体、控件风格统一
-- 复古未来感：结合单色简洁与点阵、等宽元素，兼顾科技感与人文温度
-- 诚实信息：不伪装功能，不夸张描述
-
-## 配色方案
-
-- 主色：黑，白，灰
-- 强调色：红色或青绿色用于关键提示与状态
+- Minimalism: remove all unnecessary elements, prioritizing the purity of information and functionality
+- Function-first: fulfill functional logic first, then apply visual refinement
+- Modular layout: present information and functionality as independent modules to facilitate extension and replacement
+- Visual consistency: unify colors, typography, and control styles
+- Retro-futuristic feel: combine monochrome simplicity with dot-matrix and monospaced elements to balance technological edge and human warmth
+- Honest communication: do not disguise features or exaggerate descriptions

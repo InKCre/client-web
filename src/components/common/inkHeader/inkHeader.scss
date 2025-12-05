@@ -1,110 +1,24 @@
-/* Base header styles */
 .ink-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--sys-color-surface-border-strong);
-  z-index: var(--ref-layout-layer-fixed);
-}
+  padding: sys-var(space, md) sys-var(space, lg);
+  background-color: sys-var(color, surface, subtle);
+  border-bottom: 1px solid sys-var(color, border, base);
 
-/* Default mode - original brand header */
-.ink-header--default {
-  padding: var(--sys-space-scale-sm) var(--sys-space-scale-xl);
-  background: linear-gradient(
-    90deg,
-    var(--sys-color-surface-bg-base) 0%,
-    var(--sys-color-surface-bg-muted) 100%
-  );
-}
-
-/* Page mode - generalized page header */
-.ink-header--page {
-  @include card-flat;
-  padding: var(--sys-space-scale-lg) var(--sys-space-scale-xl);
-  background: var(--sys-color-surface-bg-muted);
-}
-
-/* Section mode - simple section header */
-.ink-header--section {
-  padding: var(--sys-space-scale-lg) 0;
-  background: transparent;
-  border-bottom: 1px solid var(--sys-color-surface-border-strong);
-}
-
-/* Application mode */
-.application {
-  display: flex;
-  align-items: center;
-  gap: var(--sys-space-scale-md);
-}
-
-.application-logo {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-  display: block;
-}
-
-.application-name {
-  color: var(--sys-color-content-text-primary);
-  text-decoration: none;
-  @include apply-typo("label-lg");
-}
-
-/* Page header elements (page mode) */
-.ink-header__title {
-  @include font-mono;
-  @include apply-typo("display-sm");
-  color: var(--sys-color-content-text-primary);
-  margin: 0;
-}
-
-/* Section header elements (section mode) */
-.ink-header__section-title {
-  @include font-mono;
-  @include apply-typo("display-sm");
-  color: var(--sys-color-content-text-primary);
-  margin: 0;
-}
-
-.ink-header__nav {
-  display: flex;
-  gap: var(--sys-space-scale-md);
-}
-
-.ink-header__nav-link {
-  @include apply-typo("label-lg");
-  padding: var(--sys-space-scale-sm) var(--sys-space-scale-md);
-  border: 1px solid var(--sys-color-surface-border);
-  color: var(--sys-color-content-text);
-  text-decoration: none;
-  background: var(--sys-color-surface-bg-base);
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: var(--sys-color-surface-bg-muted);
-    border-color: var(--sys-color-action-bg-primary-light);
-  }
-}
-
-/* Responsive design */
-@include mobile {
-  .ink-header--page {
-    flex-direction: column;
-    gap: var(--sys-space-scale-md);
-    align-items: stretch;
-    text-align: center;
-    padding: var(--sys-space-scale-md);
+  &__logo {
+    display: flex;
+    align-items: center;
+    gap: sys-var(space, sm);
   }
 
-  .ink-header__nav {
-    justify-content: center;
-    flex-wrap: wrap;
+  &__logo-icon {
+    width: 32px;
+    height: 32px;
   }
-}
 
-@include tablet {
-  .ink-header--page {
-    padding: var(--sys-space-scale-lg) var(--sys-space-scale-xl);
+  &__logo-text {
+    @include apply-font(title-sm, mono);
+    color: sys-var(color, text, base);
   }
 }

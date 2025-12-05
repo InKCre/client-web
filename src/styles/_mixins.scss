@@ -3,47 +3,6 @@
 @use "@inkcre/web-design/styles/functions" as fn;
 @use "@inkcre/web-design/tokens/ref" as ref;
 
-@mixin card-base {
-  background: fn.sys-var("color", "surface", "bg", "base");
-  border: fn.sys-var("shape", "border", "thin") solid
-    fn.sys-var("color", "surface", "border", "base");
-  border-radius: fn.sys-var("shape", "radius", "xs");
-  color: fn.sys-var("color", "content", "text", "primary");
-  transition: all 0.3s ease;
-  overflow: hidden;
-
-  &:hover {
-    border-color: fn.sys-var("color", "surface", "border", "subtle");
-    box-shadow: fn.sys-var("elevation", "md");
-  }
-}
-
-@mixin card-flat {
-  background: var(--color-background);
-  border: none;
-  color: var(--color-text);
-}
-
-@mixin card-elevated {
-  @include card-base;
-  box-shadow: var(--shadow-sm);
-
-  &:hover {
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-1px) scale(1.02);
-  }
-}
-
-@mixin text-small-caps {
-  @include apply-typo("label-lg");
-  text-transform: uppercase;
-}
-
-@mixin text-mono-caps {
-  font-family: fn.ref-var("typo", "family", "mono");
-  text-transform: uppercase;
-}
-
 // Responsive helpers built from reference breakpoints
 @mixin mobile {
   @media (max-width: map.get(ref.$breakpoint, "mobile")) {

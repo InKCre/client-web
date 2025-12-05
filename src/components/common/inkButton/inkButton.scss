@@ -1,93 +1,33 @@
 .ink-button {
-  @include apply-typo("label-md");
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: sys-var("space", "scale", "xxs");
-  padding: sys-var("space", "scale", "xs") sys-var("space", "scale", "md");
-  border-radius: sys-var("space", "radius", "none");
-  border: sys-var("space", "border", "thin") solid
-    sys-var("color", "surface", "border", "base");
-  background: sys-var("color", "surface", "bg", "base");
-  color: sys-var("color", "content", "text", "primary");
+  padding: sys-var(space, sm) 0;
   cursor: pointer;
-  text-decoration: none;
-  transition: background-color 0.2s ease, color 0.2s ease,
-    border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.2s ease;
 
-  &:hover:not(:disabled):not(.ink-button--disabled) {
-    background: sys-var("color", "surface", "bg", "muted");
-    border-color: sys-var("color", "surface", "border", "strong");
-  }
+  background-color: transparent;
+  color: sys-var(color, text, base);
 
-  &--primary {
-    background: sys-var("color", "action", "bg", "primary");
-    border-color: sys-var("color", "action", "bg", "primary");
-    color: sys-var("color", "action", "text", "primary");
+  @include apply-font(label-lg);
 
-    &:hover:not(:disabled):not(.ink-button--disabled) {
-      background: sys-var("color", "action", "state", "hover");
-      border-color: sys-var("color", "action", "state", "active");
-      box-shadow: 0 0 0 3px
-        color-mix(
-          in srgb,
-          #{sys-var("color", "action", "state", "focus")} 25%,
-          transparent
-        );
+  &--subtle {
+    border: 1px solid sys-var(color, border, base);
+    background-color: sys-var(color, surface, subtle);
+
+    &:hover,
+    &:active {
+      background-color: sys-var(color, surface, subtle-hover);
     }
   }
 
-  &--danger {
-    background: sys-var("color", "action", "bg", "danger");
-    border-color: sys-var("color", "action", "border", "danger");
-    color: sys-var("color", "action", "text", "danger");
+  &--outlined {
+    background-color: sys-var(color, surface, primary);
+    color: sys-var(color, text, primary);
 
-    &:hover:not(:disabled):not(.ink-button--disabled) {
-      background: color-mix(
-        in srgb,
-        #{sys-var("color", "action", "bg", "danger")} 92%,
-        black
-      );
-      border-color: sys-var("color", "action", "state", "active");
-      box-shadow: 0 0 0 3px
-        color-mix(
-          in srgb,
-          #{sys-var("color", "feedback", "text", "danger")} 20%,
-          transparent
-        );
-      color: sys-var("color", "feedback", "text", "danger");
+    &:hover,
+    &:active {
+      opacity: sys-var(color, surface, primary-hover);
     }
-  }
-
-  &--ghost {
-    background: transparent;
-    border-color: transparent;
-    color: sys-var("color", "content", "text", "secondary");
-
-    &:hover:not(:disabled):not(.ink-button--disabled) {
-      background: sys-var("color", "surface", "bg", "muted");
-      color: sys-var("color", "content", "text", "primary");
-      border-color: sys-var("color", "surface", "border", "base");
-    }
-  }
-
-  &--sm {
-    @include apply-typo("label-sm");
-    padding: sys-var("space", "scale", "xxs") sys-var("space", "scale", "sm");
-  }
-
-  &--md {
-    padding: sys-var("space", "scale", "xs") sys-var("space", "scale", "md");
-  }
-
-  &--block {
-    width: 100%;
-  }
-
-  &:disabled,
-  &--disabled {
-    cursor: not-allowed;
-    opacity: sys-var("opacity", "muted");
-    box-shadow: none;
   }
 }

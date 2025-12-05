@@ -17,6 +17,7 @@
     "deploy:cf": "npm run build -- --mode cloudflare && wrangler deploy"
   },
   "dependencies": {
+    "@biomejs/biome": "^2.3.8",
     "@inkcre/web-design": "link:../design/packages/web-design",
     "@module-federation/runtime": "^0.21.4",
     "@supabase/postgrest-js": "^2.84.0",

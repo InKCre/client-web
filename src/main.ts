@@ -1,15 +1,15 @@
-import { createApp } from "vue";
 import { createInstance } from "@module-federation/runtime";
+import { createApp } from "vue";
 
-import App from "./App.vue";
-import router from "./router";
 import VueKonva from "vue-konva";
+import App from "./App.vue";
 import i18n from "./locales";
+import router from "./router";
+import store from "./stores";
 
 // 导入全局样式
 import "@inkcre/web-design/styles";
 import "uno.css";
-import store from "./stores";
 
 const app = createApp(App);
 
@@ -20,8 +20,8 @@ app.use(store);
 app.use(router);
 
 createInstance({
-  name: "host",
-  remotes: [],
+	name: "host",
+	remotes: [],
 });
 
 app.mount("#app");

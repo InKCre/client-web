@@ -1,9 +1,8 @@
 import { fileURLToPath, URL } from "node:url";
-
-import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-import vueDevTools from "vite-plugin-vue-devtools";
 import UnoCSS from "unocss/vite";
+import { defineConfig } from "vite";
+import vueDevTools from "vite-plugin-vue-devtools";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -25,11 +24,7 @@ export default defineConfig({
     preprocessorOptions: {
       scss: {
         additionalData: (source, file) => {
-          if (
-            file.includes("src/components/") ||
-            file.includes("src/views/") ||
-            file.includes("src/App.vue")
-          ) {
+          if (file.includes("src/components/") || file.includes("src/views/")) {
             return `@use "@inkcre/web-design/styles/mixins" as *;@use "@inkcre/web-design/styles/functions" as *;@use "@/styles/index.scss" as *;${source}`;
           }
           return source;

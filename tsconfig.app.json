@@ -7,7 +7,8 @@
     "deprecated/api",
     "deprecated/startView.vue",
     "deprecated/focusExplorer",
-    "deprecated/focusExplorerView.vue"
+    "deprecated/focusExplorerView.vue",
+    "src/router.ts"
   ],
   "exclude": [
     "src/**/__tests__/*"

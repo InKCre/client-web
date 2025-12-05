@@ -1,13 +1,6 @@
-export interface NavLink {
-  to: string;
-  label: string;
-  external?: boolean;
-}
+import { makeStringProp } from "@/utils/vue-props";
 
-export interface InkHeaderProps {
-  mode?: "default" | "page" | "section";
-  title?: string;
-  navLinks?: NavLink[];
-}
-
-export type InkHeaderMode = "default" | "page" | "section";
+// --- Props ---
+export const inkHeaderProps = {
+	title: makeStringProp("InKCre"),
+};

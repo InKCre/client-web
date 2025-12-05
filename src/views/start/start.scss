@@ -1,0 +1,75 @@
+.start-view {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  background-color: sys-var(color, surface, base);
+
+  &__uni-search {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 192px sys-var(space, lg) 48px;
+    overflow-y: auto;
+
+    .title {
+      @include apply-font(headline-lg);
+      color: sys-var(color, text, base);
+      text-align: center;
+      margin-bottom: 48px;
+      width: 100%;
+    }
+
+    .textarea {
+      align-self: stretch;
+      height: 56px;
+      padding: sys-var(space, sm) sys-var(space, md);
+      border: 1px solid sys-var(color, text, base);
+      background-color: sys-var(color, surface, subtle);
+      color: sys-var(color, text, base);
+      resize: none;
+
+      @include apply-font(label-lg);
+
+      &::placeholder {
+        color: sys-var(color, text, muted);
+      }
+
+      &:focus {
+        outline: none;
+        border-color: sys-var(color, text, base);
+      }
+    }
+  }
+
+  &__sidebar {
+    width: 25%;
+    min-width: 320px;
+    max-width: 400px;
+    border-left: 1px solid sys-var(color, border, base);
+    padding: sys-var(space, md);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+
+    .panel {
+      background-color: sys-var(color, surface, subtle);
+      border: 1px solid sys-var(color, border, muted);
+      padding: sys-var(space, md);
+      display: flex;
+      flex-direction: column;
+      gap: sys-var(space, md);
+    }
+
+    .panel-title {
+      @include apply-font(body-lg);
+      color: sys-var(color, text, base);
+      margin: 0;
+    }
+
+    .button {
+      width: 100%;
+    }
+  }
+}
