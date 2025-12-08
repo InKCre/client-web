@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Z } from "zod-class";
-import { DBAPIClient, CoreAPIClient } from "./api";
+import { DBAPIClient, CoreAPIClient } from "../api";
 import { makeNumberProp, makeObjectProp } from "@/utils/vue-props";
 
 export type BlockRef = number;

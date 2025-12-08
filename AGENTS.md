@@ -27,14 +27,12 @@ This is a Vue SPA, provides an interface to interact with InKCre (an information
 - `business/`: api requests, business logic, split by domain
 - `stores/`: split by domain
 - `styles/`
-- `utils/`
+- `utils/`: utilities, composables
 - `locales/`: locale file, split by language
 - `static/`
 - router.ts
 
-## Best Practice
+## Best Practices
 
-### Naming
-
-- `camelCase` for files, variables, functions
-- `kebab-case` for selectors, events
+- Search across the codebase before you creating a new type or something might can be reused.
+- Common components should be stateless or avoid maintaining state as much as possible.

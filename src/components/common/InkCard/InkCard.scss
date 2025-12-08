@@ -1,0 +1,11 @@
+.ink-card {
+  display: flex;
+  flex-direction: column;
+  gap: sys-var(space, md);
+  padding: sys-var(space, md);
+  border: 1px solid sys-var(color, border, base);
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 280px;
+  max-width: 380px;
+}

@@ -1,0 +1,24 @@
+.ink-input {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 36px;
+  padding: 0 sys-var(space, sm);
+  border: 1px solid sys-var(color, border, subtle);
+  box-sizing: border-box;
+
+  &__value {
+    color: sys-var(color, text, base);
+    white-space: nowrap;
+  }
+
+  &__input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    @include apply-font(label-lg);
+    color: sys-var(color, text, base);
+    min-width: 0;
+  }
+}

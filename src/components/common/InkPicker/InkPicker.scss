@@ -1,0 +1,54 @@
+.ink-picker.editable {
+  cursor: pointer;
+}
+
+.ink-picker.ink-picker--inline-text.editable {
+  text-decoration: underline;
+  text-underline-position: from-font;
+}
+
+.ink-picker {
+  &--box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 160px;
+    height: sys-var(size, md);
+    padding: 0 sys-var(space, sm);
+    border: 1px solid sys-var(color, border, subtle);
+    box-sizing: border-box;
+
+    &.ink-picker--active {
+      border-color: sys-var(color, border, primary);
+    }
+
+    .ink-picker__icon {
+      @include apply-icon(md);
+      color: sys-var(color, text, base);
+      flex-shrink: 0;
+    }
+  }
+
+  &--inline-text {
+    align-items: center;
+    gap: sys-var(space, xs);
+  }
+
+  &__value {
+    @include apply-font(label-lg);
+    color: sys-var(color, text, base);
+    white-space: nowrap;
+    user-select: none;
+    overflow-x: scroll;
+    flex: 1;
+  }
+}
+
+.picker-view {
+  &__actions {
+    display: flex;
+    gap: sys-var(space, sm);
+    justify-content: flex-end;
+    margin-top: sys-var(space, md);
+  }
+}

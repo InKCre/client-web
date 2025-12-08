@@ -30,11 +30,13 @@ const emit = defineEmits(compNameEmits);
 
 ## Best Practices
 
-- Use i18n for text content
+- Avoid hard-encoded strings, use i18n instead
+- Make use of VueUse composables when possible
 
 ### Template
 
 - Use `<span>` instead of `<p>` for inline text
+- If template is duplicated inside a component and no third one will reuse it, define a reusable template inside the component scope using [VueUse createReusableTemplate](https://vueuse.org/core/createReusableTemplate/), instead of creating a new component.
 
 ### Naming
 

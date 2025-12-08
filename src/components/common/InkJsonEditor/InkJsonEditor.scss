@@ -1,0 +1,35 @@
+.ink-json-editor {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+
+  &__editor {
+    flex: 1;
+    min-height: 100px;
+    border: 1px solid sys-var(color, border, subtle);
+
+    :deep(.cm-editor) {
+      height: auto;
+      min-height: 100px;
+      border: none;
+      outline: none;
+    }
+
+    :deep(.cm-scroller) {
+      font-family: "Monaco", "Courier New", monospace;
+      @include apply-font(label-lg);
+      padding: sys-var(space, sm);
+    }
+
+    :deep(.cm-focused) {
+      border-color: sys-var(color, border, active);
+    }
+
+    &--readonly {
+      :deep(.cm-editor) {
+        background: sys-var(color, background, secondary);
+      }
+    }
+  }
+}

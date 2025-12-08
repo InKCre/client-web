@@ -1,0 +1,32 @@
+@use "@inkcre/web-design/styles/mixins" as *;
+
+.app-side-panel {
+  width: 25%;
+  min-width: 320px;
+  max-width: 400px;
+  border-left: 1px solid sys-var(color, border, base);
+  padding: sys-var(space, md);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background-color: sys-var(color, surface, base);
+
+  &__content {
+    background-color: sys-var(color, surface, subtle);
+    border: 1px solid sys-var(color, border, muted);
+    padding: sys-var(space, md);
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, md);
+  }
+
+  &__title {
+    @include apply-font(body-lg);
+    color: sys-var(color, text, base);
+    margin: 0;
+  }
+
+  &__button {
+    width: 100%;
+  }
+}

@@ -1,91 +1,70 @@
 ---
 applyTo: "src/components/**/*.md"
+description: "Guide for writing component documentation."
 ---
 
-本指南指导组件文档的编写、阅读。
+## Best Practices
 
-## 最佳实践
+- Readers are Coding Agents, pay attention to Token Efficiency.
+- Do not include actual code or usage examples.
+- Use concise and clear language.
 
-- 读者是 Coding Agent ，注意 Token Efficiency，
-  - 只写必要内容，避免冗余（如果 naming 可以 self-explain，则不需要添加诸如"是什么"的说明）
-  - 使用简洁、清晰的语言
-
-## 文档模板
+## Example
 
 ```markdown
-# compName 组件中文名
+# compName
 
 ## Rationale
 
-为什么需要这个组件。
+Why do we need this component?
 
 ## Goals
 
-组件的目标（核心功能）。
+The goals of the component (core functionality).
 
 ## Key Concepts
 
-组件的关键概念，主要是专有名词如业务逻辑。（仅罗列即可，查阅详情到 `docs/` 目录）
+Key concepts of the component, mainly proper nouns such as business logic. (Only list them, see the `docs/` directory for details)
 
 ## Specification
 
-对组件目标的细化，包括内容、UI/UX、行为等。
+Refinement of the component goals, including content, UI/UX, behavior, etc.
 
 ## Implementation
 
-组件的实现细节。
+Details about the implementation of the component.
 
 ### Props
 
-- `参数名` (`type`、`defaultVal`、[required])：说明
-
-#### 参数名
-
-> 仅当参数比较复杂时。
+- `PropName` (`type`, `defaultVal`, [required])：Supplemental explanation
 
 ### Events
 
-- `eventName(param: ParamType)`: 说明
-
-#### 事件名
-
-> 仅当事件比较复杂时。
+- `eventName(param: ParamType)`: Supplemental explanation
 
 ### Models
 
-- `modelValue`：类型、默认值、说明
-
-#### 双向绑定模型名
-
-> 仅当双向绑定模型比较复杂时。
+- `modelValue` (`type`, `defaultVal`, [required])：Supplemental explanation
 
 ### Slots
 
-- `default`：说明
-- `header`：说明
+- `default`：supplemental explanation
+- `header`：supplemental explanation
 
-#### 插槽名
+#### SlotName
 
 > 仅当插槽比较复杂时。
 
 ### Methods
 
-- `methodName(param: ParamType): ReturnType {}`：说明
+#### `methodName(param: ParamType): ReturnType {}`
 
-#### 方法名
+Detailed explanation if needed.
 
-> 仅当方法比较复杂时。
+### Watchers
 
-### Watches
+- `props.propName`：explain callback behavior
+- `refValue`：explain callback behavior
 
-- `props.propName`：说明 callback 行为
-- `refValue`：说明 callback 行为
-
-#### 监听项
-
-> 仅当监听项比较复杂时。
-
-## 其它
-
-注意事项
+## Others
 ```

@@ -31,6 +31,7 @@ export class CoreAPIClient<DT = any> {
     };
   }
 
+  // TODO should return APIResponse { status, data, headers, ... }, data is instance of Data which holds raw and parsed data
   public async requestHttp<T = DT>(options: {
     method: string;
     path: string;

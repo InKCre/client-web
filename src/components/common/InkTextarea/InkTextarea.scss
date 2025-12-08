@@ -1,0 +1,35 @@
+.ink-textarea {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: 1px solid sys-var(color, border, subtle);
+  box-sizing: border-box;
+
+  &__input {
+    flex: 1;
+    padding: sys-var(space, sm);
+    border: none;
+    outline: none;
+    background: transparent;
+    @include apply-font(label-lg);
+    color: sys-var(color, text, base);
+    resize: vertical;
+    min-height: 100px;
+    font-family: "Monaco", "Courier New", monospace;
+
+    &:focus {
+      border-color: sys-var(color, border, active);
+    }
+  }
+
+  &__value {
+    padding: sys-var(space, sm);
+    color: sys-var(color, text, base);
+    white-space: pre-wrap;
+    word-break: break-word;
+    @include apply-font(label-lg);
+    font-family: "Monaco", "Courier New", monospace;
+    background: sys-var(color, background, secondary);
+    min-height: 100px;
+  }
+}

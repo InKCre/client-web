@@ -1,0 +1,88 @@
+.ink-datetime-picker-view {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 640px;
+  background-color: sys-var(color, surface, base);
+  padding: sys-var(space, md);
+  box-sizing: border-box;
+
+  &__columns {
+    display: flex;
+    gap: sys-var(space, sm);
+    overflow-x: auto;
+    margin-bottom: sys-var(space, md);
+  }
+
+  &__column {
+    flex: 1;
+    min-width: 100px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__label {
+    @include apply-font(sm);
+    color: sys-var(color, text, subtle);
+    margin-bottom: sys-var(space, xs);
+    text-align: center;
+    font-weight: 500;
+  }
+
+  &__options {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, xs);
+    max-height: 240px;
+    overflow-y: auto;
+    padding: sys-var(space, xs);
+    border: 1px solid sys-var(color, border, subtle);
+    background-color: sys-var(color, surface, raised);
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: sys-var(color, surface, base);
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: sys-var(color, border, subtle);
+
+      &:hover {
+        background: sys-var(color, border, base);
+      }
+    }
+  }
+
+  &__option {
+    @include apply-font(md);
+    padding: sys-var(space, xs) sys-var(space, sm);
+    text-align: center;
+    color: sys-var(color, text, base);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    user-select: none;
+
+    &:hover {
+      background-color: sys-var(color, surface, base-hover);
+    }
+
+    &--selected {
+      background-color: sys-var(color, surface, primary);
+      color: sys-var(color, text, primary);
+      font-weight: 500;
+
+      &:hover {
+        background-color: sys-var(color, surface, primary-hover);
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: sys-var(space, sm);
+    justify-content: flex-end;
+  }
+}

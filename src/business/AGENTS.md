@@ -2,8 +2,13 @@
 
 ## File Structure
 
-- `api.ts`: api clientsm, covers path prefix, base url, authorization, error handling and more
-- business module by domain
+- `api.ts`: api clients, covers path prefix, base url, authorization, error handling and more
+- `base.ts`
+- `info-base/`
+  - `block.ts`
+  - `relation.ts`
+  - `source.ts`
+- `extension.ts`
 
 ## Pattern
 
@@ -51,3 +56,8 @@ class User extends Z.class({
 
 - Name Zod Schema to reuse as `<Something>Z`
 - Name Vue component prop field type value in `<Something>Prop`
+
+## References
+
+- <https://github.com/sam-goodwin/zod-class>
+- <https://zod.dev/api>

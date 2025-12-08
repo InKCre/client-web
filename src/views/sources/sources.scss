@@ -1,0 +1,22 @@
+.sources-view {
+  display: flex;
+  gap: sys-var(space, lg);
+  flex: 1;
+  align-self: stretch;
+  box-sizing: border-box;
+  padding: sys-var(space, lg) sys-var(space, xl);
+  background: sys-var(color, surface, base);
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, md);
+    flex: 1;
+    align-items: flex-end;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+}

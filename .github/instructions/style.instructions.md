@@ -1,7 +1,7 @@
 ---
 applyTo: "**/*.scss, **/*.css, **/*.vue"
 ---
-  
+
 ## Best Practices
 
 ### Use Design Tokens
@@ -21,11 +21,16 @@ applyTo: "**/*.scss, **/*.css, **/*.vue"
     - typo(graphy): family
     - font: label, body, title, heading, display, each with sm, md, lg size variants
   - Component token: allows easily customize components, only common components have component tokens
-- Use `sys-var(...keys)` function for simple tokens and `apply-font($size, $mono: false)`, `apply-icon($size, $centered: false)` mixins for composite tokens. Never use reference tokens directly.
+- Use `sys-var(...keys)` function for simple tokens and `apply-font($size, $mono: false)`, `apply-icon($size, $centered: false)`, `apply-elevation($level)` mixins for composite tokens. Never use reference tokens directly.
 
 ### Naming
 
 - Use BEM with SCSS features like nesting, `&`, etc.
+  - When elements over 3 levels, start a new block.
+
+### UnoCSS
+
+- When styles are simple.
 
 ## Use icons
 

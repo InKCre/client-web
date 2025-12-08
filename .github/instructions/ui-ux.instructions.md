@@ -7,6 +7,7 @@ applyTo: "**/*.scss, **/*.vue, **/*.css"
 - Dieter Rams
 - Monochrome Minimalism
 - Retro-Futuristic
+- Sharp Shaping
 
 ## Design Principles
 
