@@ -1,23 +1,10 @@
-import {
-  makeStringProp,
-  makeNumberProp,
-  makeObjectProp,
-} from "@/utils/vue-props";
-import type { PropType } from "vue";
-import { CollectAt } from "@/business/info-base/source";
+import { Source } from "@/business/info-base/source";
 
 // --- Types ---
-export interface SourceData {
-  id: number;
-  nickname: string;
-  type: string;
-  config: Record<string, any>;
-  collectAt: CollectAt | null;
-}
 
 // --- Props ---
 export type SourceCardProps =
-  | { source: SourceData; sourceId?: never }
+  | { source: Source; sourceId?: never }
   | { source?: never; sourceId: number };
 
 // --- Emits ---

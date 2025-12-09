@@ -1,0 +1,59 @@
+.ink-tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.ink-tooltip {
+  position: absolute;
+  background-color: sys-var(color, surface, base);
+  color: sys-var(color, text, base);
+  border: 1px solid sys-var(color, border, base);
+  border-radius: sys-var(radius, sm);
+  padding: sys-var(space, xs) sys-var(space, sm);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  white-space: pre-wrap;
+  max-width: 200px;
+  word-wrap: break-word;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  pointer-events: none;
+
+  &--visible {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  &--top {
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: sys-var(space, xs);
+  }
+
+  &--bottom {
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: sys-var(space, xs);
+  }
+
+  &--left {
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-right: sys-var(space, xs);
+  }
+
+  &--right {
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: sys-var(space, xs);
+  }
+
+  &__content {
+    @include apply-font(body-sm);
+  }
+}

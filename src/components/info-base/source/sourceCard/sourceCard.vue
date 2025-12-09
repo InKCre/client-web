@@ -5,11 +5,7 @@ import InkField from "@/components/common/InkField/InkField.vue";
 import InkButton from "@/components/common/InkButton/InkButton.vue";
 import InkPicker from "@/components/common/InkPicker/InkPicker.vue";
 import collectAtForm from "@/components/info-base/source/collectAtForm/collectAtForm.vue";
-import {
-  sourceCardEmits,
-  type SourceCardProps,
-  type SourceData,
-} from "./sourceCard";
+import { sourceCardEmits, type SourceCardProps } from "./sourceCard";
 import { CollectAt, Source } from "@/business/info-base/source";
 import { useCloned, computedAsync } from "@vueuse/core";
 
@@ -17,18 +13,11 @@ const props = defineProps<SourceCardProps>();
 const emit = defineEmits(sourceCardEmits);
 
 // --- data ---
-const sourceData = computedAsync(async (): Promise<SourceData> => {
+const sourceData = computedAsync(async (): Promise<Source> => {
   if (props.source) {
     return props.source;
   } else if (props.sourceId) {
-    const s = await Source.get(props.sourceId);
-    return {
-      id: s.id,
-      nickname: s.nickname,
-      type: s.type,
-      config: s.config || {},
-      collectAt: s.collect_at,
-    };
+    return await Source.get(props.sourceId);
   }
   throw new Error("Either 'source' or 'sourceId' must be provided");
 });
@@ -36,7 +25,7 @@ const collectAtModel = ref<CollectAt | null>(null);
 
 // --- watchers ---
 watch(
-  () => sourceData.value?.collectAt,
+  () => sourceData.value?.collect_at,
   (newVal) => {
     collectAtModel.value = newVal ? useCloned(newVal).cloned.value : null;
   },
@@ -64,7 +53,7 @@ const onDelete = () => {
 const onConfirmCollectAt = () => {
   // save
   // update to original source.collectAt
-  sourceData.value!.collectAt = useCloned(collectAtModel.value).cloned.value;
+  sourceData.value!.collect_at = useCloned(collectAtModel.value).cloned.value;
 };
 </script>
 

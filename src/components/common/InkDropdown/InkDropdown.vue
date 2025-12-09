@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { createReusableTemplate } from "@vueuse/core";
 import {
   inkDropdownProps,
@@ -18,17 +18,49 @@ const useField = computed(() => formContext !== null && props.label);
 const fieldLayout = computed(() => props.layout || formContext?.layout);
 
 const showOptions = ref(false);
+const isLoading = ref(false);
+const resolvedOptions = ref<DropdownOption[]>([]);
 
 // --- computed ---
 const displayValue = computed(() => {
-  const option = props.options.find((opt) => opt.value === props.modelValue);
+  const option = resolvedOptions.value.find(
+    (opt) => opt.value === props.modelValue
+  );
   return option ? option.label : props.placeholder;
 });
 
+const optionsList = computed(() => {
+  if (typeof props.options === "function") {
+    return resolvedOptions.value;
+  }
+  return props.options;
+});
+
 // --- methods ---
-const onDropdownClick = () => {
+const loadOptionsIfNeeded = async () => {
+  if (typeof props.options === "function") {
+    isLoading.value = true;
+    try {
+      resolvedOptions.value = await props.options();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+};
+
+const onRefresh = async () => {
+  await loadOptionsIfNeeded();
+};
+
+const onDropdownClick = async () => {
   if (props.editable) {
-    showOptions.value = !showOptions.value;
+    if (showOptions.value) {
+      showOptions.value = false;
+    } else {
+      // Load options before showing dropdown
+      await loadOptionsIfNeeded();
+      showOptions.value = true;
+    }
   }
 };
 
@@ -37,6 +69,17 @@ const onOptionSelect = (value: DropdownOption["value"]) => {
   emit("change", value);
   showOptions.value = false;
 };
+
+// --- watchers ---
+watch(
+  () => props.options,
+  () => {
+    // Reset resolved options when options source changes
+    if (typeof props.options !== "function") {
+      resolvedOptions.value = [];
+    }
+  }
+);
 
 const [DefineDropdown, ReuseDropdown] = createReusableTemplate();
 </script>
@@ -63,21 +106,42 @@ const [DefineDropdown, ReuseDropdown] = createReusableTemplate();
         ></span>
       </div>
 
+      <!-- Refresh Button -->
+      <button
+        v-if="showRefresh && typeof options === 'function'"
+        :class="[
+          'ink-dropdown__refresh',
+          { 'ink-dropdown__refresh--loading': isLoading },
+        ]"
+        :disabled="isLoading"
+        @click.stop="onRefresh"
+        type="button"
+        title="Refresh options"
+      >
+        <span :class="['i-mdi-refresh', { 'animate-spin': isLoading }]"></span>
+      </button>
+
       <!-- Options -->
       <div v-if="showOptions" class="ink-dropdown__options">
-        <div
-          v-for="option in options"
-          :key="option.value"
-          :class="[
-            'ink-dropdown__option',
-            {
-              'ink-dropdown__option--selected': option.value === modelValue,
-            },
-          ]"
-          @click="onOptionSelect(option.value)"
-        >
-          {{ option.label }}
+        <div v-if="isLoading" class="ink-dropdown__loading">
+          <span class="i-mdi-loading animate-spin"></span>
+          Loading...
         </div>
+        <template v-else>
+          <div v-for="option in optionsList" :key="option.value">
+            <div
+              :class="[
+                'ink-dropdown__option',
+                {
+                  'ink-dropdown__option--selected': option.value === modelValue,
+                },
+              ]"
+              @click="onOptionSelect(option.value)"
+            >
+              {{ option.label }}
+            </div>
+          </div>
+        </template>
       </div>
     </div>
   </DefineDropdown>

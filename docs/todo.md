@@ -1,5 +1,6 @@
 - [ ] 尝试使用 storyboard
 - [ ] 添加加载态组件
-- [ ] 添加 SVG 版本的 logo 在右上角
 - [ ] 探索更多关于像 Nothing UI, Even Realities 风格的设计
-- [ ] 接入 API （不要使用 state 去保存块和关系，要实现离线编辑、浏览的话使用 localStorage 的代理库）
+- [ ] 使用 zodgres
+- [ ] 使用 zod-config （本地保存配置或者云端源）
+- [ ] 使 coreClient 和 apiClient 使用 useAsyncState，统一返回格式

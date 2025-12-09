@@ -48,6 +48,19 @@ class User extends Z.class({
 }
 ```
 
+### Reuse BusinessClass
+
+```ts
+import { zinstance } from "@/business/base";
+
+class Post extends Z.class({
+    createdBy: zinstance(User),
+    ...
+}) {
+    ...
+}
+```
+
 ## Best Practice
 
 - Add `type <ModelName>Ref` to store primary key type of the model

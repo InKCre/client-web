@@ -4,6 +4,7 @@ import { DBAPIClient, CoreAPIClient } from "../api";
 import { makeNumberProp, makeObjectProp } from "@/utils/vue-props";
 import dayjs from "dayjs";
 import type { DropdownOption } from "@/components/common/InkDropdown/InkDropdown";
+import { zinstance } from "../base";
 
 const WEEKDAYS = [
   "Sunday",
@@ -40,6 +41,20 @@ export class CollectAt extends Z.class({
   }
 }
 
+export type SourceTypeRef = string;
+export const SourceTypeRefZ = z.string();
+
+export class SourceType extends Z.class({
+  id: SourceTypeRefZ,
+  description: z.string(),
+}) {
+  static dbApi: DBAPIClient = new DBAPIClient("sources_types", SourceType);
+
+  static async getAll(): Promise<SourceType[]> {
+    return (await this.dbApi.select()).data!.map((d) => new SourceType(d));
+  }
+}
+
 export type SourceRef = number;
 export const makeSourceProp = (v?: any) => makeObjectProp<Source>(v);
 export const makeSourceRefProp = (v?: any) => makeNumberProp<SourceRef>(v);
@@ -50,7 +65,7 @@ export class Source extends Z.class({
   type: z.string(),
   nickname: z.string(),
   config: z.looseObject({}).nullable().optional(),
-  collect_at: z.instanceof(CollectAt).nullable(),
+  collect_at: zinstance(CollectAt).nullable(),
 }) {
   static dbApi: DBAPIClient = new DBAPIClient("sources", Source);
   static coreApi: CoreAPIClient<Source> = new CoreAPIClient("/source", Source);
@@ -83,6 +98,10 @@ export class Source extends Z.class({
       path: `/${this.id}/collect`,
       query: options,
     });
+  }
+
+  async delete(): Promise<void> {
+    await Source.dbApi.delete().eq("id", this.id);
   }
 }
 

@@ -8,7 +8,12 @@ import InkForm from "@/components/common/InkForm/InkForm.vue";
 import InkDropdown from "@/components/common/InkDropdown/InkDropdown.vue";
 import collectAtForm from "../collectAtForm/collectAtForm.vue";
 import { createSourceEmits } from "./createSource";
-import { CollectAt, SourceForm } from "@/business/info-base/source";
+import {
+  CollectAt,
+  Source,
+  SourceForm,
+  SourceType,
+} from "@/business/info-base/source";
 import { refManualReset } from "@vueuse/core";
 
 const emit = defineEmits(createSourceEmits);
@@ -43,12 +48,22 @@ const configJsonFormatted = computed({
   },
 });
 
+const loadSourceTypes = async () => {
+  const sourceTypes = await SourceType.getAll();
+  return sourceTypes.map((type) => ({
+    label: type.id,
+    value: type.id,
+    description: type.description,
+  }));
+};
+
 // --- methods ---
 const onCreate = () => {
-  // TODO
-  emit("create", form.value);
-  // Reset form after emit
-  form.reset();
+  form.value.create().then(() => {
+    emit("create", form.value);
+    // Reset form on success
+    form.reset();
+  });
 };
 </script>
 
@@ -61,12 +76,9 @@ const onCreate = () => {
 
       <InkDropdown
         v-model="form.type"
-        :options="[
-          { label: 'Type A', value: 'type_a' },
-          { label: 'Type B', value: 'type_b' },
-          { label: 'Type C', value: 'type_c' },
-        ]"
+        :options="loadSourceTypes"
         label="Type"
+        show-refresh
       />
 
       <InkField label="Collect At" prop="collect_at">

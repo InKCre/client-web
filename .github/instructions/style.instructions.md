@@ -4,6 +4,8 @@ applyTo: "**/*.scss, **/*.css, **/*.vue"
 
 ## Best Practices
 
+- Use UnoCSS when style is simple (e.g. layout, animation)
+
 ### Use Design Tokens
 
 - Design tokens are provided through CSS variables, and maintained in `@inkcre/web-design` package.
@@ -27,10 +29,6 @@ applyTo: "**/*.scss, **/*.css, **/*.vue"
 
 - Use BEM with SCSS features like nesting, `&`, etc.
   - When elements over 3 levels, start a new block.
-
-### UnoCSS
-
-- When styles are simple.
 
 ## Use icons
 

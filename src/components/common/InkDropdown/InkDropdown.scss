@@ -1,6 +1,9 @@
 .ink-dropdown-container {
   position: relative;
   min-width: 160px;
+  display: flex;
+  gap: sys-var(space, sm);
+  align-items: flex-start;
 }
 
 .ink-dropdown {
@@ -14,6 +17,8 @@
   border: 1px solid sys-var(color, border, subtle);
   background-color: sys-var(color, surface, base);
   transition: border 0.2s;
+  flex: 1;
+  position: relative;
 
   &--editable {
     cursor: pointer;
@@ -28,6 +33,7 @@
   @include apply-font(label-lg);
   flex: 1;
   color: sys-var(color, text, base);
+  user-select: none;
 }
 
 .ink-dropdown__chevron {
@@ -51,7 +57,10 @@
 }
 
 .ink-dropdown__option {
-  padding: sys-var(space, sm) sys-var(space, md);
+  padding: 0 sys-var(space, sm);
+  height: sys-var(size, md);
+  display: flex;
+  align-items: center;
   cursor: pointer;
   transition: background-color 0.2s;
 
@@ -67,4 +76,47 @@
       background-color: sys-var(color, surface, primary-hover);
     }
   }
+}
+
+.ink-dropdown__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: sys-var(space, sm);
+  padding: sys-var(space, sm) sys-var(space, md);
+  color: sys-var(color, text, subtle);
+  @include apply-font(label-sm);
+}
+
+.ink-dropdown__refresh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: sys-var(size, md);
+  height: sys-var(size, md);
+  padding: 0;
+  border: 1px solid sys-var(color, border, subtle);
+  background-color: sys-var(color, surface, base);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    border-color: sys-var(color, border, base);
+    background-color: sys-var(color, surface, base-hover);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &--loading {
+    border-color: sys-var(color, border, base);
+  }
+}
+
+.ink-dropdown__refresh i {
+  @include apply-icon(md);
+  color: sys-var(color, text, base);
 }

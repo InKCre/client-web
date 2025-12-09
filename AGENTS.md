@@ -36,3 +36,4 @@ This is a Vue SPA, provides an interface to interact with InKCre (an information
 
 - Search across the codebase before you creating a new type or something might can be reused.
 - Common components should be stateless or avoid maintaining state as much as possible.
+- Read more in `.github/instructions/`

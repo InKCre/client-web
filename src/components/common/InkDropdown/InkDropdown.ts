@@ -6,13 +6,18 @@ import { formControlCommonProps } from "../InkForm/InkForm";
 export interface DropdownOption {
   label: string;
   value: string | number;
+  description?: string;
 }
+
+export type DropdownOptionsSource =
+  | DropdownOption[]
+  | (() => Promise<DropdownOption[]>);
 
 // --- Props ---
 export const inkDropdownProps = {
   ...formControlCommonProps,
   options: {
-    type: Array as PropType<DropdownOption[]>,
+    type: [Array, Function] as PropType<DropdownOptionsSource>,
     default: () => [],
   },
   modelValue: {
@@ -23,6 +28,7 @@ export const inkDropdownProps = {
   },
   placeholder: makeStringProp("Select an option"),
   displayAs: makeStringProp<"box">("box"),
+  showRefresh: makeBooleanProp(false),
 } as const;
 
 // --- Emits ---

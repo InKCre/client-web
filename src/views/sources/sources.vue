@@ -1,39 +1,18 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import sourceCard from "@/components/info-base/source/sourceCard/sourceCard.vue";
 import CreateSource from "@/components/info-base/source/createSource/createSource.vue";
-import type { SourceData } from "@/components/info-base/source/sourceCard/sourceCard";
-import { SourceForm } from "@/business/info-base/source";
+import { SourceForm, Source } from "@/business/info-base/source";
 
 // Placeholder data for source list
-const sources = ref<SourceData[]>([
-  {
-    id: 1,
-    nickname: "nickname",
-    type: "type",
-    config: {
-      config_field: "config_value",
-    },
-    collectAt: {
-      day_of_week: 5,
-      hour: 2,
-      minute: 0,
-    },
-  },
-  {
-    id: 2,
-    nickname: "nickname",
-    type: "type",
-    config: {
-      config_field: "config_value",
-    },
-    collectAt: {
-      day_of_week: 3,
-      hour: 3,
-      minute: 0,
-    },
-  },
-]);
+const sources = ref<Source[]>([]);
+
+// --- lifecycle ---
+onMounted(() => {
+  Source.getAll().then((data) => {
+    sources.value = data;
+  });
+});
 
 // --- methods ---
 const onCreateSource = (data: SourceForm) => {
