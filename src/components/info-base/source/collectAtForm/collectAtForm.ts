@@ -3,9 +3,9 @@ import { CollectAt } from "@/business/info-base/source";
 
 export const collectAtFormProps = {
   modelValue: {
-    type: Object as PropType<CollectAt>,
-    required: true,
+    type: Object as PropType<CollectAt | null>,
+    default: null,
   },
 };
 
-export const collectAtFormEmits = {};
+export const collectAtFormEmits = ['update:modelValue'];

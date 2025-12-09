@@ -23,7 +23,7 @@ const resolvedOptions = ref<DropdownOption[]>([]);
 
 // --- computed ---
 const displayValue = computed(() => {
-  const option = resolvedOptions.value.find(
+  const option = optionsList.value.find(
     (opt) => opt.value === props.modelValue
   );
   return option ? option.label : props.placeholder;
@@ -39,6 +39,9 @@ const optionsList = computed(() => {
 // --- methods ---
 const loadOptionsIfNeeded = async () => {
   if (typeof props.options === "function") {
+    if (resolvedOptions.value.length > 0) {
+      return;
+    }
     isLoading.value = true;
     try {
       resolvedOptions.value = await props.options();

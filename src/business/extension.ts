@@ -24,7 +24,7 @@ export class Extension extends Z.class({
   );
 
   static async get(id: ExtensionRef): Promise<Extension> {
-    const result = await this.coreApi.requestHttp({
+    const result = await this.coreApi.request({
       method: "GET",
       path: `/${id}`,
     });
@@ -32,7 +32,7 @@ export class Extension extends Z.class({
   }
 
   static async list(): Promise<Extension[]> {
-    const results = await this.coreApi.requestHttp<Extension[]>({
+    const results = await this.coreApi.request<Extension[]>({
       method: "GET",
       path: "",
       resBodySchema: z.array(zinstance(Extension)),
@@ -41,7 +41,7 @@ export class Extension extends Z.class({
   }
 
   async enable(): Promise<Extension> {
-    const result = await Extension.coreApi.requestHttp<Extension>({
+    const result = await Extension.coreApi.request<Extension>({
       method: "PUT",
       path: `/${this.id}/disabled/false`,
     });
@@ -49,7 +49,7 @@ export class Extension extends Z.class({
   }
 
   async disable(): Promise<Extension> {
-    const result = await Extension.coreApi.requestHttp<Extension>({
+    const result = await Extension.coreApi.request<Extension>({
       method: "PUT",
       path: `/${this.id}/disabled/true`,
     });
@@ -57,7 +57,7 @@ export class Extension extends Z.class({
   }
 
   async updateConfig(config: Record<string, any>): Promise<Extension> {
-    const result = await Extension.coreApi.requestHttp<Extension>({
+    const result = await Extension.coreApi.request<Extension>({
       method: "PUT",
       path: `/${this.id}/config`,
       body: config,
@@ -81,7 +81,7 @@ export class ExtensionForm extends Z.class({
     }
 
     const path = `/${this.id}?${params.toString()}`;
-    const result = await Extension.coreApi.requestHttp<Extension>({
+    const result = await Extension.coreApi.request<Extension>({
       method: "POST",
       path: path,
     });

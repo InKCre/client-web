@@ -9,8 +9,7 @@ export type SourceCardProps =
 
 // --- Emits ---
 export const sourceCardEmits = {
-  edit: (id: number) => true,
-  delete: (id: number) => true,
-  run: (id: number) => true,
-  editConfig: (id: number) => true,
+  delete: (source: Source) => true,
+  run: (source: Source) => true,
+  editConfig: (source: Source) => true,
 } as const;

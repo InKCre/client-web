@@ -95,7 +95,11 @@ const [DefinePicker, ReusePicker] = createReusableTemplate();
 
   <!-- TODO wrap with popup -->
   <InkPopup v-model:open="showPopup" position="center">
-    <slot v-if="!props.type" :closePopup="closePopup" />
+    <slot
+      v-if="!props.type"
+      :closePopup="closePopup"
+      :modelValue="modelValue"
+    />
     <template v-else>
       <InkDatetimePickerView
         v-if="['date', 'time', 'datetime', 'weekday'].includes(type)"

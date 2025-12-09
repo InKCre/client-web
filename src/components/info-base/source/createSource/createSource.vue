@@ -8,12 +8,7 @@ import InkForm from "@/components/common/InkForm/InkForm.vue";
 import InkDropdown from "@/components/common/InkDropdown/InkDropdown.vue";
 import collectAtForm from "../collectAtForm/collectAtForm.vue";
 import { createSourceEmits } from "./createSource";
-import {
-  CollectAt,
-  Source,
-  SourceForm,
-  SourceType,
-} from "@/business/info-base/source";
+import { CollectAt, SourceForm, SourceType } from "@/business/info-base/source";
 import { refManualReset } from "@vueuse/core";
 
 const emit = defineEmits(createSourceEmits);
@@ -33,13 +28,11 @@ const form = refManualReset(() =>
     })
   )
 );
-const configJson = ref("{}");
 
 // --- computed ---
-const configJsonFormatted = computed({
-  get: () => configJson.value,
+const configJson = computed({
+  get: () => JSON.stringify(form.value.config),
   set: (value: string) => {
-    configJson.value = value;
     try {
       form.value.config = JSON.parse(value);
     } catch {
@@ -89,7 +82,7 @@ const onCreate = () => {
       </InkField>
 
       <InkJsonEditor
-        v-model="configJsonFormatted"
+        v-model="configJson"
         label="Config"
         placeholder="{}"
         :rows="6"

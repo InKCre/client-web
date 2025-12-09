@@ -14,7 +14,9 @@ const buttonClass = computed(() => [
 
 <template>
   <button :class="buttonClass" @click="emit('click')">
-    <span>{{ text }}</span>
+    <slot>
+      <span>{{ text }}</span>
+    </slot>
   </button>
 </template>
 

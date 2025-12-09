@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import InkCard from "@/components/common/InkCard/InkCard.vue";
 import InkField from "@/components/common/InkField/InkField.vue";
 import InkButton from "@/components/common/InkButton/InkButton.vue";
 import InkPicker from "@/components/common/InkPicker/InkPicker.vue";
@@ -13,14 +12,18 @@ const props = defineProps<SourceCardProps>();
 const emit = defineEmits(sourceCardEmits);
 
 // --- data ---
-const sourceData = computedAsync(async (): Promise<Source> => {
-  if (props.source) {
-    return props.source;
-  } else if (props.sourceId) {
-    return await Source.get(props.sourceId);
-  }
-  throw new Error("Either 'source' or 'sourceId' must be provided");
-});
+const sourceData = computedAsync(
+  async (): Promise<Source> => {
+    if (props.source) {
+      return props.source;
+    } else if (props.sourceId) {
+      return await Source.get(props.sourceId);
+    }
+    throw new Error("Either 'source' or 'sourceId' must be provided");
+  },
+  undefined,
+  { shallow: false }
+);
 const collectAtModel = ref<CollectAt | null>(null);
 
 // --- watchers ---
@@ -39,26 +42,25 @@ const formattedConfig = computed(() => {
 
 // --- methods ---
 const onEditConfig = () => {
-  emit("editConfig", sourceData.value!.id);
+  emit("editConfig", sourceData.value!);
 };
 
 const onRunNow = () => {
-  emit("run", sourceData.value!.id);
+  emit("run", sourceData.value!);
 };
 
 const onDelete = () => {
-  emit("delete", sourceData.value!.id);
+  emit("delete", sourceData.value!);
 };
 
 const onConfirmCollectAt = () => {
-  // save
-  // update to original source.collectAt
   sourceData.value!.collect_at = useCloned(collectAtModel.value).cloned.value;
+  sourceData.value!.save();
 };
 </script>
 
 <template>
-  <InkCard v-if="sourceData" class="source-card">
+  <div v-if="sourceData" class="source-card">
     <div class="source-card__metadata">
       <div class="source-card__left">
         <span class="source-card__type">{{ sourceData.type }}</span>
@@ -71,13 +73,12 @@ const onConfirmCollectAt = () => {
     </div>
 
     <InkField
-      v-if="sourceData.collectAt"
       class="source-card__collect-at"
       label="Will run collect at"
       layout="inline"
     >
       <InkPicker
-        :modelValue="collectAtModel"
+        :modelValue="sourceData.collect_at"
         :formatter="CollectAt.format"
         displayValueAs="inline-text"
       >
@@ -85,7 +86,7 @@ const onConfirmCollectAt = () => {
           <div class="collect-at-form__title">
             Schedule when to run source collect
           </div>
-          <collectAtForm :modelValue="sourceData.collectAt" />
+          <collectAtForm v-model="collectAtModel" />
           <div class="collect-at-form__actions">
             <InkButton text="Cancel" type="subtle" @click="closePopup" />
             <InkButton
@@ -119,7 +120,7 @@ const onConfirmCollectAt = () => {
         <InkButton text="Run Now" type="subtle" size="sm" @click="onRunNow" />
       </div>
     </div>
-  </InkCard>
+  </div>
 </template>
 
 <style lang="scss" scoped src="./sourceCard.scss" />

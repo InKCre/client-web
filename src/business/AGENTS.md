@@ -54,7 +54,7 @@ class User extends Z.class({
 import { zinstance } from "@/business/base";
 
 class Post extends Z.class({
-    createdBy: zinstance(User),
+    createdBy: zinstance<User>(User),
     ...
 }) {
     ...

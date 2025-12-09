@@ -31,7 +31,7 @@ const emit = defineEmits(compNameEmits);
 ## Best Practices
 
 - Avoid hard-encoded strings, use i18n instead
-- Make use of VueUse composables when possible
+- Make use of VueUse composables (especially for reactivity utilities)
 
 ### Template
 

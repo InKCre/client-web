@@ -65,7 +65,7 @@ export class Source extends Z.class({
   type: z.string(),
   nickname: z.string(),
   config: z.looseObject({}).nullable().optional(),
-  collect_at: zinstance(CollectAt).nullable(),
+  collect_at: zinstance<CollectAt>(CollectAt).nullable(),
 }) {
   static dbApi: DBAPIClient = new DBAPIClient("sources", Source);
   static coreApi: CoreAPIClient<Source> = new CoreAPIClient("/source", Source);
@@ -82,18 +82,18 @@ export class Source extends Z.class({
    * Get available source types
    */
   static async getTypes(): Promise<string[]> {
-    return Source.coreApi.requestHttp<string[]>({
+    return Source.coreApi.request<string[]>({
       method: "GET",
       path: "/types",
     });
   }
 
-  public async update(): Promise<Source> {
+  public async save(): Promise<Source> {
     return Source.dbApi.first(await Source.dbApi.upsert(this).select());
   }
 
   async collect(options: { full?: boolean } = {}): Promise<void> {
-    await Source.coreApi.requestHttp<any[]>({
+    await Source.coreApi.request<any[]>({
       method: "GET",
       path: `/${this.id}/collect`,
       query: options,
