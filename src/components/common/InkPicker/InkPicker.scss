@@ -12,7 +12,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    min-width: 160px;
+    min-width: 120px;
     height: sys-var(size, md);
     padding: 0 sys-var(space, sm);
     border: 1px solid sys-var(color, border, subtle);
@@ -44,7 +44,7 @@
   }
 }
 
-.picker-view {
+.ink-picker-popup {
   &__actions {
     display: flex;
     gap: sys-var(space, sm);

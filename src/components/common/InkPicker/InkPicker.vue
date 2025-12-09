@@ -107,7 +107,7 @@ const [DefinePicker, ReusePicker] = createReusableTemplate();
         @update:modelValue="emit('update:modelValue', $event as T)"
         :mode="type"
       />
-      <div class="picker-view__actions">
+      <div class="ink-picker-popup__actions">
         <InkButton text="Cancel" type="subtle" @click="onCancel" />
         <InkButton text="Confirm" type="primary" @click="onConfirm" />
       </div>

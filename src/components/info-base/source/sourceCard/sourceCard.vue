@@ -3,6 +3,9 @@ import { computed, ref, watch } from "vue";
 import InkField from "@/components/common/InkField/InkField.vue";
 import InkButton from "@/components/common/InkButton/InkButton.vue";
 import InkPicker from "@/components/common/InkPicker/InkPicker.vue";
+import InkPopup from "@/components/common/InkPopup/InkPopup.vue";
+import InkSwitch from "@/components/common/InkSwitch/InkSwitch.vue";
+import InkJsonEditor from "@/components/common/InkJsonEditor/InkJsonEditor.vue";
 import collectAtForm from "@/components/info-base/source/collectAtForm/collectAtForm.vue";
 import { sourceCardEmits, type SourceCardProps } from "./sourceCard";
 import { CollectAt, Source } from "@/business/info-base/source";
@@ -25,6 +28,8 @@ const sourceData = computedAsync(
   { shallow: false }
 );
 const collectAtModel = ref<CollectAt | null>(null);
+const configPopupOpen = ref(false);
+const configModel = ref("");
 
 // --- watchers ---
 watch(
@@ -40,9 +45,23 @@ const formattedConfig = computed(() => {
   return JSON.stringify(sourceData.value?.config || {}, null, 2);
 });
 
+const toggleAutoCollect = computed({
+  get: () => collectAtModel.value != null,
+  set: (value: boolean) => {
+    if (value) {
+      if (collectAtModel.value == null) {
+        collectAtModel.value = CollectAt.parse({});
+      }
+    } else {
+      collectAtModel.value = null;
+    }
+  },
+});
+
 // --- methods ---
 const onEditConfig = () => {
-  emit("editConfig", sourceData.value!);
+  configModel.value = formattedConfig.value;
+  configPopupOpen.value = true;
 };
 
 const onRunNow = () => {
@@ -56,6 +75,18 @@ const onDelete = () => {
 const onConfirmCollectAt = () => {
   sourceData.value!.collect_at = useCloned(collectAtModel.value).cloned.value;
   sourceData.value!.save();
+};
+
+const onConfirmConfig = () => {
+  try {
+    const parsedConfig = JSON.parse(configModel.value);
+    sourceData.value!.config = parsedConfig;
+    sourceData.value!.save();
+    configPopupOpen.value = false;
+  } catch (error) {
+    // Handle JSON parse error, maybe show a toast or something
+    console.error("Invalid JSON:", error);
+  }
 };
 </script>
 
@@ -79,15 +110,18 @@ const onConfirmCollectAt = () => {
     >
       <InkPicker
         :modelValue="sourceData.collect_at"
-        :formatter="CollectAt.format"
+        :formatter="(val) => (val ? CollectAt.format(val) : 'click to set')"
         displayValueAs="inline-text"
       >
         <template #default="{ closePopup }">
-          <div class="collect-at-form__title">
-            Schedule when to run source collect
-          </div>
-          <collectAtForm v-model="collectAtModel" />
-          <div class="collect-at-form__actions">
+          <div class="collect-at__title">Config source auto collecting</div>
+          <collectAtForm
+            v-if="collectAtModel !== null"
+            v-model="collectAtModel"
+          />
+          <div v-else>Auto collect off.</div>
+          <div class="collect-at__actions">
+            <InkSwitch v-model="toggleAutoCollect" size="md" />
             <InkButton text="Cancel" type="subtle" @click="closePopup" />
             <InkButton
               text="Confirm"
@@ -121,6 +155,25 @@ const onConfirmCollectAt = () => {
       </div>
     </div>
   </div>
+
+  <InkPopup v-model:open="configPopupOpen" position="center">
+    <div class="config-editor">
+      <h3 class="config-editor__title">Edit Config</h3>
+      <InkJsonEditor
+        v-model="configModel"
+        placeholder="Enter JSON config..."
+        :rows="6"
+      />
+      <div class="config-editor__actions">
+        <InkButton
+          text="Cancel"
+          type="subtle"
+          @click="configPopupOpen = false"
+        />
+        <InkButton text="Confirm" type="primary" @click="onConfirmConfig" />
+      </div>
+    </div>
+  </InkPopup>
 </template>
 
 <style lang="scss" scoped src="./sourceCard.scss" />

@@ -22,8 +22,10 @@ const onValueClick = () => {
 
 <template>
   <div :class="fieldClass">
-    <span class="ink-field__label">{{ label }}</span>
-
+    <div class="flex flex-row">
+      <span class="ink-field__label">{{ label }}</span>
+      <slot name="label-right" />
+    </div>
     <slot>
       <span :class="valueClass" @click="onValueClick">{{ value }}</span>
     </slot>

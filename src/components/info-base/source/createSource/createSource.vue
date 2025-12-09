@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, reactive, customRef } from "vue";
+import { computed, reactive } from "vue";
 import InkInput from "@/components/common/InkInput/InkInput.vue";
 import InkJsonEditor from "@/components/common/InkJsonEditor/InkJsonEditor.vue";
 import InkField from "@/components/common/InkField/InkField.vue";
 import InkButton from "@/components/common/InkButton/InkButton.vue";
 import InkForm from "@/components/common/InkForm/InkForm.vue";
-import InkDropdown from "@/components/common/InkDropdown/InkDropdown.vue";
+import InkSwitch from "@/components/common/InkSwitch/InkSwitch.vue";
 import collectAtForm from "../collectAtForm/collectAtForm.vue";
 import { createSourceEmits } from "./createSource";
 import { CollectAt, SourceForm, SourceType } from "@/business/info-base/source";
@@ -20,11 +20,7 @@ const form = refManualReset(() =>
       nickname: "",
       type: "",
       config: {},
-      collect_at: new CollectAt({
-        hour: 0,
-        minute: 0,
-        day_of_week: null,
-      }),
+      collect_at: CollectAt.parse({}),
     })
   )
 );
@@ -37,6 +33,19 @@ const configJson = computed({
       form.value.config = JSON.parse(value);
     } catch {
       // Invalid JSON, keep the raw value
+    }
+  },
+});
+
+const toggleAutoCollect = computed({
+  get: () => form.value.collect_at != null,
+  set: (value: boolean) => {
+    if (value) {
+      if (form.value.collect_at == null) {
+        form.value.collect_at = CollectAt.parse({});
+      }
+    } else {
+      form.value.collect_at = null;
     }
   },
 });
@@ -75,10 +84,19 @@ const onCreate = () => {
       />
 
       <InkField label="Collect At" prop="collect_at">
+        <template #label-right>
+          <div class="flex flex-row flex-1 justify-end">
+            <InkSwitch v-model="toggleAutoCollect" size="xs" />
+          </div>
+        </template>
         <collectAtForm
-          :modelValue="form.collect_at!"
+          v-if="form.collect_at"
+          v-model="form.collect_at"
           class="form__collect-at"
         />
+        <span v-else class="form__collect-at-placeholder"
+          >Auto collect off.</span
+        >
       </InkField>
 
       <InkJsonEditor

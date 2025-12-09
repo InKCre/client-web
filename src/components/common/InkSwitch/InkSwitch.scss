@@ -1,0 +1,73 @@
+.ink-switch {
+  --comp-switch-track-surface: #{ref-var(color, neutral, 2)};
+  --comp-switch-handle-surface: #{ref-var(color, neutral, 100)};
+
+  background-color: var(--comp-switch-track-surface);
+  border: 1px solid var(--comp-switch-track-surface);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  box-sizing: border-box;
+  position: relative;
+
+  &__handle {
+    background-color: var(--comp-switch-handle-surface);
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+    height: 100%;
+    transform: translateX(0);
+  }
+
+  // Size variants
+  &--xs {
+    width: 60px;
+    height: sys-var(size, xs);
+
+    .ink-switch__handle {
+      width: 27px;
+    }
+
+    &.ink-switch--on .ink-switch__handle {
+      transform: translateX(31px);
+    }
+  }
+
+  &--sm {
+    width: 80px;
+    height: sys-var(size, sm);
+
+    .ink-switch__handle {
+      width: 36px;
+    }
+
+    &.ink-switch--on .ink-switch__handle {
+      transform: translateX(42px);
+    }
+  }
+
+  &--md {
+    width: 100px;
+    height: sys-var(size, md);
+
+    .ink-switch__handle {
+      width: 45px;
+    }
+
+    &.ink-switch--on .ink-switch__handle {
+      transform: translateX(53px);
+    }
+  }
+
+  &--lg {
+    width: 120px;
+    height: sys-var(size, lg);
+
+    .ink-switch__handle {
+      width: 54px;
+    }
+
+    &.ink-switch--on .ink-switch__handle {
+      transform: translateX(64px);
+    }
+  }
+}

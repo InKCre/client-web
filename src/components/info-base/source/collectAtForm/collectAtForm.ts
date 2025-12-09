@@ -8,4 +8,4 @@ export const collectAtFormProps = {
   },
 };
 
-export const collectAtFormEmits = ['update:modelValue'];
+export const collectAtFormEmits = ["update:modelValue"];

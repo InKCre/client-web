@@ -45,7 +45,7 @@ const createEditor = () => {
       EditorView.theme({
         "&": {
           height: "auto",
-          minHeight: `${props.rows * 1.5}em`, // Approximate
+          minHeight: `${props.rows * 1.4}em`, // Approximate
         },
         ".cm-scroller": {
           fontFamily: '"Monaco", "Courier New", monospace',

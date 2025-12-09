@@ -92,7 +92,7 @@
   }
 }
 
-.collect-at-form {
+.collect-at {
   &__title {
     @include apply-font(title-sm);
     color: sys-var(color, text, base);
@@ -105,5 +105,30 @@
     justify-content: flex-end;
     align-self: stretch;
     margin-top: sys-var(space, md);
+  }
+}
+
+.config-editor {
+  display: flex;
+  flex-direction: column;
+  gap: sys-var(space, md);
+  padding: sys-var(space, lg);
+  background: sys-var(color, surface, base);
+  border-radius: sys-var(radius, md);
+  box-shadow: sys-var(shadow, lg);
+  min-width: 400px;
+  max-width: 600px;
+
+  &__title {
+    @include apply-font(title-sm);
+    color: sys-var(color, text, base);
+    margin: 0;
+  }
+
+  &__actions {
+    display: flex;
+    gap: sys-var(space, sm);
+    justify-content: flex-end;
+    align-self: stretch;
   }
 }

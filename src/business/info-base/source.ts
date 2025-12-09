@@ -18,19 +18,11 @@ const WEEKDAYS = [
 
 export class CollectAt extends Z.class({
   // 0 (Sunday) to 6 (Saturday)
-  day_of_week: z.number().min(0).max(6).nullable().default(null),
-  hour: z.number().min(0).max(23).nullable().default(null),
-  minute: z.number().min(0).max(59).nullable().default(null),
+  day_of_week: z.number().min(0).max(6).default(0),
+  hour: z.number().min(0).max(23).default(0),
+  minute: z.number().min(0).max(59).default(0),
 }) {
-  static format(value: CollectAt | null): string {
-    if (
-      value === null ||
-      value.day_of_week === null ||
-      value.hour === null ||
-      value.minute === null
-    ) {
-      return "Not set";
-    }
+  static format(value: CollectAt): string {
     const weekday = WEEKDAYS[value.day_of_week];
     const time = dayjs().hour(value.hour).minute(value.minute).format("HH:mm");
     return `every ${weekday} ${time}`;
