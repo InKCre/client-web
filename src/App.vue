@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import InkHeader from "./components/common/InkHeader/inkHeader.vue";
+import InkHeader from "./components/common/inkHeader/inkHeader.vue";
 import AppSidePanel from "./components/common/AppSidePanel/AppSidePanel.vue";
 import router from "./router";
 

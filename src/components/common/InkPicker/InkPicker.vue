@@ -5,7 +5,7 @@ import { inkPickerProps, inkPickerEmits } from "./InkPicker";
 import InkDatetimePickerView from "../InkDatetimePickerView/InkDatetimePickerView.vue";
 import InkField from "../InkField/InkField.vue";
 import InkPopup from "../InkPopup/InkPopup.vue";
-import InkButton from "../InkButton/InkButton.vue";
+import InkButton from "../inkButton/inkButton.vue";
 import { INK_FORM_CONTEXT_KEY } from "../InkForm/InkForm";
 import { useOptionalVModel } from "@/utils/vue-props";
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { inkButtonProps, inkButtonEmits } from "./InkButton";
+import { inkButtonProps, inkButtonEmits } from "./inkButton";
 
 const props = defineProps(inkButtonProps);
 const emit = defineEmits(inkButtonEmits);
@@ -20,4 +20,4 @@ const buttonClass = computed(() => [
   </button>
 </template>
 
-<style lang="scss" scoped src="./InkButton.scss"></style>
+<style lang="scss" scoped src="./inkButton.scss"></style>
