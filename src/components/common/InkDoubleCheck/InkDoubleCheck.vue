@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useI18n } from "vue-i18n";
 import InkPopup from "@/components/common/InkPopup/InkPopup.vue";
 import InkButton from "@/components/common/inkButton/inkButton.vue";
 import { inkDoubleCheckProps, inkDoubleCheckEmits } from "./InkDoubleCheck";
 
 const props = defineProps(inkDoubleCheckProps);
 const emit = defineEmits(inkDoubleCheckEmits);
-const { t } = useI18n();
 
 // --- data ---
 const popupOpen = ref(false);

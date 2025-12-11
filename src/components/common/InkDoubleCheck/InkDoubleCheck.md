@@ -19,10 +19,10 @@ The component wraps any clickable element and intercepts its click event. When c
 
 ### Props
 
-- `title` (`string`, `"Confirm Action"`)：Title text for the confirmation popup
-- `message` (`string`, `"Are you sure you want to proceed?"`)：Message text for the confirmation popup
-- `confirmText` (`string`, `"Confirm"`)：Text for the confirm button
-- `cancelText` (`string`, `"Cancel"`)：Text for the cancel button
+- `title` (`string`, `"Confirm Action"`): Title text for the confirmation popup
+- `message` (`string`, `"Are you sure you want to proceed?"`): Message text for the confirmation popup
+- `confirmText` (`string`, `"Confirm"`): Text for the confirm button
+- `cancelText` (`string`, `"Cancel"`): Text for the cancel button
 
 ### Events
 
@@ -30,7 +30,7 @@ The component wraps any clickable element and intercepts its click event. When c
 
 ### Slots
 
-- `default`：The clickable element to wrap (e.g., a button)
+- `default`: The clickable element to wrap (e.g., a button)
 
 ### Behavior
 
