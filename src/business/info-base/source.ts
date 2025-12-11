@@ -107,3 +107,38 @@ export class SourceForm extends Z.class({
     );
   }
 }
+
+export enum SourceCollectJobStatus {
+  PENDING = "pending",
+  RUNNING = "running",
+  FINISHED = "finished",
+  FAILED = "failed",
+}
+
+export class SourceCollectJob extends Z.class({
+  id: z.number(),
+  source: SourceRefZ,
+  created_at: z.date().default(() => new Date()),
+  started_at: z.date().nullable().default(null),
+  closed_at: z.date().nullable().default(null),
+  status: z
+    .enum(SourceCollectJobStatus)
+    .default(SourceCollectJobStatus.PENDING),
+  state: z.looseObject({}).default(() => ({})),
+}) {
+  static dbApi: DBAPIClient = new DBAPIClient(
+    "sources_collect_jobs",
+    SourceCollectJob
+  );
+}
+
+export class SourceCollectJobForm extends Z.class({
+  ...SourceCollectJob.shape,
+  id: z.undefined(),
+}) {
+  public async create() {
+    return new SourceCollectJob(
+      (await SourceCollectJob.dbApi.insert(this).select().single()).data!
+    );
+  }
+}

@@ -8,7 +8,12 @@ import InkSwitch from "@/components/common/InkSwitch/InkSwitch.vue";
 import InkJsonEditor from "@/components/common/InkJsonEditor/InkJsonEditor.vue";
 import collectAtForm from "@/components/info-base/source/collectAtForm/collectAtForm.vue";
 import { sourceCardEmits, type SourceCardProps } from "./sourceCard";
-import { CollectAt, Source } from "@/business/info-base/source";
+import {
+  CollectAt,
+  Source,
+  SourceCollectJobForm,
+  SourceCollectJobStatus,
+} from "@/business/info-base/source";
 import { useCloned, computedAsync } from "@vueuse/core";
 
 const props = defineProps<SourceCardProps>();
@@ -64,8 +69,16 @@ const onEditConfig = () => {
   configPopupOpen.value = true;
 };
 
-const onRunNow = () => {
-  emit("run", sourceData.value!);
+const onRunNow = async () => {
+  const form = new SourceCollectJobForm({
+    source: sourceData.value!.id,
+    created_at: new Date(),
+    started_at: null,
+    closed_at: null,
+    status: SourceCollectJobStatus.PENDING,
+    state: {},
+  });
+  await form.create();
 };
 
 const onDelete = () => {
@@ -110,7 +123,7 @@ const onConfirmConfig = () => {
     >
       <InkPicker
         :modelValue="sourceData.collect_at"
-        :formatter="(val) => (val ? CollectAt.format(val) : 'click to set')"
+        :formatter="(val) => (val ? CollectAt.format(val as CollectAt) : 'click to set')"
         displayValueAs="inline-text"
       >
         <template #default="{ closePopup }">

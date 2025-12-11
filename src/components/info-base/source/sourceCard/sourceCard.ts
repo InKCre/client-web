@@ -10,6 +10,5 @@ export type SourceCardProps =
 // --- Emits ---
 export const sourceCardEmits = {
   delete: (source: Source) => true,
-  run: (source: Source) => true,
   editConfig: (source: Source) => true,
 } as const;

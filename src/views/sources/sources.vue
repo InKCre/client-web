@@ -28,10 +28,6 @@ const onDeleteSource = (source: Source) => {
   });
 };
 
-const onRunSource = (source: Source) => {
-  // TODO
-};
-
 const onEditConfig = (source: Source) => {
   source.save().then(() => {
     // Refetch after edit
@@ -50,7 +46,6 @@ const onEditConfig = (source: Source) => {
         :key="source.id"
         :source="source"
         @delete="onDeleteSource"
-        @run="onRunSource"
         @edit-config="onEditConfig"
       />
     </div>

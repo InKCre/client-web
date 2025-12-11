@@ -1,6 +1,8 @@
 - [ ] 尝试使用 storyboard
 - [ ] 添加加载态组件
 - [ ] 探索更多关于像 Nothing UI, Even Realities 风格的设计
-- [ ] 使用 zodgres
 - [ ] 使用 zod-config （本地保存配置或者云端源）
 - [ ] 使 coreClient 和 apiClient 使用 useAsyncState，统一返回格式
+- [ ] disable state 应该比 auto collect off 更好？
+- [ ] delete 需要二次确认
+- [ ] source.nickname 也可以编辑
