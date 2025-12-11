@@ -6,6 +6,7 @@ import InkField from "@/components/common/InkField/InkField.vue";
 import InkButton from "@/components/common/inkButton/inkButton.vue";
 import InkForm from "@/components/common/InkForm/InkForm.vue";
 import InkSwitch from "@/components/common/InkSwitch/InkSwitch.vue";
+import InkDropdown from "@/components/common/InkDropdown/InkDropdown.vue";
 import collectAtForm from "../collectAtForm/collectAtForm.vue";
 import { createSourceEmits } from "./createSource";
 import { CollectAt, SourceForm, SourceType } from "@/business/info-base/source";

@@ -8,27 +8,19 @@ applyTo: "**/*.scss, **/*.css, **/*.vue"
 
 ### Use Design Tokens
 
-- Design tokens are provided through CSS variables, and maintained in `@inkcre/web-design` package.
-- Token naming scheme: `<level>-<category>-<type>-<item>`, e.g. `sys-color-surface-base`.
-- There's three layers of design tokens:
-  - Reference token: magic value, no semantic meaning, categorized into:
-    - color: neutral, primary, secondary, tertiary, danger
-    - space
-    - radius
-    - opacity
-    - breakpoint
-    - elevation
-  - System token: semantic tokens, reference of reference tokens
-    - color: surface, text, border
-    - typo(graphy): family
-    - font: label, body, title, heading, display, each with sm, md, lg size variants
-  - Component token: allows easily customize components, only common components have component tokens
-- Use `sys-var(...keys)` function for simple tokens and `apply-font($size, $mono: false)`, `apply-icon($size, $centered: false)`, `apply-elevation($level)` mixins for composite tokens. Never use reference tokens directly.
+Use design tokens by:
+
+- use function `sys-var(...keys)` for simple tokens (e.g. `background-color: sys-var(color, surface, base)`).
+- use mixins `apply-font($size)`, `apply-icon($size, $centered: false)`, `apply-elevation($level)` for composite tokens.
+
+Read token list [here](docs/tokens.md)
+
+Never use reference tokens directly.
 
 ### Naming
 
 - Use BEM with SCSS features like nesting, `&`, etc.
-  - When elements over 3 levels, start a new block.
+  - When there's more than 2 layer of elements, start a new block.
 
 ## Use icons
 
