@@ -1,0 +1,38 @@
+@use "@/styles/design-tokens" as *;
+
+.ink-double-check {
+  display: inline-block;
+
+  &__trigger {
+    display: inline-block;
+    cursor: pointer;
+  }
+
+  &__popup {
+    background: sys-var(color-surface-base);
+    border: 1px solid sys-var(color-border-base);
+    border-radius: sys-var(radius-md);
+    padding: sys-var(space-lg);
+    min-width: 300px;
+    max-width: 400px;
+  }
+
+  &__title {
+    @include apply-font(md);
+    font-weight: 600;
+    margin: 0 0 sys-var(space-md) 0;
+    color: sys-var(color-text-primary);
+  }
+
+  &__message {
+    @include apply-font(sm);
+    margin: 0 0 sys-var(space-lg) 0;
+    color: sys-var(color-text-secondary);
+  }
+
+  &__actions {
+    display: flex;
+    gap: sys-var(space-sm);
+    justify-content: flex-end;
+  }
+}

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import InkField from "@/components/common/InkField/InkField.vue";
-import InkButton from "@/components/common/InkButton/InkButton.vue";
+import InkButton from "@/components/common/inkButton/inkButton.vue";
 import InkPicker from "@/components/common/InkPicker/InkPicker.vue";
 import InkPopup from "@/components/common/InkPopup/InkPopup.vue";
 import InkSwitch from "@/components/common/InkSwitch/InkSwitch.vue";
 import InkJsonEditor from "@/components/common/InkJsonEditor/InkJsonEditor.vue";
+import InkDoubleCheck from "@/components/common/InkDoubleCheck/InkDoubleCheck.vue";
 import collectAtForm from "@/components/info-base/source/collectAtForm/collectAtForm.vue";
 import { sourceCardEmits, type SourceCardProps } from "./sourceCard";
 import {
@@ -18,6 +20,7 @@ import { useCloned, computedAsync } from "@vueuse/core";
 
 const props = defineProps<SourceCardProps>();
 const emit = defineEmits(sourceCardEmits);
+const { t } = useI18n();
 
 // --- data ---
 const sourceData = computedAsync(
@@ -155,7 +158,15 @@ const onConfirmConfig = () => {
 
     <div class="source-card__operations">
       <div class="source-card__operations-left">
-        <InkButton text="Delete" type="danger" size="sm" @click="onDelete" />
+        <InkDoubleCheck
+          :title="t('source.deleteConfirmTitle')"
+          :message="t('source.deleteConfirmMessage')"
+          :confirmText="t('common.confirm')"
+          :cancelText="t('common.cancel')"
+          @confirm="onDelete"
+        >
+          <InkButton text="Delete" type="danger" size="sm" />
+        </InkDoubleCheck>
       </div>
       <div class="source-card__operations-right">
         <InkButton

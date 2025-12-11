@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRoute } from "vue-router";
-import { inkHeaderProps, inkHeaderEmits } from "./InkHeader";
+import { inkHeaderProps, inkHeaderEmits } from "./inkHeader";
 
 const props = defineProps(inkHeaderProps);
 const emit = defineEmits(inkHeaderEmits);
@@ -45,4 +45,4 @@ const onTitleClick = () => {
   </header>
 </template>
 
-<style lang="scss" scoped src="./InkHeader.scss"></style>
+<style lang="scss" scoped src="./inkHeader.scss"></style>
