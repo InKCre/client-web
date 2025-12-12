@@ -18,5 +18,13 @@
   "source": {
     "deleteConfirmTitle": "Delete Source",
     "deleteConfirmMessage": "Are you sure you want to delete this source? This action cannot be undone."
+  },
+  "extension": {
+    "installNew": "Install Extension",
+    "installExtensionTitle": "Install New Extension",
+    "extensionId": "Extension ID",
+    "version": "Version",
+    "editConfig": "Edit Config",
+    "editConfigTitle": "Edit Extension Configuration"
   }
 }

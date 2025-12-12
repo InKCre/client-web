@@ -15,8 +15,7 @@ const onSourcesClick = () => {
 };
 
 const onExtensionsClick = () => {
-  // Placeholder for extensions navigation
-  console.log("Navigate to Extensions");
+  router.push("/extensions");
 };
 
 const onSettingsClick = () => {

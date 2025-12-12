@@ -18,5 +18,13 @@
   "source": {
     "deleteConfirmTitle": "删除数据源",
     "deleteConfirmMessage": "您确定要删除此数据源吗？此操作无法撤销。"
+  },
+  "extension": {
+    "installNew": "安装扩展",
+    "installExtensionTitle": "安装新扩展",
+    "extensionId": "扩展 ID",
+    "version": "版本",
+    "editConfig": "编辑配置",
+    "editConfigTitle": "编辑扩展配置"
   }
 }
