@@ -23,7 +23,10 @@ const onValueClick = () => {
 <template>
   <div :class="fieldClass">
     <div class="flex flex-row">
-      <span class="ink-field__label">{{ label }}</span>
+      <span class="ink-field__label">
+        {{ label }}
+        <sup v-if="props.required" class="ink-field__required">*</sup>
+      </span>
       <slot name="label-right" />
     </div>
     <slot>

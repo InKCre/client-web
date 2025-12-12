@@ -9,6 +9,7 @@ export const inkFieldProps = {
   layout: makeStringProp<FieldLayout>("col"),
   value: makeStringProp(""),
   editable: makeBooleanProp(true),
+  required: makeBooleanProp(false),
 } as const;
 
 // --- Emits ---

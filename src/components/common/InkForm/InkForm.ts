@@ -21,6 +21,7 @@ export const formControlCommonProps = {
   label: makeStringProp<undefined | string>(),
   layout: makeStringProp<FieldLayout | undefined>(),
   editable: makeBooleanProp(true),
+  required: makeBooleanProp(false),
 } as const;
 
 // --- Emits ---

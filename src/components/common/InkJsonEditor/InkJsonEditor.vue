@@ -120,7 +120,12 @@ const [DefineJsonEditor, ReuseJsonEditor] = createReusableTemplate();
     </div>
   </DefineJsonEditor>
 
-  <InkField v-if="useField" :label="label" :layout="fieldLayout">
+  <InkField
+    v-if="useField"
+    :label="label"
+    :layout="fieldLayout"
+    :required="required"
+  >
     <ReuseJsonEditor />
   </InkField>
 

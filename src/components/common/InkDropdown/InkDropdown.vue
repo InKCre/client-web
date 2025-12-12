@@ -149,7 +149,12 @@ const [DefineDropdown, ReuseDropdown] = createReusableTemplate();
     </div>
   </DefineDropdown>
 
-  <InkField v-if="useField" :label="label" :layout="fieldLayout">
+  <InkField
+    v-if="useField"
+    :label="label"
+    :layout="fieldLayout"
+    :required="required"
+  >
     <ReuseDropdown />
   </InkField>
 

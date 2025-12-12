@@ -19,6 +19,13 @@
   &__label {
     color: sys-var(color, text, subtle);
     white-space: nowrap;
+    position: relative;
+  }
+
+  &__required {
+    @include apply-font(label-sm);
+    color: red;
+    // color: sys-var(color, feedback, error); TODO
   }
 
   &--col &__label {

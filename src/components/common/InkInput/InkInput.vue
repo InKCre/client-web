@@ -30,13 +30,19 @@ const [DefineInput, ReuseInput] = createReusableTemplate();
         v-if="editable"
         class="ink-input__input"
         :value="modelValue"
+        :placeholder="placeholder"
         @input="onInput"
       />
       <span v-else class="ink-input__value">{{ modelValue }}</span>
     </div>
   </DefineInput>
 
-  <InkField v-if="useField" :label="label" :layout="fieldLayout">
+  <InkField
+    v-if="useField"
+    :label="label"
+    :layout="fieldLayout"
+    :required="required"
+  >
     <ReuseInput />
   </InkField>
 

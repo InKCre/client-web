@@ -85,7 +85,12 @@ const [DefinePicker, ReusePicker] = createReusableTemplate();
     </span>
   </DefinePicker>
 
-  <InkField v-if="useField" :label="label" :layout="fieldLayout">
+  <InkField
+    v-if="useField"
+    :label="label"
+    :layout="fieldLayout"
+    :required="required"
+  >
     <ReusePicker />
   </InkField>
 

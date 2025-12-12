@@ -8,6 +8,7 @@ type FieldLayout = "inline" | "col" | "row";
 export const inkInputProps = {
   ...formControlCommonProps,
   modelValue: makeStringProp(""),
+  placeholder: makeStringProp(""),
 } as const;
 
 // --- Emits ---

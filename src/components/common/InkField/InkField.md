@@ -13,6 +13,7 @@ Displaying and editing key-value pairs.
   - `row`: Row layout (horizontal stacking with flex-start alignment)
 - `value` (string, default: ""): The field value to display as text (used when no slot content provided)
 - `editable` (boolean, default: false): Whether the field value is editable. When true and layout is inline, the value text will be underlined
+- `required` (boolean, default: false): Whether the field is required. If true, displays a red `*` at the top right of the label
 
 ## Slots
 
