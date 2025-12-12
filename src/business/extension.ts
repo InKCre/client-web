@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Z } from "zod-class";
-import { CoreAPIClient } from "./api";
+import { CoreAPIClient, DBAPIClient } from "./api";
 import { makeStringProp, makeObjectProp } from "@/utils/vue-props";
 import { zinstance } from "./base";
 
@@ -22,47 +22,44 @@ export class Extension extends Z.class({
     "/extensions",
     Extension
   );
+  static dbApi: DBAPIClient = new DBAPIClient<Extension>(
+    "extensions",
+    Extension
+  );
 
   static async get(id: ExtensionRef): Promise<Extension> {
-    const result = await this.coreApi.request({
-      method: "GET",
-      path: `/${id}`,
-    });
-    return new Extension(result);
+    return new Extension(
+      (await Extension.dbApi.select().eq("id", id).single()).data!
+    );
   }
 
   static async list(): Promise<Extension[]> {
-    const results = await this.coreApi.request<Extension[]>({
-      method: "GET",
-      path: "",
-      resBodySchema: z.array(zinstance(Extension)),
-    });
-    return results.map((item) => new Extension(item));
+    const results = await Extension.dbApi
+      .select()
+      .order("id", { ascending: true });
+    return results.data!.map((item) => new Extension(item));
   }
 
   async enable(): Promise<Extension> {
-    const result = await Extension.coreApi.request<Extension>({
+    return Extension.coreApi.request<Extension>({
       method: "PUT",
       path: `/${this.id}/disabled/false`,
     });
-    return new Extension(result);
   }
 
   async disable(): Promise<Extension> {
-    const result = await Extension.coreApi.request<Extension>({
+    return Extension.coreApi.request<Extension>({
       method: "PUT",
       path: `/${this.id}/disabled/true`,
     });
-    return new Extension(result);
   }
 
-  async updateConfig(config: Record<string, any>): Promise<Extension> {
-    const result = await Extension.coreApi.request<Extension>({
+  async updateConfig(config?: Record<string, any>): Promise<Extension> {
+    return Extension.coreApi.request<Extension>({
       method: "PUT",
       path: `/${this.id}/config`,
-      body: config,
+      body: config || this.config,
     });
-    return new Extension(result);
   }
 }
 

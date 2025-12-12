@@ -1,11 +1,14 @@
 .extension-card {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 1.5rem;
-  border: 1px solid var(--sys-color-border);
-  border-radius: 0.5rem;
-  background-color: var(--sys-color-surface);
+  gap: sys-var(space, md);
+  padding: sys-var(space, md);
+  border: 1px solid sys-var(color, border, base);
+  background-color: sys-var(color, surface, base);
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 280px;
+  max-width: 380px;
 
   &__header {
     display: flex;
@@ -16,27 +19,25 @@
   &__info {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: sys-var(space, sm);
   }
 
   &__id {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
+    @include apply-font(body-lg);
   }
 
   &__version {
-    font-size: 0.875rem;
-    color: var(--sys-color-on-surface-variant);
+    @include apply-font(label-lg, mono);
+    color: sys-var(color, text, subtle);
   }
 
   &__nickname {
-    font-size: 0.875rem;
-    color: var(--sys-color-on-surface-variant);
+    @include apply-font(body-lg);
+    color: sys-var(color, text, base);
   }
 
   &__actions {
     display: flex;
-    gap: 0.5rem;
+    gap: sys-var(space, sm);
   }
 }

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
 import { useAsyncState } from "@vueuse/core";
 import extensionCard from "@/components/extension/extensionCard/extensionCard.vue";
 import installExtension from "@/components/extension/installExtension/installExtension.vue";
@@ -11,21 +10,19 @@ const { state: extensions, execute: refetchExtensions } = useAsyncState(
   []
 );
 
-// --- lifecycle ---
-onMounted(() => {
-  refetchExtensions();
-});
-
 // --- methods ---
 const onInstallExtension = () => {
   refetchExtensions();
 };
 
 const onToggleExtension = (extension: Extension) => {
-  const action = extension.disabled ? extension.enable() : extension.disable();
-  action.then(() => {
-    refetchExtensions();
-  });
+  (extension.disabled ? extension.enable() : extension.disable()).then(
+    (updated_extension) => {
+      extensions.value = extensions.value.map((ext) =>
+        ext.id === updated_extension.id ? updated_extension : ext
+      );
+    }
+  );
 };
 
 const onEditConfig = () => {
@@ -38,6 +35,7 @@ const onEditConfig = () => {
     <installExtension @install="onInstallExtension" />
 
     <div class="extensions-view__list">
+      <!-- FIXME -->
       <extensionCard
         v-for="extension in extensions"
         :key="extension.id"

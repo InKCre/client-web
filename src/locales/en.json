@@ -25,6 +25,7 @@
     "extensionId": "Extension ID",
     "version": "Version",
     "editConfig": "Edit Config",
-    "editConfigTitle": "Edit Extension Configuration"
+    "editConfigTitle": "Edit Extension Configuration",
+    "versionPlaceholder": "like 0.1.0 or optional for latest"
   }
 }

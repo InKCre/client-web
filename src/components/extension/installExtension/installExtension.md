@@ -1,6 +1,6 @@
 # InstallExtension
 
-A component that provides a user interface for installing new extensions.
+A component that provides a form interface for installing new extensions.
 
 ## Emits
 
@@ -8,7 +8,7 @@ A component that provides a user interface for installing new extensions.
 
 ## Features
 
-- Popup form to enter extension ID and optional version
+- Inline form to enter extension ID and optional version
 - Install button with loading state
 - Form validation (extension ID is required)
 - Automatic form reset after successful installation

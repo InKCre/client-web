@@ -58,10 +58,14 @@ const onCancelConfig = () => {
   <div v-if="extension" class="extension-card">
     <div class="extension-card__header">
       <div class="extension-card__info">
-        <h3 class="extension-card__id">{{ extension.id }}</h3>
+        <span class="extension-card__id">{{ extension.id }}</span>
         <span class="extension-card__version">v{{ extension.version }}</span>
       </div>
-      <InkSwitch :model-value="!isDisabled" @update:model-value="onToggle" />
+      <InkSwitch
+        :model-value="!isDisabled"
+        @update:model-value="onToggle"
+        size="sm"
+      />
     </div>
 
     <div v-if="extension.nickname" class="extension-card__nickname">
