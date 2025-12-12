@@ -6,3 +6,4 @@
 - [ ] disable state 应该比 auto collect off 更好？
 - [ ] delete 需要二次确认
 - [ ] source.nickname 也可以编辑
+- [ ] collect_at.hour, minute 都用 Dropdown；collect_at.day_of_week 添加 Every day 选项；collect_at.hour 添加 every hour 选项

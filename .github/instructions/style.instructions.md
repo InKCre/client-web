@@ -8,10 +8,10 @@ applyTo: "**/*.scss, **/*.css, **/*.vue"
 
 ### Use Design Tokens
 
-Use design tokens by:
+Use design tokens by (auto injected, no import needed):
 
-- use function `sys-var(...keys)` for simple tokens (e.g. `background-color: sys-var(color, surface, base)`).
-- use mixins `apply-font($size)`, `apply-icon($size, $centered: false)`, `apply-elevation($level)` for composite tokens.
+- using function `sys-var(...keys)` for simple tokens (e.g. `background-color: sys-var(color, surface, base)`).
+- using mixins `apply-font($size)`, `apply-icon($size, $centered: false)`, `apply-elevation($level)` for composite tokens.
 
 Read token list [here](docs/tokens.md)
 
@@ -19,7 +19,8 @@ Never use reference tokens directly.
 
 ### Naming
 
-- Use BEM with SCSS features like nesting, `&`, etc.
+- Name selectors with BEM.
+  - Make use of SCSS features like nesting, `&` and etc.
   - When there's more than 2 layer of elements, start a new block.
 
 ## Use icons

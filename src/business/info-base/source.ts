@@ -6,30 +6,60 @@ import dayjs from "dayjs";
 import type { DropdownOption } from "@/components/common/InkDropdown/InkDropdown";
 import { zinstance } from "../base";
 
-const WEEKDAYS = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
-
 export class CollectAt extends Z.class({
-  // 0 (Sunday) to 6 (Saturday)
-  day_of_week: z.number().min(0).max(6).default(0),
-  hour: z.number().min(0).max(23).default(0),
-  minute: z.number().min(0).max(59).default(0),
+  // 0 (Monday) to 6 (Sunday), null to run on every day
+  day_of_week: z.int().min(0).max(6).nullable().default(null),
+  // null to run on every hour
+  hour: z.int().min(0).max(23).nullable().default(null),
+  minute: z.int().min(0).max(59).default(0),
 }) {
+  static WEEKDAYS = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ];
+
   static format(value: CollectAt): string {
-    const weekday = WEEKDAYS[value.day_of_week];
-    const time = dayjs().hour(value.hour).minute(value.minute).format("HH:mm");
-    return `every ${weekday} ${time}`;
+    const weekday =
+      value.day_of_week === null
+        ? "every day"
+        : CollectAt.WEEKDAYS[value.day_of_week];
+    const isEveryHour = value.hour === null;
+    const timeDescription = isEveryHour
+      ? `every hour at minute ${value.minute}`
+      : `at ${dayjs().hour(value.hour!).minute(value.minute).format("HH:mm")}`;
+    return `every ${weekday} ${timeDescription}`;
   }
 
   static get DayOfWeekOptions(): DropdownOption[] {
-    return WEEKDAYS.map((weekday, index) => ({ label: weekday, value: index }));
+    return [
+      { label: "Every day", value: -1 },
+      ...CollectAt.WEEKDAYS.map((weekday, index) => ({
+        label: weekday,
+        value: index,
+      })),
+    ];
+  }
+
+  static get HourOptions(): DropdownOption[] {
+    return [
+      { label: "every hour", value: -1 },
+      ...Array.from({ length: 24 }, (_, i) => ({
+        label: i.toString().padStart(2, "0"),
+        value: i,
+      })),
+    ];
+  }
+
+  static get MinuteOptions(): DropdownOption[] {
+    return Array.from({ length: 60 }, (_, i) => ({
+      label: i.toString().padStart(2, "0"),
+      value: i,
+    }));
   }
 }
 

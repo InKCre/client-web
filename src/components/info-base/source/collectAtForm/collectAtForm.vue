@@ -2,26 +2,35 @@
 import { computed, ref } from "vue";
 import { CollectAt } from "@/business/info-base/source";
 import { collectAtFormProps, collectAtFormEmits } from "./collectAtForm";
-import InkPicker from "@/components/common/InkPicker/InkPicker.vue";
 import InkDropdown from "@/components/common/InkDropdown/InkDropdown.vue";
-import InkSwitch from "@/components/common/InkSwitch/InkSwitch.vue";
 
 const props = defineProps(collectAtFormProps);
 const emit = defineEmits(collectAtFormEmits);
 
 // --- computed ---
-const timeModel = computed({
-  get: () => {
-    if (!props.modelValue) return new Date();
-    const d = new Date();
-    d.setHours(props.modelValue.hour ?? 0);
-    d.setMinutes(props.modelValue.minute ?? 0);
-    return d;
-  },
-  set: (date: Date) => {
+const dayOfWeekModel = computed({
+  get: () => props.modelValue?.day_of_week ?? -1,
+  set: (value: number) => {
     if (props.modelValue) {
-      props.modelValue.hour = date.getHours();
-      props.modelValue.minute = date.getMinutes();
+      props.modelValue.day_of_week = value === -1 ? null : value;
+    }
+  },
+});
+
+const hourModel = computed({
+  get: () => props.modelValue?.hour ?? -1,
+  set: (value: number) => {
+    if (props.modelValue) {
+      props.modelValue.hour = value === -1 ? null : value;
+    }
+  },
+});
+
+const minuteModel = computed({
+  get: () => props.modelValue?.minute ?? 0,
+  set: (value: number) => {
+    if (props.modelValue) {
+      props.modelValue.minute = value;
     }
   },
 });
@@ -31,10 +40,11 @@ const timeModel = computed({
   <div class="collect-at-form">
     <template v-if="modelValue">
       <InkDropdown
-        v-model="modelValue.day_of_week"
+        v-model="dayOfWeekModel"
         :options="CollectAt.DayOfWeekOptions"
       />
-      <InkPicker v-model="timeModel" type="time" displayValueAs="box" />
+      <InkDropdown v-model="hourModel" :options="CollectAt.HourOptions" />
+      <InkDropdown v-model="minuteModel" :options="CollectAt.MinuteOptions" />
     </template>
   </div>
 </template>
