@@ -1,14 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import InkField from "@/components/common/InkField/InkField.vue";
-import InkButton from "@/components/common/InkButton/inkButton.vue";
-import InkInput from "@/components/common/InkInput/InkInput.vue";
-import InkPicker from "@/components/common/InkPicker/InkPicker.vue";
-import InkPopup from "@/components/common/InkPopup/InkPopup.vue";
-import InkSwitch from "@/components/common/InkSwitch/InkSwitch.vue";
-import InkJsonEditor from "@/components/common/InkJsonEditor/InkJsonEditor.vue";
-import InkDoubleCheck from "@/components/common/InkDoubleCheck/InkDoubleCheck.vue";
+import { InkField, InkButton, InkInput, InkPicker, InkPopup, InkSwitch, InkJsonEditor, InkDoubleCheck } from "@inkcre/web-design";
 import collectAtForm from "@/components/info-base/source/collectAtForm/collectAtForm.vue";
 import { sourceCardEmits, type SourceCardProps } from "./sourceCard";
 import {

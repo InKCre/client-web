@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import InkPopup from "@/components/common/InkPopup/InkPopup.vue";
-import InkButton from "@/components/common/inkButton/inkButton.vue";
+import { InkPopup, InkButton } from "@inkcre/web-design";
 import { inkDoubleCheckProps, inkDoubleCheckEmits } from "./InkDoubleCheck";
 
 const props = defineProps(inkDoubleCheckProps);

@@ -2,7 +2,7 @@
 import { useAsyncState } from "@vueuse/core";
 import extensionCard from "@/components/extension/extensionCard/extensionCard.vue";
 import installExtension from "@/components/extension/installExtension/installExtension.vue";
-import InkLoading from "@/components/common/InkLoading/InkLoading.vue";
+import { InkLoading } from "@inkcre/web-design";
 import { Extension } from "@/business/extension";
 
 // Use useAsyncState for extensions with refetch capability

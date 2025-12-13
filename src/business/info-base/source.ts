@@ -3,7 +3,7 @@ import { Z } from "zod-class";
 import { DBAPIClient, CoreAPIClient } from "../api";
 import { makeNumberProp, makeObjectProp } from "@/utils/vue-props";
 import dayjs from "dayjs";
-import type { DropdownOption } from "@/components/common/InkDropdown/InkDropdown";
+import type { DropdownOption } from "@inkcre/web-design";
 import { zinstance } from "../base";
 
 export class CollectAt extends Z.class({
