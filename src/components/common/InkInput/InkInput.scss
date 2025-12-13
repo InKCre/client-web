@@ -21,4 +21,27 @@
     color: sys-var(color, text, base);
     min-width: 0;
   }
+
+  &--inline {
+    border: none;
+    padding: 0;
+    height: auto;
+
+    &-editing {
+      height: 36px;
+      padding: 0 sys-var(space, sm);
+      border: 1px solid sys-var(color, border, subtle);
+    }
+  }
+
+  &__inline-text {
+    color: sys-var(color, text, base);
+    @include apply-font(label-lg);
+    cursor: pointer;
+    padding: 4px 0;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
 }

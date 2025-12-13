@@ -2,7 +2,8 @@
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import InkField from "@/components/common/InkField/InkField.vue";
-import InkButton from "@/components/common/inkButton/inkButton.vue";
+import InkButton from "@/components/common/InkButton/inkButton.vue";
+import InkInput from "@/components/common/InkInput/InkInput.vue";
 import InkPicker from "@/components/common/InkPicker/InkPicker.vue";
 import InkPopup from "@/components/common/InkPopup/InkPopup.vue";
 import InkSwitch from "@/components/common/InkSwitch/InkSwitch.vue";
@@ -38,12 +39,21 @@ const sourceData = computedAsync(
 const collectAtModel = ref<CollectAt | null>(null);
 const configPopupOpen = ref(false);
 const configModel = ref("");
+const nicknameModel = ref("");
 
 // --- watchers ---
 watch(
   () => sourceData.value?.collect_at,
   (newVal) => {
     collectAtModel.value = newVal ? useCloned(newVal).cloned.value : null;
+  },
+  { immediate: true }
+);
+
+watch(
+  () => sourceData.value?.nickname,
+  (newVal) => {
+    nicknameModel.value = newVal || "";
   },
   { immediate: true }
 );
@@ -67,6 +77,13 @@ const toggleAutoCollect = computed({
 });
 
 // --- methods ---
+const onNicknameSave = (newNickname: string) => {
+  if (sourceData.value) {
+    sourceData.value.nickname = newNickname;
+    sourceData.value.save();
+  }
+};
+
 const onEditConfig = () => {
   configModel.value = formattedConfig.value;
   configPopupOpen.value = true;
@@ -111,7 +128,19 @@ const onConfirmConfig = () => {
     <div class="source-card__metadata">
       <div class="source-card__left">
         <span class="source-card__type">{{ sourceData.type }}</span>
-        <span class="source-card__nickname">{{ sourceData.nickname }}</span>
+        <InkInput
+          :modelValue="nicknameModel"
+          type="inline"
+          placeholder="Click to edit nickname"
+          @update:modelValue="
+            (value) => {
+              nicknameModel = value;
+              onNicknameSave(value);
+            }
+          "
+        >
+          <span class="source-card__nickname">{{ nicknameModel }}</span>
+        </InkInput>
       </div>
       <div class="source-card__right">
         <span class="source-card__id-label">#</span>

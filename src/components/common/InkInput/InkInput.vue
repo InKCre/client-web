@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, computed } from "vue";
+import { inject, computed, ref } from "vue";
 import { createReusableTemplate } from "@vueuse/core";
 import { inkInputProps, inkInputEmits } from "./InkInput";
 import InkField from "../InkField/InkField.vue";
@@ -15,9 +15,43 @@ const fieldLayout = computed(
   () => props.layout || formContext?.layout || "inline"
 );
 
+const isInlineEditing = ref(false);
+const originalValue = ref("");
+
 const onInput = (e: Event) => {
-  const target = e.target as HTMLInputElement;
-  emit("update:modelValue", target.value);
+  // For inline type, don't emit immediately - wait for Enter
+  if (props.type !== "inline") {
+    const target = e.target as HTMLInputElement;
+    emit("update:modelValue", target.value);
+  }
+};
+
+const onInlineClick = () => {
+  if (props.type === "inline") {
+    originalValue.value = props.modelValue;
+    isInlineEditing.value = true;
+  }
+};
+
+const onInlineKeyup = (e: KeyboardEvent) => {
+  if (props.type === "inline") {
+    if (e.key === "Enter") {
+      // Save the value
+      const target = e.target as HTMLInputElement;
+      emit("update:modelValue", target.value);
+      isInlineEditing.value = false;
+    } else if (e.key === "Escape") {
+      // Cancel editing, restore original value
+      isInlineEditing.value = false;
+    }
+  }
+};
+
+const onInlineBlur = () => {
+  if (props.type === "inline") {
+    // Exit editing without saving
+    isInlineEditing.value = false;
+  }
 };
 
 const [DefineInput, ReuseInput] = createReusableTemplate();
@@ -25,7 +59,28 @@ const [DefineInput, ReuseInput] = createReusableTemplate();
 
 <template>
   <DefineInput>
-    <div class="ink-input">
+    <div
+      v-if="props.type === 'inline'"
+      class="ink-input ink-input--inline"
+      :class="{ 'ink-input--inline-editing': isInlineEditing }"
+    >
+      <input
+        v-if="isInlineEditing"
+        class="ink-input__input"
+        :value="modelValue"
+        :placeholder="placeholder"
+        autofocus
+        @input="onInput"
+        @keyup="onInlineKeyup"
+        @blur="onInlineBlur"
+      />
+      <span v-else class="ink-input__inline-text" @click="onInlineClick">
+        <slot>
+          {{ modelValue }}
+        </slot>
+      </span>
+    </div>
+    <div v-else class="ink-input">
       <input
         v-if="editable"
         class="ink-input__input"
