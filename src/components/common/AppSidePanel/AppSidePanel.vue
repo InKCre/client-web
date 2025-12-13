@@ -3,7 +3,7 @@ import { ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import router from "@/router";
 import { appSidePanelProps, appSidePanelEmits } from "./AppSidePanel";
-import InkButton from "@/components/common/inkButton/inkButton.vue";
+import { InkButton } from "@inkcre/web-design";
 
 const props = defineProps(appSidePanelProps);
 const emit = defineEmits(appSidePanelEmits);

@@ -126,7 +126,7 @@ const onConfirmConfig = () => {
           type="inline"
           placeholder="Click to edit nickname"
           @update:modelValue="
-            (value) => {
+            (value: string) => {
               nicknameModel = value;
               onNicknameSave(value);
             }
@@ -148,7 +148,7 @@ const onConfirmConfig = () => {
     >
       <InkPicker
         :modelValue="sourceData.collect_at"
-        :formatter="(val) => (val ? CollectAt.format(val as CollectAt) : 'click to set')"
+        :formatter="(val: CollectAt | null) => (val ? CollectAt.format(val as CollectAt) : 'click to set')"
         displayValueAs="inline-text"
       >
         <template #default="{ closePopup }">
