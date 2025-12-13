@@ -3,12 +3,7 @@
   "include": [
     "env.d.ts",
     "src/**/*",
-    "src/**/*.vue",
-    "deprecated/api",
-    "deprecated/startView.vue",
-    "deprecated/focusExplorer",
-    "deprecated/focusExplorerView.vue",
-    "src/router.ts"
+    "src/**/*.vue"
   ],
   "exclude": [
     "src/**/__tests__/*"
@@ -21,6 +16,9 @@
       ]
     },
     "jsx": "preserve",
-    "jsxImportSource": "vue"
+    "jsxImportSource": "vue",
+    "types": [
+      "@inkcre/web-design"
+    ]
   }
 }

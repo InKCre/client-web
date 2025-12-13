@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import InkForm from "@/components/common/InkForm/InkForm.vue";
 import InkInput from "@/components/common/InkInput/InkInput.vue";
-import InkButton from "@/components/common/inkButton/inkButton.vue";
+import { InkButton } from "@inkcre/web-design";
 import { installExtensionEmits } from "./installExtension";
 import { ExtensionForm } from "@/business/extension";
 

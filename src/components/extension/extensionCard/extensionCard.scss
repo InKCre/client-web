@@ -43,6 +43,11 @@
 }
 
 .config-popup {
+  &__title {
+    @include apply-font(title-sm);
+    margin-bottom: sys-var(space, md);
+  }
+
   &__actions {
     display: flex;
     gap: sys-var(space, sm);

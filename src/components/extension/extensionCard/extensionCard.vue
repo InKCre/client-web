@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
-import InkButton from "@/components/common/inkButton/inkButton.vue";
+import { InkButton } from "@inkcre/web-design";
 import InkSwitch from "@/components/common/InkSwitch/InkSwitch.vue";
 import InkPopup from "@/components/common/InkPopup/InkPopup.vue";
 import InkJsonEditor from "@/components/common/InkJsonEditor/InkJsonEditor.vue";
@@ -86,7 +86,8 @@ const onCancelConfig = () => {
       />
     </div>
 
-    <InkPopup :open="configPopupOpen" :title="t('extension.editConfigTitle')">
+    <InkPopup :open="configPopupOpen">
+      <h2 class="config-popup__title">{{ t("extension.editConfigTitle") }}</h2>
       <InkJsonEditor v-model="configModel" />
       <div class="config-popup__actions">
         <InkButton @click="onCancelConfig" :text="t('common.cancel')" />
