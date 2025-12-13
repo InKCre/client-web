@@ -1,21 +1,32 @@
 .ink-switch {
-  --comp-switch-track-surface: #{ref-var(color, neutral, 2)};
-  --comp-switch-handle-surface: #{ref-var(color, neutral, 100)};
-
-  background-color: var(--comp-switch-track-surface);
-  border: 1px solid var(--comp-switch-track-surface);
+  background-color: comp-var("switch", "track-bg");
+  border: 1px solid comp-var("switch", "track-bg");
+  border-style: solid;
   display: flex;
   align-items: center;
   cursor: pointer;
   box-sizing: border-box;
   position: relative;
+  padding: 0;
 
   &__handle {
-    background-color: var(--comp-switch-handle-surface);
+    background-color: comp-var("switch", "handle-bg");
     flex-shrink: 0;
     transition: transform 0.2s ease;
     height: 100%;
     transform: translateX(0);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  &__label {
+    @include apply-font(label-sm, mono);
+    color: comp-var("switch", "label-color");
+    text-align: center;
+    white-space: nowrap;
   }
 
   // Size variants

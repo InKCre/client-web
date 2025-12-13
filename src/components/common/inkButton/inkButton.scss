@@ -3,7 +3,9 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition-property: padding height width background-color color opacity;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
   border: none;
   background-color: transparent;
   color: sys-var(color, text, base);

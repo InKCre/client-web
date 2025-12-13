@@ -15,8 +15,8 @@ export class Extension extends Z.class({
   version: z.string(),
   disabled: z.boolean().optional().default(false),
   nickname: z.string().nullable().optional(),
-  config: z.record(z.string(), z.any()).nullable().optional(),
-  state: z.record(z.string(), z.any()).nullable().optional(),
+  config: z.looseObject({}).nullable().optional(),
+  state: z.looseObject({}).nullable().optional(),
 }) {
   static coreApi: CoreAPIClient = new CoreAPIClient<Extension>(
     "/extensions",

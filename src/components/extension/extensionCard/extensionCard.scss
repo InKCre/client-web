@@ -41,3 +41,12 @@
     gap: sys-var(space, sm);
   }
 }
+
+.config-popup {
+  &__actions {
+    display: flex;
+    gap: sys-var(space, sm);
+    justify-content: flex-end;
+    margin-top: sys-var(space, md);
+  }
+}

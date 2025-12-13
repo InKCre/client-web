@@ -15,13 +15,9 @@ const onInstallExtension = () => {
   refetchExtensions();
 };
 
-const onToggleExtension = (extension: Extension) => {
-  (extension.disabled ? extension.enable() : extension.disable()).then(
-    (updated_extension) => {
-      extensions.value = extensions.value.map((ext) =>
-        ext.id === updated_extension.id ? updated_extension : ext
-      );
-    }
+const onToggleExtension = (updatedExtension: Extension) => {
+  extensions.value = extensions.value.map((ext) =>
+    ext.id === updatedExtension.id ? updatedExtension : ext
   );
 };
 

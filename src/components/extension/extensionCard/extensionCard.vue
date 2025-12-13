@@ -13,33 +13,43 @@ const { t } = useI18n();
 
 // --- data ---
 const configPopupOpen = ref(false);
-const configModel = ref("");
+const togglePromise = ref<Promise<boolean> | null>(null);
 
 // --- computed ---
-const formattedConfig = computed(() => {
-  if (!props.extension) return "{}";
-  return JSON.stringify(props.extension.config || {}, null, 2);
+const configModel = computed({
+  get: () => {
+    return JSON.stringify(props.extension.config ?? {}, null, 2);
+  },
+  set: (newValue: string) => {
+    props.extension.config = JSON.parse(newValue);
+  },
 });
 
-const isDisabled = computed(() => props.extension?.disabled ?? false);
-
-// --- methods ---
-const onToggle = () => {
-  if (props.extension) {
-    emit("toggle", props.extension);
-  }
-};
+const toggleModel = computed({
+  get: () => {
+    return togglePromise.value
+      ? togglePromise.value
+      : !props.extension.disabled;
+  },
+  set: async (newValue: boolean) => {
+    togglePromise.value = (async () => {
+      const updatedExtension = props.extension.disabled
+        ? await props.extension.enable()
+        : await props.extension.disable();
+      emit("toggle", updatedExtension);
+      return !updatedExtension.disabled;
+    })();
+  },
+});
 
 const onEditConfigClick = () => {
-  configModel.value = formattedConfig.value;
   configPopupOpen.value = true;
 };
 
 const onConfirmConfig = async () => {
   try {
-    const parsedConfig = JSON.parse(configModel.value);
     if (props.extension) {
-      await props.extension.updateConfig(parsedConfig);
+      await props.extension.updateConfig();
       configPopupOpen.value = false;
       emit("edit-config", props.extension);
     }
@@ -61,11 +71,7 @@ const onCancelConfig = () => {
         <span class="extension-card__id">{{ extension.id }}</span>
         <span class="extension-card__version">v{{ extension.version }}</span>
       </div>
-      <InkSwitch
-        :model-value="!isDisabled"
-        @update:model-value="onToggle"
-        size="sm"
-      />
+      <InkSwitch v-model="toggleModel" size="xs" />
     </div>
 
     <div v-if="extension.nickname" class="extension-card__nickname">
@@ -73,16 +79,23 @@ const onCancelConfig = () => {
     </div>
 
     <div class="extension-card__actions">
-      <InkButton @click="onEditConfigClick" :text="t('extension.editConfig')" />
+      <InkButton
+        @click="onEditConfigClick"
+        :text="t('extension.editConfig')"
+        size="sm"
+      />
     </div>
 
-    <InkPopup
-      :open="configPopupOpen"
-      :title="t('extension.editConfigTitle')"
-      @confirm="onConfirmConfig"
-      @cancel="onCancelConfig"
-    >
+    <InkPopup :open="configPopupOpen" :title="t('extension.editConfigTitle')">
       <InkJsonEditor v-model="configModel" />
+      <div class="config-popup__actions">
+        <InkButton @click="onCancelConfig" :text="t('common.cancel')" />
+        <InkButton
+          @click="onConfirmConfig"
+          :text="t('common.confirm')"
+          type="primary"
+        />
+      </div>
     </InkPopup>
   </div>
 </template>

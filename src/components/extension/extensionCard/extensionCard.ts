@@ -6,6 +6,7 @@ export const extensionCardProps = {
   extension: {
     type: Object as PropType<Extension>,
     required: true,
+    default: () => Extension.parse({}),
   },
 };
 
