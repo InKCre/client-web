@@ -148,7 +148,7 @@ const onConfirmConfig = () => {
     >
       <InkPicker
         :modelValue="sourceData.collect_at"
-        :formatter="(val: CollectAt | null) => (val ? CollectAt.format(val as CollectAt) : 'click to set')"
+        :formatter="(val: CollectAt | null) => (val ? CollectAt.format(val) : 'click to set')"
         displayValueAs="inline-text"
       >
         <template #default="{ closePopup }">
