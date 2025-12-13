@@ -10,7 +10,7 @@ applyTo: "**/*.scss, **/*.css, **/*.vue"
 
 Use design tokens by (auto injected, no import needed):
 
-- using function `sys-var(...keys)` for simple tokens (e.g. `background-color: sys-var(color, surface, base)`).
+- using function `sys-var($path...)` for simple tokens (e.g. `background-color: sys-var(color, surface, base)`).
 - using mixins `apply-font($size)`, `apply-icon($size, $centered: false)`, `apply-elevation($level)` for composite tokens.
 
 Read token list [here](docs/tokens.md)

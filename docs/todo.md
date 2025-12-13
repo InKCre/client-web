@@ -1,9 +1,12 @@
-- [ ] 尝试使用 storyboard
-- [ ] 添加加载态组件
+- [ ] 尝试使用 histoire
+- [x] 添加加载态组件
 - [ ] 探索更多关于像 Nothing UI, Even Realities 风格的设计
 - [ ] 使用 zod-config （本地保存配置或者云端源）
 - [ ] 使 coreClient 和 apiClient 使用 useAsyncState，统一返回格式
 - [ ] disable state 应该比 auto collect off 更好？
-- [ ] delete 需要二次确认
-- [ ] source.nickname 也可以编辑
-- [ ] collect_at.hour, minute 都用 Dropdown；collect_at.day_of_week 添加 Every day 选项；collect_at.hour 添加 every hour 选项
+- [x] delete 需要二次确认
+- [x] source.nickname 也可以编辑
+- [x] collect_at.hour, minute 都用 Dropdown；collect_at.day_of_week 添加 Every day 选项；collect_at.hour 添加 every hour 选项
+- [ ] 迁移组件到 inkcre/design
+- [ ] 验证 source run now
+  - [ ] 需要验证 IMAP Source 先

@@ -4,7 +4,7 @@ This is a Vue SPA, provides an interface to interact with InKCre (an information
 
 ## Tech Stacks
 
-- Scaffold: Vue3 + TypeScript + Vite
+- Framework: Vue3 + TypeScript + Sass(scss) + Vite
 - Routing: vue-router
 - Internalization: vue-i18n
 - State management: pinia
@@ -16,6 +16,7 @@ This is a Vue SPA, provides an interface to interact with InKCre (an information
 - info-base
   - block
   - relation
+  - resolver
   - storage
   - source
 - sink
