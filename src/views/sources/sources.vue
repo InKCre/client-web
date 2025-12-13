@@ -3,13 +3,15 @@ import { onMounted } from "vue";
 import { useAsyncState } from "@vueuse/core";
 import sourceCard from "@/components/info-base/source/sourceCard/sourceCard.vue";
 import CreateSource from "@/components/info-base/source/createSource/createSource.vue";
+import InkLoading from "@/components/common/InkLoading/InkLoading.vue";
 import { Source } from "@/business/info-base/source";
 
 // Use useAsyncState for sources with refetch capability
-const { state: sources, execute: refetchSources } = useAsyncState(
-  () => Source.getAll(),
-  []
-);
+const {
+  state: sources,
+  execute: refetchSources,
+  isLoading: sourcesLoading,
+} = useAsyncState(() => Source.getAll(), []);
 
 // --- lifecycle ---
 onMounted(() => {
@@ -41,6 +43,7 @@ const onEditConfig = (source: Source) => {
     <CreateSource @create="onCreateSource" />
 
     <div class="sources-view__list">
+      <InkLoading v-if="sourcesLoading" />
       <sourceCard
         v-for="source in sources"
         :key="source.id"

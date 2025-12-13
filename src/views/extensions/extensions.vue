@@ -2,13 +2,15 @@
 import { useAsyncState } from "@vueuse/core";
 import extensionCard from "@/components/extension/extensionCard/extensionCard.vue";
 import installExtension from "@/components/extension/installExtension/installExtension.vue";
+import InkLoading from "@/components/common/InkLoading/InkLoading.vue";
 import { Extension } from "@/business/extension";
 
 // Use useAsyncState for extensions with refetch capability
-const { state: extensions, execute: refetchExtensions } = useAsyncState(
-  () => Extension.list(),
-  []
-);
+const {
+  state: extensions,
+  execute: refetchExtensions,
+  isLoading: extensionsLoading,
+} = useAsyncState(() => Extension.list(), []);
 
 // --- methods ---
 const onInstallExtension = () => {
@@ -31,6 +33,7 @@ const onEditConfig = () => {
     <installExtension @install="onInstallExtension" />
 
     <div class="extensions-view__list">
+      <InkLoading v-if="extensionsLoading" />
       <!-- FIXME -->
       <extensionCard
         v-for="extension in extensions"
