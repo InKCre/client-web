@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { CollectAt } from "@/business/info-base/source";
 import { collectAtFormProps, collectAtFormEmits } from "./collectAtForm";
-import InkDropdown from "@/components/common/InkDropdown/InkDropdown.vue";
+import { InkDropdown } from "@inkcre/web-design";
 
 const props = defineProps(collectAtFormProps);
 const emit = defineEmits(collectAtFormEmits);

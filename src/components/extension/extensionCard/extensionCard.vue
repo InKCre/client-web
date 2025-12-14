@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { InkButton } from "@inkcre/web-design";
-import InkSwitch from "@/components/common/InkSwitch/InkSwitch.vue";
-import InkPopup from "@/components/common/InkPopup/InkPopup.vue";
-import InkJsonEditor from "@/components/common/InkJsonEditor/InkJsonEditor.vue";
+import { InkButton, InkSwitch, InkPopup, InkJsonEditor } from "@inkcre/web-design";
 import { extensionCardProps, extensionCardEmits } from "./extensionCard";
 
 const props = defineProps(extensionCardProps);
