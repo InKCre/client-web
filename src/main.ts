@@ -6,10 +6,10 @@ import App from "./App.vue";
 import i18n from "./locales";
 import router from "./router";
 import store from "./stores";
-import "@inkcre/web-design/styles";
 
-// 导入全局样式
+// 样式
 import "uno.css";
+import "@inkcre/web-design/styles";
 
 const app = createApp(App);
 

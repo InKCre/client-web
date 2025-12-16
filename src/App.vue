@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, provide } from "vue";
 import { InkHeader } from "@inkcre/web-design";
 import AppSidePanel from "./components/common/AppSidePanel/AppSidePanel.vue";
 import router from "./router";
+import { createInkRouterAdapter } from "./router";
+import { INK_ROUTER_KEY } from "@inkcre/web-design";
+import { useRoute } from "vue-router";
+
+provide(INK_ROUTER_KEY, createInkRouterAdapter(router, useRoute()));
 
 // --- data ---
 const sidebarExpanded = ref(false);
@@ -12,6 +17,7 @@ const sidebarExpanded = ref(false);
   <div class="app">
     <InkHeader
       title="InKCre"
+      logo-src="src/static/logo/32.svg"
       @menu-click="sidebarExpanded = !sidebarExpanded"
       @title-click="router.push('/')"
     />
