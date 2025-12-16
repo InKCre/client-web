@@ -6,6 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+pnpm-workspace.yaml
 
 node_modules
 .DS_Store
@@ -20,8 +21,8 @@ coverage
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-!.vscode/launch.example.json
-!.vscode/tasks.example.json
+!.vscode/*.example.jsonc
+!.vscode/*.example.json
 !.vscode/*.code-snippets
 .idea
 *.suo

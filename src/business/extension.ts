@@ -2,7 +2,6 @@ import { z } from "zod";
 import { Z } from "zod-class";
 import { CoreAPIClient, DBAPIClient } from "./api";
 import { makeStringProp, makeObjectProp } from "@/utils/vue-props";
-import { zinstance } from "./base";
 
 export type ExtensionRef = string;
 export const makeExtensionProp = (v?: any) => makeObjectProp<Extension>(v);
@@ -14,9 +13,9 @@ export class Extension extends Z.class({
   id: ExtensionRefZ,
   version: z.string(),
   disabled: z.boolean().optional().default(false),
-  nickname: z.string().nullable().optional(),
-  config: z.looseObject({}).nullable().optional(),
-  state: z.looseObject({}).nullable().optional(),
+  nickname: z.string().nullable(),
+  config: z.looseObject({}).default({}),
+  config_schema: z.looseObject({}).nullable(),
 }) {
   static coreApi: CoreAPIClient = new CoreAPIClient<Extension>(
     "/extensions",
@@ -63,7 +62,7 @@ export class Extension extends Z.class({
   }
 }
 
-export class ExtensionForm extends Z.class({
+export class InstallExtensionForm extends Z.class({
   id: ExtensionRefZ,
   version: z.string().optional(),
   disabled: z.boolean().optional(),

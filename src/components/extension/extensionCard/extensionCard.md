@@ -15,5 +15,5 @@ A component that displays extension information and provides controls for toggli
 
 - Display extension ID, version, and optional nickname
 - Toggle enable/disable status with a switch
-- Edit extension configuration via JSON editor in a popup
+- Edit extension configuration via JSON editor in a dialog
 - Auto-formats configuration as JSON for easier editing

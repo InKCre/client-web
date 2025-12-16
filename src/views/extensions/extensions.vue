@@ -17,14 +17,10 @@ const onInstallExtension = () => {
   refetchExtensions();
 };
 
-const onToggleExtension = (updatedExtension: Extension) => {
+const updExtension = (updatedExtension: Extension) => {
   extensions.value = extensions.value.map((ext) =>
     ext.id === updatedExtension.id ? updatedExtension : ext
   );
-};
-
-const onEditConfig = () => {
-  refetchExtensions();
 };
 </script>
 
@@ -39,8 +35,8 @@ const onEditConfig = () => {
         v-for="extension in extensions"
         :key="extension.id"
         :extension="extension"
-        @toggle="onToggleExtension"
-        @edit-config="onEditConfig"
+        @toggle="updExtension"
+        @edit-config="updExtension"
       />
     </div>
   </main>

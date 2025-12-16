@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { InkButton, InkSwitch, InkPopup, InkJsonEditor } from "@inkcre/web-design";
+import {
+  InkButton,
+  InkSwitch,
+  InkDialog,
+  InkJsonEditor,
+} from "@inkcre/web-design";
 import { extensionCardProps, extensionCardEmits } from "./extensionCard";
 
 const props = defineProps(extensionCardProps);
@@ -9,7 +14,7 @@ const emit = defineEmits(extensionCardEmits);
 const { t } = useI18n();
 
 // --- data ---
-const configPopupOpen = ref(false);
+const configPopupOpen = ref<boolean | Promise<boolean>>(false);
 const togglePromise = ref<Promise<boolean> | null>(null);
 
 // --- computed ---
@@ -43,21 +48,20 @@ const onEditConfigClick = () => {
   configPopupOpen.value = true;
 };
 
-const onConfirmConfig = async () => {
-  try {
-    if (props.extension) {
-      await props.extension.updateConfig();
-      configPopupOpen.value = false;
-      emit("edit-config", props.extension);
-    }
-  } catch (error) {
-    // JSON parsing error - show validation error
-    console.error("Invalid JSON config:", error);
+const onConfirmConfig = () => {
+  if (props.extension) {
+    configPopupOpen.value = (async () => {
+      try {
+        const updatedExtension = await props.extension.updateConfig();
+        emit("edit-config", updatedExtension);
+        return false; // close dialog
+      } catch (error) {
+        // JSON parsing error - keep dialog open
+        console.error("Invalid JSON config:", error);
+        return true; // keep dialog open on error
+      }
+    })();
   }
-};
-
-const onCancelConfig = () => {
-  configPopupOpen.value = false;
 };
 </script>
 
@@ -83,18 +87,16 @@ const onCancelConfig = () => {
       />
     </div>
 
-    <InkPopup :open="configPopupOpen">
-      <h2 class="config-popup__title">{{ t("extension.editConfigTitle") }}</h2>
-      <InkJsonEditor v-model="configModel" />
-      <div class="config-popup__actions">
-        <InkButton @click="onCancelConfig" :text="t('common.cancel')" />
-        <InkButton
-          @click="onConfirmConfig"
-          :text="t('common.confirm')"
-          type="primary"
-        />
-      </div>
-    </InkPopup>
+    <InkDialog
+      v-model="configPopupOpen"
+      :title="t('extension.editConfigTitle')"
+      @confirm="onConfirmConfig"
+    >
+      <InkJsonEditor
+        v-model="configModel"
+        :schema="extension.config_schema ?? undefined"
+      />
+    </InkDialog>
   </div>
 </template>
 
