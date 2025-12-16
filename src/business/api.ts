@@ -49,8 +49,24 @@ export class CoreAPIClient<DT = any> {
       },
     };
 
-    if (body) {
-      config.body = JSON.stringify(body);
+    if (body !== undefined) {
+      if (
+        typeof body === "object" &&
+        body !== null &&
+        !(body instanceof FormData) &&
+        !(body instanceof Blob) &&
+        !(body instanceof ArrayBuffer)
+      ) {
+        // JSON
+        config.body = JSON.stringify(body);
+        config.headers = {
+          "Content-Type": "application/json",
+          ...config.headers,
+        };
+      } else {
+        // FormData / Blob / string / ArrayBuffer
+        config.body = body;
+      }
     }
     if (query) {
       Object.entries(query).forEach(([key, value]) => {
