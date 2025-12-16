@@ -20,10 +20,6 @@ Each component has a standalone folder (`compName/`), containing the following f
 - Avoid prop drilling
 - Proper use of provide/inject
 
-### Interface
-
-- if prop `modelValue` is mutable, and the component tends to be state less, name it `value` and should not have emit `update:value`
-
 ### Naming
 
 - `camelCase` for component name, variables, functions

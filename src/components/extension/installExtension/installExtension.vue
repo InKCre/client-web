@@ -3,13 +3,13 @@ import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { InkForm, InkInput, InkButton } from "@inkcre/web-design";
 import { installExtensionEmits } from "./installExtension";
-import { ExtensionForm } from "@/business/extension";
+import { InstallExtensionForm } from "@/business/extension";
 
 const emit = defineEmits(installExtensionEmits);
 const { t } = useI18n();
 
 // --- data ---
-const form = ref(new ExtensionForm({ id: "", version: "" }));
+const form = ref(new InstallExtensionForm({ id: "", version: "" }));
 const isLoading = ref(false);
 
 // --- methods ---
@@ -19,7 +19,7 @@ const onSubmit = async () => {
     await form.value.install();
     emit("install");
     // Reset form on success
-    form.value = new ExtensionForm({ id: "", version: "" });
+    form.value = new InstallExtensionForm({ id: "", version: "" });
   } catch (error) {
     // Error handling - show user-friendly message
     console.error("Failed to install extension:", error);
