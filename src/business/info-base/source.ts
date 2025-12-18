@@ -72,8 +72,16 @@ export class SourceType extends Z.class({
 }) {
   static dbApi: DBAPIClient = new DBAPIClient("sources_types", SourceType);
 
+  static async get(id: SourceTypeRef): Promise<SourceType> {
+    return new SourceType(
+      (await this.dbApi.from().select().eq("id", id).single()).data!
+    );
+  }
+
   static async getAll(): Promise<SourceType[]> {
-    return (await this.dbApi.select()).data!.map((d) => new SourceType(d));
+    return (await this.dbApi.from().select()).data!.map(
+      (d) => new SourceType(d)
+    );
   }
 }
 
@@ -93,11 +101,13 @@ export class Source extends Z.class({
   static coreApi: CoreAPIClient<Source> = new CoreAPIClient("/source", Source);
 
   static async get(id: SourceRef): Promise<Source> {
-    return new Source((await this.dbApi.select().eq("id", id).single()).data!);
+    return new Source(
+      (await this.dbApi.from().select().eq("id", id).single()).data!
+    );
   }
 
   static async getAll(): Promise<Source[]> {
-    return (await this.dbApi.select()).data!.map((d) => new Source(d));
+    return (await this.dbApi.from().select()).data!.map((d) => new Source(d));
   }
 
   /**
@@ -111,7 +121,7 @@ export class Source extends Z.class({
   }
 
   public async save(): Promise<Source> {
-    return Source.dbApi.first(await Source.dbApi.upsert(this).select());
+    return Source.dbApi.first(await Source.dbApi.from().upsert(this).select());
   }
 
   async collect(options: { full?: boolean } = {}): Promise<void> {
@@ -123,7 +133,7 @@ export class Source extends Z.class({
   }
 
   async delete(): Promise<void> {
-    await Source.dbApi.delete().eq("id", this.id);
+    await Source.dbApi.from().delete().eq("id", this.id);
   }
 }
 
@@ -133,7 +143,7 @@ export class SourceForm extends Z.class({
 }) {
   public async create() {
     return new Source(
-      (await Source.dbApi.insert(this).select().single()).data!
+      (await Source.dbApi.from().insert(this).select().single()).data!
     );
   }
 }
@@ -168,7 +178,7 @@ export class SourceCollectJobForm extends Z.class({
 }) {
   public async create() {
     return new SourceCollectJob(
-      (await SourceCollectJob.dbApi.insert(this).select().single()).data!
+      (await SourceCollectJob.dbApi.from().insert(this).select().single()).data!
     );
   }
 }

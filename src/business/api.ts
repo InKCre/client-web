@@ -1,7 +1,7 @@
 import { CONFIG } from "../config";
 import { useAuthStore } from "@/stores/auth";
 import stores from "@/stores";
-import { PostgrestQueryBuilder } from "@supabase/postgrest-js";
+import { PostgrestClient, PostgrestQueryBuilder } from "@supabase/postgrest-js";
 
 export class APIError extends Error {
   constructor(message: string, public status: number, public response?: any) {
@@ -131,20 +131,16 @@ export class CoreAPIClient<DT = any> {
 /**
  * PostgREST API Client for database operations
  */
-export class DBAPIClient<DT = any> extends PostgrestQueryBuilder<
-  any,
-  any,
-  any
-> {
+export class DBAPIClient<DT = any> extends PostgrestClient {
   static authStore = useAuthStore(stores);
 
   constructor(
     protected relation: string,
     protected defSchema?: { parse<DT>(input: unknown): DT },
-    protected schemaName: string = "public",
+    public schemaName: "public" = "public",
     protected baseUrl: string = CONFIG.INKCRE_PGREST_URL
   ) {
-    super(new URL(`${baseUrl}/${relation}`), {
+    super(baseUrl, {
       headers: new Headers({
         // Authorization will be set later
       }),
@@ -155,6 +151,10 @@ export class DBAPIClient<DT = any> extends PostgrestQueryBuilder<
     DBAPIClient.authStore.getToken().then((token) => {
       this.headers.set("Authorization", `Bearer ${token}`);
     });
+  }
+
+  public from(): PostgrestQueryBuilder<any, any, any> {
+    return super.from(this.relation);
   }
 
   public first<T>(

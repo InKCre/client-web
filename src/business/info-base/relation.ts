@@ -23,15 +23,19 @@ export class Relation extends Z.class({
   static coreApi: CoreAPIClient = new CoreAPIClient("/relation", Relation);
 
   static async get(id: RelationRef): Promise<Relation> {
-    return new Relation((await this.dbApi.select().eq("id", id)).data![0]);
+    return new Relation(
+      (await this.dbApi.from().select().eq("id", id)).data![0]
+    );
   }
 
   static async getAll(): Promise<Relation[]> {
-    return (await this.dbApi.select()).data!.map((d) => new Relation(d));
+    return (await this.dbApi.from().select()).data!.map((d) => new Relation(d));
   }
 
   public async update(): Promise<Relation> {
-    return Relation.dbApi.first(await Relation.dbApi.upsert(this).select());
+    return Relation.dbApi.first(
+      await Relation.dbApi.from().upsert(this).select()
+    );
   }
 }
 
@@ -40,6 +44,8 @@ export class RelationForm extends Z.class({
   id: z.undefined(),
 }) {
   public async create() {
-    return new Relation((await Relation.dbApi.insert(this).select()).data![0]);
+    return new Relation(
+      (await Relation.dbApi.from().insert(this).select()).data![0]
+    );
   }
 }

@@ -28,12 +28,13 @@ export class Extension extends Z.class({
 
   static async get(id: ExtensionRef): Promise<Extension> {
     return new Extension(
-      (await Extension.dbApi.select().eq("id", id).single()).data!
+      (await Extension.dbApi.from().select().eq("id", id).single()).data!
     );
   }
 
   static async list(): Promise<Extension[]> {
     const results = await Extension.dbApi
+      .from()
       .select()
       .order("id", { ascending: true });
     return results.data!.map((item) => new Extension(item));

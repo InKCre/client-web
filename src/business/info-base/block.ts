@@ -26,16 +26,17 @@ export class Block extends Z.class({
   static coreApi: CoreAPIClient = new CoreAPIClient("/blocks", Block);
 
   static async get(id: BlockRef): Promise<Block> {
-    return new Block((await this.dbApi.select().eq("id", id)).data![0]);
+    return new Block((await this.dbApi.from().select().eq("id", id)).data![0]);
   }
 
   static async getAll(): Promise<Block[]> {
-    return (await this.dbApi.select()).data!.map((d) => new Block(d));
+    return (await this.dbApi.from().select()).data!.map((d) => new Block(d));
   }
 
   static async getRecent(limit: number = 10): Promise<Block[]> {
     return (
       await this.dbApi
+        .from()
         .select()
         .order("updated_at", { ascending: false })
         .limit(limit)
@@ -43,7 +44,7 @@ export class Block extends Z.class({
   }
 
   public async update(): Promise<Block> {
-    return Block.dbApi.first(await Block.dbApi.upsert(this).select());
+    return Block.dbApi.first(await Block.dbApi.from().upsert(this).select());
   }
 }
 
@@ -52,6 +53,6 @@ export class BlockForm extends Z.class({
   id: z.undefined(),
 }) {
   public async create() {
-    return new Block((await Block.dbApi.insert(this).select()).data![0]);
+    return new Block((await Block.dbApi.from().insert(this).select()).data![0]);
   }
 }
