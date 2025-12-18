@@ -69,6 +69,7 @@ export const SourceTypeRefZ = z.string();
 export class SourceType extends Z.class({
   id: SourceTypeRefZ,
   description: z.string(),
+  config_schema: z.looseObject({}).default(() => ({})),
 }) {
   static dbApi: DBAPIClient = new DBAPIClient("sources_types", SourceType);
 
@@ -92,9 +93,9 @@ export const SourceRefZ = z.number();
 
 export class Source extends Z.class({
   id: SourceRefZ,
-  type: z.string(),
+  type: SourceTypeRefZ,
   nickname: z.string(),
-  config: z.looseObject({}).nullable().optional(),
+  config: z.looseObject({}).default(() => ({})),
   collect_at: zinstance<CollectAt>(CollectAt).nullable(),
 }) {
   static dbApi: DBAPIClient = new DBAPIClient("sources", Source);

@@ -8,6 +8,8 @@
 - [x] source.nickname 也可以编辑
 - [x] collect_at.hour, minute 都用 Dropdown；collect_at.day_of_week 添加 Every day 选项；collect_at.hour 添加 every hour 选项
 - [x] 迁移组件到 inkcre/design
+- [x] Source edit config with JSON Schema
+- [ ] Source type description
 - [ ] 验证 source run now
   - [ ] 需要验证 IMAP Source 先
 - [ ] ARIA

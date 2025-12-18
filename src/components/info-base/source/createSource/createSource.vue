@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import {
   InkInput,
   InkJsonEditor,
@@ -8,6 +8,7 @@ import {
   InkForm,
   InkSwitch,
   InkDropdown,
+  type DropdownOption,
 } from "@inkcre/web-design";
 import collectAtForm from "../collectAtForm/collectAtForm.vue";
 import { createSourceEmits } from "./createSource";
@@ -15,6 +16,7 @@ import { CollectAt, SourceForm, SourceType } from "@/business/info-base/source";
 import { refManualReset } from "@vueuse/core";
 
 const emit = defineEmits(createSourceEmits);
+const configJson = ref<string>("");
 
 // --- data ---
 const form = refManualReset(() =>
@@ -27,19 +29,9 @@ const form = refManualReset(() =>
     })
   )
 );
+const sourceTypes = ref<(DropdownOption & SourceType)[]>([]);
 
 // --- computed ---
-const configJson = computed({
-  get: () => JSON.stringify(form.value.config),
-  set: (value: string) => {
-    try {
-      form.value.config = JSON.parse(value);
-    } catch {
-      // Invalid JSON, keep the raw value
-    }
-  },
-});
-
 const toggleAutoCollect = computed({
   get: () => form.value.collect_at != null,
   set: (value: boolean) => {
@@ -53,23 +45,37 @@ const toggleAutoCollect = computed({
   },
 });
 
-const loadSourceTypes = async () => {
-  const sourceTypes = await SourceType.getAll();
-  return sourceTypes.map((type) => ({
+const currentSourceType = computed(() => {
+  return sourceTypes.value.find((type) => type.value === form.value.type);
+});
+
+// --- methods ---
+const loadSourceTypes = async (): Promise<(DropdownOption & SourceType)[]> => {
+  const result = await SourceType.getAll();
+  return result.map((type) => ({
     label: type.id,
     value: type.id,
-    description: type.description,
+    ...type,
   }));
 };
 
-// --- methods ---
 const onCreate = () => {
+  form.value.config = JSON.parse(configJson.value);
   form.value.create().then(() => {
     emit("create", form.value);
     // Reset form on success
     form.reset();
   });
 };
+
+// -- watchers ---
+watch(
+  () => form.value.config,
+  (newVal) => {
+    configJson.value = JSON.stringify(newVal, null, 2);
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
@@ -81,9 +87,9 @@ const onCreate = () => {
 
       <InkDropdown
         v-model="form.type"
-        :options="loadSourceTypes"
+        v-model:options="sourceTypes"
+        :refresher="loadSourceTypes"
         label="Type"
-        show-refresh
       />
 
       <InkField label="Collect At" prop="collect_at">
@@ -104,6 +110,7 @@ const onCreate = () => {
 
       <InkJsonEditor
         v-model="configJson"
+        :schema="currentSourceType?.config_schema"
         label="Config"
         placeholder="{}"
         :rows="6"

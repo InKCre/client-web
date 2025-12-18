@@ -1,7 +1,16 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { InkField, InkButton, InkInput, InkPicker, InkPopup, InkSwitch, InkJsonEditor, InkDoubleCheck } from "@inkcre/web-design";
+import {
+  InkField,
+  InkButton,
+  InkInput,
+  InkPicker,
+  InkPopup,
+  InkSwitch,
+  InkJsonEditor,
+  InkDoubleCheck,
+} from "@inkcre/web-design";
 import collectAtForm from "@/components/info-base/source/collectAtForm/collectAtForm.vue";
 import { sourceCardEmits, type SourceCardProps } from "./sourceCard";
 import {
@@ -9,6 +18,7 @@ import {
   Source,
   SourceCollectJobForm,
   SourceCollectJobStatus,
+  SourceType,
 } from "@/business/info-base/source";
 import { useCloned, computedAsync } from "@vueuse/core";
 
@@ -25,6 +35,16 @@ const sourceData = computedAsync(
       return await Source.get(props.sourceId);
     }
     throw new Error("Either 'source' or 'sourceId' must be provided");
+  },
+  undefined,
+  { shallow: false }
+);
+const sourceType = computedAsync(
+  async (): Promise<SourceType | undefined> => {
+    if (sourceData.value?.type) {
+      return await SourceType.get(sourceData.value.type);
+    }
+    return undefined;
   },
   undefined,
   { shallow: false }
@@ -207,6 +227,7 @@ const onConfirmConfig = () => {
       <h3 class="config-editor__title">Edit Config</h3>
       <InkJsonEditor
         v-model="configModel"
+        :schema="sourceType?.config_schema"
         placeholder="Enter JSON config..."
         :rows="6"
       />
