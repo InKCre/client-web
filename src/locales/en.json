@@ -5,7 +5,9 @@
     "save": "Save",
     "cancel": "Cancel",
     "confirm": "Confirm",
-    "confirmAction": "Confirm Action"
+    "confirmAction": "Confirm Action",
+    "back": "Back",
+    "loading": "Loading..."
   },
   "header": {
     "brand": "InKCre"
@@ -27,5 +29,20 @@
     "editConfig": "Edit Config",
     "editConfigTitle": "Edit Extension Configuration",
     "versionPlaceholder": "like 0.1.0 or optional for latest"
+  },
+  "collectJob": {
+    "title": "Collect Job Details",
+    "jobId": "Job ID",
+    "status": "Status",
+    "source": "Source",
+    "createdAt": "Created At",
+    "startedAt": "Started At",
+    "closedAt": "Closed At",
+    "state": "State",
+    "stop": "Stop",
+    "retry": "Retry",
+    "notAvailable": "N/A",
+    "notFound": "Collect job not found",
+    "sourceNotFound": "Source not found"
   }
 }

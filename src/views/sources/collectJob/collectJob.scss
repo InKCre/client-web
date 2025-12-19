@@ -1,0 +1,147 @@
+.collect-job-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  align-self: stretch;
+  box-sizing: border-box;
+  padding: sys-var(space, lg) sys-var(space, xl);
+  background: sys-var(color, surface, base);
+
+  &__loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+  }
+
+  &__content {
+    display: flex;
+    gap: sys-var(space, xl);
+    flex: 1;
+  }
+
+  &__error {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, md);
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    @include apply-font(body-lg);
+    color: sys-var(color, text, subtle);
+  }
+
+  &__metadata {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, md);
+    flex: 1;
+    padding: sys-var(space, lg);
+    border: 1px solid sys-var(color, border, base);
+    box-sizing: border-box;
+    height: fit-content;
+  }
+
+  &__state {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, md);
+    flex: 1;
+    padding: sys-var(space, lg);
+    border: 1px solid sys-var(color, border, base);
+    box-sizing: border-box;
+    height: fit-content;
+  }
+}
+
+.metadata {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: sys-var(space, md);
+  }
+
+  &__title {
+    @include apply-font(title-lg);
+    color: sys-var(color, text, base);
+    margin: 0;
+  }
+
+  &__value {
+    @include apply-font(body-md);
+    color: sys-var(color, text, base);
+
+    &.status--pending {
+      color: sys-var(color, warning, base);
+    }
+
+    &.status--running {
+      color: sys-var(color, info, base);
+    }
+
+    &.status--finished {
+      color: sys-var(color, success, base);
+    }
+
+    &.status--failed {
+      color: sys-var(color, danger, base);
+    }
+  }
+}
+
+.source-info {
+  display: flex;
+  flex-direction: column;
+  gap: sys-var(space, xs);
+
+  &__type {
+    @include apply-font(label-md);
+    color: sys-var(color, text, subtle);
+  }
+
+  &__nickname {
+    @include apply-font(body-md);
+    color: sys-var(color, text, base);
+  }
+
+  &__id {
+    @include apply-font(label-sm, mono);
+    color: sys-var(color, text, subtle);
+  }
+}
+
+.state {
+  &__title {
+    @include apply-font(title-md);
+    color: sys-var(color, text, base);
+    margin: 0;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, sm);
+    padding: sys-var(space, md);
+    border: 1px solid sys-var(color, border, muted);
+    box-sizing: border-box;
+    min-height: 200px;
+    overflow: auto;
+    flex: 1;
+  }
+
+  &__data {
+    @include apply-font(label-md, mono);
+    color: sys-var(color, text, subtle);
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  &__actions {
+    display: flex;
+    gap: sys-var(space, sm);
+    justify-content: flex-end;
+    margin-top: sys-var(space, md);
+  }
+}

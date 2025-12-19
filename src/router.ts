@@ -3,6 +3,7 @@ import type { Router, RouteLocationNormalizedLoaded } from "vue-router";
 import type { InkRouter } from "@inkcre/web-design";
 import start from "@/views/start/start.vue";
 import sources from "@/views/sources/sources.vue";
+import collectJob from "@/views/sources/collectJob/collectJob.vue";
 import extensions from "@/views/extensions/extensions.vue";
 import { computed } from "vue";
 
@@ -18,6 +19,11 @@ const router = createRouter({
       path: "/sources",
       name: "Sources",
       component: sources,
+    },
+    {
+      path: "/sources/collectJob/:id",
+      name: "CollectJob",
+      component: collectJob,
     },
     {
       path: "/extensions",
