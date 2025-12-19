@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useAsyncState } from "@vueuse/core";
@@ -37,12 +37,7 @@ const {
     return await Source.get(job.value.source);
   }
   return null;
-}, null);
-
-// --- lifecycle ---
-onMounted(() => {
-  refetchJob();
-});
+}, null, { shallow: false });
 
 // --- computed ---
 const isRunning = computed(

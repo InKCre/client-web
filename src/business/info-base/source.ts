@@ -185,15 +185,13 @@ export class SourceCollectJob extends Z.class({
   }
 
   static async getAll(): Promise<SourceCollectJob[]> {
-    return (await this.dbApi.from().select()).data!.map(
-      (d) => new SourceCollectJob(d)
-    );
+    const result = await this.dbApi.from().select();
+    return (result.data || []).map((d) => new SourceCollectJob(d));
   }
 
   static async getBySource(sourceId: SourceRef): Promise<SourceCollectJob[]> {
-    return (await this.dbApi.from().select().eq("source", sourceId)).data!.map(
-      (d) => new SourceCollectJob(d)
-    );
+    const result = await this.dbApi.from().select().eq("source", sourceId);
+    return (result.data || []).map((d) => new SourceCollectJob(d));
   }
 
   async stop(): Promise<void> {
