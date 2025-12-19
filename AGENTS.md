@@ -12,6 +12,7 @@ This is a Vue SPA, provides an interface to interact with InKCre (an information
 
 ## Business Domains
 
+- log
 - extension
 - info-base
   - block

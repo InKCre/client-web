@@ -38,6 +38,8 @@
     "startedAt": "开始时间",
     "closedAt": "结束时间",
     "state": "状态信息",
+    "logs": "日志",
+    "noLogs": "暂无日志",
     "stop": "停止",
     "retry": "重试",
     "notAvailable": "不可用",

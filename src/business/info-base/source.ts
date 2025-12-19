@@ -5,6 +5,7 @@ import { makeNumberProp, makeObjectProp } from "@/utils/vue-props";
 import dayjs from "dayjs";
 import type { DropdownOption } from "@inkcre/web-design";
 import { zinstance } from "../base";
+import { Log } from "../obsrv";
 
 export class CollectAt extends Z.class({
   // 0 (Monday) to 6 (Sunday), null to run on every day
@@ -149,15 +150,18 @@ export class SourceForm extends Z.class({
   }
 }
 
-export enum SourceCollectJobStatus {
-  PENDING = "pending",
-  RUNNING = "running",
-  FINISHED = "finished",
-  FAILED = "failed",
-}
+export const SourceCollectJobStatus = {
+  PENDING: "pending",
+  RUNNING: "running",
+  FINISHED: "finished",
+  FAILED: "failed",
+};
+
+export type SourceCollectJobRef = number;
+export const SourceCollectJobRefZ = z.number();
 
 export class SourceCollectJob extends Z.class({
-  id: z.number(),
+  id: SourceCollectJobRefZ,
   source: SourceRefZ,
   created_at: z.date().default(() => new Date()),
   started_at: z.date().nullable().default(null),
@@ -176,44 +180,14 @@ export class SourceCollectJob extends Z.class({
     SourceCollectJob
   );
 
-  static async get(id: number): Promise<SourceCollectJob> {
-    const result = await this.dbApi.from().select().eq("id", id).single();
-    if (!result.data) {
-      throw new Error(`SourceCollectJob with id ${id} not found`);
-    }
-    return new SourceCollectJob(result.data);
-  }
-
-  static async getAll(): Promise<SourceCollectJob[]> {
-    const result = await this.dbApi.from().select();
-    return (result.data || []).map((d) => new SourceCollectJob(d));
-  }
-
-  static async getBySource(sourceId: SourceRef): Promise<SourceCollectJob[]> {
-    const result = await this.dbApi.from().select().eq("source", sourceId);
-    return (result.data || []).map((d) => new SourceCollectJob(d));
-  }
-
-  async stop(): Promise<void> {
-    await SourceCollectJob.coreApi.request({
-      method: "POST",
-      path: `/${this.id}/stop`,
-    });
-  }
-
-  async retry(): Promise<SourceCollectJob> {
+  static async get(id: SourceCollectJobRef): Promise<SourceCollectJob> {
     return new SourceCollectJob(
-      await SourceCollectJob.coreApi.request({
-        method: "POST",
-        path: `/${this.id}/retry`,
-      })
+      (await this.dbApi.from().select().eq("id", id).single()).data!
     );
   }
 
-  async save(): Promise<SourceCollectJob> {
-    return SourceCollectJob.dbApi.first(
-      await SourceCollectJob.dbApi.from().upsert(this).select()
-    );
+  public async getLogs(): Promise<Log[]> {
+    return Log.getByTraceId(`source_collect_job.${this.id}`);
   }
 }
 

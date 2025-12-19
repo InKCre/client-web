@@ -13,3 +13,4 @@
 - [ ] 验证 source run now
   - [ ] 需要验证 IMAP Source 先
 - [ ] ARIA
+- [ ] Incremental log polling (Log business class provided, with pre-configured filters)

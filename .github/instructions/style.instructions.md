@@ -26,4 +26,5 @@ Never use reference tokens directly.
 ## Use icons
 
 - You can use icon by adding class `i-mdi-<icon-name>`.
-- Configure icon size and layout using `pu-icon` mixin.
+- Use `div` if not in a paragraph or text context, use `span` with `inline-block` if in a text context.
+- Configure icon size and layout using `@include pu-icon($size, $centered: false)` mixin.

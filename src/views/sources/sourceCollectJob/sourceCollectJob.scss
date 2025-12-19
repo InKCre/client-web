@@ -42,7 +42,7 @@
     height: fit-content;
   }
 
-  &__state {
+  &__logs {
     display: flex;
     flex-direction: column;
     gap: sys-var(space, md);
@@ -111,7 +111,7 @@
   }
 }
 
-.state {
+.logs {
   &__title {
     @include apply-font(title-md);
     color: sys-var(color, text, base);
@@ -130,18 +130,48 @@
     flex: 1;
   }
 
-  &__data {
-    @include apply-font(label-md, mono);
-    color: sys-var(color, text, subtle);
-    margin: 0;
-    white-space: pre-wrap;
-    word-wrap: break-word;
+  &__loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
   }
 
-  &__actions {
+  &__empty {
     display: flex;
-    gap: sys-var(space, sm);
-    justify-content: flex-end;
-    margin-top: sys-var(space, md);
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    @include apply-font(body-md);
+    color: sys-var(color, text, subtle);
+  }
+}
+
+.log-entry {
+  display: flex;
+  gap: sys-var(space, sm);
+  padding: sys-var(space, xs) 0;
+  border-bottom: 1px solid sys-var(color, border, muted);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .log-time {
+    @include apply-font(label-sm, mono);
+    color: sys-var(color, text, subtle);
+    min-width: 150px;
+  }
+
+  .log-severity {
+    @include apply-font(label-sm);
+    color: sys-var(color, text, base);
+    min-width: 80px;
+  }
+
+  .log-body {
+    @include apply-font(body-sm);
+    color: sys-var(color, text, base);
+    flex: 1;
   }
 }
