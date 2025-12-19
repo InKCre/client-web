@@ -177,9 +177,11 @@ export class SourceCollectJob extends Z.class({
   );
 
   static async get(id: number): Promise<SourceCollectJob> {
-    return new SourceCollectJob(
-      (await this.dbApi.from().select().eq("id", id).single()).data!
-    );
+    const result = await this.dbApi.from().select().eq("id", id).single();
+    if (!result.data) {
+      throw new Error(`SourceCollectJob with id ${id} not found`);
+    }
+    return new SourceCollectJob(result.data);
   }
 
   static async getAll(): Promise<SourceCollectJob[]> {

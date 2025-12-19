@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useAsyncState } from "@vueuse/core";
@@ -110,8 +110,6 @@ const onBack = () => {
 };
 
 // --- watchers ---
-// Watch for job changes to fetch source
-import { watch } from "vue";
 watch(
   () => job.value?.source,
   (newSourceId) => {
