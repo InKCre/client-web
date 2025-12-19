@@ -5,7 +5,9 @@
     "save": "保存",
     "cancel": "取消",
     "confirm": "确认",
-    "confirmAction": "确认操作"
+    "confirmAction": "确认操作",
+    "back": "返回",
+    "loading": "加载中..."
   },
   "header": {
     "brand": "第三尺寸"
@@ -26,5 +28,20 @@
     "version": "版本",
     "editConfig": "编辑配置",
     "editConfigTitle": "编辑扩展配置"
+  },
+  "collectJob": {
+    "title": "采集任务详情",
+    "jobId": "任务 ID",
+    "status": "状态",
+    "source": "数据源",
+    "createdAt": "创建时间",
+    "startedAt": "开始时间",
+    "closedAt": "结束时间",
+    "state": "状态信息",
+    "stop": "停止",
+    "retry": "重试",
+    "notAvailable": "不可用",
+    "notFound": "未找到采集任务",
+    "sourceNotFound": "未找到数据源"
   }
 }

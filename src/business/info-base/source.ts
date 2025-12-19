@@ -171,6 +171,50 @@ export class SourceCollectJob extends Z.class({
     "sources_collect_jobs",
     SourceCollectJob
   );
+  static coreApi: CoreAPIClient<SourceCollectJob> = new CoreAPIClient(
+    "/source/collect-job",
+    SourceCollectJob
+  );
+
+  static async get(id: number): Promise<SourceCollectJob> {
+    return new SourceCollectJob(
+      (await this.dbApi.from().select().eq("id", id).single()).data!
+    );
+  }
+
+  static async getAll(): Promise<SourceCollectJob[]> {
+    return (await this.dbApi.from().select()).data!.map(
+      (d) => new SourceCollectJob(d)
+    );
+  }
+
+  static async getBySource(sourceId: SourceRef): Promise<SourceCollectJob[]> {
+    return (await this.dbApi.from().select().eq("source", sourceId)).data!.map(
+      (d) => new SourceCollectJob(d)
+    );
+  }
+
+  async stop(): Promise<void> {
+    await SourceCollectJob.coreApi.request({
+      method: "POST",
+      path: `/${this.id}/stop`,
+    });
+  }
+
+  async retry(): Promise<SourceCollectJob> {
+    return new SourceCollectJob(
+      await SourceCollectJob.coreApi.request({
+        method: "POST",
+        path: `/${this.id}/retry`,
+      })
+    );
+  }
+
+  async save(): Promise<SourceCollectJob> {
+    return SourceCollectJob.dbApi.first(
+      await SourceCollectJob.dbApi.from().upsert(this).select()
+    );
+  }
 }
 
 export class SourceCollectJobForm extends Z.class({
