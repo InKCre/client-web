@@ -7,7 +7,8 @@
     "confirm": "确认",
     "confirmAction": "确认操作",
     "back": "返回",
-    "loading": "加载中..."
+    "loading": "加载中...",
+    "loadMore": "加载更多"
   },
   "header": {
     "brand": "第三尺寸"
@@ -45,5 +46,9 @@
     "notAvailable": "不可用",
     "notFound": "未找到采集任务",
     "sourceNotFound": "未找到数据源"
+  },
+  "logs": {
+    "title": "日志",
+    "empty": "暂无日志"
   }
 }

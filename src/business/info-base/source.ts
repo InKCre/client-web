@@ -163,9 +163,9 @@ export const SourceCollectJobRefZ = z.number();
 export class SourceCollectJob extends Z.class({
   id: SourceCollectJobRefZ,
   source: SourceRefZ,
-  created_at: z.date().default(() => new Date()),
-  started_at: z.date().nullable().default(null),
-  closed_at: z.date().nullable().default(null),
+  created_at: z.coerce.date().default(() => new Date()),
+  started_at: z.coerce.date().nullable().default(null),
+  closed_at: z.coerce.date().nullable().default(null),
   status: z
     .enum(SourceCollectJobStatus)
     .default(SourceCollectJobStatus.PENDING),
@@ -186,8 +186,18 @@ export class SourceCollectJob extends Z.class({
     );
   }
 
-  public async getLogs(): Promise<Log[]> {
-    return Log.getByTraceId(`source_collect_job.${this.id}`);
+  public async getLogs(options?: {
+    limit?: number;
+    cursor?: number;
+  }): Promise<Log[]> {
+    return Log.getByTraceId(`source_collect_job.${this.id}`, options);
+  }
+
+  static isFinalStatus(status: string): boolean {
+    return (
+      status === SourceCollectJobStatus.FINISHED ||
+      status === SourceCollectJobStatus.FAILED
+    );
   }
 }
 

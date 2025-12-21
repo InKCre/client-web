@@ -50,7 +50,7 @@ export const makeUserProp = (v?: any) => makeObjectProp<User>(v);
 class User extends Z.class({
   id: UserRefZ,
   nickname: z.string(),
-  createdAt: z.date().default(() => new Date()),
+  createdAt: z.coerce.date().default(() => new Date()),
 }) {
   static dbApi: DBAPIClient = new DBAPIClient("users", User);
   static coreApi: CoreAPIClient<User> = new CoreAPIClient("/users", User);
@@ -108,7 +108,8 @@ class Post extends Z.class({
   ```
 
 - Include static properties for UI helpers (e.g., `DayOfWeekOptions`, `format()` methods).
-- Ensure schemas use appropriate defaults and constraints (e.g., `.default(() => new Date())` for timestamps).
+- Ensure schemas use appropriate defaults and constraints (e.g., `.default(() => new Date())` for date).
+- Use `z.coerce.date()` for date type field so that Zpd can automatically converts strings to Date objects.
 
 ### Naming
 

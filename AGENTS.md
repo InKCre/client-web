@@ -7,12 +7,13 @@ This is a Vue SPA, provides an interface to interact with InKCre (an information
 - Framework: Vue3 + TypeScript + Sass(scss) + Vite
 - Routing: vue-router
 - Internalization: vue-i18n
+- Date and time: dayjs
 - State management: pinia
 - Packagae management: pnpm
 
 ## Business Domains
 
-- log
+- obsrv: Observability
 - extension
 - info-base
   - block

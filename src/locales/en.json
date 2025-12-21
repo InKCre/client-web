@@ -7,7 +7,8 @@
     "confirm": "Confirm",
     "confirmAction": "Confirm Action",
     "back": "Back",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "loadMore": "Load More"
   },
   "header": {
     "brand": "InKCre"
@@ -46,5 +47,9 @@
     "notAvailable": "N/A",
     "notFound": "Collect job not found",
     "sourceNotFound": "Source not found"
+  },
+  "logs": {
+    "title": "Logs",
+    "empty": "No logs"
   }
 }

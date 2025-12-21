@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import {
   InkField,
@@ -25,6 +26,7 @@ import { useCloned, computedAsync } from "@vueuse/core";
 const props = defineProps<SourceCardProps>();
 const emit = defineEmits(sourceCardEmits);
 const { t } = useI18n();
+const router = useRouter();
 
 // --- data ---
 const sourceData = computedAsync(
@@ -111,7 +113,8 @@ const onRunNow = async () => {
     status: SourceCollectJobStatus.PENDING,
     state: {},
   });
-  await form.create();
+  const job = await form.create();
+  router.push(`/sources/collectJob/${job.id}`);
 };
 
 const onDelete = () => {
