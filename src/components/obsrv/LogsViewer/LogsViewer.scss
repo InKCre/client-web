@@ -35,8 +35,4 @@
     @include apply-font(body-md);
     color: sys-var(color, danger, base);
   }
-
-  .log-entry:last-of-type {
-    margin-top: auto;
-  }
 }

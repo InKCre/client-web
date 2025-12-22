@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted } from "vue";
+import { computed, ref, watch, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { useIntervalFn } from "@vueuse/core";
 import { InkLoading } from "@inkcre/web-design";
@@ -15,6 +15,7 @@ const { t } = useI18n();
 const logs = ref<Log[]>([]);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
+const tailMarker = ref<HTMLDivElement>();
 
 // --- lifecycle ---
 onMounted(async () => {
@@ -37,6 +38,9 @@ const loadLogs = async () => {
     });
     logs.value.push(...fetched);
     logs.value = logs.value.sort((a, b) => a.id - b.id);
+    setTimeout(() => {
+      tailMarker.value?.scrollIntoView({ behavior: "smooth" });
+    }, 200);
   } catch (e) {
     error.value = e instanceof Error ? e.message : "Failed to load logs";
   } finally {
@@ -93,6 +97,7 @@ const isEmpty = computed(
     </div>
     <template v-else>
       <LogEntry v-for="log in logs" :key="log.id" :log="log" />
+      <div ref="tailMarker"></div>
       <div v-if="isActive || isLoading" class="logs-viewer__loading">
         <InkLoading size="sm" density="sm" />
       </div>

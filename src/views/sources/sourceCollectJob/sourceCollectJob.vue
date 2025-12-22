@@ -43,7 +43,7 @@ const {
 );
 
 // --- logs ---
-const enableLogsPolling = computed(() => !job.value?.isFinal);
+const enableLogsPolling = computed(() => isRunning.value);
 
 // --- computed ---
 const isRunning = computed(
