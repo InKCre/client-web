@@ -199,6 +199,10 @@ export class SourceCollectJob extends Z.class({
       status === SourceCollectJobStatus.FAILED
     );
   }
+
+  get isFinal(): boolean {
+    return SourceCollectJob.isFinalStatus(this.status);
+  }
 }
 
 export class SourceCollectJobForm extends Z.class({

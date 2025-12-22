@@ -14,7 +14,6 @@ import {
 import dayjs from "dayjs";
 
 const route = useRoute();
-const router = useRouter();
 const { t } = useI18n();
 
 // --- data ---
@@ -44,7 +43,7 @@ const {
 );
 
 // --- logs ---
-const enableLogsPolling = computed(() => !isFinal.value);
+const enableLogsPolling = computed(() => !job.value?.isFinal);
 
 // --- computed ---
 const isRunning = computed(
@@ -62,12 +61,6 @@ const isFinished = computed(
 const isFailed = computed(
   () => job.value?.status === SourceCollectJobStatus.FAILED
 );
-
-const isFinal = computed(() => isFinished.value || isFailed.value);
-
-const canStop = computed(() => isRunning.value || isPending.value);
-
-const canRetry = computed(() => isFailed.value || isFinished.value);
 
 const formattedState = computed(() => {
   return JSON.stringify(job.value?.state || {}, null, 2);
@@ -95,20 +88,6 @@ const formatDate = (date: Date | null) => {
   return dayjs(date).format("YYYY-MM-DD HH:mm:ss");
 };
 
-// const onStop = async () => {
-//   if (job.value && canStop.value) {
-//     await job.value.stop();
-//     await refetchJob();
-//   }
-// };
-
-// const onRetry = async () => {
-//   if (job.value && canRetry.value) {
-//     await job.value.retry();
-//     await refetchJob();
-//   }
-// };
-
 // --- watchers ---
 watch(
   () => job.value?.source,
@@ -121,9 +100,9 @@ watch(
 );
 
 watch(
-  [() => job.value?.status, () => isFinal.value],
+  [() => job.value?.status, () => job.value?.isFinal],
   ([newStatus]) => {
-    if (!newStatus || isFinal.value) {
+    if (!newStatus || job.value?.isFinal) {
       // Clear polling when job reaches final state or status becomes null
       if (jobPollingIntervalId.value) {
         clearInterval(jobPollingIntervalId.value);
@@ -146,7 +125,7 @@ watch(
   () => pollingInterval.value,
   (newInterval) => {
     // Update interval if polling is active and not in final state
-    if (jobPollingIntervalId.value && !isFinal.value) {
+    if (jobPollingIntervalId.value && !job.value?.isFinal) {
       clearInterval(jobPollingIntervalId.value);
       jobPollingIntervalId.value = setInterval(() => {
         refetchJob();
@@ -215,7 +194,7 @@ onUnmounted(() => {
         </InkField>
 
         <InkField :label="t('collectJob.state')">
-          <pre class="metadata__value">{{ formattedState }}</pre>
+          <pre class="metadata__value whitespace-pre">{{ formattedState }}</pre>
         </InkField>
       </section>
 
