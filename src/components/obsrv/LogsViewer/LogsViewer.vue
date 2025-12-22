@@ -22,33 +22,25 @@ onMounted(async () => {
 });
 
 // --- methods ---
+/**
+ * Incrementally loads logs.
+ */
 const loadLogs = async () => {
+  if (isLoading.value) {
+    return;
+  }
   isLoading.value = true;
   error.value = null;
   try {
-    const fetched = await Log.getByTraceId(props.traceId || "");
-    logs.value = fetched.sort((a, b) => a.id - b.id);
+    const fetched = await Log.getByTraceId(props.traceId || "", {
+      cursor: logs.value[logs.value.length - 1]?.id,
+    });
+    logs.value.push(...fetched);
+    logs.value = logs.value.sort((a, b) => a.id - b.id);
   } catch (e) {
     error.value = e instanceof Error ? e.message : "Failed to load logs";
   } finally {
     isLoading.value = false;
-  }
-};
-
-const pollLogs = async () => {
-  try {
-    error.value = null;
-    const lastLog = logs.value[logs.value.length - 1];
-    if (lastLog) {
-      const newLogs = await Log.getByTraceId(props.traceId || "", {
-        cursor: lastLog.id,
-      });
-      if (newLogs.length > 0) {
-        logs.value.push(...newLogs);
-      }
-    }
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : "Failed to poll logs";
   }
 };
 
@@ -57,15 +49,15 @@ const {
   pause: pausePolling,
   resume: resumePolling,
   isActive,
-} = useIntervalFn(pollLogs, props.pollingInterval, { immediate: true });
+} = useIntervalFn(loadLogs, props.pollingInterval, { immediateCallback: true });
 
 // --- watchers ---
 watch(
   () => props.enablePolling,
   (enabled) => {
-    if (enabled) {
+    if (enabled && !isActive.value) {
       resumePolling();
-    } else {
+    } else if (!enabled && isActive.value) {
       pausePolling();
     }
   },
@@ -86,7 +78,11 @@ watch(
 
 // --- computed ---
 const isEmpty = computed(
-  () => logs.value.length === 0 && !isLoading.value && !error.value
+  () =>
+    logs.value.length === 0 &&
+    !isActive.value &&
+    !isLoading.value &&
+    !error.value
 );
 </script>
 
@@ -97,7 +93,7 @@ const isEmpty = computed(
     </div>
     <template v-else>
       <LogEntry v-for="log in logs" :key="log.id" :log="log" />
-      <div v-if="isActive" class="logs-viewer__loading">
+      <div v-if="isActive || isLoading" class="logs-viewer__loading">
         <InkLoading size="sm" density="sm" />
       </div>
     </template>

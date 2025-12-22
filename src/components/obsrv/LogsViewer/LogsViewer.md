@@ -24,7 +24,7 @@ The component displays logs filtered by trace ID in a scrollable container. It s
 4. **Auto-Scroll**: Uses flex layout with `margin-top: auto` on last log entry for automatic scrolling to bottom
 5. **Loading State**: Shows loading indicator while polling is active (`isActive` from useIntervalFn)
 6. **Error Display**: Inline error message display if fetching fails
-7. **Empty State**: Shows "No logs" message when no logs are found
+7. **Empty State**: Shows "No logs" message when no logs are found and not loading/polling logs.
 
 ## Implementation
 

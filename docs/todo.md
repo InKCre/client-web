@@ -13,7 +13,8 @@
 - [ ] 验证 source run now
   - [ ] 需要验证 IMAP Source 先
 - [ ] ARIA
-- [ ] Incremental log polling (Log business class provided, with pre-configured filters)
-- [ ] 抽离出独立的 logs viewer 组件 （按 trace_id 筛选，使用 id 作为游标，自动滑倒最底部）
-- [ ] 抽离出 Log 组件 （点击查看更多）
+- [x] Incremental log polling (Log business class provided, with pre-configured filters)
+- [x] 抽离出独立的 logs viewer 组件 （按 trace_id 筛选，使用 id 作为游标，自动滑倒最底部）
+- [x] 抽离出 Log 组件 （点击查看更多）
 - [ ] 时区转换有问题
+- [ ] LogsViewer 的滚动到底部实现有问题
