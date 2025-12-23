@@ -12,6 +12,7 @@ import {
 } from "@inkcre/web-design";
 import sourceForm from "@/components/info-base/source/sourceForm/sourceForm.vue";
 import collectJobForm from "@/components/info-base/source/collectJobForm/collectJobForm.vue";
+import sourceCollectJobCard from "@/components/info-base/source/sourceCollectJobCard/sourceCollectJobCard.vue";
 import {
   Source,
   SourceCollectJob,
@@ -135,21 +136,6 @@ const goToNextPage = () => {
   }
 };
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case SourceCollectJobStatus.PENDING:
-      return "status--pending";
-    case SourceCollectJobStatus.RUNNING:
-      return "status--running";
-    case SourceCollectJobStatus.FINISHED:
-      return "status--finished";
-    case SourceCollectJobStatus.FAILED:
-      return "status--failed";
-    default:
-      return "";
-  }
-};
-
 // --- watchers ---
 watch(
   () => pagination.value.page,
@@ -212,24 +198,12 @@ watch(
           <span>{{ t("source.noJobs") }}</span>
         </div>
         <div v-else class="jobs__list">
-          <div
+          <sourceCollectJobCard
             v-for="job in collectJobs"
             :key="job.id"
-            class="job-item"
+            :job="job"
             @click="goToJob(job.id)"
-          >
-            <div class="job-item__header">
-              <span class="job-item__id">#{{ job.id }}</span>
-              <span class="job-item__status" :class="getStatusColor(job.status)">
-                {{ job.status }}
-              </span>
-            </div>
-            <div class="job-item__dates">
-              <span class="job-item__date">
-                {{ t("collectJob.createdAt") }}: {{ formatDate(job.created_at) }}
-              </span>
-            </div>
-          </div>
+          />
         </div>
 
         <div v-if="totalPages > 1" class="jobs__pagination">

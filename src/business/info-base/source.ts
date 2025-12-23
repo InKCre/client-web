@@ -210,14 +210,14 @@ export class SourceCollectJob extends Z.class({
     };
   }
 
-  static async getLatestRunningBySource(
+  static async getLatestOpenBySource(
     sourceId: SourceRef
   ): Promise<SourceCollectJob | null> {
     const result = await this.dbApi
       .from()
       .select()
       .eq("source", sourceId)
-      .eq("status", SourceCollectJobStatus.RUNNING)
+      .in("status", [SourceCollectJobStatus.PENDING, SourceCollectJobStatus.RUNNING])
       .order("created_at", { ascending: false })
       .limit(1);
 

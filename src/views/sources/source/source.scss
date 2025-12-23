@@ -139,64 +139,6 @@
   }
 }
 
-.job-item {
-  display: flex;
-  flex-direction: column;
-  gap: sys-var(space, xs);
-  padding: sys-var(space, md);
-  border: 1px solid sys-var(color, border, base);
-  box-sizing: border-box;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: sys-var(color, surface, hover);
-  }
-
-  &__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  &__id {
-    @include apply-font(label-lg, mono);
-    color: sys-var(color, text, base);
-  }
-
-  &__status {
-    @include apply-font(label-md);
-    color: sys-var(color, text, base);
-
-    &.status--pending {
-      color: sys-var(color, warning, base);
-    }
-
-    &.status--running {
-      color: sys-var(color, info, base);
-    }
-
-    &.status--finished {
-      color: sys-var(color, success, base);
-    }
-
-    &.status--failed {
-      color: sys-var(color, danger, base);
-    }
-  }
-
-  &__dates {
-    display: flex;
-    flex-direction: column;
-    gap: sys-var(space, xs);
-  }
-
-  &__date {
-    @include apply-font(label-sm);
-    color: sys-var(color, text, subtle);
-  }
-}
-
 .collect-at {
   &__title {
     @include apply-font(title-sm);

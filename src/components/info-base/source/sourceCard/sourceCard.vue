@@ -52,10 +52,10 @@ const sourceType = computedAsync(
   undefined,
   { shallow: false }
 );
-const latestRunningJob = computedAsync(
+const latestOpenJob = computedAsync(
   async (): Promise<SourceCollectJob | null> => {
     if (sourceData.value?.id) {
-      return await SourceCollectJob.getLatestRunningBySource(
+      return await SourceCollectJob.getLatestOpenBySource(
         sourceData.value.id
       );
     }
@@ -140,9 +140,9 @@ const onConfirmCollectAt = () => {
   sourceData.value!.save();
 };
 
-const onCheckRunningJob = () => {
-  if (latestRunningJob.value) {
-    router.push(`/sources/collectJob/${latestRunningJob.value.id}`);
+const onCheckOpenJob = () => {
+  if (latestOpenJob.value) {
+    router.push(`/sources/collectJob/${latestOpenJob.value.id}`);
   }
 };
 
@@ -230,9 +230,9 @@ const onConfirmConfig = () => {
     </div>
 
     <div
-      v-if="latestRunningJob"
+      v-if="latestOpenJob"
       class="source-card__running-job"
-      @click.stop="onCheckRunningJob"
+      @click.stop="onCheckOpenJob"
     >
       {{ t("source.checkRunningJob") }}
     </div>
