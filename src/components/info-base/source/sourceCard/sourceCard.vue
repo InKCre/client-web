@@ -145,6 +145,12 @@ const onCheckRunningJob = () => {
   }
 };
 
+const onCardClick = () => {
+  if (sourceData.value) {
+    router.push(`/sources/${sourceData.value.id}`);
+  }
+};
+
 const onConfirmConfig = () => {
   try {
     const parsedConfig = JSON.parse(configModel.value);
@@ -159,7 +165,7 @@ const onConfirmConfig = () => {
 </script>
 
 <template>
-  <div v-if="sourceData" class="source-card">
+  <div v-if="sourceData" class="source-card" @click="onCardClick">
     <div class="source-card__metadata">
       <div class="source-card__left">
         <span class="source-card__type">{{ sourceData.type }}</span>
@@ -167,6 +173,7 @@ const onConfirmConfig = () => {
           :modelValue="nicknameModel"
           type="inline"
           placeholder="Click to edit nickname"
+          @click.stop
           @update:modelValue="
             (value: string) => {
               nicknameModel = value;
@@ -187,6 +194,7 @@ const onConfirmConfig = () => {
       class="source-card__collect-at"
       label="Will run collect at"
       layout="inline"
+      @click.stop
     >
       <InkPicker
         :modelValue="sourceData.collect_at"
@@ -223,12 +231,12 @@ const onConfirmConfig = () => {
     <div
       v-if="latestRunningJob"
       class="source-card__running-job"
-      @click="onCheckRunningJob"
+      @click.stop="onCheckRunningJob"
     >
       {{ t("source.checkRunningJob") }}
     </div>
 
-    <div class="source-card__operations">
+    <div class="source-card__operations" @click.stop>
       <div class="source-card__operations-left">
         <InkDoubleCheck
           :title="t('source.deleteConfirmTitle')"
