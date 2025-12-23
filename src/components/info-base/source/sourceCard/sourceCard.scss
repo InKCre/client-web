@@ -72,6 +72,18 @@
     width: 100%;
   }
 
+  &__running-job {
+    @include apply-font(label-md);
+    color: sys-var(color, text, base);
+    text-decoration: underline;
+    cursor: pointer;
+    width: 100%;
+
+    &:hover {
+      color: sys-var(color, primary, base);
+    }
+  }
+
   &__operations {
     display: flex;
     align-items: center;

@@ -17,6 +17,7 @@ import { sourceCardEmits, type SourceCardProps } from "./sourceCard";
 import {
   CollectAt,
   Source,
+  SourceCollectJob,
   SourceCollectJobForm,
   SourceCollectJobStatus,
   SourceType,
@@ -49,6 +50,18 @@ const sourceType = computedAsync(
     return undefined;
   },
   undefined,
+  { shallow: false }
+);
+const latestRunningJob = computedAsync(
+  async (): Promise<SourceCollectJob | null> => {
+    if (sourceData.value?.id) {
+      return await SourceCollectJob.getLatestRunningBySource(
+        sourceData.value.id
+      );
+    }
+    return null;
+  },
+  null,
   { shallow: false }
 );
 const collectAtModel = ref<CollectAt | null>(null);
@@ -126,6 +139,12 @@ const onConfirmCollectAt = () => {
   sourceData.value!.save();
 };
 
+const onCheckRunningJob = () => {
+  if (latestRunningJob.value) {
+    router.push(`/sources/collectJob/${latestRunningJob.value.id}`);
+  }
+};
+
 const onConfirmConfig = () => {
   try {
     const parsedConfig = JSON.parse(configModel.value);
@@ -199,6 +218,14 @@ const onConfirmConfig = () => {
 
     <div class="source-card__config">
       <pre class="source-card__config-text">{{ formattedConfig }}</pre>
+    </div>
+
+    <div
+      v-if="latestRunningJob"
+      class="source-card__running-job"
+      @click="onCheckRunningJob"
+    >
+      {{ t("source.checkRunningJob") }}
     </div>
 
     <div class="source-card__operations">
