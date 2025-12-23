@@ -1,31 +1,31 @@
 # InKCre Client-Web
 
-This is a Vue SPA, provides an interface to interact with InKCre (an information management tool).
+InKCre is an information management application aims to provides automatic information collection, organization and powerful use of information.
+And this is the Vue implemetation of InKCre, mainly provides a GUI to manage info-base and use information.
 
 ## Tech Stacks
 
-- Framework: Vue3 + TypeScript + Sass(scss) + Vite
+- Framework: Vue3 + TypeScript + SCSS
 - Routing: vue-router
 - Internalization: vue-i18n
 - Date and time: dayjs
 - State management: pinia
-- Packagae management: pnpm
 
 ## Business Domains
 
-- obsrv: Observability
-- extension
-- source
+- source: Data collectors, the input of info-base
 - info-base
-  - block
-  - relation
-  - resolver
-  - storage
-- sink
+  - block: Content units
+  - relation: Links between blocks
+  - storage: Store block content somewhere else than database.
+  - resolver: resolves block content
+- sink: Interface to use information base, the output of info-base
+- extension: extends info-base, source and sink abilities
+- obsrv: Observability
 
 ## Source Structure
 
-- `components/`: split by domain
+- `components/`: split by business domain
 - `views/`
 - `business/`: api requests, business logic, split by domain
 - `stores/`: split by domain
@@ -33,10 +33,18 @@ This is a Vue SPA, provides an interface to interact with InKCre (an information
 - `utils/`: utilities, composables
 - `locales/`: locale file, split by language
 - `static/`
-- router.ts
+- `router.ts`
 
-## Best Practices
+## Coding Guidelines
 
-- Search across the codebase before you creating a new type or something might can be reused.
-- Common components should be stateless or avoid maintaining state as much as possible.
-- Read more in `.github/instructions/`
+- Do not repeat yourself:
+  - Search across the codebase before you creating a new type or something might can be reused.
+  - Make the code reusable if it's used in over two places.
+- [Write code for human](./.github/instructions/human-readable-code.instructions.md)
+
+## Deployment
+
+This project supports following deployments:
+
+- Cloudflare Worker
+- Build and serve

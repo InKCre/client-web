@@ -37,6 +37,7 @@ const emit = defineEmits(compNameEmits);
 
 - Use `<span>` instead of `<p>` for inline text
 - If template is duplicated inside a component and no third one will reuse it, define a reusable template inside the component scope using [VueUse createReusableTemplate](https://vueuse.org/core/createReusableTemplate/), instead of creating a new component.
+- Use UnoCSS utility classes for simple styles, instead of writing custom CSS/SCSS.
 
 ### Naming
 
