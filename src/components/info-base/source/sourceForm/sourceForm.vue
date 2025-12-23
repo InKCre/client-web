@@ -84,9 +84,9 @@ const loadSourceTypes = async (): Promise<(DropdownOption & SourceType)[]> => {
         v-if="props.modelValue.collect_at != null"
         v-model="props.modelValue.collect_at"
       />
-      <span v-else class="source-form__collect-at-placeholder">
+      <!-- <span v-else class="source-form__collect-at-placeholder">
         {{ t("source.collectAtOff") }}
-      </span>
+      </span> -->
     </InkField>
 
     <InkJsonEditor

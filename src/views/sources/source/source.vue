@@ -157,7 +157,7 @@ watch(
           <h2 class="details__title">{{ t("source.detailTitle") }}</h2>
         </div>
 
-        <sourceForm v-model="source" />
+        <sourceForm v-model="source" class="overflow-y-auto" />
 
         <div class="details__actions">
           <InkDoubleCheck
@@ -197,7 +197,7 @@ watch(
         <div v-else-if="collectJobs.length === 0" class="jobs__empty">
           <span>{{ t("source.noJobs") }}</span>
         </div>
-        <div v-else class="jobs__list">
+        <div class="jobs__list">
           <sourceCollectJobCard
             v-for="job in collectJobs"
             :key="job.id"

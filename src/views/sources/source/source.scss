@@ -25,6 +25,7 @@
     box-sizing: border-box;
     min-width: 280px;
     max-width: 40%;
+    max-height: 100%;
   }
 
   &__jobs {
@@ -55,32 +56,6 @@
     margin: 0;
   }
 
-  &__value {
-    @include apply-font(label-lg);
-    color: sys-var(color, text, base);
-    overflow-x: auto;
-  }
-
-  &__config {
-    display: flex;
-    flex-direction: column;
-    gap: sys-var(space, sm);
-    padding: sys-var(space, sm);
-    border: 1px solid sys-var(color, border, muted);
-    box-sizing: border-box;
-    max-height: 200px;
-    overflow: auto;
-    width: 100%;
-  }
-
-  &__config-text {
-    @include apply-font(label-lg, mono);
-    color: sys-var(color, text, subtle);
-    margin: 0;
-    white-space: pre-wrap;
-    width: 100%;
-  }
-
   &__actions {
     display: flex;
     gap: sys-var(space, sm);
@@ -107,7 +82,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: sys-var(space, xl);
+    flex: 1;
   }
 
   &__empty {
@@ -124,6 +99,7 @@
     flex-direction: column;
     gap: sys-var(space, sm);
     overflow-y: auto;
+    flex: 1;
   }
 
   &__pagination {
