@@ -43,7 +43,7 @@
     "prevPage": "Previous",
     "nextPage": "Next",
     "pageInfo": "Page {page} of {total}",
-    "checkRunningJob": "Check running collect job"
+    "checkOpenJob": "Check open collect job"
   },
   "extension": {
     "installNew": "Install Extension",

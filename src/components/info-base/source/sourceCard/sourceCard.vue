@@ -55,9 +55,7 @@ const sourceType = computedAsync(
 const latestOpenJob = computedAsync(
   async (): Promise<SourceCollectJob | null> => {
     if (sourceData.value?.id) {
-      return await SourceCollectJob.getLatestOpenBySource(
-        sourceData.value.id
-      );
+      return await SourceCollectJob.getLatestOpenBySource(sourceData.value.id);
     }
     return null;
   },
@@ -231,10 +229,10 @@ const onConfirmConfig = () => {
 
     <div
       v-if="latestOpenJob"
-      class="source-card__running-job"
+      class="source-card__open-job"
       @click.stop="onCheckOpenJob"
     >
-      {{ t("source.checkRunningJob") }}
+      {{ t("source.checkOpenJob") }}
     </div>
 
     <div class="source-card__operations" @click.stop>
