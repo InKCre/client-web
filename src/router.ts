@@ -22,14 +22,14 @@ const router = createRouter({
       component: sources,
     },
     {
-      path: "/sources/:id",
-      name: "Source",
-      component: source,
-    },
-    {
       path: "/sources/collectJob/:id",
       name: "SourceCollectJob",
       component: sourceCollectJob,
+    },
+    {
+      path: "/sources/:id",
+      name: "Source",
+      component: source,
     },
     {
       path: "/extensions",
