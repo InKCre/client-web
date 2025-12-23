@@ -15,12 +15,12 @@ This is a Vue SPA, provides an interface to interact with InKCre (an information
 
 - obsrv: Observability
 - extension
+- source
 - info-base
   - block
   - relation
   - resolver
   - storage
-  - source
 - sink
 
 ## Source Structure
