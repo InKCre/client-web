@@ -26,7 +26,7 @@ import {
 } from "@/business/info-base/source";
 import { useCloned } from "@vueuse/core";
 import dayjs from "dayjs";
-import type { PaginationState } from "./source";
+import type { PaginationState } from "@/views/sources/source/source";
 
 const route = useRoute();
 const router = useRouter();
@@ -137,6 +137,7 @@ const onConfirmConfig = () => {
     configPopupOpen.value = false;
   } catch (error) {
     console.error("Invalid JSON:", error);
+    // TODO: Show error toast to user
   }
 };
 

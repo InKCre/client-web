@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import { InkButton } from "@inkcre/web-design";
 import { newCollectJobProps, newCollectJobEmits } from "./newCollectJob";
 import {
@@ -8,6 +9,7 @@ import {
 
 const props = defineProps(newCollectJobProps);
 const emit = defineEmits(newCollectJobEmits);
+const { t } = useI18n();
 
 // --- methods ---
 const onCreate = async () => {
@@ -27,11 +29,10 @@ const onCreate = async () => {
 <template>
   <div class="new-collect-job">
     <p class="new-collect-job__description">
-      Create a new collect job for this source. The job will be queued and
-      executed as soon as possible.
+      {{ t("source.newJobDescription") }}
     </p>
     <InkButton
-      text="Create Job"
+      :text="t('source.createJob')"
       type="primary"
       size="md"
       class="w-full"

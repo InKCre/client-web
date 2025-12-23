@@ -30,6 +30,8 @@
     "collectJobs": "采集任务",
     "newJob": "新建任务",
     "newJobTitle": "创建新采集任务",
+    "newJobDescription": "为此数据源创建新的采集任务。该任务将被加入队列并尽快执行。",
+    "createJob": "创建任务",
     "editConfig": "编辑配置",
     "delete": "删除",
     "noJobs": "未找到采集任务",
