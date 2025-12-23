@@ -8,6 +8,12 @@
   width: 100%;
   min-width: 280px;
   max-width: 380px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+
+  &:hover {
+    border-color: sys-var(color, border, subtle);
+  }
 
   &__metadata {
     display: flex;
@@ -69,6 +75,14 @@
     color: sys-var(color, text, subtle);
     margin: 0;
     white-space: pre-wrap;
+    width: 100%;
+  }
+
+  &__open-job {
+    @include apply-font(label-md);
+    color: sys-var(color, text, base);
+    text-decoration: underline;
+    cursor: pointer;
     width: 100%;
   }
 

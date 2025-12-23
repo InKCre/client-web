@@ -17,6 +17,7 @@ import { sourceCardEmits, type SourceCardProps } from "./sourceCard";
 import {
   CollectAt,
   Source,
+  SourceCollectJob,
   SourceCollectJobForm,
   SourceCollectJobStatus,
   SourceType,
@@ -50,6 +51,16 @@ const sourceType = computedAsync(
   },
   undefined,
   { shallow: false }
+);
+const latestOpenJob = computedAsync(
+  async (): Promise<SourceCollectJob | null> => {
+    if (sourceData.value?.id) {
+      return await SourceCollectJob.getLatestOpenBySource(sourceData.value.id);
+    }
+    return null;
+  },
+  null,
+  { shallow: true }
 );
 const collectAtModel = ref<CollectAt | null>(null);
 const configPopupOpen = ref(false);
@@ -112,6 +123,7 @@ const onRunNow = async () => {
     closed_at: null,
     status: SourceCollectJobStatus.PENDING,
     state: {},
+    config: {},
   });
   const job = await form.create();
   router.push(`/sources/collectJob/${job.id}`);
@@ -124,6 +136,18 @@ const onDelete = () => {
 const onConfirmCollectAt = () => {
   sourceData.value!.collect_at = useCloned(collectAtModel.value).cloned.value;
   sourceData.value!.save();
+};
+
+const onCheckOpenJob = () => {
+  if (latestOpenJob.value) {
+    router.push(`/sources/collectJob/${latestOpenJob.value.id}`);
+  }
+};
+
+const onCardClick = () => {
+  if (sourceData.value) {
+    router.push(`/sources/${sourceData.value.id}`);
+  }
 };
 
 const onConfirmConfig = () => {
@@ -140,7 +164,7 @@ const onConfirmConfig = () => {
 </script>
 
 <template>
-  <div v-if="sourceData" class="source-card">
+  <div v-if="sourceData" class="source-card" @click="onCardClick">
     <div class="source-card__metadata">
       <div class="source-card__left">
         <span class="source-card__type">{{ sourceData.type }}</span>
@@ -148,6 +172,7 @@ const onConfirmConfig = () => {
           :modelValue="nicknameModel"
           type="inline"
           placeholder="Click to edit nickname"
+          @click.stop
           @update:modelValue="
             (value: string) => {
               nicknameModel = value;
@@ -168,6 +193,7 @@ const onConfirmConfig = () => {
       class="source-card__collect-at"
       label="Will run collect at"
       layout="inline"
+      @click.stop
     >
       <InkPicker
         :modelValue="sourceData.collect_at"
@@ -201,7 +227,15 @@ const onConfirmConfig = () => {
       <pre class="source-card__config-text">{{ formattedConfig }}</pre>
     </div>
 
-    <div class="source-card__operations">
+    <div
+      v-if="latestOpenJob"
+      class="source-card__open-job"
+      @click.stop="onCheckOpenJob"
+    >
+      {{ t("source.checkOpenJob") }}
+    </div>
+
+    <div class="source-card__operations" @click.stop>
       <div class="source-card__operations-left">
         <InkDoubleCheck
           :title="t('source.deleteConfirmTitle')"

@@ -1,0 +1,183 @@
+.source-view {
+  display: flex;
+  flex-direction: row;
+  gap: sys-var(space, xl);
+  flex: 1;
+  min-width: 0;
+  align-items: flex-start;
+  box-sizing: border-box;
+  padding: sys-var(space, lg) sys-var(space, xl);
+  background: sys-var(color, surface, base);
+
+  &__loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+  }
+
+  &__details {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, md);
+    padding: sys-var(space, lg);
+    border: 1px solid sys-var(color, border, base);
+    box-sizing: border-box;
+    min-width: 280px;
+    max-width: 40%;
+    max-height: 100%;
+  }
+
+  &__jobs {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, md);
+    padding: sys-var(space, lg);
+    border: 1px solid sys-var(color, border, base);
+    box-sizing: border-box;
+    align-self: stretch;
+    flex: 1;
+    max-width: 60%;
+    min-width: 360px;
+  }
+}
+
+.details {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: sys-var(space, md);
+  }
+
+  &__title {
+    @include apply-font(title-sm);
+    color: sys-var(color, text, base);
+    margin: 0;
+  }
+
+  &__actions {
+    display: flex;
+    gap: sys-var(space, sm);
+    justify-content: flex-end;
+    align-self: stretch;
+    margin-top: sys-var(space, md);
+  }
+}
+
+.jobs {
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, md);
+  }
+
+  &__title {
+    @include apply-font(title-sm);
+    color: sys-var(color, text, base);
+    margin: 0;
+  }
+
+  &__loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+  }
+
+  &__empty {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: sys-var(space, xl);
+    @include apply-font(body-lg);
+    color: sys-var(color, text, subtle);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, sm);
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  &__pagination {
+    display: flex;
+    gap: sys-var(space, md);
+    justify-content: center;
+    align-items: center;
+    margin-top: sys-var(space, md);
+  }
+
+  &__pagination-info {
+    @include apply-font(label-md);
+    color: sys-var(color, text, base);
+  }
+}
+
+.collect-at {
+  &__title {
+    @include apply-font(title-sm);
+    color: sys-var(color, text, base);
+    margin-bottom: sys-var(space, md);
+  }
+
+  &__actions {
+    display: flex;
+    gap: sys-var(space, sm);
+    justify-content: flex-end;
+    align-self: stretch;
+    margin-top: sys-var(space, md);
+  }
+}
+
+.config-editor {
+  display: flex;
+  flex-direction: column;
+  gap: sys-var(space, md);
+  padding: sys-var(space, lg);
+  background: sys-var(color, surface, base);
+  border-radius: sys-var(radius, md);
+  box-shadow: sys-var(shadow, lg);
+  min-width: 400px;
+  max-width: 600px;
+
+  &__title {
+    @include apply-font(title-sm);
+    color: sys-var(color, text, base);
+    margin: 0;
+  }
+
+  &__actions {
+    display: flex;
+    gap: sys-var(space, sm);
+    justify-content: flex-end;
+    align-self: stretch;
+  }
+}
+
+.new-job-popup {
+  display: flex;
+  flex-direction: column;
+  gap: sys-var(space, md);
+  padding: sys-var(space, lg);
+  background: sys-var(color, surface, base);
+  border-radius: sys-var(radius, md);
+  box-shadow: sys-var(shadow, lg);
+  min-width: 400px;
+  max-width: 500px;
+
+  &__title {
+    @include apply-font(title-sm);
+    color: sys-var(color, text, base);
+    margin: 0;
+  }
+
+  &__actions {
+    display: flex;
+    gap: sys-var(space, sm);
+    justify-content: flex-end;
+    align-self: stretch;
+  }
+}

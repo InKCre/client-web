@@ -170,6 +170,7 @@ export class SourceCollectJob extends Z.class({
     .enum(SourceCollectJobStatus)
     .default(SourceCollectJobStatus.PENDING),
   state: z.looseObject({}).default(() => ({})),
+  config: z.looseObject({}).default(() => ({})),
 }) {
   static dbApi: DBAPIClient = new DBAPIClient(
     "sources_collect_jobs",
@@ -184,6 +185,46 @@ export class SourceCollectJob extends Z.class({
     return new SourceCollectJob(
       (await this.dbApi.from().select().eq("id", id).single()).data!
     );
+  }
+
+  static async getBySource(
+    sourceId: SourceRef,
+    options?: {
+      limit?: number;
+      offset?: number;
+      order?: "asc" | "desc";
+    }
+  ): Promise<{ data: SourceCollectJob[]; count: number }> {
+    const { limit = 10, offset = 0, order = "desc" } = options || {};
+    const query = this.dbApi
+      .from()
+      .select("*", { count: "exact" })
+      .eq("source", sourceId)
+      .order("created_at", { ascending: order === "asc" })
+      .range(offset, offset + limit - 1);
+
+    const result = await query;
+    return {
+      data: (result.data || []).map((d) => new SourceCollectJob(d)),
+      count: result.count || 0,
+    };
+  }
+
+  static async getLatestOpenBySource(
+    sourceId: SourceRef
+  ): Promise<SourceCollectJob | null> {
+    const result = await this.dbApi
+      .from()
+      .select()
+      .eq("source", sourceId)
+      .in("status", [SourceCollectJobStatus.PENDING, SourceCollectJobStatus.RUNNING])
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    if (result.data && result.data.length > 0) {
+      return new SourceCollectJob(result.data[0]);
+    }
+    return null;
   }
 
   public async getLogs(options?: {

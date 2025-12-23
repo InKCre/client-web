@@ -21,11 +21,14 @@ const jobId = computed(() => Number(route.params.id));
 const pollingInterval = computed(() => (isRunning.value ? 1500 : 5000));
 const jobPollingIntervalId = ref<ReturnType<typeof setInterval> | null>(null);
 
-const { state: job, execute: refetchJob } = useEAsyncState(
-  () => SourceCollectJob.get(jobId.value),
-  null,
-  { immediate: true, useLast: true }
-);
+const {
+  state: job,
+  isLoading: jobLoading,
+  execute: refetchJob,
+} = useEAsyncState(() => SourceCollectJob.get(jobId.value), null, {
+  immediate: true,
+  useLast: true,
+});
 
 const {
   state: source,
@@ -160,9 +163,15 @@ onUnmounted(() => {
         </InkField>
 
         <InkField :label="t('collectJob.status')">
-          <span class="metadata__value" :class="statusColor">
-            {{ job.status }}
-          </span>
+          <div class="flex items-center gap-2">
+            <span class="metadata__value" :class="statusColor">
+              {{ job.status }}
+            </span>
+            <span
+              class="i-mdi-refresh"
+              :class="{ 'animate-spin': jobLoading }"
+            />
+          </div>
         </InkField>
 
         <InkField :label="t('collectJob.source')">
