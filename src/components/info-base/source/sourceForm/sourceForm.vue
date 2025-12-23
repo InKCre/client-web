@@ -134,7 +134,6 @@ watch(
       <collectAtForm
         v-if="collectAtModel"
         v-model="collectAtModel"
-        @update:modelValue="onCollectAtUpdate"
       />
       <span v-else class="source-form__collect-at-placeholder">
         {{ t("source.collectAtOff") }}

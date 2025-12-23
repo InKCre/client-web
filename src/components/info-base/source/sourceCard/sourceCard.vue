@@ -125,6 +125,7 @@ const onRunNow = async () => {
     closed_at: null,
     status: SourceCollectJobStatus.PENDING,
     state: {},
+    config: {},
   });
   const job = await form.create();
   router.push(`/sources/collectJob/${job.id}`);

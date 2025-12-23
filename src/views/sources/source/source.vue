@@ -109,9 +109,14 @@ const onNewJob = () => {
 };
 
 const onCreateJob = async () => {
-  const job = await jobForm.value.create();
-  newJobPopupOpen.value = false;
-  router.push(`/sources/collectJob/${job.id}`);
+  try {
+    const job = await jobForm.value.create();
+    newJobPopupOpen.value = false;
+    router.push(`/sources/collectJob/${job.id}`);
+  } catch (error) {
+    console.error("Failed to create job:", error);
+    // TODO: Show error toast to user
+  }
 };
 
 const goToJob = (jobId: number) => {
