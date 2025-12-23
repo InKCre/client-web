@@ -6,8 +6,8 @@ import {
   InkField,
   InkSwitch,
   InkDropdown,
-  InkPicker,
   type DropdownOption,
+  InkForm,
 } from "@inkcre/web-design";
 import collectAtForm from "@/components/info-base/source/collectAtForm/collectAtForm.vue";
 import { sourceFormProps, sourceFormEmits } from "./sourceForm";
@@ -19,25 +19,28 @@ const emit = defineEmits(sourceFormEmits);
 const { t } = useI18n();
 
 // --- data ---
-const configJson = ref<string>("");
 const sourceTypes = ref<(DropdownOption & SourceType)[]>([]);
-const collectAtModel = ref<CollectAt | null>(null);
 
 // --- computed ---
 const toggleAutoCollect = computed({
-  get: () => collectAtModel.value != null,
+  get: () => props.modelValue.collect_at != null,
   set: (value: boolean) => {
     if (value) {
-      if (collectAtModel.value == null) {
-        collectAtModel.value = CollectAt.parse({});
+      if (props.modelValue.collect_at == null) {
+        props.modelValue.collect_at = CollectAt.parse({});
       }
     } else {
-      collectAtModel.value = null;
+      props.modelValue.collect_at = null;
     }
-    emit("update:modelValue", {
-      ...props.modelValue,
-      collect_at: collectAtModel.value,
-    });
+  },
+});
+
+const configJson = computed<string>({
+  get: () => {
+    return JSON.stringify(props.modelValue.config, null, 2);
+  },
+  set: (newVal: string) => {
+    props.modelValue.config = JSON.parse(newVal);
   },
 });
 
@@ -54,75 +57,21 @@ const loadSourceTypes = async (): Promise<(DropdownOption & SourceType)[]> => {
     ...type,
   }));
 };
-
-const onNicknameUpdate = (value: string) => {
-  emit("update:modelValue", {
-    ...props.modelValue,
-    nickname: value,
-  });
-};
-
-const onTypeUpdate = (value: string) => {
-  emit("update:modelValue", {
-    ...props.modelValue,
-    type: value,
-  });
-};
-
-const onCollectAtUpdate = (value: CollectAt) => {
-  collectAtModel.value = value;
-  emit("update:modelValue", {
-    ...props.modelValue,
-    collect_at: value,
-  });
-};
-
-const onConfigUpdate = (value: string) => {
-  configJson.value = value;
-  try {
-    const parsedConfig = JSON.parse(value);
-    emit("update:modelValue", {
-      ...props.modelValue,
-      config: parsedConfig,
-    });
-  } catch (error) {
-    // Invalid JSON, don't update
-  }
-};
-
-// --- watchers ---
-watch(
-  () => props.modelValue.config,
-  (newVal) => {
-    configJson.value = JSON.stringify(newVal || {}, null, 2);
-  },
-  { immediate: true }
-);
-
-watch(
-  () => props.modelValue.collect_at,
-  (newVal) => {
-    collectAtModel.value = newVal;
-  },
-  { immediate: true }
-);
 </script>
 
 <template>
-  <div class="source-form">
+  <InkForm class="source-form">
     <InkInput
-      :modelValue="modelValue.nickname"
+      v-model="modelValue.nickname"
       :label="t('source.nickname')"
       editable
-      @update:modelValue="onNicknameUpdate"
     />
 
     <InkDropdown
-      :modelValue="modelValue.type"
+      v-model="modelValue.type"
       v-model:options="sourceTypes"
       :refresher="loadSourceTypes"
       :label="t('source.type')"
-      @update:modelValue="onTypeUpdate"
     />
 
     <InkField :label="t('source.collectAt')" prop="collect_at">
@@ -132,8 +81,8 @@ watch(
         </div>
       </template>
       <collectAtForm
-        v-if="collectAtModel"
-        v-model="collectAtModel"
+        v-if="props.modelValue.collect_at != null"
+        v-model="props.modelValue.collect_at"
       />
       <span v-else class="source-form__collect-at-placeholder">
         {{ t("source.collectAtOff") }}
@@ -141,14 +90,13 @@ watch(
     </InkField>
 
     <InkJsonEditor
-      :modelValue="configJson"
+      v-model="configJson"
       :schema="currentSourceType?.config_schema"
       :label="t('source.config')"
       :placeholder="t('source.configPlaceholder')"
       :rows="6"
-      @update:modelValue="onConfigUpdate"
     />
-  </div>
+  </InkForm>
 </template>
 
 <style lang="scss" scoped src="./sourceForm.scss" />

@@ -174,12 +174,6 @@ watch(
         <sourceForm v-model="source" />
 
         <div class="details__actions">
-          <InkButton
-            :text="t('common.save')"
-            type="primary"
-            size="sm"
-            @click="onSaveSource"
-          />
           <InkDoubleCheck
             :title="t('source.deleteConfirmTitle')"
             :message="t('source.deleteConfirmMessage')"
@@ -189,6 +183,12 @@ watch(
           >
             <InkButton :text="t('source.delete')" type="danger" size="sm" />
           </InkDoubleCheck>
+          <InkButton
+            :text="t('common.save')"
+            type="primary"
+            size="sm"
+            @click="onSaveSource"
+          />
         </div>
       </section>
 
@@ -220,13 +220,17 @@ watch(
           >
             <div class="job-item__header">
               <span class="job-item__id">#{{ job.id }}</span>
-              <span class="job-item__status" :class="getStatusColor(job.status)">
+              <span
+                class="job-item__status"
+                :class="getStatusColor(job.status)"
+              >
                 {{ job.status }}
               </span>
             </div>
             <div class="job-item__dates">
               <span class="job-item__date">
-                {{ t("collectJob.createdAt") }}: {{ formatDate(job.created_at) }}
+                {{ t("collectJob.createdAt") }}:
+                {{ formatDate(job.created_at) }}
               </span>
             </div>
           </div>
@@ -241,7 +245,9 @@ watch(
             @click="goToPrevPage"
           />
           <span class="jobs__pagination-info">
-            {{ t("source.pageInfo", { page: pagination.page, total: totalPages }) }}
+            {{
+              t("source.pageInfo", { page: pagination.page, total: totalPages })
+            }}
           </span>
           <InkButton
             :text="t('source.nextPage')"

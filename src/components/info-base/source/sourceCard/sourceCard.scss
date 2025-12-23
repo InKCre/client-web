@@ -12,8 +12,7 @@
   transition: background-color 0.2s, border-color 0.2s;
 
   &:hover {
-    background-color: sys-var(color, surface, hover);
-    border-color: sys-var(color, border, hover);
+    border-color: sys-var(color, border, subtle);
   }
 
   &__metadata {
