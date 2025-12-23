@@ -24,7 +24,7 @@
     "@codemirror/lint": "^6.9.2",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.38.8",
-    "@inkcre/web-design": "^1.1.1",
+    "@inkcre/web-design": "^1.1.5",
     "@module-federation/runtime": "^0.21.4",
     "@supabase/postgrest-js": "^2.84.0",
     "@vueuse/core": "^14.0.0",
