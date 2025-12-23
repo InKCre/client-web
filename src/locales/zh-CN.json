@@ -62,6 +62,7 @@
     "startedAt": "开始时间",
     "closedAt": "结束时间",
     "state": "状态信息",
+    "config": "配置",
     "logs": "日志",
     "noLogs": "暂无日志",
     "stop": "停止",

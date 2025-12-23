@@ -63,6 +63,7 @@
     "startedAt": "Started At",
     "closedAt": "Closed At",
     "state": "State",
+    "config": "Config",
     "logs": "Logs",
     "noLogs": "No logs available",
     "stop": "Stop",

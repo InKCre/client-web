@@ -7,24 +7,17 @@ import { useEAsyncState } from "@/composables/use-async-state";
 import {
   InkLoading,
   InkButton,
-  InkField,
-  InkInput,
-  InkJsonEditor,
   InkDoubleCheck,
   InkPopup,
-  InkPicker,
-  InkSwitch,
 } from "@inkcre/web-design";
-import collectAtForm from "@/components/info-base/source/collectAtForm/collectAtForm.vue";
-import newCollectJob from "@/components/info-base/source/newCollectJob/newCollectJob.vue";
+import sourceForm from "@/components/info-base/source/sourceForm/sourceForm.vue";
+import collectJobForm from "@/components/info-base/source/collectJobForm/collectJobForm.vue";
 import {
   Source,
-  SourceType,
   SourceCollectJob,
-  CollectAt,
+  SourceCollectJobForm,
   SourceCollectJobStatus,
 } from "@/business/info-base/source";
-import { useCloned } from "@vueuse/core";
 import dayjs from "dayjs";
 import type { PaginationState } from "@/views/sources/source/source";
 
@@ -35,10 +28,17 @@ const { t } = useI18n();
 // --- data ---
 const sourceId = computed(() => Number(route.params.id));
 const newJobPopupOpen = ref(false);
-const configPopupOpen = ref(false);
-const configModel = ref("");
-const nicknameModel = ref("");
-const collectAtModel = ref<CollectAt | null>(null);
+const jobForm = ref<SourceCollectJobForm>(
+  SourceCollectJobForm.parse({
+    source: sourceId.value,
+    created_at: new Date(),
+    started_at: null,
+    closed_at: null,
+    status: SourceCollectJobStatus.PENDING,
+    state: {},
+    config: {},
+  })
+);
 
 const pagination = ref<PaginationState>({
   page: 1,
@@ -50,21 +50,6 @@ const { state: source, execute: refetchSource } = useEAsyncState(
   () => Source.get(sourceId.value),
   null,
   { immediate: true, useLast: true }
-);
-
-const {
-  state: sourceType,
-  execute: refetchSourceType,
-  isLoading: sourceTypeLoading,
-} = useAsyncState(
-  async () => {
-    if (source.value?.type) {
-      return await SourceType.get(source.value.type);
-    }
-    return null;
-  },
-  null,
-  { shallow: false }
 );
 
 const {
@@ -87,23 +72,6 @@ const {
 );
 
 // --- computed ---
-const formattedConfig = computed(() => {
-  return JSON.stringify(source.value?.config || {}, null, 2);
-});
-
-const toggleAutoCollect = computed({
-  get: () => collectAtModel.value != null,
-  set: (value: boolean) => {
-    if (value) {
-      if (collectAtModel.value == null) {
-        collectAtModel.value = CollectAt.parse({});
-      }
-    } else {
-      collectAtModel.value = null;
-    }
-  },
-});
-
 const totalPages = computed(() =>
   Math.ceil(pagination.value.total / pagination.value.pageSize)
 );
@@ -117,33 +85,8 @@ const formatDate = (date: Date | null) => {
   return dayjs(date).format("YYYY-MM-DD HH:mm:ss");
 };
 
-const onNicknameSave = (newNickname: string) => {
-  if (source.value) {
-    source.value.nickname = newNickname;
-    source.value.save();
-  }
-};
-
-const onEditConfig = () => {
-  configModel.value = formattedConfig.value;
-  configPopupOpen.value = true;
-};
-
-const onConfirmConfig = () => {
-  try {
-    const parsedConfig = JSON.parse(configModel.value);
-    source.value!.config = parsedConfig;
-    source.value!.save();
-    configPopupOpen.value = false;
-  } catch (error) {
-    console.error("Invalid JSON:", error);
-    // TODO: Show error toast to user
-  }
-};
-
-const onConfirmCollectAt = () => {
-  source.value!.collect_at = useCloned(collectAtModel.value).cloned.value;
-  source.value!.save();
+const onSaveSource = async () => {
+  await source.value!.save();
 };
 
 const onDelete = async () => {
@@ -152,10 +95,21 @@ const onDelete = async () => {
 };
 
 const onNewJob = () => {
+  // Reset form
+  jobForm.value = SourceCollectJobForm.parse({
+    source: sourceId.value,
+    created_at: new Date(),
+    started_at: null,
+    closed_at: null,
+    status: SourceCollectJobStatus.PENDING,
+    state: {},
+    config: {},
+  });
   newJobPopupOpen.value = true;
 };
 
-const onJobCreated = (job: SourceCollectJob) => {
+const onCreateJob = async () => {
+  const job = await jobForm.value.create();
   newJobPopupOpen.value = false;
   router.push(`/sources/collectJob/${job.id}`);
 };
@@ -193,32 +147,6 @@ const getStatusColor = (status: string) => {
 
 // --- watchers ---
 watch(
-  () => source.value?.type,
-  () => {
-    if (source.value?.type) {
-      refetchSourceType();
-    }
-  },
-  { immediate: true }
-);
-
-watch(
-  () => source.value?.collect_at,
-  (newVal) => {
-    collectAtModel.value = newVal ? useCloned(newVal).cloned.value : null;
-  },
-  { immediate: true }
-);
-
-watch(
-  () => source.value?.nickname,
-  (newVal) => {
-    nicknameModel.value = newVal || "";
-  },
-  { immediate: true }
-);
-
-watch(
   () => pagination.value.page,
   () => {
     refetchCollectJobs();
@@ -238,77 +166,14 @@ watch(
           <h2 class="details__title">{{ t("source.detailTitle") }}</h2>
         </div>
 
-        <InkField :label="t('source.type')">
-          <span class="details__value">{{ source.type }}</span>
-        </InkField>
-
-        <InkField :label="t('source.nickname')">
-          <InkInput
-            :modelValue="nicknameModel"
-            type="inline"
-            :placeholder="t('source.nicknamePlaceholder')"
-            @update:modelValue="
-              (value: string) => {
-                nicknameModel = value;
-                onNicknameSave(value);
-              }
-            "
-          >
-            <span class="details__value">{{ nicknameModel }}</span>
-          </InkInput>
-        </InkField>
-
-        <InkField :label="t('source.id')">
-          <span class="details__value">#{{ source.id }}</span>
-        </InkField>
-
-        <InkField :label="t('source.collectAt')" layout="inline">
-          <InkPicker
-            :modelValue="source.collect_at"
-            :formatter="(val: CollectAt | null) => (val ? CollectAt.format(val) : t('source.collectAtNotSet'))"
-            displayValueAs="inline-text"
-          >
-            <template #default="{ closePopup }">
-              <div class="collect-at__title">
-                {{ t("source.collectAtConfig") }}
-              </div>
-              <collectAtForm
-                v-if="collectAtModel !== null"
-                v-model="collectAtModel"
-              />
-              <div v-else>{{ t("source.collectAtOff") }}</div>
-              <div class="collect-at__actions">
-                <InkSwitch v-model="toggleAutoCollect" size="md" />
-                <InkButton
-                  :text="t('common.cancel')"
-                  type="subtle"
-                  @click="closePopup"
-                />
-                <InkButton
-                  :text="t('common.confirm')"
-                  type="primary"
-                  @click="
-                    onConfirmCollectAt();
-                    closePopup();
-                  "
-                />
-              </div>
-            </template>
-          </InkPicker>
-        </InkField>
-
-        <InkField :label="t('source.config')">
-          <div class="details__config">
-            <pre class="details__config-text">{{ formattedConfig }}</pre>
-          </div>
-        </InkField>
+        <sourceForm v-model="source" />
 
         <div class="details__actions">
           <InkButton
-            :text="t('source.editConfig')"
-            type="subtle"
+            :text="t('common.save')"
+            type="primary"
             size="sm"
-            @click="onEditConfig"
+            @click="onSaveSource"
           />
           <InkDoubleCheck
             :title="t('source.deleteConfirmTitle')"
@@ -385,41 +250,21 @@ watch(
     </template>
   </main>
 
-  <!-- Config Editor Popup -->
-  <InkPopup v-model:open="configPopupOpen" position="center">
-    <div class="config-editor">
-      <h3 class="config-editor__title">{{ t("source.editConfig") }}</h3>
-      <InkJsonEditor
-        v-model="configModel"
-        :schema="sourceType?.config_schema"
-        :placeholder="t('source.configPlaceholder')"
-        :rows="6"
-      />
-      <div class="config-editor__actions">
-        <InkButton
-          :text="t('common.cancel')"
-          type="subtle"
-          @click="configPopupOpen = false"
-        />
-        <InkButton
-          :text="t('common.save')"
-          type="primary"
-          @click="onConfirmConfig"
-        />
-      </div>
-    </div>
-  </InkPopup>
-
   <!-- New Job Popup -->
   <InkPopup v-model:open="newJobPopupOpen" position="center">
     <div class="new-job-popup">
       <h3 class="new-job-popup__title">{{ t("source.newJobTitle") }}</h3>
-      <newCollectJob :sourceId="sourceId" @create="onJobCreated" />
+      <collectJobForm v-model="jobForm" />
       <div class="new-job-popup__actions">
         <InkButton
           :text="t('common.cancel')"
           type="subtle"
           @click="newJobPopupOpen = false"
+        />
+        <InkButton
+          :text="t('common.confirm')"
+          type="primary"
+          @click="onCreateJob"
         />
       </div>
     </div>

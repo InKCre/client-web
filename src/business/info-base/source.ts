@@ -170,6 +170,7 @@ export class SourceCollectJob extends Z.class({
     .enum(SourceCollectJobStatus)
     .default(SourceCollectJobStatus.PENDING),
   state: z.looseObject({}).default(() => ({})),
+  config: z.looseObject({}).default(() => ({})),
 }) {
   static dbApi: DBAPIClient = new DBAPIClient(
     "sources_collect_jobs",

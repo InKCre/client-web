@@ -1,0 +1,10 @@
+.source-form {
+  display: flex;
+  flex-direction: column;
+  gap: sys-var(space, md);
+
+  &__collect-at-placeholder {
+    @include apply-font(body-md);
+    color: sys-var(color, text, subtle);
+  }
+}

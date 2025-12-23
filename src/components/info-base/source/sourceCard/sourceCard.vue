@@ -62,7 +62,7 @@ const latestRunningJob = computedAsync(
     return null;
   },
   null,
-  { shallow: false }
+  { shallow: true }
 );
 const collectAtModel = ref<CollectAt | null>(null);
 const configPopupOpen = ref(false);
