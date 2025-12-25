@@ -9,6 +9,7 @@ import {
   InkButton,
   InkDoubleCheck,
   InkPopup,
+  InkPagination,
 } from "@inkcre/web-design";
 import sourceForm from "@/components/info-base/source/sourceForm/sourceForm.vue";
 import collectJobForm from "@/components/info-base/source/collectJobForm/collectJobForm.vue";
@@ -19,7 +20,6 @@ import {
   SourceCollectJobForm,
   SourceCollectJobStatus,
 } from "@/business/info-base/source";
-import dayjs from "dayjs";
 import type { PaginationState } from "@/views/sources/source/source";
 
 const route = useRoute();
@@ -77,15 +77,7 @@ const totalPages = computed(() =>
   Math.ceil(pagination.value.total / pagination.value.pageSize)
 );
 
-const canGoPrev = computed(() => pagination.value.page > 1);
-const canGoNext = computed(() => pagination.value.page < totalPages.value);
-
 // --- methods ---
-const formatDate = (date: Date | null) => {
-  if (!date) return t("collectJob.notAvailable");
-  return dayjs(date).format("YYYY-MM-DD HH:mm:ss");
-};
-
 const onSaveSource = async () => {
   await source.value!.save();
 };
@@ -124,16 +116,8 @@ const goToJob = (jobId: number) => {
   router.push(`/sources/collectJob/${jobId}`);
 };
 
-const goToPrevPage = () => {
-  if (canGoPrev.value) {
-    pagination.value.page--;
-  }
-};
-
-const goToNextPage = () => {
-  if (canGoNext.value) {
-    pagination.value.page++;
-  }
+const goToPage = (page: number) => {
+  pagination.value.page = page;
 };
 
 // --- watchers ---
@@ -206,27 +190,14 @@ watch(
           />
         </div>
 
-        <div v-if="totalPages > 1" class="jobs__pagination">
-          <InkButton
-            :text="t('source.prevPage')"
-            theme="subtle"
-            size="sm"
-            :disabled="!canGoPrev"
-            @click="goToPrevPage"
-          />
-          <span class="jobs__pagination-info">
-            {{
-              t("source.pageInfo", { page: pagination.page, total: totalPages })
-            }}
-          </span>
-          <InkButton
-            :text="t('source.nextPage')"
-            theme="subtle"
-            size="sm"
-            :disabled="!canGoNext"
-            @click="goToNextPage"
-          />
-        </div>
+        <InkPagination
+          v-if="totalPages > 1"
+          class="jobs__pagination"
+          type="text"
+          :totalPages="totalPages"
+          :currentPage="pagination.page"
+          @page-change="goToPage"
+        />
       </section>
     </template>
   </main>

@@ -103,16 +103,7 @@
   }
 
   &__pagination {
-    display: flex;
-    gap: sys-var(space, md);
     justify-content: center;
-    align-items: center;
-    margin-top: sys-var(space, md);
-  }
-
-  &__pagination-info {
-    @include apply-font(label-md);
-    color: sys-var(color, text, base);
   }
 }
 
