@@ -224,7 +224,7 @@ onUnmounted(() => {
       <span>{{ t("collectJob.notFound") }}</span>
       <InkButton
         :text="t('common.back')"
-        type="subtle"
+        theme="subtle"
         size="sm"
         @click="$router.back()"
       />

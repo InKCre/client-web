@@ -209,10 +209,10 @@ const onConfirmConfig = () => {
           <div v-else>Auto collect off.</div>
           <div class="collect-at__actions">
             <InkSwitch v-model="toggleAutoCollect" size="md" />
-            <InkButton text="Cancel" type="subtle" @click="closePopup" />
+            <InkButton text="Cancel" theme="subtle" @click="closePopup" />
             <InkButton
               text="Confirm"
-              type="primary"
+              theme="primary"
               @click="
                 onConfirmCollectAt();
                 closePopup();
@@ -244,17 +244,17 @@ const onConfirmConfig = () => {
           :cancelText="t('common.cancel')"
           @confirm="onDelete"
         >
-          <InkButton text="Delete" type="danger" size="sm" />
+          <InkButton text="Delete" theme="danger" size="sm" />
         </InkDoubleCheck>
       </div>
       <div class="source-card__operations-right">
         <InkButton
           text="Edit Config"
-          type="subtle"
+          theme="subtle"
           size="sm"
           @click="onEditConfig"
         />
-        <InkButton text="Run Now" type="subtle" size="sm" @click="onRunNow" />
+        <InkButton text="Run Now" theme="subtle" size="sm" @click="onRunNow" />
       </div>
     </div>
   </div>
@@ -271,10 +271,10 @@ const onConfirmConfig = () => {
       <div class="config-editor__actions">
         <InkButton
           text="Cancel"
-          type="subtle"
+          theme="subtle"
           @click="configPopupOpen = false"
         />
-        <InkButton text="Confirm" type="primary" @click="onConfirmConfig" />
+        <InkButton text="Confirm" theme="primary" @click="onConfirmConfig" />
       </div>
     </div>
   </InkPopup>

@@ -167,11 +167,11 @@ watch(
             :cancelText="t('common.cancel')"
             @confirm="onDelete"
           >
-            <InkButton :text="t('source.delete')" type="danger" size="sm" />
+            <InkButton :text="t('source.delete')" theme="danger" size="sm" />
           </InkDoubleCheck>
           <InkButton
             :text="t('common.save')"
-            type="primary"
+            theme="primary"
             size="sm"
             @click="onSaveSource"
           />
@@ -184,7 +184,7 @@ watch(
           <h3 class="jobs__title">{{ t("source.collectJobs") }}</h3>
           <InkButton
             :text="t('source.newJob')"
-            type="primary"
+            theme="primary"
             size="md"
             class="w-full"
             @click="onNewJob"
@@ -209,7 +209,7 @@ watch(
         <div v-if="totalPages > 1" class="jobs__pagination">
           <InkButton
             :text="t('source.prevPage')"
-            type="subtle"
+            theme="subtle"
             size="sm"
             :disabled="!canGoPrev"
             @click="goToPrevPage"
@@ -221,7 +221,7 @@ watch(
           </span>
           <InkButton
             :text="t('source.nextPage')"
-            type="subtle"
+            theme="subtle"
             size="sm"
             :disabled="!canGoNext"
             @click="goToNextPage"
@@ -239,12 +239,12 @@ watch(
       <div class="new-job-popup__actions">
         <InkButton
           :text="t('common.cancel')"
-          type="subtle"
+          theme="subtle"
           @click="newJobPopupOpen = false"
         />
         <InkButton
           :text="t('common.confirm')"
-          type="primary"
+          theme="primary"
           @click="onCreateJob"
         />
       </div>

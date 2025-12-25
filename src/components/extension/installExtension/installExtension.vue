@@ -49,7 +49,7 @@ const onSubmit = async () => {
     <div class="footer">
       <InkButton
         :text="t('extension.installNew')"
-        type="primary"
+        theme="primary"
         size="md"
         @click="onSubmit"
         :loading="isLoading"

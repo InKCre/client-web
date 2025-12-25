@@ -37,7 +37,7 @@ const onCreate = () => {
     <sourceForm v-model="form" class="form" />
 
     <div class="footer">
-      <InkButton text="Create" type="primary" size="md" @click="onCreate" />
+      <InkButton text="Create" theme="primary" size="md" @click="onCreate" />
     </div>
   </div>
 </template>
