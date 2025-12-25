@@ -56,7 +56,7 @@ export async function loadLocaleMessages(locale: SupportLocale) {
 
   // Load the locale messages
   try {
-    const messages = await import(`./${locale}.json`);
+    const messages = await import(`./messages/${locale}.json`);
     i18n.global.setLocaleMessage(locale, messages.default);
     loadedLanguages.add(locale);
   } catch (error) {
