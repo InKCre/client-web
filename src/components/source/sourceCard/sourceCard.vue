@@ -12,7 +12,7 @@ import {
   InkJsonEditor,
   InkDoubleCheck,
 } from "@inkcre/web-design";
-import collectAtForm from "@/components/info-base/source/collectAtForm/collectAtForm.vue";
+import collectAtForm from "@/components/source/collectAtForm/collectAtForm.vue";
 import { sourceCardEmits, type SourceCardProps } from "./sourceCard";
 import {
   CollectAt,
@@ -21,7 +21,7 @@ import {
   SourceCollectJobForm,
   SourceCollectJobStatus,
   SourceType,
-} from "@/business/info-base/source";
+} from "@/business/source";
 import { useCloned, computedAsync } from "@vueuse/core";
 
 const props = defineProps<SourceCardProps>();

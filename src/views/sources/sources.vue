@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import { useAsyncState } from "@vueuse/core";
-import sourceCard from "@/components/info-base/source/sourceCard/sourceCard.vue";
-import CreateSource from "@/components/info-base/source/createSource/createSource.vue";
+import sourceCard from "@/components/source/sourceCard/sourceCard.vue";
+import CreateSource from "@/components/source/createSource/createSource.vue";
 import { InkLoading } from "@inkcre/web-design";
-import { Source } from "@/business/info-base/source";
+import { Source } from "@/business/source";
 
 // Use useAsyncState for sources with refetch capability
 const {

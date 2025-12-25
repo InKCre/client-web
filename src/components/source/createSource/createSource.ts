@@ -1,5 +1,5 @@
 import type { PropType } from "vue";
-import { SourceForm } from "@/business/info-base/source";
+import { SourceForm } from "@/business/source";
 
 // --- Types ---
 

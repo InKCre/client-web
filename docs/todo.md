@@ -1,17 +1,18 @@
+# InKCre/client-web TODO
+
 - [ ] 尝试使用 histoire
 - [x] 添加加载态组件
 - [x] 探索更多关于像 Nothing UI, Even Realities 风格的设计
-- [ ] 使用 zod-config （本地保存配置或者云端源）
+- [ ] 使用 zod-config ，并且始终保存配置在本地（可以从远程拉取初始配置或者手动）
 - [ ] 使 coreClient 和 apiClient 使用 useAsyncState，统一返回格式
-- [ ] disable state 应该比 auto collect off 更好？
 - [x] delete 需要二次确认
 - [x] source.nickname 也可以编辑
 - [x] collect_at.hour, minute 都用 Dropdown；collect_at.day_of_week 添加 Every day 选项；collect_at.hour 添加 every hour 选项
 - [x] 迁移组件到 inkcre/design
 - [x] Source edit config with JSON Schema
-- [ ] Source type description
-- [ ] 验证 source run now
-  - [ ] 需要验证 IMAP Source 先
+- [x] Source type description
+- [x] 验证 source run now
+  - [x] 需要验证 IMAP Source 先
 - [ ] ARIA
 - [x] Incremental log polling (Log business class provided, with pre-configured filters)
 - [x] 抽离出独立的 logs viewer 组件 （按 trace_id 筛选，使用 id 作为游标，自动滑倒最底部）
@@ -19,5 +20,7 @@
 - [ ] 时区转换有问题
 - [x] LogsViewer 的滚动到底部实现有问题
 - [x] pending job 不应该 poll logs
-- [ ] InkPagination new type
+- [x] InkPagination new type
 - [ ] Source 不是 info-base 的一部分
+- [ ] i18n skill
+- [ ] View

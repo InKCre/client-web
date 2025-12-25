@@ -1,5 +1,5 @@
 import type { PropType } from "vue";
-import { CollectAt } from "@/business/info-base/source";
+import { CollectAt } from "@/business/source";
 
 export const collectAtFormProps = {
   modelValue: {

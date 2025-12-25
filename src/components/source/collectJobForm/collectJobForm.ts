@@ -1,5 +1,5 @@
 import type { PropType } from "vue";
-import { SourceCollectJobForm } from "@/business/info-base/source";
+import { SourceCollectJobForm } from "@/business/source";
 
 // --- Props ---
 export const collectJobFormProps = {

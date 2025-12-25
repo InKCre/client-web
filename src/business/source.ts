@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { Z } from "zod-class";
-import { DBAPIClient, CoreAPIClient } from "../api";
+import { DBAPIClient, CoreAPIClient } from "./api";
 import { makeNumberProp, makeObjectProp } from "@/utils/vue-props";
 import dayjs from "dayjs";
 import type { DropdownOption } from "@inkcre/web-design";
-import { zinstance } from "../base";
-import { Log } from "../obsrv";
+import { zinstance } from "./base";
+import { Log } from "./obsrv";
 
 export class CollectAt extends Z.class({
   // 0 (Monday) to 6 (Sunday), null to run on every day
@@ -217,7 +217,10 @@ export class SourceCollectJob extends Z.class({
       .from()
       .select()
       .eq("source", sourceId)
-      .in("status", [SourceCollectJobStatus.PENDING, SourceCollectJobStatus.RUNNING])
+      .in("status", [
+        SourceCollectJobStatus.PENDING,
+        SourceCollectJobStatus.RUNNING,
+      ])
       .order("created_at", { ascending: false })
       .limit(1);
 

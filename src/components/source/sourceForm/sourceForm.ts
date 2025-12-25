@@ -1,5 +1,5 @@
 import type { PropType } from "vue";
-import { Source, SourceForm } from "@/business/info-base/source";
+import { Source, SourceForm } from "@/business/source";
 
 // --- Props ---
 export const sourceFormProps = {

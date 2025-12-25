@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { sourceCollectJobCardProps, sourceCollectJobCardEmits } from "./sourceCollectJobCard";
-import { SourceCollectJobStatus } from "@/business/info-base/source";
+import {
+  sourceCollectJobCardProps,
+  sourceCollectJobCardEmits,
+} from "./sourceCollectJobCard";
+import { SourceCollectJobStatus } from "@/business/source";
 import dayjs from "dayjs";
 
 const props = defineProps(sourceCollectJobCardProps);

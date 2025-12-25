@@ -9,9 +9,9 @@ import {
   type DropdownOption,
   InkForm,
 } from "@inkcre/web-design";
-import collectAtForm from "@/components/info-base/source/collectAtForm/collectAtForm.vue";
+import collectAtForm from "@/components/source/collectAtForm/collectAtForm.vue";
 import { sourceFormProps, sourceFormEmits } from "./sourceForm";
-import { CollectAt, SourceType } from "@/business/info-base/source";
+import { CollectAt, SourceType } from "@/business/source";
 import { useI18n } from "vue-i18n";
 
 const props = defineProps(sourceFormProps);

@@ -1,4 +1,4 @@
-import { Source } from "@/business/info-base/source";
+import { Source } from "@/business/source";
 
 // --- Types ---
 

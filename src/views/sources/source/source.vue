@@ -11,15 +11,15 @@ import {
   InkPopup,
   InkPagination,
 } from "@inkcre/web-design";
-import sourceForm from "@/components/info-base/source/sourceForm/sourceForm.vue";
-import collectJobForm from "@/components/info-base/source/collectJobForm/collectJobForm.vue";
-import sourceCollectJobCard from "@/components/info-base/source/sourceCollectJobCard/sourceCollectJobCard.vue";
+import sourceForm from "@/components/source/sourceForm/sourceForm.vue";
+import collectJobForm from "@/components/source/collectJobForm/collectJobForm.vue";
+import sourceCollectJobCard from "@/components/source/sourceCollectJobCard/sourceCollectJobCard.vue";
 import {
   Source,
   SourceCollectJob,
   SourceCollectJobForm,
   SourceCollectJobStatus,
-} from "@/business/info-base/source";
+} from "@/business/source";
 import type { PaginationState } from "@/views/sources/source/source";
 
 const route = useRoute();

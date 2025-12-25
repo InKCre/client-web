@@ -10,7 +10,7 @@ import {
   SourceCollectJob,
   SourceCollectJobStatus,
   Source,
-} from "@/business/info-base/source";
+} from "@/business/source";
 import dayjs from "dayjs";
 
 const route = useRoute();

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { CollectAt } from "@/business/info-base/source";
+import { CollectAt } from "@/business/source";
 import { collectAtFormProps, collectAtFormEmits } from "./collectAtForm";
 import { InkDropdown } from "@inkcre/web-design";
 
