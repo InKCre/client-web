@@ -5,12 +5,16 @@ import type { NodePosition } from "@/utils/graph/graph-types";
 import {
   getControlPoint,
   getBezierMidpoint,
+  getEdgeEndpoints,
   EDGE_STROKE,
   EDGE_STROKE_WIDTH,
   EDGE_TEXT_COLOR,
   EDGE_TEXT_FONT_SIZE,
   EDGE_TEXT_PADDING,
   EDGE_TEXT_BG,
+  ARROW_POINTER_LENGTH,
+  ARROW_POINTER_WIDTH,
+  ARROW_FILL,
 } from "./RelationEdge";
 
 const props = defineProps<{
@@ -20,39 +24,44 @@ const props = defineProps<{
 }>();
 
 // --- Computed ---
-const controlPoint = computed(() => {
-  return getControlPoint(
+
+// Calculate edge endpoints on node boundaries for shortest path
+const edgeEndpoints = computed(() => {
+  return getEdgeEndpoints(
     { x: props.from.x, y: props.from.y },
     { x: props.to.x, y: props.to.y }
   );
 });
 
-const linePoints = computed(() => {
-  const cp = controlPoint.value;
-  return [
-    props.from.x,
-    props.from.y,
-    cp.x,
-    cp.y,
-    props.to.x,
-    props.to.y,
-  ];
+const controlPoint = computed(() => {
+  const { from, to } = edgeEndpoints.value;
+  return getControlPoint(from, to);
 });
 
-const lineConfig = computed(() => ({
-  points: linePoints.value,
+// Arrow points: [startX, startY, controlX, controlY, endX, endY]
+const arrowPoints = computed(() => {
+  const { from, to } = edgeEndpoints.value;
+  const cp = controlPoint.value;
+  return [from.x, from.y, cp.x, cp.y, to.x, to.y];
+});
+
+const arrowConfig = computed(() => ({
+  points: arrowPoints.value,
   stroke: EDGE_STROKE,
   strokeWidth: EDGE_STROKE_WIDTH,
-  bezier: true,
-  tension: 0,
+  fill: ARROW_FILL,
+  tension: 0.5,
+  pointerLength: ARROW_POINTER_LENGTH,
+  pointerWidth: ARROW_POINTER_WIDTH,
+  pointerAtBeginning: false,
+  pointerAtEnding: true,
+  lineCap: "round",
+  lineJoin: "round",
 }));
 
 const labelPosition = computed(() => {
-  return getBezierMidpoint(
-    { x: props.from.x, y: props.from.y },
-    controlPoint.value,
-    { x: props.to.x, y: props.to.y }
-  );
+  const { from, to } = edgeEndpoints.value;
+  return getBezierMidpoint(from, controlPoint.value, to);
 });
 
 const labelText = computed(() => {
@@ -89,8 +98,8 @@ const labelTextConfig = computed(() => ({
 </script>
 
 <template>
-  <!-- Curve line -->
-  <v-line :config="lineConfig" />
+  <!-- Curved arrow with direction indicator -->
+  <v-arrow :config="arrowConfig" />
 
   <!-- Label with background -->
   <v-group v-if="labelText">
