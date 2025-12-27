@@ -74,5 +74,17 @@
   "logs": {
     "title": "日志",
     "empty": "暂无日志"
+  },
+  "infoBase": {
+    "blockDetails": {
+      "title": "区块详情",
+      "id": "ID",
+      "resolver": "解析器",
+      "created": "创建时间",
+      "updated": "更新时间",
+      "storage": "存储",
+      "content": "内容",
+      "noContent": "暂无内容"
+    }
   }
 }

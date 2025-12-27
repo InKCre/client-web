@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
-import { useAsyncState } from "@vueuse/core";
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { useAsyncState, useElementSize } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
-import { InkLoading } from "@inkcre/web-design";
+import { InkLoading, InkPopup } from "@inkcre/web-design";
 import { Block } from "@/business/info-base/block";
 import { Relation } from "@/business/info-base/relation";
 import GraphCanvas from "@/components/info-base/GraphCanvas/GraphCanvas.vue";
 import BlockDetailsPanel from "@/components/info-base/BlockDetailsPanel/BlockDetailsPanel.vue";
 
 const { t } = useI18n();
+
+// --- State ---
+const graphViewRef = ref<HTMLElement | null>(null);
+const { width: canvasWidth, height: canvasHeight } =
+  useElementSize(graphViewRef);
 
 // --- Data fetching ---
 const {
@@ -27,8 +32,6 @@ const loading = computed(() => blocksLoading.value || relationsLoading.value);
 
 // --- State ---
 const selectedBlockId = ref<number | null>(null);
-const canvasWidth = ref(window.innerWidth);
-const canvasHeight = ref(window.innerHeight);
 
 // --- Computed ---
 const selectedBlock = computed(() => {
@@ -36,6 +39,13 @@ const selectedBlock = computed(() => {
   return (
     blocks.value.find((block) => block.id === selectedBlockId.value) || null
   );
+});
+
+const isDetailsOpen = computed({
+  get: () => !!selectedBlock.value,
+  set: (val) => {
+    if (!val) handleCloseDetails();
+  },
 });
 
 const hasBlocks = computed(() => blocks.value.length > 0);
@@ -56,26 +66,17 @@ const handleKeyDown = (event: KeyboardEvent) => {
 };
 
 // --- Lifecycle ---
-// Update canvas size on window resize
-const updateCanvasSize = () => {
-  const detailsPanelWidth = selectedBlockId.value ? 400 : 0;
-  canvasWidth.value = window.innerWidth - detailsPanelWidth;
-  canvasHeight.value = window.innerHeight;
-};
-
-window.addEventListener("resize", updateCanvasSize);
-window.addEventListener("keydown", handleKeyDown);
-
-// Watch for selection changes to update canvas size
-watch(selectedBlockId, () => {
-  updateCanvasSize();
+onMounted(() => {
+  window.addEventListener("keydown", handleKeyDown);
 });
 
-updateCanvasSize();
+onUnmounted(() => {
+  window.removeEventListener("keydown", handleKeyDown);
+});
 </script>
 
 <template>
-  <main class="graph-view">
+  <main ref="graphViewRef" class="graph-view">
     <!-- Loading state -->
     <div v-if="loading" class="graph-view__loading">
       <InkLoading />
@@ -93,6 +94,7 @@ updateCanvasSize();
     <template v-else>
       <div class="graph-view__canvas">
         <GraphCanvas
+          v-if="canvasWidth > 0 && canvasHeight > 0"
           :blocks="blocks"
           :relations="relations"
           :width="canvasWidth"
@@ -103,19 +105,13 @@ updateCanvasSize();
       </div>
 
       <!-- Details panel -->
-      <div
-        :class="[
-          'graph-view__details',
-          { 'graph-view__details--hidden': !selectedBlock },
-        ]"
-      >
+      <InkPopup v-model:open="isDetailsOpen" position="right">
         <BlockDetailsPanel
           v-if="selectedBlock"
           :block="selectedBlock"
-          :open="!!selectedBlock"
           @close="handleCloseDetails"
         />
-      </div>
+      </InkPopup>
     </template>
   </main>
 </template>

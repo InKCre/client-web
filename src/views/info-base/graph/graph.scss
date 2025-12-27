@@ -1,7 +1,8 @@
 .graph-view {
+  position: relative;
   display: flex;
   flex-direction: row;
-  height: 100vh;
+  height: 100%;
   width: 100%;
   background: sys-var(color, surface, base);
   overflow: hidden;
@@ -15,23 +16,13 @@
   }
 
   &__canvas {
-    flex: 1;
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     overflow: hidden;
     background: sys-var(color, surface, base);
-  }
-
-  &__details {
-    width: 400px;
-    border-left: 1px solid sys-var(color, border, base);
-    background: sys-var(color, surface, raised);
-    transition: transform 0.3s ease;
-    overflow-y: auto;
-    z-index: 10;
-
-    &--hidden {
-      transform: translateX(100%);
-    }
   }
 
   &__empty {
@@ -50,18 +41,6 @@
 
     &-text {
       font-size: sys-var(text, body, lg);
-    }
-  }
-
-  // Mobile responsive
-  @media (max-width: 768px) {
-    &__details {
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      width: 100%;
-      z-index: 100;
     }
   }
 }

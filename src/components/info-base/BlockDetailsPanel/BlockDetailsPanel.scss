@@ -2,8 +2,12 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 400px;
+  max-width: 100vw;
   padding: sys-var(space, lg);
   gap: sys-var(space, md);
+  background: sys-var(color, surface, raised);
+  box-sizing: border-box;
 
   &__header {
     display: flex;
@@ -14,20 +18,8 @@
   }
 
   &__title {
-    font-size: sys-var(text, heading, md);
-    font-weight: 600;
+    @include apply-font(title-sm);
     color: sys-var(color, text, base);
-  }
-
-  &__close {
-    cursor: pointer;
-    padding: sys-var(space, xs);
-    border-radius: sys-var(radius, sm);
-    transition: background 0.2s ease;
-
-    &:hover {
-      background: sys-var(color, surface, hovered);
-    }
   }
 
   &__metadata {
@@ -36,26 +28,7 @@
     gap: sys-var(space, sm);
     padding: sys-var(space, md);
     background: sys-var(color, surface, subtle);
-    border-radius: sys-var(radius, md);
-  }
-
-  &__metadata-item {
-    display: flex;
-    flex-direction: column;
-    gap: sys-var(space, xs);
-  }
-
-  &__metadata-label {
-    font-size: sys-var(text, label, sm);
-    font-weight: 500;
-    color: sys-var(color, text, subtle);
-    text-transform: uppercase;
-  }
-
-  &__metadata-value {
-    font-size: sys-var(text, body, sm);
-    color: sys-var(color, text, base);
-    word-break: break-word;
+    border-radius: sys-var(radius, none);
   }
 
   &__content {
@@ -63,7 +36,7 @@
     overflow-y: auto;
     padding: sys-var(space, md);
     border: 1px solid sys-var(color, border, base);
-    border-radius: sys-var(radius, md);
+    border-radius: sys-var(radius, none);
     background: sys-var(color, surface, base);
   }
 

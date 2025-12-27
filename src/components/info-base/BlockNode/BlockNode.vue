@@ -11,11 +11,6 @@ import {
   NODE_STROKE,
   NODE_STROKE_SELECTED,
   NODE_TEXT_COLOR,
-  NODE_SHADOW_COLOR,
-  NODE_SHADOW_BLUR,
-  NODE_SHADOW_BLUR_SELECTED,
-  NODE_SHADOW_OPACITY,
-  NODE_SHADOW_OPACITY_SELECTED,
 } from "./BlockNode";
 
 const props = defineProps<{
@@ -46,13 +41,8 @@ const rectConfig = computed(() => ({
   height: NODE_HEIGHT,
   fill: NODE_FILL,
   stroke: props.selected ? NODE_STROKE_SELECTED : NODE_STROKE,
-  strokeWidth: props.selected ? 3 : 1,
+  strokeWidth: 1,
   cornerRadius: NODE_CORNER_RADIUS,
-  shadowColor: NODE_SHADOW_COLOR,
-  shadowBlur: props.selected ? NODE_SHADOW_BLUR_SELECTED : NODE_SHADOW_BLUR,
-  shadowOpacity: props.selected
-    ? NODE_SHADOW_OPACITY_SELECTED
-    : NODE_SHADOW_OPACITY,
 }));
 
 const textConfig = computed(() => ({

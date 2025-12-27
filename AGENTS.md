@@ -6,6 +6,7 @@ And this is the Vue implemetation of InKCre, mainly provides a GUI to manage inf
 ## Tech Stacks
 
 - Framework: Vue3 + TypeScript + SCSS
+- UI Library: `@inkcre/web-design` (Read doc in `node_modules/@inkcre/web-design/agent-skills`)
 - Routing: vue-router
 - Internalization: vue-i18n
 - Date and time: dayjs

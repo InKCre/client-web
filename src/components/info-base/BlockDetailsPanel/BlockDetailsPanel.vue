@@ -1,25 +1,28 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import type { Block } from "@/business/info-base/block";
-import { resolverRegistry, type RenderedContent } from "@/business/info-base/resolver";
+import { InkButton, InkField, InkLoading } from "@inkcre/web-design";
+import {
+  blockDetailsPanelProps,
+  blockDetailsPanelEmits,
+} from "./BlockDetailsPanel";
+import {
+  resolverRegistry,
+  type RenderedContent,
+} from "@/business/info-base/resolver";
 import { useI18n } from "vue-i18n";
 
-const props = defineProps<{
-  block: Block;
-  open: boolean;
-}>();
-
-const emit = defineEmits<{
-  (e: "close"): void;
-}>();
+const props = defineProps(blockDetailsPanelProps);
+const emit = defineEmits(blockDetailsPanelEmits);
 
 const { t } = useI18n();
 
-// --- State ---
+// --- data ---
 const renderedContent = ref<RenderedContent | null>(null);
 const isLoading = ref(false);
 
-// --- Methods ---
+// --- computed ---
+
+// --- methods ---
 const resolveContent = async () => {
   if (!props.block) {
     renderedContent.value = null;
@@ -41,7 +44,7 @@ const resolveContent = async () => {
   }
 };
 
-const handleClose = () => {
+const onButtonClickClose = () => {
   emit("close");
 };
 
@@ -49,7 +52,7 @@ const formatDate = (date: Date): string => {
   return new Date(date).toLocaleString();
 };
 
-// --- Watchers ---
+// --- watchers ---
 watch(
   () => props.block,
   () => {
@@ -57,6 +60,10 @@ watch(
   },
   { immediate: true }
 );
+
+// --- lifecycle hooks ---
+
+// --- exposes ---
 </script>
 
 <template>
@@ -64,82 +71,62 @@ watch(
     <!-- Header -->
     <div class="block-details-panel__header">
       <h3 class="block-details-panel__title">
-        {{ t("infoBase.blockDetails.title", "Block Details") }}
+        {{ t("infoBase.blockDetails.title") }}
       </h3>
-      <button class="block-details-panel__close" @click="handleClose">
-        ✕
-      </button>
+      <InkButton theme="subtle" type="icon" @click="onButtonClickClose">
+        <span class="i-mdi-close" />
+      </InkButton>
     </div>
 
     <!-- Metadata -->
     <div class="block-details-panel__metadata">
-      <div class="block-details-panel__metadata-item">
-        <div class="block-details-panel__metadata-label">
-          {{ t("infoBase.blockDetails.id", "ID") }}
-        </div>
-        <div class="block-details-panel__metadata-value">
-          {{ block.id }}
-        </div>
-      </div>
+      <InkField
+        :label="t('infoBase.blockDetails.id')"
+        :value="String(block.id)"
+        :editable="false"
+      />
 
-      <div class="block-details-panel__metadata-item">
-        <div class="block-details-panel__metadata-label">
-          {{ t("infoBase.blockDetails.resolver", "Resolver") }}
-        </div>
-        <div class="block-details-panel__metadata-value">
-          {{ block.resolver }}
-        </div>
-      </div>
+      <InkField
+        :label="t('infoBase.blockDetails.resolver')"
+        :value="block.resolver"
+        :editable="false"
+      />
 
-      <div class="block-details-panel__metadata-item">
-        <div class="block-details-panel__metadata-label">
-          {{ t("infoBase.blockDetails.created", "Created At") }}
-        </div>
-        <div class="block-details-panel__metadata-value">
-          {{ formatDate(block.created_at) }}
-        </div>
-      </div>
+      <InkField
+        :label="t('infoBase.blockDetails.created')"
+        :value="formatDate(block.created_at)"
+        :editable="false"
+      />
 
-      <div class="block-details-panel__metadata-item">
-        <div class="block-details-panel__metadata-label">
-          {{ t("infoBase.blockDetails.updated", "Updated At") }}
-        </div>
-        <div class="block-details-panel__metadata-value">
-          {{ formatDate(block.updated_at) }}
-        </div>
-      </div>
+      <InkField
+        :label="t('infoBase.blockDetails.updated')"
+        :value="formatDate(block.updated_at)"
+        :editable="false"
+      />
 
-      <div v-if="block.storage" class="block-details-panel__metadata-item">
-        <div class="block-details-panel__metadata-label">
-          {{ t("infoBase.blockDetails.storage", "Storage") }}
-        </div>
-        <div class="block-details-panel__metadata-value">
-          {{ block.storage }}
-        </div>
-      </div>
+      <InkField
+        v-if="block.storage"
+        :label="t('infoBase.blockDetails.storage')"
+        :value="String(block.storage)"
+        :editable="false"
+      />
     </div>
 
     <!-- Content -->
     <div class="block-details-panel__content">
       <div class="block-details-panel__content-label">
-        {{ t("infoBase.blockDetails.content", "Content") }}
+        {{ t("infoBase.blockDetails.content") }}
       </div>
-      <div
-        v-if="isLoading"
-        class="block-details-panel__content-rendered"
-      >
-        {{ t("common.loading", "Loading...") }}
+      <div v-if="isLoading" class="block-details-panel__content-rendered">
+        <InkLoading size="sm" />
       </div>
       <div
         v-else-if="renderedContent"
         class="block-details-panel__content-rendered"
         v-html="renderedContent.html"
       />
-      <div
-        v-else
-        class="block-details-panel__content-rendered"
-      >
-        {{ t("infoBase.blockDetails.noContent", "No content") }}
+      <div v-else class="block-details-panel__content-rendered">
+        {{ t("infoBase.blockDetails.noContent") }}
       </div>
     </div>
   </div>

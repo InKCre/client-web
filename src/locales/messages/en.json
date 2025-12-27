@@ -75,5 +75,17 @@
   "logs": {
     "title": "Logs",
     "empty": "No logs"
+  },
+  "infoBase": {
+    "blockDetails": {
+      "title": "Block Details",
+      "id": "ID",
+      "resolver": "Resolver",
+      "created": "Created At",
+      "updated": "Updated At",
+      "storage": "Storage",
+      "content": "Content",
+      "noContent": "No content"
+    }
   }
 }
