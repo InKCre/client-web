@@ -23,19 +23,19 @@ const {
   isLoading: relationsLoading,
 } = useAsyncState(() => Relation.getAll(), []);
 
-const loading = computed(
-  () => blocksLoading.value || relationsLoading.value
-);
+const loading = computed(() => blocksLoading.value || relationsLoading.value);
 
 // --- State ---
 const selectedBlockId = ref<number | null>(null);
-const canvasWidth = ref(window.innerWidth - 400); // Subtract details panel width
+const canvasWidth = ref(window.innerWidth);
 const canvasHeight = ref(window.innerHeight);
 
 // --- Computed ---
 const selectedBlock = computed(() => {
   if (!selectedBlockId.value) return null;
-  return blocks.value.find((block) => block.id === selectedBlockId.value) || null;
+  return (
+    blocks.value.find((block) => block.id === selectedBlockId.value) || null
+  );
 });
 
 const hasBlocks = computed(() => blocks.value.length > 0);
@@ -70,6 +70,8 @@ window.addEventListener("keydown", handleKeyDown);
 watch(selectedBlockId, () => {
   updateCanvasSize();
 });
+
+updateCanvasSize();
 </script>
 
 <template>

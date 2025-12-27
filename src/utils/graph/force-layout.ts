@@ -48,7 +48,11 @@ export interface ForceLayoutOptions {
   chargeForce?: number;
   linkDistance?: number;
   collideRadius?: number;
+  collideStrength?: number;
+  collideIterations?: number;
   alphaDecay?: number;
+  /** Number of pre-warm ticks to run before first render (default: 300) */
+  preWarmTicks?: number;
 }
 
 /**
@@ -119,17 +123,32 @@ export function useForceLayout(
       )
       .force(
         "center",
-        forceCenter<ForceNode>(
-          options.width / 2,
-          options.height / 2
-        ).strength(options.centerForce || 1)
+        forceCenter<ForceNode>(options.width / 2, options.height / 2).strength(
+          options.centerForce || 1
+        )
       )
       .force(
         "collide",
-        forceCollide<ForceNode>().radius(options.collideRadius || 50)
+        forceCollide<ForceNode>()
+          .radius(options.collideRadius || 50)
+          .strength(options.collideStrength ?? 1.0) // Max strength for hard collision
+          .iterations(options.collideIterations ?? 4) // More iterations for dense graphs
       )
-      .alpha(1)
       .alphaDecay(options.alphaDecay || 0.02);
+
+    // Pre-warm: Run simulation in background before rendering
+    // This ensures the first frame shows non-overlapping nodes
+    const preWarmTicks = options.preWarmTicks ?? 300;
+    simulation.stop(); // Pause auto-ticking
+    for (let i = 0; i < preWarmTicks; i++) {
+      simulation.tick();
+    }
+
+    // Initial assignment after pre-warming
+    nodes.value = [...forceNodes];
+
+    // Now start the simulation for interactive updates
+    simulation.alpha(0.3).restart();
 
     // Update nodes ref on each tick
     simulation.on("tick", () => {
@@ -140,9 +159,6 @@ export function useForceLayout(
     simulation.on("end", () => {
       console.log("Force layout simulation completed");
     });
-
-    // Initial assignment
-    nodes.value = forceNodes;
   };
 
   /**

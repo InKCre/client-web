@@ -4,6 +4,7 @@ import type { Block } from "@/business/info-base/block";
 import type { Relation } from "@/business/info-base/relation";
 import BlockNode from "@/components/info-base/BlockNode/BlockNode.vue";
 import RelationEdge from "@/components/info-base/RelationEdge/RelationEdge.vue";
+import { NODE_COLLISION_RADIUS } from "@/components/info-base/BlockNode/BlockNode";
 import { useForceLayout } from "@/utils/graph/force-layout";
 import { DEFAULT_GRAPH_CONFIG } from "@/utils/graph/graph-types";
 import type { PanState } from "./GraphCanvas";
@@ -38,11 +39,14 @@ const relationsRef = ref(props.relations);
 const { nodes, initLayout } = useForceLayout(blocksRef, relationsRef, {
   width: props.width,
   height: props.height,
-  centerForce: 0.5,
-  chargeForce: -500,
-  linkDistance: 200,
-  collideRadius: 90,
-  alphaDecay: 0.015,
+  centerForce: 0.1,
+  chargeForce: -800,
+  linkDistance: NODE_COLLISION_RADIUS * 2.5, // Ensure links are long enough to not force overlap
+  collideRadius: NODE_COLLISION_RADIUS,
+  collideStrength: 1.0, // Maximum collision strength
+  collideIterations: 4, // More iterations for accurate collision resolution
+  alphaDecay: 0.02,
+  preWarmTicks: 300, // Pre-calculate positions before first render
 });
 
 // Watch for prop changes
@@ -152,10 +156,7 @@ const handleNodeClick = (blockId: number) => {
 
 <template>
   <div
-    :class="[
-      'graph-canvas',
-      { 'graph-canvas--panning': panState.isPanning },
-    ]"
+    :class="['graph-canvas', { 'graph-canvas--panning': panState.isPanning }]"
   >
     <v-stage
       :config="stageConfig"
