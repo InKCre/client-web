@@ -6,6 +6,7 @@ import sources from "@/views/sources/sources.vue";
 import source from "@/views/sources/source/source.vue";
 import sourceCollectJob from "@/views/sources/sourceCollectJob/sourceCollectJob.vue";
 import extensions from "@/views/extensions/extensions.vue";
+import infoBaseGraph from "@/views/info-base/graph/graph.vue";
 import { computed } from "vue";
 
 const router = createRouter({
@@ -36,6 +37,11 @@ const router = createRouter({
       name: "Extensions",
       component: extensions,
     },
+    {
+      path: "/info-base/graph",
+      name: "InfoBaseGraph",
+      component: infoBaseGraph,
+    },
   ],
 });
 
@@ -47,6 +53,6 @@ export function createInkRouterAdapter(
 ): InkRouter {
   return {
     currentPath: computed(() => route.path),
-    currentName: computed(() => route.name),
+    currentName: computed(() => (route.name as string) || null),
   };
 }

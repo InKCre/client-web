@@ -45,3 +45,6 @@ coverage
 
 # Browser profile
 .browser-profile/*
+
+# Agent files
+.claude

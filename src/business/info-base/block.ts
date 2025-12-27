@@ -10,15 +10,15 @@ export const BlockRefZ = z.number();
 
 export class Block extends Z.class({
   id: BlockRefZ,
-  created_at: z
+  created_at: z.coerce
     .date()
     .optional()
     .default(() => new Date()),
-  updated_at: z
+  updated_at: z.coerce
     .date()
     .optional()
     .default(() => new Date()),
-  storage: z.string().nullable().optional(),
+  storage: z.number().nullable().optional(), // TODO add storage class
   resolver: z.string(),
   content: z.string(),
 }) {

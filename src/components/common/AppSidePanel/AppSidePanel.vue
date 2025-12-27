@@ -23,6 +23,10 @@ const onSettingsClick = () => {
   console.log("Navigate to Settings");
 };
 
+const onExploreClick = () => {
+  router.push("/info-base/graph");
+};
+
 watch(
   () => route.name,
   (newRouteName) => {
@@ -44,6 +48,7 @@ watch(
       <InkButton text="Extensions" class="w-full" @click="onExtensionsClick" />
       <InkButton text="Settings" class="w-full" @click="onSettingsClick" />
     </div>
+    <InkButton text="Explore" class="w-full" @click="onExploreClick" />
   </aside>
 </template>
 

@@ -1,0 +1,67 @@
+.graph-view {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  width: 100%;
+  background: sys-var(color, surface, base);
+  overflow: hidden;
+
+  &__loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    height: 100%;
+  }
+
+  &__canvas {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: sys-var(color, surface, base);
+  }
+
+  &__details {
+    width: 400px;
+    border-left: 1px solid sys-var(color, border, base);
+    background: sys-var(color, surface, raised);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+    z-index: 10;
+
+    &--hidden {
+      transform: translateX(100%);
+    }
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    gap: sys-var(space, md);
+    color: sys-var(color, text, subtle);
+
+    &-icon {
+      font-size: 48px;
+      opacity: 0.5;
+    }
+
+    &-text {
+      font-size: sys-var(text, body, lg);
+    }
+  }
+
+  // Mobile responsive
+  @media (max-width: 768px) {
+    &__details {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      z-index: 100;
+    }
+  }
+}

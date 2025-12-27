@@ -11,7 +11,7 @@ export const RelationRefZ = z.number();
 
 export class Relation extends Z.class({
   id: RelationRefZ,
-  updated_at: z
+  updated_at: z.coerce
     .date()
     .optional()
     .default(() => new Date()),

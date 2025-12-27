@@ -1,0 +1,85 @@
+.block-details-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: sys-var(space, lg);
+  gap: sys-var(space, md);
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: sys-var(space, md);
+    border-bottom: 1px solid sys-var(color, border, base);
+  }
+
+  &__title {
+    font-size: sys-var(text, heading, md);
+    font-weight: 600;
+    color: sys-var(color, text, base);
+  }
+
+  &__close {
+    cursor: pointer;
+    padding: sys-var(space, xs);
+    border-radius: sys-var(radius, sm);
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: sys-var(color, surface, hovered);
+    }
+  }
+
+  &__metadata {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, sm);
+    padding: sys-var(space, md);
+    background: sys-var(color, surface, subtle);
+    border-radius: sys-var(radius, md);
+  }
+
+  &__metadata-item {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, xs);
+  }
+
+  &__metadata-label {
+    font-size: sys-var(text, label, sm);
+    font-weight: 500;
+    color: sys-var(color, text, subtle);
+    text-transform: uppercase;
+  }
+
+  &__metadata-value {
+    font-size: sys-var(text, body, sm);
+    color: sys-var(color, text, base);
+    word-break: break-word;
+  }
+
+  &__content {
+    flex: 1;
+    overflow-y: auto;
+    padding: sys-var(space, md);
+    border: 1px solid sys-var(color, border, base);
+    border-radius: sys-var(radius, md);
+    background: sys-var(color, surface, base);
+  }
+
+  &__content-label {
+    font-size: sys-var(text, label, sm);
+    font-weight: 500;
+    color: sys-var(color, text, subtle);
+    text-transform: uppercase;
+    margin-bottom: sys-var(space, sm);
+  }
+
+  &__content-rendered {
+    font-size: sys-var(text, body, md);
+    color: sys-var(color, text, base);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+}

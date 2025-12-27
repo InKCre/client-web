@@ -21,6 +21,6 @@
 - [x] LogsViewer 的滚动到底部实现有问题
 - [x] pending job 不应该 poll logs
 - [x] InkPagination new type
-- [ ] Source 不是 info-base 的一部分
+- [x] Source 不是 info-base 的一部分
 - [ ] i18n skill
 - [ ] View
