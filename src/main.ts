@@ -1,7 +1,6 @@
 import { createInstance } from "@module-federation/runtime";
 import { createApp } from "vue";
 
-import VueKonva from "vue-konva";
 import App from "./App.vue";
 import i18n from "./locales";
 import router from "./router";
@@ -13,7 +12,6 @@ import "@inkcre/web-design/styles";
 
 const app = createApp(App);
 
-app.use(VueKonva);
 app.use(i18n);
 app.use(store);
 app.use(router);

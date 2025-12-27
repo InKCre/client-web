@@ -18,8 +18,7 @@
     "jsx": "preserve",
     "jsxImportSource": "vue",
     "types": [
-      "@inkcre/web-design",
-      "vue-konva"
+      "@inkcre/web-design"
     ]
   }
 }

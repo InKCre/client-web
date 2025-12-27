@@ -24,3 +24,4 @@
 - [x] Source 不是 info-base 的一部分
 - [ ] i18n skill
 - [ ] View
+- [ ] Component skill (全部丢进去，真的很占上下文，有8个references，你敢想象吗)
