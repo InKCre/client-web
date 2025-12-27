@@ -1,0 +1,27 @@
+.relation-edge {
+  stroke: var(--ink-border-secondary, #9ca3af);
+  stroke-width: 2px;
+
+  &:hover {
+    stroke: var(--ink-accent-primary, #3b82f6);
+  }
+
+  &__label {
+    background: var(--ink-bg-secondary, #f3f4f6);
+    border: 1px solid var(--ink-border-primary, #e5e7eb);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    color: var(--ink-text-secondary, #6b7280);
+    white-space: nowrap;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: default;
+
+    &:hover {
+      background: var(--ink-bg-primary, #ffffff);
+      color: var(--ink-text-primary, #1f2937);
+    }
+  }
+}

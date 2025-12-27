@@ -9,6 +9,7 @@ import store from "./stores";
 // 样式
 import "uno.css";
 import "@inkcre/web-design/styles";
+import "@vue-flow/core/dist/style.css";
 
 const app = createApp(App);
 

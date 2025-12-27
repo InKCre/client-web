@@ -1,0 +1,74 @@
+@import "@vue-flow/core/dist/style.css";
+@import "@vue-flow/core/dist/theme-default.css";
+@import "@vue-flow/controls/dist/style.css";
+@import "@vue-flow/minimap/dist/style.css";
+
+.graph-view {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  background: var(--ink-bg-primary, #ffffff);
+
+  &__flow {
+    width: 100%;
+    height: 100%;
+  }
+
+  &__empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: var(--ink-text-tertiary, #9ca3af);
+    font-size: 16px;
+    font-style: italic;
+  }
+}
+
+// Vue Flow customizations
+.vue-flow {
+  .vue-flow__minimap {
+    background: var(--ink-bg-secondary, #f9fafb);
+    border: 1px solid var(--ink-border-primary, #e5e7eb);
+    border-radius: 8px;
+  }
+
+  .vue-flow__controls {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+
+    .vue-flow__controls-button {
+      background: var(--ink-bg-primary, #ffffff);
+      border: 1px solid var(--ink-border-primary, #e5e7eb);
+      border-radius: 6px;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: var(--ink-bg-secondary, #f3f4f6);
+        border-color: var(--ink-accent-primary, #3b82f6);
+      }
+
+      svg {
+        width: 14px;
+        height: 14px;
+        fill: var(--ink-text-secondary, #6b7280);
+      }
+    }
+  }
+
+  .vue-flow__background {
+    background: var(--ink-bg-primary, #ffffff);
+  }
+}
