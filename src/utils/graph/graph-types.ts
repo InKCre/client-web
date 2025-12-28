@@ -1,4 +1,4 @@
-import type { Node, Edge } from "@vue-flow/core";
+import { type Node, type Edge, MarkerType } from "@vue-flow/core";
 import type { Block, BlockRef } from "@/business/info-base/block";
 import type { Relation } from "@/business/info-base/relation";
 
@@ -67,7 +67,9 @@ export interface ForceLayoutConfig {
 /**
  * Default force layout configuration
  */
-export const DEFAULT_FORCE_CONFIG: Required<Omit<ForceLayoutConfig, "width" | "height">> = {
+export const DEFAULT_FORCE_CONFIG: Required<
+  Omit<ForceLayoutConfig, "width" | "height">
+> = {
   centerForce: 0.3,
   chargeForce: -600,
   linkDistance: 200,
@@ -81,7 +83,11 @@ export const DEFAULT_FORCE_CONFIG: Required<Omit<ForceLayoutConfig, "width" | "h
 /**
  * Transform Block to Vue Flow node
  */
-export function blockToNode(block: Block, preview: string, position?: { x: number; y: number }): BlockNode {
+export function blockToNode(
+  block: Block,
+  preview: string,
+  position?: { x: number; y: number }
+): BlockNode {
   return {
     id: String(block.id),
     type: "block",
@@ -106,5 +112,6 @@ export function relationToEdge(relation: Relation): RelationEdge {
     data: {
       relation,
     },
+    markerEnd: MarkerType.Arrow,
   };
 }

@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { BezierEdge, EdgeLabelRenderer, getBezierPath, MarkerType } from "@vue-flow/core";
+import {
+  BezierEdge,
+  EdgeLabelRenderer,
+  getBezierPath,
+  MarkerType,
+} from "@vue-flow/core";
 import type { RelationEdgeProps } from "./RelationEdge";
 
 const props = defineProps<RelationEdgeProps>();
@@ -32,7 +37,7 @@ const labelY = computed(() => path.value[2]);
     :target-y="targetY"
     :source-position="sourcePosition"
     :target-position="targetPosition"
-    :marker-end="MarkerType.ArrowClosed"
+    :marker-end="`url(#${props.id}-marker)`"
     class="relation-edge"
   />
 

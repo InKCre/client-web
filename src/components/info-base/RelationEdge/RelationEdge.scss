@@ -1,27 +1,30 @@
 .relation-edge {
-  stroke: var(--ink-border-secondary, #9ca3af);
+  stroke: sys-var(color, border, subtle);
   stroke-width: 2px;
 
   &:hover {
-    stroke: var(--ink-accent-primary, #3b82f6);
+    stroke: sys-var(color, border, primary);
   }
 
   &__label {
-    background: var(--ink-bg-secondary, #f3f4f6);
-    border: 1px solid var(--ink-border-primary, #e5e7eb);
-    border-radius: 4px;
-    padding: 2px 8px;
-    font-size: 11px;
-    color: var(--ink-text-secondary, #6b7280);
+    @include apply-font(label-md);
     white-space: nowrap;
-    max-width: 120px;
-    overflow: hidden;
     text-overflow: ellipsis;
     cursor: default;
 
+    background: sys-var(color, surface, subtle);
+    color: sys-var(color, text, subtle);
+
+    border: 1px solid sys-var(color, border, subtle);
+    border-radius: sys-var(radius, xs);
+
+    padding: sys-var(space, xs) sys-var(space, sm);
+    max-width: 120px;
+    overflow: hidden;
+
     &:hover {
-      background: var(--ink-bg-primary, #ffffff);
-      color: var(--ink-text-primary, #1f2937);
+      background: sys-var(color, surface, base);
+      color: sys-var(color, text, base);
     }
   }
 }

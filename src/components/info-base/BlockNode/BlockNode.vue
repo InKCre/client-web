@@ -22,14 +22,10 @@ const onNodeClick = () => {
     :class="{ 'block-node--selected': selected }"
     @click="onNodeClick"
   >
-    <Handle type="target" :position="Position.Top" class="block-node__handle" />
-
     <div class="block-node__content">
       <div class="block-node__resolver">{{ resolverType }}</div>
       <div class="block-node__preview">{{ preview }}</div>
     </div>
-
-    <Handle type="source" :position="Position.Bottom" class="block-node__handle" />
   </div>
 </template>
 

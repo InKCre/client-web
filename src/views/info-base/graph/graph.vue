@@ -95,6 +95,17 @@ const isPanelOpen = computed({
 const { onNodeDrag, onNodeDragStart, onNodeDragStop, fitView, zoomIn, zoomOut } =
   useVueFlow();
 
+// Handle position updates from force layout
+const handlePositionUpdate = (positions: Map<string, { x: number; y: number }>) => {
+  allNodes.value = allNodes.value.map((node) => {
+    const pos = positions.get(node.id);
+    if (pos) {
+      return { ...node, position: { x: pos.x, y: pos.y } };
+    }
+    return node;
+  });
+};
+
 // Force layout (use filtered data)
 const forceLayout = useForceLayout({
   nodes: filteredNodes,
@@ -103,6 +114,7 @@ const forceLayout = useForceLayout({
     width: 800,
     height: 600,
   },
+  onPositionUpdate: handlePositionUpdate,
 });
 
 // Load data
@@ -226,8 +238,8 @@ onMounted(() => {
 
       <VueFlow
         v-else
-        v-model:nodes="filteredNodes"
-        v-model:edges="filteredEdges"
+        :nodes="filteredNodes"
+        :edges="filteredEdges"
         class="graph-view__flow"
         :default-viewport="{ zoom: 1, x: 0, y: 0 }"
         :min-zoom="0.1"

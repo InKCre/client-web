@@ -18,6 +18,7 @@ interface UseForceLayoutOptions {
   nodes: Ref<Node[]>;
   links: Ref<SimulationLink[]>;
   config?: Partial<ForceLayoutConfig>;
+  onPositionUpdate?: (positions: Map<string, { x: number; y: number }>) => void;
 }
 
 interface UseForceLayoutReturn {
@@ -34,6 +35,7 @@ export function useForceLayout({
   nodes,
   links,
   config = {},
+  onPositionUpdate,
 }: UseForceLayoutOptions): UseForceLayoutReturn {
   const isRunning = ref(false);
   const alpha = ref(0);
@@ -92,20 +94,14 @@ export function useForceLayout({
 
     alpha.value = simulation.alpha();
 
-    // Update Vue Flow node positions
-    nodes.value = nodes.value.map((node) => {
-      const simNode = simulationNodes.find((n) => n.id === node.id);
-      if (simNode) {
-        return {
-          ...node,
-          position: {
-            x: simNode.x,
-            y: simNode.y,
-          },
-        };
+    // Emit position updates via callback
+    if (onPositionUpdate) {
+      const positions = new Map<string, { x: number; y: number }>();
+      for (const simNode of simulationNodes) {
+        positions.set(simNode.id, { x: simNode.x!, y: simNode.y! });
       }
-      return node;
-    });
+      onPositionUpdate(positions);
+    }
   }
 
   function onEnd() {

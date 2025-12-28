@@ -12,6 +12,7 @@ export default defineConfig({
     "i-mdi-loading",
     "i-mdi-refresh",
     "i-mdi-chevron-right",
+    "i-mdi-chevron-left",
     "i-mdi-chevron-down",
     "animate-spin",
   ],

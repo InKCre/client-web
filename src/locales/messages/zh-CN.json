@@ -91,7 +91,7 @@
       "community": {
         "all": "所有社区",
         "searchPlaceholder": "搜索社区...",
-        "noResults": "未找到社区",
+        "noResults": "没有找到社区",
         "nodeCount": "{count} 个节点",
         "previous": "上一个社区",
         "next": "下一个社区"
