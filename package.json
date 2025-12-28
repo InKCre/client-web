@@ -34,6 +34,8 @@
     "@vueuse/core": "^14.0.0",
     "d3-force": "^3.0.0",
     "dayjs": "^1.11.19",
+    "graphology": "^0.26.0",
+    "graphology-communities-louvain": "^2.0.2",
     "hono": "^4.10.6",
     "jose": "^6.1.2",
     "pinia": "^3.0.3",

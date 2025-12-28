@@ -86,6 +86,17 @@
       "storage": "Storage",
       "content": "Content",
       "noContent": "No content"
+    },
+    "graph": {
+      "empty": "No blocks to display",
+      "community": {
+        "all": "All Communities",
+        "searchPlaceholder": "Search communities...",
+        "noResults": "No communities found",
+        "nodeCount": "{count} nodes",
+        "previous": "Previous Community",
+        "next": "Next Community"
+      }
     }
   }
 }

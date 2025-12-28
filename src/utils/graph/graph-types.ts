@@ -68,12 +68,12 @@ export interface ForceLayoutConfig {
  * Default force layout configuration
  */
 export const DEFAULT_FORCE_CONFIG: Required<Omit<ForceLayoutConfig, "width" | "height">> = {
-  centerForce: 0.1,
-  chargeForce: -400,
-  linkDistance: 150,
-  collideRadius: 60,
+  centerForce: 0.3,
+  chargeForce: -600,
+  linkDistance: 200,
+  collideRadius: 120,
   collideStrength: 1.0,
-  collideIterations: 4,
+  collideIterations: 10,
   alphaDecay: 0.02,
   preWarmTicks: 300,
 };
@@ -86,6 +86,7 @@ export function blockToNode(block: Block, preview: string, position?: { x: numbe
     id: String(block.id),
     type: "block",
     position: position ?? { x: Math.random() * 500, y: Math.random() * 500 },
+    draggable: true,
     data: {
       block,
       preview,
