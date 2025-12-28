@@ -1,6 +1,6 @@
 import { type Node, type Edge, MarkerType } from "@vue-flow/core";
-import type { Block, BlockRef } from "@/business/info-base/block";
-import type { Relation } from "@/business/info-base/relation";
+import type { Block, BlockRef } from "../block";
+import type { Relation } from "../relation";
 
 /**
  * Custom node data for block visualization

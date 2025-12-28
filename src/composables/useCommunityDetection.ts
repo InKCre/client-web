@@ -1,9 +1,9 @@
 import { ref, computed, watch, type Ref } from "vue";
 import Graph from "graphology";
 import louvain from "graphology-communities-louvain";
-import type { BlockNode } from "@/utils/graph/graph-types";
+import type { BlockNode } from "@/business/info-base/graph/graph-types";
 import type { Edge } from "@vue-flow/core";
-import type { CommunityMetadata, CommunityMap } from "@/utils/graph/community-types";
+import type { CommunityMetadata, CommunityMap } from "@/business/info-base/graph/community-types";
 
 export interface UseCommunityDetectionOptions {
   nodes: Ref<BlockNode[]>;

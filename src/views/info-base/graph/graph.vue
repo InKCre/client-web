@@ -25,7 +25,7 @@ import {
   type BlockNode,
   type BlockNodeData,
   type SimulationLink,
-} from "@/utils/graph/graph-types";
+} from "@/business/info-base/graph/graph-types";
 
 const { t } = useI18n();
 

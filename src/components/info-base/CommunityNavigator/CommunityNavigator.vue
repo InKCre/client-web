@@ -2,7 +2,7 @@
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { InkDropdown, type DropdownOption } from "@inkcre/web-design";
-import type { CommunityMetadata } from "@/utils/graph/community-types";
+import type { CommunityMetadata } from "@/business/info-base/graph/community-types";
 
 interface CommunityNavigatorProps {
   communities: CommunityMetadata[];
