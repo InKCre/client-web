@@ -25,11 +25,15 @@
     font-style: italic;
   }
 
-  &__community-nav {
+  &__top-controls {
     position: absolute;
     left: 12px;
     top: 12px;
     z-index: 6; // Above controls (z-index: 5)
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
   }
 
   &__controls {
@@ -59,10 +63,11 @@
 // Responsive adjustments
 @media (max-width: 768px) {
   .graph-view {
-    &__community-nav {
+    &__top-controls {
       left: 8px;
       top: 8px;
       right: 8px;
+      flex-direction: column;
     }
 
     &__controls {

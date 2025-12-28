@@ -62,6 +62,7 @@ export interface ForceLayoutConfig {
   collideIterations?: number;
   alphaDecay?: number;
   preWarmTicks?: number;
+  maxIterations?: number;
 }
 
 /**
@@ -78,6 +79,7 @@ export const DEFAULT_FORCE_CONFIG: Required<
   collideIterations: 10,
   alphaDecay: 0.02,
   preWarmTicks: 300,
+  maxIterations: 0, // 0 means no limit
 };
 
 /**

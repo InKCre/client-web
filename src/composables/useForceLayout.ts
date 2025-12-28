@@ -60,6 +60,9 @@ export function useForceLayout({
       target: link.target,
     }));
 
+    // Track iterations for maxIterations limit
+    let iterationCount = 0;
+
     // Create force simulation
     simulation = forceSimulation<SimulationNode>(simulationNodes)
       .force(
@@ -77,13 +80,26 @@ export function useForceLayout({
           .iterations(mergedConfig.collideIterations)
       )
       .alphaDecay(mergedConfig.alphaDecay)
-      .on("tick", onTick)
+      .on("tick", () => {
+        iterationCount++;
+        // Stop if maxIterations is set and reached
+        if (mergedConfig.maxIterations && iterationCount >= mergedConfig.maxIterations) {
+          simulation?.stop();
+          onEnd();
+          return;
+        }
+        onTick();
+      })
       .on("end", onEnd);
 
     // Pre-warm the simulation
     const sim = simulation;
-    for (let i = 0; i < mergedConfig.preWarmTicks; i++) {
+    const preWarmTicks = mergedConfig.maxIterations
+      ? Math.min(mergedConfig.preWarmTicks, mergedConfig.maxIterations)
+      : mergedConfig.preWarmTicks;
+    for (let i = 0; i < preWarmTicks; i++) {
       sim.tick();
+      iterationCount++;
     }
 
     isRunning.value = true;
