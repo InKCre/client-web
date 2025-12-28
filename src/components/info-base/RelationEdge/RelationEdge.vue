@@ -37,7 +37,7 @@ const labelY = computed(() => path.value[2]);
     :target-y="targetY"
     :source-position="sourcePosition"
     :target-position="targetPosition"
-    :marker-end="`url(#${props.id}-marker)`"
+    :marker-end="markerEnd"
     class="relation-edge"
   />
 

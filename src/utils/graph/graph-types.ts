@@ -112,6 +112,6 @@ export function relationToEdge(relation: Relation): RelationEdge {
     data: {
       relation,
     },
-    markerEnd: MarkerType.Arrow,
+    markerEnd: MarkerType.ArrowClosed,
   };
 }
