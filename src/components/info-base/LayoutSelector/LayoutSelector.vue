@@ -23,56 +23,59 @@ const { t } = useI18n();
 // Layout options for dropdown
 const layoutOptions = computed<DropdownOption[]>(() => [
   {
-    label: t("infoBase.graph.layout.auto", "Auto-detect"),
+    label: t("infoBase.graph.layout.auto"),
     value: LayoutType.Auto,
   },
   {
-    label: t("infoBase.graph.layout.force", "Force-directed"),
+    label: t("infoBase.graph.layout.force"),
     value: LayoutType.Force,
   },
   {
-    label: t("infoBase.graph.layout.dagre", "Hierarchical"),
+    label: t("infoBase.graph.layout.dagre"),
     value: LayoutType.Dagre,
   },
   {
-    label: t("infoBase.graph.layout.circular", "Circular"),
+    label: t("infoBase.graph.layout.circular"),
     value: LayoutType.Circular,
   },
   {
-    label: t("infoBase.graph.layout.radial", "Radial"),
+    label: t("infoBase.graph.layout.radial"),
     value: LayoutType.Radial,
   },
   {
-    label: t("infoBase.graph.layout.grid", "Grid"),
+    label: t("infoBase.graph.layout.grid"),
     value: LayoutType.Grid,
   },
 ]);
 
 // Selected value for dropdown
 const selectedValue = computed({
-  get: () => (props.selection.isAutoDetected ? LayoutType.Auto : props.selection.type),
+  get: () =>
+    props.selection.isAutoDetected ? LayoutType.Auto : props.selection.type,
   set: (value: LayoutType) => emit("layout-change", value),
 });
 
 // Get display name for detected topology
-function getTopologyDisplayName(topology: TopologyType | string | undefined): string {
+function getTopologyDisplayName(
+  topology: TopologyType | string | undefined
+): string {
   if (!topology) return "";
 
   switch (topology) {
     case TopologyType.Tree:
-      return t("infoBase.graph.topology.tree", "Tree");
+      return t("infoBase.graph.topology.tree");
     case TopologyType.DAG:
-      return t("infoBase.graph.topology.dag", "DAG");
+      return t("infoBase.graph.topology.dag");
     case TopologyType.Star:
-      return t("infoBase.graph.topology.star", "Star");
+      return t("infoBase.graph.topology.star");
     case TopologyType.Linear:
-      return t("infoBase.graph.topology.linear", "Linear");
+      return t("infoBase.graph.topology.linear");
     case TopologyType.Cyclic:
-      return t("infoBase.graph.topology.cyclic", "Cyclic");
+      return t("infoBase.graph.topology.cyclic");
     case TopologyType.Disconnected:
-      return t("infoBase.graph.topology.disconnected", "Disconnected");
+      return t("infoBase.graph.topology.disconnected");
     default:
-      return t("infoBase.graph.topology.unknown", "Unknown");
+      return t("infoBase.graph.topology.unknown");
   }
 }
 
@@ -88,11 +91,7 @@ const topologyHint = computed(() => {
 <template>
   <div class="layout-selector">
     <div class="layout-selector__dropdown">
-      <InkDropdown
-        v-model="selectedValue"
-        :options="layoutOptions"
-        :enable-stepping="true"
-      />
+      <InkDropdown v-model="selectedValue" :options="layoutOptions" />
     </div>
 
     <div v-if="topologyHint" class="layout-selector__hint">

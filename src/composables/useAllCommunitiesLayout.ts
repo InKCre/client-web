@@ -23,7 +23,9 @@ export interface UseAllCommunitiesLayoutOptions {
 
 const LIMITED_FORCE_ITERATIONS = 100;
 const COMMUNITY_PADDING = 60;
-const COMMUNITY_GAP = 80;
+const COMMUNITY_GAP = 120;
+const NODE_WIDTH = 200;
+const NODE_HEIGHT = 100;
 
 export function useAllCommunitiesLayout(options: UseAllCommunitiesLayoutOptions) {
   const { nodes, edges, communities, onPositionUpdate } = options;
@@ -102,8 +104,8 @@ export function useAllCommunitiesLayout(options: UseAllCommunitiesLayoutOptions)
         resolve({
           positions: normalizedPositions,
           bounds: {
-            width: maxX - minX + COMMUNITY_PADDING * 2,
-            height: maxY - minY + COMMUNITY_PADDING * 2,
+            width: maxX - minX + NODE_WIDTH + COMMUNITY_PADDING * 2,
+            height: maxY - minY + NODE_HEIGHT + COMMUNITY_PADDING * 2,
           },
         });
       }, 50);

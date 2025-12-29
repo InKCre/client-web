@@ -8,8 +8,9 @@
   }
 
   &__hint {
-    font-size: 11px;
-    color: var(--ink-color-text-secondary, #6b7280);
-    padding: 0 4px;
+    @include apply-font(label-sm);
+    font-weight: 400;
+    color: sys-var(color, text, subtle);
+    padding: 0 sys-var(space, xs);
   }
 }

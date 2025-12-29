@@ -1,4 +1,4 @@
-import { ref, watch, onUnmounted, type Ref } from "vue";
+import { ref, watch, onUnmounted, getCurrentInstance, type Ref } from "vue";
 import {
   forceSimulation,
   forceLink,
@@ -101,6 +101,8 @@ export function useForceLayout({
       sim.tick();
       iterationCount++;
     }
+    // Manually emit positions after pre-warm (tick events don't fire for manual ticks)
+    onTick();
 
     isRunning.value = true;
   }
@@ -178,11 +180,13 @@ export function useForceLayout({
     { flush: "post" }
   );
 
-  // Cleanup on unmount
-  onUnmounted(() => {
-    stop();
-    simulation = null;
-  });
+  // Cleanup on unmount (only if called during component setup)
+  if (getCurrentInstance()) {
+    onUnmounted(() => {
+      stop();
+      simulation = null;
+    });
+  }
 
   return {
     isRunning,

@@ -95,11 +95,19 @@ const isPanelOpen = computed({
 });
 
 // Vue Flow instance
-const { onNodeDrag, onNodeDragStart, onNodeDragStop, fitView, zoomIn, zoomOut } =
-  useVueFlow();
+const {
+  onNodeDrag,
+  onNodeDragStart,
+  onNodeDragStop,
+  fitView,
+  zoomIn,
+  zoomOut,
+} = useVueFlow();
 
 // Handle position updates from layouts
-const handlePositionUpdate = (positions: Map<string, { x: number; y: number }>) => {
+const handlePositionUpdate = (
+  positions: Map<string, { x: number; y: number }>
+) => {
   allNodes.value = allNodes.value.map((node) => {
     const pos = positions.get(node.id);
     if (pos) {
@@ -150,15 +158,6 @@ const loadData = async () => {
       source: String(rel.from_),
       target: String(rel.to_),
     }));
-
-    // Apply layout based on current mode
-    if (allNodes.value.length > 0) {
-      if (selectedCommunityId.value === "all") {
-        allCommunitiesLayout.applyLayout();
-      } else {
-        layoutManager.applyLayout();
-      }
-    }
   } catch (error) {
     console.error("Failed to load graph data:", error);
   } finally {
@@ -168,7 +167,9 @@ const loadData = async () => {
 
 // Handle node selection
 const onNodeSelect = (blockId: number) => {
-  const node = allNodes.value.find((n: BlockNode) => n.data?.block.id === blockId);
+  const node = allNodes.value.find(
+    (n: BlockNode) => n.data?.block.id === blockId
+  );
   if (node?.data) {
     selectedBlock.value = node.data.block;
   }
@@ -241,6 +242,18 @@ watch(
     }
   }
 );
+
+// Apply layout when data loading completes
+watch(isLoading, (loading, wasLoading) => {
+  if (!loading && wasLoading && allNodes.value.length > 0) {
+    if (selectedCommunityId.value === "all") {
+      allCommunitiesLayout.applyLayout();
+    } else {
+      layoutManager.applyLayout();
+    }
+    setTimeout(() => fitView(fitViewOptions), 500);
+  }
+});
 
 onMounted(() => {
   loadData();
@@ -319,6 +332,7 @@ onMounted(() => {
           />
         </div>
         <MiniMap
+          v-if="filteredNodes.length > 20"
           :node-color="() => '#3b82f6'"
           :node-stroke-color="() => '#1e40af'"
           :mask-color="'rgba(0, 0, 0, 0.1)'"

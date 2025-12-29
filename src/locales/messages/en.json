@@ -96,6 +96,24 @@
         "nodeCount": "{count} nodes",
         "previous": "Previous Community",
         "next": "Next Community"
+      },
+      "layout": {
+        "auto": "Auto Layout",
+        "force": "Force Directed",
+        "dagre": "Hierarchical",
+        "circular": "Circular",
+        "radial": "Radial",
+        "grid": "Grid",
+        "detected": "Detected"
+      },
+      "topology": {
+        "tree": "Tree",
+        "dag": "DAG",
+        "star": "Star",
+        "linear": "Linear",
+        "cyclic": "Cyclic",
+        "disconnected": "Disconnected",
+        "unknown": "Unknown"
       }
     }
   }
