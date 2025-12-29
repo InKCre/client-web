@@ -5,7 +5,7 @@ import { VueFlow, useVueFlow } from "@vue-flow/core";
 import { Background } from "@vue-flow/background";
 import { MiniMap } from "@vue-flow/minimap";
 import { InkPopup, InkLoading, InkButton } from "@inkcre/web-design";
-import { useElementSize } from "@vueuse/core";
+import { useElementSize, watchDebounced } from "@vueuse/core";
 
 import BlockNodeComponent from "@/components/info-base/BlockNode/BlockNode.vue";
 import RelationEdgeComponent from "@/components/info-base/RelationEdge/RelationEdge.vue";
@@ -15,12 +15,13 @@ import LayoutSelector from "@/components/info-base/LayoutSelector/LayoutSelector
 
 import { Block } from "@/business/info-base/block";
 import { Relation } from "@/business/info-base/relation";
-import { resolverRegistry } from "@/business/info-base/resolver";
+import { resolverManager } from "@/business/info-base/resolver";
 import { LayoutType } from "@/business/info-base/graph/layout-types";
 
 import { useLayoutManager } from "@/composables/useLayoutManager";
 import { useAllCommunitiesLayout } from "@/composables/useAllCommunitiesLayout";
 import { useCommunityDetection } from "@/composables/useCommunityDetection";
+import { provideNodeLoadingTracker } from "@/composables/useNodeLoadingTracker";
 import type { Node, Edge } from "@vue-flow/core";
 import {
   blockToNode,
@@ -135,6 +136,37 @@ const allCommunitiesLayout = useAllCommunitiesLayout({
   onPositionUpdate: handlePositionUpdate,
 });
 
+// Node loading tracker for re-layout after content loads
+const { isAllLoaded, reset: resetLoadingTracker } = provideNodeLoadingTracker();
+const hasAppliedInitialLayout = ref(false);
+
+// Re-layout when all node content has finished loading
+watchDebounced(
+  isAllLoaded,
+  (allLoaded) => {
+    if (
+      allLoaded &&
+      hasAppliedInitialLayout.value &&
+      filteredNodes.value.length > 0
+    ) {
+      // Re-apply layout with actual node sizes
+      if (selectedCommunityId.value === "all") {
+        allCommunitiesLayout.applyLayout();
+      } else {
+        layoutManager.applyLayout();
+      }
+      setTimeout(() => fitView(fitViewOptions), 300);
+    }
+  },
+  { debounce: 100 }
+);
+
+// Reset tracker when community changes
+watch(selectedCommunityId, () => {
+  resetLoadingTracker();
+  hasAppliedInitialLayout.value = false;
+});
+
 // Load data
 const loadData = async () => {
   isLoading.value = true;
@@ -147,7 +179,7 @@ const loadData = async () => {
 
     // Transform blocks to nodes
     allNodes.value = blocks.map((block) => {
-      const resolver = resolverRegistry.get(block.resolver);
+      const resolver = resolverManager.get(block.resolver);
       const preview = resolver.preview(block.content, 50);
       return blockToNode(block, preview);
     });
@@ -246,6 +278,7 @@ watch(
 // Apply layout when data loading completes
 watch(isLoading, (loading, wasLoading) => {
   if (!loading && wasLoading && allNodes.value.length > 0) {
+    hasAppliedInitialLayout.value = true;
     if (selectedCommunityId.value === "all") {
       allCommunitiesLayout.applyLayout();
     } else {

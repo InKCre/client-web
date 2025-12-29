@@ -25,7 +25,4 @@
 - [ ] i18n skill
 - [ ] View
 - [ ] Component skill (全部丢进去，真的很占上下文，有8个references，你敢想象吗)
-- Info-Base Graph
-  - Edge 要有箭头显示方向
-  - 更换布局模式
-  - `utils/graph` -> `business/info-base/graph`
+- [ ] Resolver 与插件机制

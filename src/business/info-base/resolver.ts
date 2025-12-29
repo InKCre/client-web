@@ -1,144 +1,258 @@
 /**
  * Resolver System for Info-Base Blocks
  *
- * Resolvers provide a unified interface to parse and display different types of block content.
+ * Resolvers provide a unified interface to parse, display, and render block content.
  * Each block specifies its resolver via the `resolver` field.
- * Resolvers can be extended through plugins.
+ * Resolvers can be extended through extensions (Module Federation).
+ *
+ * Architecture aligned with core-py:
+ * - Resolver interface with type, getText(), preview(), resolve()
+ * - ResolverManager for registration and lookup
+ * - Frontend-specific: inGraph component for graph node rendering
  */
+
+import type { Component } from "vue";
+import type { Block } from "./block";
+import { storageManager } from "./storage";
+
+// ============================================================================
+// Rendered Content Types
+// ============================================================================
 
 export interface RenderedContent {
   type: "text" | "html" | "markdown";
   html: string;
 }
 
-export interface BlockResolver {
-  /**
-   * Resolve block content into renderable HTML
-   * @param content - The raw content string from the block
-   * @returns Promise resolving to rendered content
-   */
-  resolve(content: string): Promise<RenderedContent>;
-
-  /**
-   * Generate a preview of the block content (for node display)
-   * @param content - The raw content string from the block
-   * @param maxLength - Maximum length of preview text (default: 50)
-   * @returns Truncated preview string
-   */
-  preview(content: string, maxLength?: number): string;
-}
+// ============================================================================
+// InGraph Component Props
+// ============================================================================
 
 /**
- * Text Resolver - Default resolver for plain text content
+ * Props passed to inGraph Vue components.
+ * These components render block content within graph nodes.
  */
-export class TextResolver implements BlockResolver {
-  async resolve(content: string): Promise<RenderedContent> {
-    return {
-      type: "text",
-      html: this.escapeHtml(content),
-    };
+export interface InGraphProps<RawContentT = unknown> {
+  /** The block being rendered */
+  block: Block;
+  /** Raw content after storage retrieval */
+  rawContent: RawContentT;
+  /** Whether the node is currently selected */
+  isSelected?: boolean;
+  /** Maximum width for the component (in px) */
+  maxWidth?: number;
+  /** Maximum height for the component (in px) */
+  maxHeight?: number;
+}
+
+// ============================================================================
+// Resolver Interface
+// ============================================================================
+
+/**
+ * Interface for block resolvers.
+ * Each resolver handles a specific content type (text, image, video, html, etc.)
+ *
+ * Generic parameter RawContentT represents the type of content after storage retrieval.
+ * For text resolver, this is typically string.
+ * For image resolver, this could be ImageContent from storage.
+ */
+export interface Resolver<RawContentT = string> {
+  /**
+   * The resolver type identifier (e.g., "text", "image", "video", "html")
+   * Used for registration and lookup.
+   */
+  readonly type: string;
+
+  /**
+   * Vue component for rendering in graph nodes.
+   * Receives InGraphProps as props.
+   */
+  readonly inGraph: Component;
+
+  /**
+   * Get raw content for a block.
+   * Uses storage if configured, otherwise returns block.content.
+   * @param block - The block to get content for
+   */
+  getRawContent(block: Block): Promise<RawContentT>;
+
+  /**
+   * Get text representation of the content.
+   * Used for search, indexing, and accessibility.
+   * @param rawContent - The raw content after storage retrieval
+   */
+  getText(rawContent: RawContentT): string;
+
+  /**
+   * Generate a preview string for node display.
+   * @param rawContent - The raw content after storage retrieval
+   * @param maxLength - Maximum length of preview text (default: 50)
+   */
+  preview(rawContent: RawContentT, maxLength?: number): string;
+
+  /**
+   * Resolve content into renderable HTML.
+   * Used for detail panels and full content display.
+   * @param rawContent - The raw content after storage retrieval
+   */
+  resolve(rawContent: RawContentT): Promise<RenderedContent>;
+}
+
+// ============================================================================
+// Base Resolver Class
+// ============================================================================
+
+/**
+ * Abstract base class for resolver implementations.
+ * Provides common functionality and default implementations.
+ */
+export abstract class BaseResolver<RawContentT = string>
+  implements Resolver<RawContentT>
+{
+  abstract readonly type: string;
+  abstract readonly inGraph: Component;
+
+  /**
+   * Default implementation uses storageManager to get raw content.
+   * Override if resolver needs custom content retrieval logic.
+   */
+  async getRawContent(block: Block): Promise<RawContentT> {
+    return (await storageManager.getRawContent(block)) as RawContentT;
   }
 
-  preview(content: string, maxLength: number = 50): string {
-    const trimmed = content.trim();
+  abstract getText(rawContent: RawContentT): string;
+  abstract preview(rawContent: RawContentT, maxLength?: number): string;
+  abstract resolve(rawContent: RawContentT): Promise<RenderedContent>;
+
+  /**
+   * Utility method to escape HTML in text content.
+   */
+  protected escapeHtml(text: string): string {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  /**
+   * Utility method to truncate text with ellipsis.
+   */
+  protected truncate(text: string, maxLength: number = 50): string {
+    const trimmed = text.trim();
     if (trimmed.length <= maxLength) {
       return trimmed;
     }
     return trimmed.slice(0, maxLength) + "...";
   }
-
-  private escapeHtml(text: string): string {
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
-  }
 }
 
-/**
- * Markdown Resolver - Parse and render markdown content
- * Note: For now this is a simplified version. A full implementation would use a markdown parser.
- */
-export class MarkdownResolver implements BlockResolver {
-  async resolve(content: string): Promise<RenderedContent> {
-    // TODO: Integrate a markdown parser library (e.g., marked, markdown-it)
-    // For now, just escape HTML and preserve line breaks
-    const escapedHtml = this.escapeHtml(content);
-    const htmlWithBreaks = escapedHtml.replace(/\n/g, "<br>");
+// ============================================================================
+// Resolver Manager
+// ============================================================================
 
-    return {
-      type: "markdown",
-      html: htmlWithBreaks,
-    };
-  }
-
-  preview(content: string, maxLength: number = 50): string {
-    // Strip common markdown syntax for preview
-    const plainText = content
-      .replace(/^#+\s+/gm, "") // Remove headers
-      .replace(/\*\*(.+?)\*\*/g, "$1") // Remove bold
-      .replace(/\*(.+?)\*/g, "$1") // Remove italic
-      .replace(/\[(.+?)\]\(.+?\)/g, "$1") // Keep link text only
-      .replace(/`(.+?)`/g, "$1") // Remove inline code
-      .trim();
-
-    if (plainText.length <= maxLength) {
-      return plainText;
-    }
-    return plainText.slice(0, maxLength) + "...";
-  }
-
-  private escapeHtml(text: string): string {
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
-  }
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyResolver = Resolver<any>;
 
 /**
- * Resolver Registry - Central registry for all block resolvers
+ * Central manager for resolver registration and lookup.
+ * Aligned with core-py's ResolverManager.
  */
-export class ResolverRegistry {
-  private resolvers: Map<string, BlockResolver> = new Map();
+export class ResolverManager {
+  private resolvers: Map<string, AnyResolver> = new Map();
+  private defaultResolver: AnyResolver | null = null;
 
   /**
-   * Register a new resolver
-   * @param name - Resolver name (used in block.resolver field)
+   * Register a resolver.
+   * @param resolver - The resolver instance (uses resolver.type as key)
+   */
+  register(resolver: AnyResolver): void {
+    this.resolvers.set(resolver.type, resolver);
+
+    // First registered resolver becomes default
+    if (!this.defaultResolver) {
+      this.defaultResolver = resolver;
+    }
+  }
+
+  /**
+   * Register a resolver with explicit type key.
+   * @param type - The type identifier
    * @param resolver - The resolver instance
    */
-  register(name: string, resolver: BlockResolver): void {
-    this.resolvers.set(name, resolver);
+  registerWithType(type: string, resolver: AnyResolver): void {
+    this.resolvers.set(type, resolver);
+
+    if (!this.defaultResolver) {
+      this.defaultResolver = resolver;
+    }
   }
 
   /**
-   * Get a resolver by name
-   * @param name - Resolver name
-   * @returns The resolver instance, or TextResolver as fallback
+   * Set the default resolver used when lookup fails.
+   * @param type - The type of the resolver to use as default
    */
-  get(name: string): BlockResolver {
-    return this.resolvers.get(name) || this.resolvers.get("text")!;
+  setDefault(type: string): void {
+    const resolver = this.resolvers.get(type);
+    if (resolver) {
+      this.defaultResolver = resolver;
+    }
   }
 
   /**
-   * Check if a resolver is registered
-   * @param name - Resolver name
-   * @returns true if registered
+   * Get a resolver by type.
+   * Returns default resolver (typically "text") if not found.
+   * @param type - The resolver type identifier
    */
-  has(name: string): boolean {
-    return this.resolvers.has(name);
+  get(type: string): AnyResolver {
+    return this.resolvers.get(type) || this.defaultResolver!;
   }
 
   /**
-   * Get all registered resolver names
-   * @returns Array of resolver names
+   * Check if a resolver is registered.
+   * @param type - The resolver type identifier
    */
-  getRegisteredResolvers(): string[] {
+  has(type: string): boolean {
+    return this.resolvers.has(type);
+  }
+
+  /**
+   * Get all registered resolver types.
+   */
+  getRegisteredTypes(): string[] {
     return Array.from(this.resolvers.keys());
+  }
+
+  /**
+   * Find resolvers that can handle specific content.
+   * Useful for auto-detection of resolver type.
+   */
+  findByContent(content: string): AnyResolver[] {
+    // For now, return all resolvers. Extensions can implement
+    // more sophisticated content-based matching.
+    return Array.from(this.resolvers.values());
   }
 }
 
-// Global resolver registry instance
-export const resolverRegistry = new ResolverRegistry();
+// Global resolver manager instance
+export const resolverManager = new ResolverManager();
 
-// Register default resolvers
-resolverRegistry.register("text", new TextResolver());
-resolverRegistry.register("markdown", new MarkdownResolver());
+// ============================================================================
+// Legacy Exports (for backward compatibility)
+// ============================================================================
+
+/**
+ * @deprecated Use Resolver interface instead
+ */
+export type BlockResolver = Resolver;
+
+/**
+ * @deprecated Use ResolverManager instead
+ */
+export class ResolverRegistry extends ResolverManager {
+  /**
+   * @deprecated Use register(resolver) or registerWithType(type, resolver)
+   */
+  registerLegacy(name: string, resolver: Resolver): void {
+    this.registerWithType(name, resolver);
+  }
+}

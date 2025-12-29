@@ -1,18 +1,39 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { Handle, Position } from "@vue-flow/core";
+import { computed, onUnmounted } from "vue";
 import type { BlockNodeProps } from "./BlockNode";
 import { blockNodeEmits } from "./BlockNode";
+import { useBlockContent } from "@/composables/useBlockContent";
+import { useNodeLoadingReporter } from "@/composables/useNodeLoadingTracker";
 
 const props = defineProps<BlockNodeProps>();
 const emit = defineEmits(blockNodeEmits);
 
-const preview = computed(() => props.data.preview);
-const blockId = computed(() => props.data.block.id);
-const resolverType = computed(() => props.data.block.resolver);
+const block = computed(() => props.data.block);
+const resolverType = computed(() => block.value.resolver);
+const nodeId = computed(() => String(block.value.id));
+
+// Get loading tracker (may be null if not provided by parent)
+const loadingTracker = useNodeLoadingReporter();
+
+// Use the composable to get raw content and resolver
+const { rawContent, resolver, isLoading } = useBlockContent({
+  block,
+  autoFetch: true,
+  onLoadingChange: (loading) => {
+    loadingTracker?.setLoading(nodeId.value, loading);
+  },
+});
+
+// Cleanup: remove from tracking when node unmounts
+onUnmounted(() => {
+  loadingTracker?.untrack(nodeId.value);
+});
+
+// Fallback preview from props (pre-computed at graph level)
+const fallbackPreview = computed(() => props.data.preview);
 
 const onNodeClick = () => {
-  emit("select", blockId.value);
+  emit("select", block.value.id);
 };
 </script>
 
@@ -22,9 +43,29 @@ const onNodeClick = () => {
     :class="{ 'block-node--selected': selected }"
     @click="onNodeClick"
   >
-    <div class="block-node__content">
+    <!-- Loading state -->
+    <div v-if="isLoading" class="block-node__content">
       <div class="block-node__resolver">{{ resolverType }}</div>
-      <div class="block-node__preview">{{ preview }}</div>
+      <div class="block-node__preview block-node__preview--loading">
+        Loading...
+      </div>
+    </div>
+
+    <!-- Dynamic inGraph component -->
+    <component
+      v-else-if="rawContent !== null && resolver.inGraph"
+      :is="resolver.inGraph"
+      :block="block"
+      :raw-content="rawContent"
+      :is-selected="selected"
+      :max-width="200"
+      :max-height="150"
+    />
+
+    <!-- Fallback to static preview -->
+    <div v-else class="block-node__content">
+      <div class="block-node__resolver">{{ resolverType }}</div>
+      <div class="block-node__preview">{{ fallbackPreview }}</div>
     </div>
   </div>
 </template>

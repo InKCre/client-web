@@ -2,7 +2,7 @@
 import { computed, ref, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { InkButton, InkField } from "@inkcre/web-design";
-import { resolverRegistry } from "@/business/info-base/resolver";
+import { resolverManager } from "@/business/info-base/resolver";
 import type { BlockDetailsPanelProps } from "./BlockDetailsPanel";
 import { blockDetailsPanelEmits } from "./BlockDetailsPanel";
 import dayjs from "dayjs";
@@ -13,14 +13,18 @@ const { t } = useI18n();
 
 const renderedContent = ref<string>("");
 
-const resolver = computed(() => resolverRegistry.get(props.block.resolver));
+const resolver = computed(() => resolverManager.get(props.block.resolver));
 
 const formattedCreatedAt = computed(() =>
-  props.block.created_at ? dayjs(props.block.created_at).format("YYYY-MM-DD HH:mm") : "-"
+  props.block.created_at
+    ? dayjs(props.block.created_at).format("YYYY-MM-DD HH:mm")
+    : "-"
 );
 
 const formattedUpdatedAt = computed(() =>
-  props.block.updated_at ? dayjs(props.block.updated_at).format("YYYY-MM-DD HH:mm") : "-"
+  props.block.updated_at
+    ? dayjs(props.block.updated_at).format("YYYY-MM-DD HH:mm")
+    : "-"
 );
 
 const loadContent = async () => {
@@ -54,7 +58,7 @@ onMounted(() => {
       <InkButton
         icon="i-mdi-close"
         theme="subtle"
-        size="sm"
+        type="square"
         @click="onClose"
       />
     </div>
@@ -65,7 +69,9 @@ onMounted(() => {
       </InkField>
 
       <InkField :label="t('infoBase.blockDetails.resolver')" layout="inline">
-        <span class="block-details-panel__value block-details-panel__value--resolver">
+        <span
+          class="block-details-panel__value block-details-panel__value--resolver"
+        >
           {{ block.resolver }}
         </span>
       </InkField>
@@ -78,7 +84,11 @@ onMounted(() => {
         <span class="block-details-panel__value">{{ formattedUpdatedAt }}</span>
       </InkField>
 
-      <InkField v-if="block.storage" :label="t('infoBase.blockDetails.storage')" layout="inline">
+      <InkField
+        v-if="block.storage"
+        :label="t('infoBase.blockDetails.storage')"
+        layout="inline"
+      >
         <span class="block-details-panel__value">#{{ block.storage }}</span>
       </InkField>
 

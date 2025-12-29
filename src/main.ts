@@ -17,6 +17,12 @@ app.use(i18n);
 app.use(store);
 app.use(router);
 
+import { registerBuiltinStorages } from "@/business/info-base/storages";
+import { registerBuiltinResolvers } from "@/business/info-base/resolvers";
+
+registerBuiltinStorages();
+registerBuiltinResolvers();
+
 createInstance({
   name: "host",
   remotes: [],
