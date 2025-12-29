@@ -23,12 +23,12 @@ export interface UseAllCommunitiesLayoutOptions {
   onPositionUpdate: (positions: Map<string, { x: number; y: number }>) => void;
 }
 
-const COMMUNITY_PADDING = 60;
-const COMMUNITY_GAP = 120;
+const COMMUNITY_PADDING = 80; // Increased for better edge-node separation
+const COMMUNITY_GAP = 180; // Increased to prevent edge overlap between communities
 const NODE_WIDTH = 200;
-const NODE_HEIGHT = 100;
-const INTRA_COMMUNITY_BASE_SIZE = 400;
-const LAYOUT_TARGET_SIZE = 1500;
+const NODE_HEIGHT = 150;
+const INTRA_COMMUNITY_BASE_SIZE = 500; // Increased for better spacing within communities
+const LAYOUT_TARGET_SIZE = 2000; // Increased for overall layout breathing room
 
 export function useAllCommunitiesLayout(
   options: UseAllCommunitiesLayoutOptions
@@ -93,7 +93,7 @@ export function useAllCommunitiesLayout(
     const rangeY = maxY - minY || 1;
 
     // Scale based on community size - larger communities get more space
-    const targetSize = Math.sqrt(n) * 150 + INTRA_COMMUNITY_BASE_SIZE;
+    const targetSize = Math.sqrt(n) * 200 + INTRA_COMMUNITY_BASE_SIZE;
     const scale = Math.min(
       (targetSize - 2 * COMMUNITY_PADDING) / rangeX,
       (targetSize - 2 * COMMUNITY_PADDING) / rangeY

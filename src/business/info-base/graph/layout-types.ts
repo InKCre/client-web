@@ -130,23 +130,23 @@ export interface LayoutSelection {
  */
 export const DEFAULT_DAGRE_CONFIG: Required<Omit<DagreLayoutConfig, keyof BaseLayoutConfig>> = {
   direction: LayoutDirection.TopToBottom,
-  nodeSep: 50,
-  rankSep: 80,
-  edgeSep: 10,
+  nodeSep: 100, // Increased to prevent edge-node overlap (nodes are up to 200px wide)
+  rankSep: 120, // Increased to give more vertical space for edge routing
+  edgeSep: 20, // Increased to give more space between edges
   align: "UL",
   ranker: "network-simplex",
 };
 
 export const DEFAULT_CIRCULAR_CONFIG: Required<Omit<CircularLayoutConfig, keyof BaseLayoutConfig>> = {
-  radius: 200,
+  radius: 300, // Increased for better edge-node separation
   startAngle: 0,
   endAngle: 2 * Math.PI,
   clockwise: true,
 };
 
 export const DEFAULT_RADIAL_CONFIG: Required<Omit<RadialLayoutConfig, keyof BaseLayoutConfig | "centerNodeId">> = {
-  levelSep: 150,
-  minRadius: 100,
+  levelSep: 200, // Increased for better edge-node separation
+  minRadius: 150, // Increased to account for node size
 };
 
 export const DEFAULT_GRID_CONFIG: Required<Omit<GridLayoutConfig, keyof BaseLayoutConfig>> = {

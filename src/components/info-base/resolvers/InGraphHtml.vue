@@ -52,7 +52,7 @@ function stripHtml(html: string): string {
   <div
     class="in-graph-html"
     :class="{ 'in-graph-html--selected': isSelected }"
-    :style="{ maxWidth: `${maxWidth}px` }"
+    :style="{ maxWidth: `${maxWidth}px`, maxHeight: `${maxHeight}px` }"
   >
     <div class="in-graph-html__badge">HTML</div>
     <div
@@ -72,6 +72,7 @@ function stripHtml(html: string): string {
   padding: sys-var(space, sm) sys-var(space, md);
   background: sys-var(color, surface, base);
   min-width: 80px;
+  overflow: hidden;
 
   &--selected {
     box-shadow: 0 0 0 2px sys-var(color, border, primary);

@@ -17,7 +17,7 @@ const sidebarExpanded = ref(false);
   <div class="app">
     <InkHeader
       title="InKCre"
-      logo-src="src/static/logo/32.svg"
+      logo-src="/src/static/logo/32.svg"
       @menu-click="sidebarExpanded = !sidebarExpanded"
       @title-click="router.push('/')"
     />

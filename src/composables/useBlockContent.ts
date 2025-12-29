@@ -14,8 +14,6 @@ export interface UseBlockContentOptions {
   block: Ref<Block> | ComputedRef<Block>;
   /** Whether to auto-fetch content on mount/change (default: true) */
   autoFetch?: boolean;
-  /** Callback when loading state changes */
-  onLoadingChange?: (isLoading: boolean) => void;
 }
 
 export interface UseBlockContentReturn {
@@ -48,16 +46,11 @@ export interface UseBlockContentReturn {
 export function useBlockContent(
   options: UseBlockContentOptions
 ): UseBlockContentReturn {
-  const { block, autoFetch = true, onLoadingChange } = options;
+  const { block, autoFetch = true } = options;
 
   const rawContent = ref<unknown>(null);
   const isLoading = ref(false);
   const error = ref<Error | null>(null);
-
-  // Notify parent of loading state changes
-  if (onLoadingChange) {
-    watch(isLoading, (val) => onLoadingChange(val), { immediate: true });
-  }
 
   const resolver = computed(() => {
     return resolverManager.get(block.value.resolver);

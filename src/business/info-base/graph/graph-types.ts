@@ -72,9 +72,9 @@ export const DEFAULT_FORCE_CONFIG: Required<
   Omit<ForceLayoutConfig, "width" | "height">
 > = {
   centerForce: 0.3,
-  chargeForce: -600,
-  linkDistance: 200,
-  collideRadius: 120,
+  chargeForce: -800, // Increased repulsion to push nodes further apart
+  linkDistance: 250, // Increased to give more room for edge routing
+  collideRadius: 150, // Increased to account for node size (max 200x150)
   collideStrength: 1.0,
   collideIterations: 10,
   alphaDecay: 0.02,

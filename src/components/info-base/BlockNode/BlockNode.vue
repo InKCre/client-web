@@ -1,32 +1,20 @@
 <script setup lang="ts">
-import { computed, onUnmounted } from "vue";
+import { computed } from "vue";
+import { Handle, Position } from "@vue-flow/core";
 import type { BlockNodeProps } from "./BlockNode";
 import { blockNodeEmits } from "./BlockNode";
 import { useBlockContent } from "@/composables/useBlockContent";
-import { useNodeLoadingReporter } from "@/composables/useNodeLoadingTracker";
 
 const props = defineProps<BlockNodeProps>();
 const emit = defineEmits(blockNodeEmits);
 
 const block = computed(() => props.data.block);
 const resolverType = computed(() => block.value.resolver);
-const nodeId = computed(() => String(block.value.id));
-
-// Get loading tracker (may be null if not provided by parent)
-const loadingTracker = useNodeLoadingReporter();
 
 // Use the composable to get raw content and resolver
 const { rawContent, resolver, isLoading } = useBlockContent({
   block,
   autoFetch: true,
-  onLoadingChange: (loading) => {
-    loadingTracker?.setLoading(nodeId.value, loading);
-  },
-});
-
-// Cleanup: remove from tracking when node unmounts
-onUnmounted(() => {
-  loadingTracker?.untrack(nodeId.value);
 });
 
 // Fallback preview from props (pre-computed at graph level)
@@ -38,6 +26,12 @@ const onNodeClick = () => {
 </script>
 
 <template>
+  <!-- Handles for edge connections - positioned at all sides for flexible routing -->
+  <Handle type="target" :position="Position.Top" class="block-node__handle" />
+  <Handle type="target" :position="Position.Left" class="block-node__handle" />
+  <Handle type="source" :position="Position.Bottom" class="block-node__handle" />
+  <Handle type="source" :position="Position.Right" class="block-node__handle" />
+
   <div
     class="block-node"
     :class="{ 'block-node--selected': selected }"

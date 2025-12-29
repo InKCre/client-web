@@ -5,7 +5,7 @@ import { VueFlow, useVueFlow } from "@vue-flow/core";
 import { Background } from "@vue-flow/background";
 import { MiniMap } from "@vue-flow/minimap";
 import { InkPopup, InkLoading, InkButton } from "@inkcre/web-design";
-import { useElementSize, watchDebounced } from "@vueuse/core";
+import { useElementSize } from "@vueuse/core";
 
 import BlockNodeComponent from "@/components/info-base/BlockNode/BlockNode.vue";
 import RelationEdgeComponent from "@/components/info-base/RelationEdge/RelationEdge.vue";
@@ -21,7 +21,6 @@ import { LayoutType } from "@/business/info-base/graph/layout-types";
 import { useLayoutManager } from "@/composables/useLayoutManager";
 import { useAllCommunitiesLayout } from "@/composables/useAllCommunitiesLayout";
 import { useCommunityDetection } from "@/composables/useCommunityDetection";
-import { provideNodeLoadingTracker } from "@/composables/useNodeLoadingTracker";
 import type { Node, Edge } from "@vue-flow/core";
 import {
   blockToNode,
@@ -136,37 +135,6 @@ const allCommunitiesLayout = useAllCommunitiesLayout({
   onPositionUpdate: handlePositionUpdate,
 });
 
-// Node loading tracker for re-layout after content loads
-const { isAllLoaded, reset: resetLoadingTracker } = provideNodeLoadingTracker();
-const hasAppliedInitialLayout = ref(false);
-
-// Re-layout when all node content has finished loading
-watchDebounced(
-  isAllLoaded,
-  (allLoaded) => {
-    if (
-      allLoaded &&
-      hasAppliedInitialLayout.value &&
-      filteredNodes.value.length > 0
-    ) {
-      // Re-apply layout with actual node sizes
-      if (selectedCommunityId.value === "all") {
-        allCommunitiesLayout.applyLayout();
-      } else {
-        layoutManager.applyLayout();
-      }
-      setTimeout(() => fitView(fitViewOptions), 300);
-    }
-  },
-  { debounce: 100 }
-);
-
-// Reset tracker when community changes
-watch(selectedCommunityId, () => {
-  resetLoadingTracker();
-  hasAppliedInitialLayout.value = false;
-});
-
 // Load data
 const loadData = async () => {
   isLoading.value = true;
@@ -278,12 +246,21 @@ watch(
 // Apply layout when data loading completes
 watch(isLoading, (loading, wasLoading) => {
   if (!loading && wasLoading && allNodes.value.length > 0) {
-    hasAppliedInitialLayout.value = true;
     if (selectedCommunityId.value === "all") {
       allCommunitiesLayout.applyLayout();
     } else {
       layoutManager.applyLayout();
     }
+    setTimeout(() => fitView(fitViewOptions), 500);
+  }
+});
+
+// Set first community as default when communities are detected
+watch(communityMetadata, (metadata) => {
+  if (metadata.length > 0 && selectedCommunityId.value === "all") {
+    const firstCommunity = metadata[0];
+    selectedCommunityId.value = firstCommunity.id;
+    layoutManager.applyLayout();
     setTimeout(() => fitView(fitViewOptions), 500);
   }
 });

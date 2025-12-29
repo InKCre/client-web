@@ -22,7 +22,7 @@ const displayText = computed(() => {
   <div
     class="in-graph-text"
     :class="{ 'in-graph-text--selected': isSelected }"
-    :style="{ maxWidth: `${maxWidth}px` }"
+    :style="{ maxWidth: `${maxWidth}px`, maxHeight: `${maxHeight}px` }"
   >
     <div class="in-graph-text__content">{{ displayText }}</div>
   </div>
@@ -33,6 +33,7 @@ const displayText = computed(() => {
   padding: sys-var(space, sm) sys-var(space, md);
   background: sys-var(color, surface, base);
   min-width: 80px;
+  overflow: hidden;
 
   &--selected {
     box-shadow: 0 0 0 2px sys-var(color, border, primary);
