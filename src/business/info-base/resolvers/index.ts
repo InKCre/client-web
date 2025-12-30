@@ -1,18 +1,23 @@
 /**
  * Built-in Resolvers Registration
  *
- * This module exports all built-in resolvers and provides
- * a function to register them with the global ResolverManager.
+ * This module imports all built-in resolvers to trigger their decorator registration,
+ * and provides a function to set the default resolver.
  */
 
 import { resolverManager } from "../resolver";
-import { TextResolver } from "./text";
-import { ImageResolver } from "./image";
-import { VideoResolver } from "./video";
-import { HtmlResolver } from "./html";
+
+// Import resolvers to trigger @ResolverManager.registry() decorator registration
+import "./text";
+import "./image";
+import "./video";
+import "./html";
 
 // Export resolver classes for external use
-export { TextResolver, ImageResolver, VideoResolver, HtmlResolver };
+export { TextResolver } from "./text";
+export { ImageResolver } from "./image";
+export { VideoResolver } from "./video";
+export { HtmlResolver } from "./html";
 
 // Export content types
 export type { ImageRawContent } from "./image";
@@ -20,17 +25,10 @@ export type { VideoRawContent } from "./video";
 export type { HtmlRawContent } from "./html";
 
 /**
- * Register all built-in resolvers with the global ResolverManager.
+ * Initialize built-in resolvers.
+ * The decorators auto-register on import, but we set text as default.
  * Call this during application initialization.
  */
-export function registerBuiltinResolvers(): void {
-  const textResolver = new TextResolver();
-
-  resolverManager.register(textResolver);
-  resolverManager.register(new ImageResolver());
-  resolverManager.register(new VideoResolver());
-  resolverManager.register(new HtmlResolver());
-
-  // Set text as default resolver
+export function initBuiltinResolvers(): void {
   resolverManager.setDefault("text");
 }

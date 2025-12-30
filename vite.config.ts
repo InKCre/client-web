@@ -25,7 +25,11 @@ export default defineConfig({
     preprocessorOptions: {
       scss: {
         additionalData: (source, file) => {
-          if (file.includes("src/components/") || file.includes("src/views/")) {
+          if (
+            file.includes("src/components/") ||
+            file.includes("src/views/") ||
+            file.includes("src/extensions/")
+          ) {
             return `@use "@inkcre/web-design/styles/mixins" as *;@use "@inkcre/web-design/styles/functions" as *;@use "@/styles/index.scss" as *;${source}`;
           }
           return source;

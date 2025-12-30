@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Z } from "zod-class";
 import { DBAPIClient, CoreAPIClient } from "../api";
-import { BlockRefZ } from "./block";
+import { BlockRefZ, type BlockRef } from "./block";
 import { makeNumberProp, makeObjectProp } from "@/utils/vue-props";
 
 export type RelationRef = number;
@@ -30,6 +30,35 @@ export class Relation extends Z.class({
 
   static async getAll(): Promise<Relation[]> {
     return (await this.dbApi.from().select()).data!.map((d) => new Relation(d));
+  }
+
+  /**
+   * Get all relations for a block (where block is from_ or to_).
+   * @param blockId - The block ID to find relations for
+   */
+  static async getByBlock(blockId: BlockRef): Promise<Relation[]> {
+    const result = await this.dbApi
+      .from()
+      .select()
+      .or(`from_.eq.${blockId},to_.eq.${blockId}`);
+    return result.data!.map((d) => new Relation(d));
+  }
+
+  /**
+   * Get relations by content pattern (e.g., "attachment:photo").
+   * @param blockId - The block ID to find relations for
+   * @param pattern - The content pattern to match (prefix match)
+   */
+  static async getByPattern(
+    blockId: BlockRef,
+    pattern: string
+  ): Promise<Relation[]> {
+    const result = await this.dbApi
+      .from()
+      .select()
+      .or(`from_.eq.${blockId},to_.eq.${blockId}`)
+      .like("content", `${pattern}%`);
+    return result.data!.map((d) => new Relation(d));
   }
 
   public async update(): Promise<Relation> {

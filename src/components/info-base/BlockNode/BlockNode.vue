@@ -3,19 +3,19 @@ import { computed } from "vue";
 import { Handle, Position } from "@vue-flow/core";
 import type { BlockNodeProps } from "./BlockNode";
 import { blockNodeEmits } from "./BlockNode";
-import { useBlockContent } from "@/composables/useBlockContent";
+import { resolverManager } from "@/business/info-base/resolver";
 
 const props = defineProps<BlockNodeProps>();
 const emit = defineEmits(blockNodeEmits);
 
 const block = computed(() => props.data.block);
+const relations = computed(() => props.data.relations);
 const resolverType = computed(() => block.value.resolver);
 
-// Use the composable to get raw content and resolver
-const { rawContent, resolver, isLoading } = useBlockContent({
-  block,
-  autoFetch: true,
-});
+// Create resolver instance with block and relations
+const resolver = computed(() =>
+  resolverManager.createResolver(block.value, relations.value)
+);
 
 // Fallback preview from props (pre-computed at graph level)
 const fallbackPreview = computed(() => props.data.preview);
@@ -37,26 +37,17 @@ const onNodeClick = () => {
     :class="{ 'block-node--selected': selected }"
     @click="onNodeClick"
   >
-    <!-- Loading state -->
-    <div v-if="isLoading" class="block-node__content">
-      <div class="block-node__resolver">{{ resolverType }}</div>
-      <div class="block-node__preview block-node__preview--loading">
-        Loading...
-      </div>
-    </div>
-
-    <!-- Dynamic inGraph component -->
+    <!-- Dynamic contentComp component -->
     <component
-      v-else-if="rawContent !== null && resolver.inGraph"
-      :is="resolver.inGraph"
-      :block="block"
-      :raw-content="rawContent"
+      v-if="resolver.contentComp"
+      :is="resolver.contentComp"
+      :resolver="resolver"
       :is-selected="selected"
       :max-width="200"
       :max-height="150"
     />
 
-    <!-- Fallback to static preview -->
+    <!-- Fallback to static preview if no contentComp -->
     <div v-else class="block-node__content">
       <div class="block-node__resolver">{{ resolverType }}</div>
       <div class="block-node__preview">{{ fallbackPreview }}</div>

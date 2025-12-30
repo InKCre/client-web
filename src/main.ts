@@ -18,10 +18,13 @@ app.use(store);
 app.use(router);
 
 import { registerBuiltinStorages } from "@/business/info-base/storages";
-import { registerBuiltinResolvers } from "@/business/info-base/resolvers";
+import { initBuiltinResolvers } from "@/business/info-base/resolvers";
+
+// Extensions (import triggers decorator registration)
+import "@/extensions/twitter";
 
 registerBuiltinStorages();
-registerBuiltinResolvers();
+initBuiltinResolvers();
 
 createInstance({
   name: "host",

@@ -1,42 +1,31 @@
 /**
  * Resolver System for Info-Base Blocks
  *
- * Resolvers provide a unified interface to parse, display, and render block content.
+ * Resolvers provide a unified interface for block content display.
  * Each block specifies its resolver via the `resolver` field.
  * Resolvers can be extended through extensions (Module Federation).
  *
- * Architecture aligned with core-py:
- * - Resolver interface with type, getText(), preview(), resolve()
- * - ResolverManager for registration and lookup
- * - Frontend-specific: inGraph component for graph node rendering
+ * Architecture:
+ * - Resolver instances are created per-block with StarGraph support (block + relations)
+ * - Each resolver has a contentComp Vue component that handles loading/error states
+ * - ResolverManager stores resolver classes and provides factory methods
  */
 
 import type { Component } from "vue";
 import type { Block } from "./block";
-import { storageManager } from "./storage";
+import type { Relation } from "./relation";
 
 // ============================================================================
-// Rendered Content Types
-// ============================================================================
-
-export interface RenderedContent {
-  type: "text" | "html" | "markdown";
-  html: string;
-}
-
-// ============================================================================
-// InGraph Component Props
+// Content Component Props
 // ============================================================================
 
 /**
- * Props passed to inGraph Vue components.
- * These components render block content within graph nodes.
+ * Props passed to contentComp Vue components.
+ * Components receive the resolver instance and handle their own loading/error states.
  */
-export interface InGraphProps<RawContentT = unknown> {
-  /** The block being rendered */
-  block: Block;
-  /** Raw content after storage retrieval */
-  rawContent: RawContentT;
+export interface ContentCompProps {
+  /** The resolver instance (provides access to block and relations) */
+  resolver: Resolver;
   /** Whether the node is currently selected */
   isSelected?: boolean;
   /** Maximum width for the component (in px) */
@@ -51,52 +40,35 @@ export interface InGraphProps<RawContentT = unknown> {
 
 /**
  * Interface for block resolvers.
- * Each resolver handles a specific content type (text, image, video, html, etc.)
+ * Each resolver handles a specific content type (text, image, video, html, tweet, etc.)
  *
- * Generic parameter RawContentT represents the type of content after storage retrieval.
- * For text resolver, this is typically string.
- * For image resolver, this could be ImageContent from storage.
+ * @template RawContentT - The type of raw content from storage
+ * @template SolvedContentT - The type of content after processing (defaults to RawContentT)
  */
-export interface Resolver<RawContentT = string> {
+export interface Resolver<RawContentT = string, SolvedContentT = RawContentT> {
   /**
-   * The resolver type identifier (e.g., "text", "image", "video", "html")
+   * The resolver type identifier (e.g., "text", "image", "video", "html", "tweet")
    * Used for registration and lookup.
    */
   readonly type: string;
 
   /**
-   * Vue component for rendering in graph nodes.
-   * Receives InGraphProps as props.
+   * Vue component for rendering block content.
+   * Receives ContentCompProps as props.
+   * Handles its own loading/error states internally.
    */
-  readonly inGraph: Component;
+  readonly contentComp: Component;
 
   /**
-   * Get raw content for a block.
-   * Uses storage if configured, otherwise returns block.content.
-   * @param block - The block to get content for
+   * The block this resolver instance is resolving.
    */
-  getRawContent(block: Block): Promise<RawContentT>;
+  readonly block: Block;
 
   /**
-   * Get text representation of the content.
-   * Used for search, indexing, and accessibility.
-   * @param rawContent - The raw content after storage retrieval
+   * Get relations for this block (lazy-loaded).
+   * Subclasses use this for accessing related blocks in StarGraph.
    */
-  getText(rawContent: RawContentT): string;
-
-  /**
-   * Generate a preview string for node display.
-   * @param rawContent - The raw content after storage retrieval
-   * @param maxLength - Maximum length of preview text (default: 50)
-   */
-  preview(rawContent: RawContentT, maxLength?: number): string;
-
-  /**
-   * Resolve content into renderable HTML.
-   * Used for detail panels and full content display.
-   * @param rawContent - The raw content after storage retrieval
-   */
-  resolve(rawContent: RawContentT): Promise<RenderedContent>;
+  getRelations(): Promise<Relation[]>;
 }
 
 // ============================================================================
@@ -105,25 +77,44 @@ export interface Resolver<RawContentT = string> {
 
 /**
  * Abstract base class for resolver implementations.
- * Provides common functionality and default implementations.
+ * Provides common functionality and lazy-loading of relations.
+ *
+ * @template RawContentT - The type of raw content from storage
+ * @template SolvedContentT - The type of content after processing
  */
-export abstract class BaseResolver<RawContentT = string>
-  implements Resolver<RawContentT>
+export abstract class BaseResolver<
+  RawContentT = string,
+  SolvedContentT = RawContentT,
+> implements Resolver<RawContentT, SolvedContentT>
 {
   abstract readonly type: string;
-  abstract readonly inGraph: Component;
+  abstract readonly contentComp: Component;
+
+  readonly block: Block;
+  private _relations: Relation[] | null;
 
   /**
-   * Default implementation uses storageManager to get raw content.
-   * Override if resolver needs custom content retrieval logic.
+   * Create a resolver instance for a block.
+   * @param block - The block to resolve
+   * @param relations - Optional pre-loaded relations (lazy-loads if not provided)
    */
-  async getRawContent(block: Block): Promise<RawContentT> {
-    return (await storageManager.getRawContent(block)) as RawContentT;
+  constructor(block: Block, relations?: Relation[]) {
+    this.block = block;
+    this._relations = relations ?? null; // null means not loaded yet
   }
 
-  abstract getText(rawContent: RawContentT): string;
-  abstract preview(rawContent: RawContentT, maxLength?: number): string;
-  abstract resolve(rawContent: RawContentT): Promise<RenderedContent>;
+  /**
+   * Get relations for this block.
+   * Lazy-loads from Relation.getByBlock() if not provided in constructor.
+   */
+  async getRelations(): Promise<Relation[]> {
+    if (this._relations === null) {
+      // Dynamic import to avoid circular dependency
+      const { Relation } = await import("./relation");
+      this._relations = await Relation.getByBlock(this.block.id);
+    }
+    return this._relations!;
+  }
 
   /**
    * Utility method to escape HTML in text content.
@@ -150,109 +141,103 @@ export abstract class BaseResolver<RawContentT = string>
 // Resolver Manager
 // ============================================================================
 
+/**
+ * Type for resolver classes (constructors).
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AnyResolver = Resolver<any>;
+export type ResolverClass<RawContentT = any, SolvedContentT = any> = new (
+  block: Block,
+  relations?: Relation[]
+) => Resolver<RawContentT, SolvedContentT>;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyResolver = Resolver<any, any>;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyResolverClass = ResolverClass<any, any>;
 
 /**
  * Central manager for resolver registration and lookup.
- * Aligned with core-py's ResolverManager.
+ * Stores resolver classes and provides factory methods.
  */
 export class ResolverManager {
-  private resolvers: Map<string, AnyResolver> = new Map();
-  private defaultResolver: AnyResolver | null = null;
+  private resolverClasses: Map<string, AnyResolverClass> = new Map();
+  private defaultResolverType: string | null = null;
 
   /**
-   * Register a resolver.
-   * @param resolver - The resolver instance (uses resolver.type as key)
+   * Decorator for auto-registering resolver classes.
+   * Usage: @ResolverManager.registry('tweet')
+   *
+   * @param type - The resolver type identifier
    */
-  register(resolver: AnyResolver): void {
-    this.resolvers.set(resolver.type, resolver);
+  static registry(type: string) {
+    return function <T extends AnyResolverClass>(target: T): T {
+      resolverManager.register(type, target);
+      return target;
+    };
+  }
+
+  /**
+   * Register a resolver class.
+   * @param type - The type identifier
+   * @param resolverClass - The resolver class (constructor)
+   */
+  register(type: string, resolverClass: AnyResolverClass): void {
+    this.resolverClasses.set(type, resolverClass);
 
     // First registered resolver becomes default
-    if (!this.defaultResolver) {
-      this.defaultResolver = resolver;
+    if (!this.defaultResolverType) {
+      this.defaultResolverType = type;
     }
   }
 
   /**
-   * Register a resolver with explicit type key.
-   * @param type - The type identifier
-   * @param resolver - The resolver instance
-   */
-  registerWithType(type: string, resolver: AnyResolver): void {
-    this.resolvers.set(type, resolver);
-
-    if (!this.defaultResolver) {
-      this.defaultResolver = resolver;
-    }
-  }
-
-  /**
-   * Set the default resolver used when lookup fails.
+   * Set the default resolver type used when lookup fails.
    * @param type - The type of the resolver to use as default
    */
   setDefault(type: string): void {
-    const resolver = this.resolvers.get(type);
-    if (resolver) {
-      this.defaultResolver = resolver;
+    if (this.resolverClasses.has(type)) {
+      this.defaultResolverType = type;
     }
   }
 
   /**
-   * Get a resolver by type.
-   * Returns default resolver (typically "text") if not found.
+   * Get a resolver class by type.
+   * Returns default resolver class if not found.
    * @param type - The resolver type identifier
    */
-  get(type: string): AnyResolver {
-    return this.resolvers.get(type) || this.defaultResolver!;
+  getClass(type: string): AnyResolverClass {
+    return (
+      this.resolverClasses.get(type) ||
+      this.resolverClasses.get(this.defaultResolverType!)!
+    );
   }
 
   /**
-   * Check if a resolver is registered.
+   * Create a resolver instance for a block.
+   * @param block - The block to resolve
+   * @param relations - Optional pre-loaded relations
+   */
+  createResolver(block: Block, relations?: Relation[]): AnyResolver {
+    const ResolverCls = this.getClass(block.resolver);
+    return new ResolverCls(block, relations);
+  }
+
+  /**
+   * Check if a resolver type is registered.
    * @param type - The resolver type identifier
    */
   has(type: string): boolean {
-    return this.resolvers.has(type);
+    return this.resolverClasses.has(type);
   }
 
   /**
    * Get all registered resolver types.
    */
   getRegisteredTypes(): string[] {
-    return Array.from(this.resolvers.keys());
-  }
-
-  /**
-   * Find resolvers that can handle specific content.
-   * Useful for auto-detection of resolver type.
-   */
-  findByContent(content: string): AnyResolver[] {
-    // For now, return all resolvers. Extensions can implement
-    // more sophisticated content-based matching.
-    return Array.from(this.resolvers.values());
+    return Array.from(this.resolverClasses.keys());
   }
 }
 
 // Global resolver manager instance
 export const resolverManager = new ResolverManager();
-
-// ============================================================================
-// Legacy Exports (for backward compatibility)
-// ============================================================================
-
-/**
- * @deprecated Use Resolver interface instead
- */
-export type BlockResolver = Resolver;
-
-/**
- * @deprecated Use ResolverManager instead
- */
-export class ResolverRegistry extends ResolverManager {
-  /**
-   * @deprecated Use register(resolver) or registerWithType(type, resolver)
-   */
-  registerLegacy(name: string, resolver: Resolver): void {
-    this.registerWithType(name, resolver);
-  }
-}

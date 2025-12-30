@@ -8,6 +8,7 @@ import type { Relation } from "../relation";
 export interface BlockNodeData {
   block: Block;
   preview: string;
+  relations: Relation[];
 }
 
 /**
@@ -88,6 +89,7 @@ export const DEFAULT_FORCE_CONFIG: Required<
 export function blockToNode(
   block: Block,
   preview: string,
+  relations: Relation[],
   position?: { x: number; y: number }
 ): BlockNode {
   return {
@@ -98,6 +100,7 @@ export function blockToNode(
     data: {
       block,
       preview,
+      relations,
     },
   };
 }

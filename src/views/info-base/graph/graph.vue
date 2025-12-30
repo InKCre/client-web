@@ -15,7 +15,6 @@ import LayoutSelector from "@/components/info-base/LayoutSelector/LayoutSelector
 
 import { Block } from "@/business/info-base/block";
 import { Relation } from "@/business/info-base/relation";
-import { resolverManager } from "@/business/info-base/resolver";
 import { LayoutType } from "@/business/info-base/graph/layout-types";
 
 import { useLayoutManager } from "@/composables/useLayoutManager";
@@ -85,11 +84,13 @@ const filteredLinks = computed<SimulationLink[]>(() => {
 
 // Selected block for details panel
 const selectedBlock = ref<Block | null>(null);
+const selectedBlockRelations = ref<Relation[]>([]);
 const isPanelOpen = computed({
   get: () => selectedBlock.value !== null,
   set: (val) => {
     if (!val) {
       selectedBlock.value = null;
+      selectedBlockRelations.value = [];
     }
   },
 });
@@ -145,11 +146,31 @@ const loadData = async () => {
       Relation.getAll(),
     ]);
 
-    // Transform blocks to nodes
+    // Build a map of block relations for quick lookup
+    const blockRelationsMap = new Map<number, Relation[]>();
+    relations.forEach((rel) => {
+      // Add to 'from_' block
+      if (!blockRelationsMap.has(rel.from_)) {
+        blockRelationsMap.set(rel.from_, []);
+      }
+      blockRelationsMap.get(rel.from_)!.push(rel);
+
+      // Add to 'to_' block
+      if (!blockRelationsMap.has(rel.to_)) {
+        blockRelationsMap.set(rel.to_, []);
+      }
+      blockRelationsMap.get(rel.to_)!.push(rel);
+    });
+
+    // Transform blocks to nodes with relations
     allNodes.value = blocks.map((block) => {
-      const resolver = resolverManager.get(block.resolver);
-      const preview = resolver.preview(block.content, 50);
-      return blockToNode(block, preview);
+      const blockRelations = blockRelationsMap.get(block.id) ?? [];
+      // Use block.content as preview (truncated)
+      const preview =
+        block.content.length > 50
+          ? block.content.slice(0, 50) + "..."
+          : block.content;
+      return blockToNode(block, preview, blockRelations);
     });
 
     // Transform relations to edges and links
@@ -172,6 +193,7 @@ const onNodeSelect = (blockId: number) => {
   );
   if (node?.data) {
     selectedBlock.value = node.data.block;
+    selectedBlockRelations.value = node.data.relations;
   }
 };
 
@@ -353,6 +375,7 @@ onMounted(() => {
         <BlockDetailsPanel
           v-if="selectedBlock"
           :block="selectedBlock"
+          :relations="selectedBlockRelations"
           style="width: 400px"
           @close="onPanelClose"
         />

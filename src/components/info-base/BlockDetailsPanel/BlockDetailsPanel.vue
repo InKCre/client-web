@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, watch } from "vue";
+import { computed, onMounted, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { InkButton, InkField } from "@inkcre/web-design";
 import { resolverManager } from "@/business/info-base/resolver";
@@ -7,13 +7,16 @@ import type { BlockDetailsPanelProps } from "./BlockDetailsPanel";
 import { blockDetailsPanelEmits } from "./BlockDetailsPanel";
 import dayjs from "dayjs";
 
-const props = defineProps<BlockDetailsPanelProps>();
+const props = withDefaults(defineProps<BlockDetailsPanelProps>(), {
+  relations: () => [],
+});
 const emit = defineEmits(blockDetailsPanelEmits);
 const { t } = useI18n();
 
-const renderedContent = ref<string>("");
-
-const resolver = computed(() => resolverManager.get(props.block.resolver));
+// Create resolver instance with block and relations
+const resolver = computed(() =>
+  resolverManager.createResolver(props.block, props.relations)
+);
 
 const formattedCreatedAt = computed(() =>
   props.block.created_at
@@ -27,13 +30,6 @@ const formattedUpdatedAt = computed(() =>
     : "-"
 );
 
-const loadContent = async () => {
-  const result = await resolver.value.resolve(props.block.content);
-  renderedContent.value = result.html;
-};
-
-watch(() => props.block, loadContent, { immediate: true });
-
 const onClose = () => {
   emit("close");
 };
@@ -46,6 +42,10 @@ const onKeyDown = (e: KeyboardEvent) => {
 
 onMounted(() => {
   document.addEventListener("keydown", onKeyDown);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("keydown", onKeyDown);
 });
 </script>
 
@@ -96,13 +96,17 @@ onMounted(() => {
         <div class="block-details-panel__content-label">
           {{ t("infoBase.blockDetails.content") }}
         </div>
-        <div
-          v-if="renderedContent"
-          class="block-details-panel__content"
-          v-html="renderedContent"
-        />
-        <div v-else class="block-details-panel__no-content">
-          {{ t("infoBase.blockDetails.noContent") }}
+        <div class="block-details-panel__content">
+          <component
+            v-if="resolver.contentComp"
+            :is="resolver.contentComp"
+            :resolver="resolver"
+            :max-width="360"
+            :max-height="400"
+          />
+          <div v-else class="block-details-panel__no-content">
+            {{ t("infoBase.blockDetails.noContent") }}
+          </div>
         </div>
       </div>
     </div>
