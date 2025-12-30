@@ -12,7 +12,7 @@ export const ExtensionRefZ = z.string();
 export class Extension extends Z.class({
   id: ExtensionRefZ,
   version: z.string(),
-  disabled: z.boolean().optional().default(false),
+  enabled: z.array(z.string()).optional().default([]), // uuid array for client IDs
   nickname: z.string().nullable(),
   config: z.looseObject({}).default({}),
   config_schema: z.looseObject({}).nullable(),
@@ -40,18 +40,26 @@ export class Extension extends Z.class({
     return results.data!.map((item) => new Extension(item));
   }
 
-  async enable(): Promise<Extension> {
+  async enable(clientId: string): Promise<Extension> {
+    const updatedEnabled = [...this.enabled, clientId];
     return Extension.coreApi.request<Extension>({
       method: "PUT",
-      path: `/${this.id}/disabled/false`,
+      path: `/${this.id}/enabled`,
+      body: updatedEnabled,
     });
   }
 
-  async disable(): Promise<Extension> {
+  async disable(clientId: string): Promise<Extension> {
+    const updatedEnabled = this.enabled.filter(id => id !== clientId);
     return Extension.coreApi.request<Extension>({
       method: "PUT",
-      path: `/${this.id}/disabled/true`,
+      path: `/${this.id}/enabled`,
+      body: updatedEnabled,
     });
+  }
+
+  isEnabledForClient(clientId: string): boolean {
+    return this.enabled.includes(clientId);
   }
 
   async updateConfig(config?: Record<string, any>): Promise<Extension> {
@@ -66,21 +74,19 @@ export class Extension extends Z.class({
 export class InstallExtensionForm extends Z.class({
   id: ExtensionRefZ,
   version: z.string().optional(),
-  disabled: z.boolean().optional(),
+  enabled: z.array(z.string()).optional(), // optional initial enabled client IDs
 }) {
   async install(): Promise<Extension> {
     const params = new URLSearchParams();
     if (this.version) {
       params.append("version", this.version);
     }
-    if (this.disabled !== undefined) {
-      params.append("disabled", String(this.disabled));
-    }
 
     const path = `/${this.id}?${params.toString()}`;
     const result = await Extension.coreApi.request<Extension>({
       method: "POST",
       path: path,
+      body: this.enabled ? { enabled: this.enabled } : undefined,
     });
     return new Extension(result);
   }
