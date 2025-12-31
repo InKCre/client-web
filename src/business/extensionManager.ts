@@ -1,4 +1,6 @@
 import { Extension, ExtensionRef } from "./extension";
+import { Client } from "./client";
+import { configUtils } from "@/config";
 
 /**
  * 插件生命周期状态
@@ -159,15 +161,72 @@ export class ExtensionManager {
   }
 
   /**
-   * 并行加载插件（使用 Module Federation）
-   * 这是一个占位实现，实际的 Module Federation 加载逻辑需要根据项目配置
+   * 并行加载插件（使用 Module Federation Runtime）
+   * 使用 @module-federation/runtime 动态加载远程模块
    */
   private async loadExtensionModule(
     instance: ExtensionInstance
   ): Promise<IExtension> {
-    // TODO: 实现实际的 Module Federation 加载逻辑
-    // 例如: const module = await import(`remote_${instance.extension.id}/Extension`);
-    throw new Error("Module Federation loading not implemented yet");
+    const extension = instance.extension;
+
+    // 1. 动态注册远程模块
+    const remoteName = `extension_${extension.id}`;
+    const remoteEntry = extension.config.entry_url as string;
+
+    if (!remoteEntry) {
+      throw new Error(`Extension ${extension.id} has no entry_url configured`);
+    }
+
+    console.log(`[ExtensionManager] Loading remote module: ${remoteName} from ${remoteEntry}`);
+
+    // 2. 使用动态 import 加载远程入口
+    // Module Federation Runtime 会自动处理远程模块的加载
+    try {
+      // 检查是否已经加载过
+      const existingScript = document.querySelector(`script[data-remote="${remoteName}"]`);
+      if (!existingScript) {
+        // 创建 script 标签加载远程入口
+        await this.loadRemoteEntry(remoteName, remoteEntry);
+      }
+
+      // 3. 导入远程模块的 Extension 导出
+      const moduleUrl = `${remoteName}/Extension`;
+      console.log(`[ExtensionManager] Importing module: ${moduleUrl}`);
+
+      // @ts-ignore - 动态 import 的类型无法推断
+      const module = await import(/* @vite-ignore */ moduleUrl);
+
+      // 返回默认导出或命名导出
+      return module.default || module;
+    } catch (error) {
+      console.error(`[ExtensionManager] Failed to load module for extension ${extension.id}:`, error);
+      throw new Error(`Failed to load extension module: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * 加载远程入口文件
+   * 动态创建 script 标签加载远程模块的入口文件
+   */
+  private loadRemoteEntry(remoteName: string, entry: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = entry;
+      script.type = 'module';
+      script.setAttribute('data-remote', remoteName);
+
+      script.onload = () => {
+        console.log(`[ExtensionManager] Remote entry loaded: ${entry}`);
+        resolve();
+      };
+
+      script.onerror = (error) => {
+        console.error(`[ExtensionManager] Failed to load remote entry: ${entry}`, error);
+        reject(new Error(`Failed to load remote entry: ${entry}`));
+      };
+
+      document.head.appendChild(script);
+    });
   }
 
   /**
@@ -457,6 +516,66 @@ export class ExtensionManager {
     // 更新数据库
     const updatedExtension = await instance.extension.disable(this.clientId);
     instance.extension = updatedExtension;
+  }
+
+  /**
+   * 为指定客户端启用插件
+   * 如果是本地客户端，直接调用 enableExtension
+   * 如果是远程客户端，调用远程客户端的 REST API
+   */
+  async enableExtensionForClient(id: ExtensionRef, clientId: string): Promise<void> {
+    console.log(`[ExtensionManager] 为客户端 ${clientId} 启用插件 ${id}`);
+
+    const instance = this.instances.get(id);
+    if (!instance) {
+      throw new Error(`Extension ${id} not found`);
+    }
+
+    // 检查是否为本地客户端
+    if (configUtils.isLocalClient(clientId)) {
+      // 本地客户端，直接激活
+      await this.enableExtension(id);
+    } else {
+      // 远程客户端，调用远程 API
+      const client = await Client.get(clientId);
+      await client.enableExtension(id);
+
+      // 更新本地实例的 extension 对象
+      const updatedExtension = await instance.extension.enable(clientId);
+      instance.extension = updatedExtension;
+    }
+
+    console.log(`[ExtensionManager] 插件 ${id} 已为客户端 ${clientId} 启用`);
+  }
+
+  /**
+   * 为指定客户端禁用插件
+   * 如果是本地客户端，直接调用 disableExtension
+   * 如果是远程客户端，调用远程客户端的 REST API
+   */
+  async disableExtensionForClient(id: ExtensionRef, clientId: string): Promise<void> {
+    console.log(`[ExtensionManager] 为客户端 ${clientId} 禁用插件 ${id}`);
+
+    const instance = this.instances.get(id);
+    if (!instance) {
+      throw new Error(`Extension ${id} not found`);
+    }
+
+    // 检查是否为本地客户端
+    if (configUtils.isLocalClient(clientId)) {
+      // 本地客户端，直接停用
+      await this.disableExtension(id);
+    } else {
+      // 远程客户端，调用远程 API
+      const client = await Client.get(clientId);
+      await client.disableExtension(id);
+
+      // 更新本地实例的 extension 对象
+      const updatedExtension = await instance.extension.disable(clientId);
+      instance.extension = updatedExtension;
+    }
+
+    console.log(`[ExtensionManager] 插件 ${id} 已为客户端 ${clientId} 禁用`);
   }
 
   /**
