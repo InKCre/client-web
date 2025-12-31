@@ -2,9 +2,9 @@
 import { computed, onMounted, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { InkButton, InkField } from "@inkcre/web-design";
-import { resolverManager } from "@/business/info-base/resolver";
 import type { BlockDetailsPanelProps } from "./BlockDetailsPanel";
 import { blockDetailsPanelEmits } from "./BlockDetailsPanel";
+import BlockContent from "@/components/info-base/block/BlockContent/BlockContent.vue";
 import dayjs from "dayjs";
 
 const props = withDefaults(defineProps<BlockDetailsPanelProps>(), {
@@ -12,11 +12,6 @@ const props = withDefaults(defineProps<BlockDetailsPanelProps>(), {
 });
 const emit = defineEmits(blockDetailsPanelEmits);
 const { t } = useI18n();
-
-// Create resolver instance with block and relations
-const resolver = computed(() =>
-  resolverManager.createResolver(props.block, props.relations)
-);
 
 const formattedCreatedAt = computed(() =>
   props.block.created_at
@@ -97,16 +92,7 @@ onUnmounted(() => {
           {{ t("infoBase.blockDetails.content") }}
         </div>
         <div class="block-details-panel__content">
-          <component
-            v-if="resolver.contentComp"
-            :is="resolver.contentComp"
-            :resolver="resolver"
-            :max-width="360"
-            :max-height="400"
-          />
-          <div v-else class="block-details-panel__no-content">
-            {{ t("infoBase.blockDetails.noContent") }}
-          </div>
+          <BlockContent :block="block" />
         </div>
       </div>
     </div>

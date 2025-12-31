@@ -1,4 +1,3 @@
-import { createInstance } from "@module-federation/runtime";
 import { createApp } from "vue";
 
 import App from "./App.vue";
@@ -17,18 +16,27 @@ app.use(i18n);
 app.use(store);
 app.use(router);
 
-import { registerBuiltinStorages } from "@/business/info-base/storages";
+import { initBuiltinStorages } from "@/business/info-base/storages";
 import { initBuiltinResolvers } from "@/business/info-base/resolvers";
 
-// Extensions (import triggers decorator registration)
-import "@/extensions/twitter";
+// Module Federation runtime with plugins (must be imported before extensions)
+import "@/business/mf-plugins";
 
-registerBuiltinStorages();
+// Extensions (import triggers decorator registration)
+import "../extensions/twitter";
+
+import { Extension } from "@/business/extension";
+
+initBuiltinStorages();
 initBuiltinResolvers();
 
-createInstance({
-  name: "host",
-  remotes: [],
+app.mount("#app");
+
+// Extension lifecycle
+Extension.startup().catch((error) => {
+  console.error("[Extension] Startup failed:", error);
 });
 
-app.mount("#app");
+window.addEventListener("beforeunload", () => {
+  Extension.shutdown();
+});

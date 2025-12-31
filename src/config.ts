@@ -1,140 +1,313 @@
-import { reactive, watch } from 'vue'
-import { z } from 'zod'
+import { reactive, watch, ref, computed } from "vue";
+import { z } from "zod";
 
 /**
- * 配置 Schema
+ * Config Schema
  */
-const ConfigSchema = z.object({
-  INKCRE_CORE_URL: z.string().url(),
-  INKCRE_PGREST_URL: z.string().url(),
-  INKCRE_JWT_SECRET: z.string().min(1),
-  LOCAL_CLIENT_ID: z.string().uuid().nullable(),
-})
+export const ConfigSchema = z.object({
+  INKCRE_CORE_URL: z.url().or(z.literal("")),
+  INKCRE_PGREST_URL: z.url().or(z.literal("")),
+  INKCRE_EXTENSION_REGISTRY_URL: z.url().or(z.literal("")),
+  INKCRE_JWT_SECRET: z.string(),
+  LOCAL_CLIENT_ID: z.uuid().nullable(),
+});
 
-type ConfigType = z.infer<typeof ConfigSchema>
+export type ConfigType = z.infer<typeof ConfigSchema>;
 
-const CONFIG_STORAGE_KEY = 'inkcre_app_config'
+// Storage keys
+const CONFIG_STORAGE_KEY = "inkcre_app_config";
+const ADAPTER_STORAGE_KEY = "inkcre_config_adapter";
 
 /**
- * 从 localStorage 加载配置
+ * Config Adapter Interface
  */
-function loadConfigFromStorage(): Partial<ConfigType> {
-  try {
-    const stored = localStorage.getItem(CONFIG_STORAGE_KEY)
-    if (stored) {
-      const parsed = JSON.parse(stored)
-      console.log('[Config] 从 localStorage 加载配置')
-      return parsed
+export interface ConfigAdapter {
+  name: string;
+  load(): Promise<Partial<ConfigType>>;
+  save(config: ConfigType): Promise<void>;
+}
+
+/**
+ * localStorage Adapter
+ */
+export const localStorageAdapter: ConfigAdapter = {
+  name: "localStorage",
+
+  async load(): Promise<Partial<ConfigType>> {
+    try {
+      const stored = localStorage.getItem(CONFIG_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        console.log("[Config] Loaded config from localStorage");
+        return parsed;
+      }
+    } catch (error) {
+      console.error("[Config] Failed to load config from localStorage:", error);
     }
-  } catch (error) {
-    console.error('[Config] 加载配置失败:', error)
+    return {};
+  },
+
+  async save(config: ConfigType): Promise<void> {
+    try {
+      localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config));
+      console.log("[Config] Saved config to localStorage");
+    } catch (error) {
+      console.error("[Config] Failed to save config to localStorage:", error);
+    }
+  },
+};
+
+/**
+ * HTTP JSON Adapter
+ * Loads config from /api/config endpoint
+ */
+export const httpJsonAdapter: ConfigAdapter = {
+  name: "http",
+
+  async load(): Promise<Partial<ConfigType>> {
+    try {
+      const res = await fetch("/api/config");
+      if (res.ok) {
+        const data = await res.json();
+        console.log("[Config] Loaded config from HTTP endpoint");
+        return data;
+      }
+      console.warn("[Config] HTTP endpoint returned non-ok status:", res.status);
+    } catch (error) {
+      console.error("[Config] Failed to load config from HTTP:", error);
+    }
+    return {};
+  },
+
+  async save(config: ConfigType): Promise<void> {
+    try {
+      const res = await fetch("/api/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
+      if (res.ok) {
+        console.log("[Config] Saved config to HTTP endpoint");
+      } else {
+        console.error("[Config] Failed to save config to HTTP:", res.status);
+      }
+    } catch (error) {
+      console.error("[Config] Failed to save config to HTTP:", error);
+    }
+  },
+};
+
+/**
+ * Available adapters
+ */
+export const adapters: Record<string, ConfigAdapter> = {
+  localStorage: localStorageAdapter,
+  http: httpJsonAdapter,
+};
+
+export type AdapterType = keyof typeof adapters;
+
+/**
+ * Get default adapter based on environment
+ */
+function getDefaultAdapterType(): AdapterType {
+  // Check for user preference first
+  const savedAdapter = localStorage.getItem(ADAPTER_STORAGE_KEY);
+  if (savedAdapter && savedAdapter in adapters) {
+    return savedAdapter as AdapterType;
   }
-  return {}
+
+  // Auto-detect: use HTTP for Cloudflare deployment
+  if (import.meta.env.VITE_DEPLOY_TO === "CLOUDFLARE") {
+    return "http";
+  }
+
+  // Default to localStorage
+  return "localStorage";
 }
 
 /**
- * 保存配置到 localStorage
+ * Get fallback config from environment variables
  */
-function saveConfigToStorage(config: Partial<ConfigType>) {
-  try {
-    localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config))
-    console.log('[Config] 配置已保存到 localStorage')
-  } catch (error) {
-    console.error('[Config] 保存配置失败:', error)
-  }
+function getEnvConfig(): Partial<ConfigType> {
+  return {
+    INKCRE_CORE_URL: import.meta.env.VITE_INKCRE_CORE_URL || "",
+    INKCRE_PGREST_URL: import.meta.env.VITE_INKCRE_PGREST_URL || "",
+    INKCRE_EXTENSION_REGISTRY_URL:
+      import.meta.env.VITE_INKCRE_EXTENSION_REGISTRY_URL || "",
+    INKCRE_JWT_SECRET: import.meta.env.VITE_INKCRE_JWT_SECRET || "",
+  };
 }
 
-// 初始化配置对象
+// Reactive config object
 export const CONFIG = reactive<ConfigType>({
   INKCRE_CORE_URL: "",
   INKCRE_PGREST_URL: "",
+  INKCRE_EXTENSION_REGISTRY_URL: "",
   INKCRE_JWT_SECRET: "",
   LOCAL_CLIENT_ID: null,
-})
+});
 
-// 从 localStorage 加载配置
-const storedConfig = loadConfigFromStorage()
-Object.assign(CONFIG, storedConfig)
-
-// 从环境变量加载配置
-if (import.meta.env.VITE_DEPLOY_TO === 'CLOUDFLARE') {
-  try {
-    const res = await fetch('/api/cf-env-vars')
-    if (res.ok) {
-      const env = await res.json()
-      CONFIG.INKCRE_CORE_URL = CONFIG.INKCRE_CORE_URL || env.INKCRE_CORE_URL
-      CONFIG.INKCRE_PGREST_URL = CONFIG.INKCRE_PGREST_URL || env.INKCRE_PGREST_URL
-      CONFIG.INKCRE_JWT_SECRET = CONFIG.INKCRE_JWT_SECRET || env.INKCRE_JWT_SECRET
-    }
-  } catch (e) {
-    console.error('Failed to load CF env vars', e)
-  }
-} else {
-  CONFIG.INKCRE_CORE_URL = CONFIG.INKCRE_CORE_URL || import.meta.env.VITE_INKCRE_CORE_URL || ""
-  CONFIG.INKCRE_PGREST_URL = CONFIG.INKCRE_PGREST_URL || import.meta.env.VITE_INKCRE_PGREST_URL || ""
-  CONFIG.INKCRE_JWT_SECRET = CONFIG.INKCRE_JWT_SECRET || import.meta.env.VITE_INKCRE_JWT_SECRET || ""
-}
-
-// 监听配置变化并自动保存到 localStorage
-watch(CONFIG, (newConfig) => {
-  saveConfigToStorage(newConfig)
-}, { deep: true })
+// Current adapter type (reactive)
+const _currentAdapterType = ref<AdapterType>(getDefaultAdapterType());
 
 /**
- * 配置管理工具函数
+ * Config Manager - manages adapter selection, loading, and saving
+ */
+export const configManager = {
+  /**
+   * Current adapter type (readonly computed)
+   */
+  currentAdapterType: computed(() => _currentAdapterType.value),
+
+  /**
+   * Get current adapter instance
+   */
+  getCurrentAdapter(): ConfigAdapter {
+    return adapters[_currentAdapterType.value];
+  },
+
+  /**
+   * Set adapter type and persist choice
+   */
+  async setAdapterType(type: AdapterType): Promise<void> {
+    if (!(type in adapters)) {
+      console.error("[Config] Invalid adapter type:", type);
+      return;
+    }
+
+    _currentAdapterType.value = type;
+    localStorage.setItem(ADAPTER_STORAGE_KEY, type);
+    console.log("[Config] Switched adapter to:", type);
+
+    // Reload config from new adapter
+    await this.load();
+  },
+
+  /**
+   * Load config from current adapter
+   */
+  async load(): Promise<void> {
+    const adapter = this.getCurrentAdapter();
+    const envConfig = getEnvConfig();
+
+    try {
+      const loadedConfig = await adapter.load();
+
+      // Merge: loaded config takes priority over env config
+      CONFIG.INKCRE_CORE_URL = loadedConfig.INKCRE_CORE_URL || envConfig.INKCRE_CORE_URL || "";
+      CONFIG.INKCRE_PGREST_URL = loadedConfig.INKCRE_PGREST_URL || envConfig.INKCRE_PGREST_URL || "";
+      CONFIG.INKCRE_EXTENSION_REGISTRY_URL =
+        loadedConfig.INKCRE_EXTENSION_REGISTRY_URL || envConfig.INKCRE_EXTENSION_REGISTRY_URL || "";
+      CONFIG.INKCRE_JWT_SECRET = loadedConfig.INKCRE_JWT_SECRET || envConfig.INKCRE_JWT_SECRET || "";
+      CONFIG.LOCAL_CLIENT_ID = loadedConfig.LOCAL_CLIENT_ID ?? null;
+
+      console.log("[Config] Config loaded successfully");
+    } catch (error) {
+      console.error("[Config] Failed to load config:", error);
+
+      // Fallback to env config
+      Object.assign(CONFIG, envConfig);
+    }
+  },
+
+  /**
+   * Save config using current adapter
+   */
+  async save(): Promise<void> {
+    const adapter = this.getCurrentAdapter();
+    await adapter.save({ ...CONFIG });
+  },
+
+  /**
+   * Check if config is valid
+   */
+  isValid(): boolean {
+    try {
+      ConfigSchema.parse(CONFIG);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+};
+
+// Auto-save on config changes (debounced via watch)
+let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+watch(
+  CONFIG,
+  () => {
+    // Debounce saves
+    if (saveTimeout) {
+      clearTimeout(saveTimeout);
+    }
+    saveTimeout = setTimeout(() => {
+      configManager.save();
+    }, 500);
+  },
+  { deep: true }
+);
+
+// Initial load (async)
+configManager.load();
+
+/**
+ * Config utilities (backward compatible)
  */
 export const configUtils = {
   /**
-   * 获取本地客户端 ID
+   * Get local client ID
    */
   getLocalClientId(): string | null {
-    return CONFIG.LOCAL_CLIENT_ID
+    return CONFIG.LOCAL_CLIENT_ID;
   },
 
   /**
-   * 设置本地客户端 ID
+   * Set local client ID
    */
   setLocalClientId(clientId: string | null) {
-    CONFIG.LOCAL_CLIENT_ID = clientId
+    CONFIG.LOCAL_CLIENT_ID = clientId;
   },
 
   /**
-   * 检查指定的客户端 ID 是否为本地客户端
+   * Check if given client ID is local client
    */
   isLocalClient(clientId: string): boolean {
-    return CONFIG.LOCAL_CLIENT_ID === clientId
+    return CONFIG.LOCAL_CLIENT_ID === clientId;
   },
 
   /**
-   * 重置配置
+   * Reset config to defaults
    */
   reset() {
-    CONFIG.INKCRE_CORE_URL = ""
-    CONFIG.INKCRE_PGREST_URL = ""
-    CONFIG.INKCRE_JWT_SECRET = ""
-    CONFIG.LOCAL_CLIENT_ID = null
-    localStorage.removeItem(CONFIG_STORAGE_KEY)
+    CONFIG.INKCRE_CORE_URL = "";
+    CONFIG.INKCRE_PGREST_URL = "";
+    CONFIG.INKCRE_EXTENSION_REGISTRY_URL = "";
+    CONFIG.INKCRE_JWT_SECRET = "";
+    CONFIG.LOCAL_CLIENT_ID = null;
+    localStorage.removeItem(CONFIG_STORAGE_KEY);
+    console.log("[Config] Config reset to defaults");
   },
 
   /**
-   * 导出配置（用于备份）
+   * Export config (for backup)
    */
   export(): string {
-    return JSON.stringify(CONFIG, null, 2)
+    return JSON.stringify(CONFIG, null, 2);
   },
 
   /**
-   * 导入配置（用于恢复）
+   * Import config (for restore)
    */
   import(configJson: string) {
     try {
-      const parsed = JSON.parse(configJson)
-      const validated = ConfigSchema.parse(parsed)
-      Object.assign(CONFIG, validated)
-      console.log('[Config] 配置导入成功')
+      const parsed = JSON.parse(configJson);
+      const validated = ConfigSchema.parse(parsed);
+      Object.assign(CONFIG, validated);
+      console.log("[Config] Config imported successfully");
     } catch (error) {
-      console.error('[Config] 配置导入失败:', error)
-      throw new Error('无效的配置格式')
+      console.error("[Config] Failed to import config:", error);
+      throw new Error("Invalid config format");
     }
   },
-}
+};

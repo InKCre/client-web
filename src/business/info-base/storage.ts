@@ -6,9 +6,7 @@
  *
  * Architecture aligned with core-py:
  * - StorageType: defines storage type (id, description, config_schema)
- * - Storage: storage instance (id, type, nickname, config)
- * - StorageHandler: interface for storage implementations
- * - StorageManager: registry and orchestrator for storage handlers
+ * - Storage: storage instance (id, type, nickname, config) + handler implementation
  */
 
 import { z } from "zod";
@@ -28,7 +26,11 @@ export class StorageType extends Z.class({
   description: z.string().optional(),
   config_schema: z.record(z.string(), z.unknown()).optional().default({}),
 }) {
-  static dbApi: DBAPIClient = new DBAPIClient("storage_types", StorageType, "public");
+  static dbApi: DBAPIClient = new DBAPIClient(
+    "storage_types",
+    StorageType,
+    "public"
+  );
 
   static async get(id: StorageTypeRef): Promise<StorageType> {
     return new StorageType(
@@ -50,82 +52,48 @@ export class StorageType extends Z.class({
 export type StorageRef = number;
 export const StorageRefZ = z.number();
 
-export class Storage extends Z.class({
-  id: StorageRefZ,
-  type: z.string(), // References storage_types.id
-  nickname: z.string().nullable().optional(),
-  config: z.record(z.string(), z.unknown()).optional().default({}),
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type StorageClass = new (...args: any[]) => Storage;
+
+/**
+ * Storage class - combines DB model and handler implementation.
+ * Subclasses implement _getRawContent to provide type-specific content retrieval.
+ *
+ * @template RawContentT - The type of content this storage returns
+ */
+export class Storage<RawContentT = unknown> extends Z.class({
+  id: StorageRefZ.optional(),
+  type: StorageTypeRefZ, // References storage_types.id
+  nickname: z.string().nullable(),
+  config: z.looseObject({}).default({}),
 }) {
-  static dbApi: DBAPIClient = new DBAPIClient("storages", Storage, "public");
+  // ============================================================================
+  // Static Registry (Storage Manager)
+  // ============================================================================
 
-  private static cache: Map<StorageRef, Storage> = new Map();
-
-  static async get(id: StorageRef): Promise<Storage> {
-    // Check cache first
-    if (this.cache.has(id)) {
-      return this.cache.get(id)!;
-    }
-
-    const storage = new Storage(
-      (await this.dbApi.from().select().eq("id", id).single()).data!
-    );
-    this.cache.set(id, storage);
-    return storage;
-  }
-
-  static async getAll(): Promise<Storage[]> {
-    return (await this.dbApi.from().select()).data!.map((d) => new Storage(d));
-  }
-
-  static clearCache(): void {
-    this.cache.clear();
-  }
-}
-
-// ============================================================================
-// Storage Handler Interface
-// ============================================================================
-
-/**
- * Interface for storage handler implementations.
- * Each handler knows how to retrieve content for a specific storage type.
- */
-export interface StorageHandler<ContentT = unknown> {
-  /**
-   * The storage type identifier (e.g., "http-image")
-   */
-  readonly type: string;
+  private static storageClasses: Map<StorageTypeRef, StorageClass> = new Map();
+  private static dbApi: DBAPIClient = new DBAPIClient("storages", Storage);
 
   /**
-   * Retrieve raw content from block.content using storage configuration.
-   * @param block - The block containing the content reference
-   * @param config - Storage configuration from the storage instance
-   * @returns The retrieved content
+   * Decorator for auto-registering storage classes.
+   * Usage: @Storage.registry('http-image')
+   *
+   * @param type - The storage type identifier
    */
-  getRawContent(
-    block: Block,
-    config?: Record<string, unknown>
-  ): Promise<ContentT>;
-}
-
-// ============================================================================
-// Storage Manager
-// ============================================================================
-
-/**
- * Central manager for storage handlers.
- * Handles registration, lookup, and content retrieval orchestration.
- */
-export class StorageManager {
-  private handlers: Map<string, StorageHandler> = new Map();
+  static registry(type: StorageTypeRef) {
+    return function <T extends StorageClass>(target: T): T {
+      Storage.registerHandler(type, target);
+      return target;
+    };
+  }
 
   /**
    * Register a storage handler for a specific type.
    * @param type - The storage type identifier
    * @param handler - The handler instance
    */
-  register(type: string, handler: StorageHandler): void {
-    this.handlers.set(type, handler);
+  static registerHandler(type: StorageTypeRef, handler: StorageClass): void {
+    this.storageClasses.set(type, handler);
   }
 
   /**
@@ -133,52 +101,88 @@ export class StorageManager {
    * @param type - The storage type identifier
    * @returns The handler or undefined if not found
    */
-  get(type: string): StorageHandler | undefined {
-    return this.handlers.get(type);
-  }
-
-  /**
-   * Check if a handler is registered for a type.
-   * @param type - The storage type identifier
-   */
-  has(type: string): boolean {
-    return this.handlers.has(type);
+  static getHandler(type: StorageTypeRef): StorageClass | undefined {
+    return this.storageClasses.get(type);
   }
 
   /**
    * Get all registered storage type identifiers.
    */
-  getRegisteredTypes(): string[] {
-    return Array.from(this.handlers.keys());
+  static getRegisteredTypes(): StorageTypeRef[] {
+    return Array.from(this.storageClasses.keys());
+  }
+
+  // ============================================================================
+  // Static DB Methods
+  // ============================================================================
+
+  /**
+   * Get a storage record by ID from the database.
+   * @param id - The storage record ID
+   */
+  static async get<RawContentT = unknown>(
+    id: StorageRef
+  ): Promise<Storage<RawContentT>> {
+    const storageRecord = new Storage(
+      (await this.dbApi.from().select().eq("id", id).single()).data!
+    );
+    const Handler = Storage.getHandler(storageRecord.type);
+    if (!Handler) {
+      throw new Error(
+        `No handler registered for storage type: ${storageRecord.type}`
+      );
+    }
+    return new Handler(storageRecord) as Storage<RawContentT>;
+  }
+
+  /**
+   * Get all storage records from the database.
+   */
+  static async getAll(): Promise<Storage[]> {
+    return (await this.dbApi.from().select()).data!.map((d) => new Storage(d));
   }
 
   /**
    * Retrieve raw content for a block using its storage configuration.
    * If block has no storage, returns block.content as passthrough.
+   * This is a convenience method that handles the full flow.
    *
    * @param block - The block to retrieve content for
    * @returns The raw content (type depends on storage handler)
    */
-  async getRawContent(block: Block): Promise<unknown> {
-    // No storage configured - passthrough block.content
+  static async fetchRawContent(block: Block): Promise<unknown> {
     if (block.storage === null || block.storage === undefined) {
+      // No storage configured - passthrough block.content
       return block.content;
     }
-
-    // Get storage configuration
     const storage = await Storage.get(block.storage);
-    const handler = this.get(storage.type);
+    return storage.getRawContent(block);
+  }
 
-    if (!handler) {
-      console.warn(
-        `Storage handler for type "${storage.type}" not registered, using passthrough`
-      );
-      return block.content;
-    }
+  // ============================================================================
+  // Instance Methods
+  // ============================================================================
 
-    return handler.getRawContent(block, storage.config);
+  /**
+   * Retrieve raw content for a block.
+   * This method handles state management and delegates to _getRawContent.
+   *
+   * @param block - The block to retrieve content for
+   * @returns The raw content
+   */
+  async getRawContent(block: Block): Promise<RawContentT> {
+    return this._getRawContent(block);
+  }
+
+  /**
+   * Internal method to retrieve raw content.
+   * Subclasses override this to provide type-specific content retrieval.
+   * Base implementation returns block.content as passthrough.
+   *
+   * @param block - The block to retrieve content for
+   * @returns The raw content
+   */
+  protected async _getRawContent(block: Block): Promise<RawContentT> {
+    return block.content as RawContentT;
   }
 }
-
-// Global storage manager instance
-export const storageManager = new StorageManager();

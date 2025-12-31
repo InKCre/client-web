@@ -4,6 +4,7 @@ import { Handle, Position } from "@vue-flow/core";
 import type { BlockNodeProps } from "./BlockNode";
 import { blockNodeEmits } from "./BlockNode";
 import { resolverManager } from "@/business/info-base/resolver";
+import BlockContent from "../block/BlockContent/BlockContent.vue";
 
 const props = defineProps<BlockNodeProps>();
 const emit = defineEmits(blockNodeEmits);
@@ -29,7 +30,11 @@ const onNodeClick = () => {
   <!-- Handles for edge connections - positioned at all sides for flexible routing -->
   <Handle type="target" :position="Position.Top" class="block-node__handle" />
   <Handle type="target" :position="Position.Left" class="block-node__handle" />
-  <Handle type="source" :position="Position.Bottom" class="block-node__handle" />
+  <Handle
+    type="source"
+    :position="Position.Bottom"
+    class="block-node__handle"
+  />
   <Handle type="source" :position="Position.Right" class="block-node__handle" />
 
   <div
@@ -37,15 +42,7 @@ const onNodeClick = () => {
     :class="{ 'block-node--selected': selected }"
     @click="onNodeClick"
   >
-    <!-- Dynamic contentComp component -->
-    <component
-      v-if="resolver.contentComp"
-      :is="resolver.contentComp"
-      :resolver="resolver"
-      :is-selected="selected"
-      :max-width="200"
-      :max-height="150"
-    />
+    <BlockContent :block="block" />
 
     <!-- Fallback to static preview if no contentComp -->
     <div v-else class="block-node__content">

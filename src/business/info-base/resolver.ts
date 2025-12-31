@@ -11,9 +11,23 @@
  * - ResolverManager stores resolver classes and provides factory methods
  */
 
-import type { Component } from "vue";
+import { ref, type Component, type Ref } from "vue";
 import type { Block } from "./block";
 import type { Relation } from "./relation";
+import { Storage } from "./storage";
+
+// ============================================================================
+// Resolver Content State
+// ============================================================================
+
+/**
+ * State of resolver content fetching.
+ * Used by ResolvedContent wrapper to show appropriate UI.
+ */
+export interface ResolverContentState {
+  status: "idle" | "loading" | "success" | "error";
+  error: Error | null;
+}
 
 // ============================================================================
 // Content Component Props
@@ -21,17 +35,12 @@ import type { Relation } from "./relation";
 
 /**
  * Props passed to contentComp Vue components.
- * Components receive the resolver instance and handle their own loading/error states.
+ * Components receive the resolver instance and pre-resolved content.
  */
-export interface ContentCompProps {
+export interface ContentCompProps<SolvedContentT = any> {
   /** The resolver instance (provides access to block and relations) */
-  resolver: Resolver;
-  /** Whether the node is currently selected */
-  isSelected?: boolean;
-  /** Maximum width for the component (in px) */
-  maxWidth?: number;
-  /** Maximum height for the component (in px) */
-  maxHeight?: number;
+  resolver: Resolver<any, SolvedContentT>;
+  solvedContent: SolvedContentT;
 }
 
 // ============================================================================
@@ -54,10 +63,9 @@ export interface Resolver<RawContentT = string, SolvedContentT = RawContentT> {
 
   /**
    * Vue component for rendering block content.
-   * Receives ContentCompProps as props.
-   * Handles its own loading/error states internally.
+   * Receives ResolvedContentCompProps as props (includes pre-resolved content).
    */
-  readonly contentComp: Component;
+  readonly contentComp: Component<ContentCompProps>;
 
   /**
    * The block this resolver instance is resolving.
@@ -65,10 +73,26 @@ export interface Resolver<RawContentT = string, SolvedContentT = RawContentT> {
   readonly block: Block;
 
   /**
+   * Current content loading state.
+   * Reactive - can be observed by Vue components.
+   */
+  readonly solvedContentState: Ref<ResolverContentState>;
+
+  /**
    * Get relations for this block (lazy-loaded).
    * Subclasses use this for accessing related blocks in StarGraph.
    */
   getRelations(): Promise<Relation[]>;
+
+  /**
+   * Fetch and cache resolved content.
+   * Triggers state.status transitions: IDLE -> LOADING -> SUCCESS/ERROR
+   * Subsequent calls return cached content unless forceRefresh is true.
+   *
+   * @param forceRefresh - Force re-fetch even if cached
+   * @returns The resolved content
+   */
+  getSolvedContent(forceRefresh?: boolean): Promise<SolvedContentT>;
 }
 
 // ============================================================================
@@ -77,21 +101,30 @@ export interface Resolver<RawContentT = string, SolvedContentT = RawContentT> {
 
 /**
  * Abstract base class for resolver implementations.
- * Provides common functionality and lazy-loading of relations.
+ * Provides common functionality, lazy-loading of relations, and content fetching.
  *
  * @template RawContentT - The type of raw content from storage
  * @template SolvedContentT - The type of content after processing
  */
 export abstract class BaseResolver<
   RawContentT = string,
-  SolvedContentT = RawContentT,
+  SolvedContentT = RawContentT
 > implements Resolver<RawContentT, SolvedContentT>
 {
+  /** Resolve Type */
   abstract readonly type: string;
+
   abstract readonly contentComp: Component;
 
   readonly block: Block;
   private _relations: Relation[] | null;
+
+  private _rawContent: RawContentT | null = null;
+  readonly solvedContentState: Ref<ResolverContentState> = ref({
+    status: "idle",
+    error: null,
+  });
+  private _solvedContent: SolvedContentT | null = null;
 
   /**
    * Create a resolver instance for a block.
@@ -101,45 +134,77 @@ export abstract class BaseResolver<
   constructor(block: Block, relations?: Relation[]) {
     this.block = block;
     this._relations = relations ?? null; // null means not loaded yet
+
+    if (block.storage === null) {
+      this._rawContent = block.content as RawContentT;
+    }
   }
 
   /**
    * Get relations for this block.
    * Lazy-loads from Relation.getByBlock() if not provided in constructor.
    */
-  async getRelations(): Promise<Relation[]> {
-    if (this._relations === null) {
+  async getRelations(force = false): Promise<Relation[]> {
+    if (this._relations === null || force) {
       // Dynamic import to avoid circular dependency
       const { Relation } = await import("./relation");
       this._relations = await Relation.getByBlock(this.block.id);
     }
-    return this._relations!;
+    return this._relations;
   }
 
   /**
-   * Utility method to escape HTML in text content.
+   * Get raw content (lazy-loading).
+   * Lazy-loads from Storage if not already loaded.
    */
-  protected escapeHtml(text: string): string {
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
-  /**
-   * Utility method to truncate text with ellipsis.
-   */
-  protected truncate(text: string, maxLength: number = 50): string {
-    const trimmed = text.trim();
-    if (trimmed.length <= maxLength) {
-      return trimmed;
+  async getRawContent(force = false): Promise<RawContentT> {
+    if (!this._rawContent || force) {
+      if (this.block.storage === null) {
+        this._rawContent = this.block.content as RawContentT;
+      } else {
+        const storage = await Storage.get<RawContentT>(this.block.storage);
+        this._rawContent = await storage.getRawContent(this.block);
+      }
     }
-    return trimmed.slice(0, maxLength) + "...";
+    return this._rawContent;
   }
+
+  /**
+   * Get solved content (lazy-loading).
+   * Lazy-loads from _getSolvedContent() if not already loaded.
+   * Manages content state transitions.
+   *
+   */
+  async getSolvedContent(force = false): Promise<SolvedContentT> {
+    if (this._solvedContent && !force) {
+      return this._solvedContent;
+    }
+    if (this.solvedContentState.value.status === "loading") {
+      // Prevent concurrent loads
+      throw new Error("Content is already loading");
+    }
+    try {
+      this.solvedContentState.value.status = "loading";
+      this.solvedContentState.value.error = null;
+      this._solvedContent = await this._getSolvedContent();
+      this.solvedContentState.value.status = "success";
+      return this._solvedContent;
+    } catch (error) {
+      this.solvedContentState.value.status = "error";
+      this.solvedContentState.value.error =
+        error instanceof Error ? error : new Error(String(error));
+      throw error;
+    }
+  }
+
+  protected abstract _getSolvedContent(): Promise<SolvedContentT>;
 }
 
 // ============================================================================
 // Resolver Manager
 // ============================================================================
+
+// TODO get rid of AnyResolver, add generics throughout like storage
 
 /**
  * Type for resolver classes (constructors).

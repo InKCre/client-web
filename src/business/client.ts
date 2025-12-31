@@ -5,29 +5,23 @@ import { makeStringProp, makeObjectProp } from "@/utils/vue-props";
 
 export type ClientRef = string;
 export const makeClientProp = (v?: any) => makeObjectProp<Client>(v);
-export const makeClientRefProp = (v?: any) =>
-  makeStringProp<ClientRef>(v);
-export const ClientRefZ = z.string().uuid();
+export const makeClientRefProp = (v?: any) => makeStringProp<ClientRef>(v);
+export const ClientRefZ = z.uuid();
 
 /**
- * Client 模型
- * 在这个系统中，每个节点都是平等的客户端
- * 不存在传统意义上的"后端"，所有节点都可以相互通信
+ * Client
+ *
+ * All clients are equal peers.
  */
 export class Client extends Z.class({
-  id: ClientRefZ,
+  id: ClientRefZ.default(() => crypto.randomUUID()),
+  /** Client Nickname */
   name: z.string(),
-  description: z.string().nullable().optional(),
-  rest_api_url: z.string().url(),
-  status: z.enum(["online", "offline", "unknown"]).default("unknown"),
+  labels: z.array(z.string()).default([]),
+  rest_api_url: z.url().nullable().default(null),
   created_at: z.string(),
-  updated_at: z.string(),
-  last_seen_at: z.string().nullable().optional(),
 }) {
-  static coreApi: CoreAPIClient = new CoreAPIClient<Client>(
-    "/clients",
-    Client
-  );
+  static coreApi: CoreAPIClient = new CoreAPIClient<Client>("/clients", Client);
   static dbApi: DBAPIClient = new DBAPIClient<Client>("clients", Client);
 
   /**
@@ -99,9 +93,7 @@ export class Client extends Z.class({
       const response = await fetch(url, config);
 
       if (!response.ok) {
-        throw new Error(
-          `HTTP ${response.status}: ${response.statusText}`
-        );
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       return await response.json();
@@ -109,28 +101,6 @@ export class Client extends Z.class({
       console.error(`[Client] Request failed for ${this.id}:`, error);
       throw error;
     }
-  }
-
-  /**
-   * 在远程客户端上启用插件
-   */
-  async enableExtension(extensionId: string): Promise<void> {
-    await this.request({
-      method: "POST",
-      path: `/extensions/${extensionId}/enable`,
-      body: { client_id: this.id },
-    });
-  }
-
-  /**
-   * 在远程客户端上禁用插件
-   */
-  async disableExtension(extensionId: string): Promise<void> {
-    await this.request({
-      method: "POST",
-      path: `/extensions/${extensionId}/disable`,
-      body: { client_id: this.id },
-    });
   }
 }
 
@@ -140,14 +110,11 @@ export class Client extends Z.class({
 export class CreateClientForm extends Z.class({
   name: z.string().min(1),
   description: z.string().optional(),
-  rest_api_url: z.string().url(),
+  rest_api_url: z.url(),
 }) {
   async create(): Promise<Client> {
-    const result = await Client.coreApi.request<Client>({
-      method: "POST",
-      path: "",
-      body: this,
-    });
-    return new Client(result);
+    return new Client(
+      (await Client.dbApi.from().insert(this).select().single()).data!
+    );
   }
 }

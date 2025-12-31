@@ -16,4 +16,8 @@ export type VideoRawContent = string | VideoContent;
 export class VideoResolver extends BaseResolver<VideoRawContent> {
   readonly type = "video";
   readonly contentComp = markRaw(ContentVideo);
+
+  protected async _getSolvedContent(): Promise<VideoRawContent> {
+    return this.getRawContent();
+  }
 }

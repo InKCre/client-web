@@ -18,7 +18,7 @@ export class Block extends Z.class({
     .date()
     .optional()
     .default(() => new Date()),
-  storage: z.number().nullable().optional(), // TODO add storage class
+  storage: z.number().nullable(),
   resolver: z.string(),
   content: z.string(),
 }) {

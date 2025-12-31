@@ -1,18 +1,10 @@
-import type { PropType } from "vue";
-import { Extension } from "@/business/extension";
+import { Extension, makeExtensionProp } from "@/business/extension";
+import { makeClientRefProp } from "@/business/client";
 
 // --- Props ---
 export const extensionCardProps = {
-  extension: {
-    type: Object as PropType<Extension>,
-    required: true,
-    default: () => Extension.parse({}),
-  },
-  clientId: {
-    type: String,
-    required: true,
-    default: "",
-  },
+  extension: makeExtensionProp(),
+  clientId: makeClientRefProp(),
 };
 
 // --- Emits ---

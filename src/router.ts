@@ -7,6 +7,7 @@ import source from "@/views/sources/source/source.vue";
 import sourceCollectJob from "@/views/sources/sourceCollectJob/sourceCollectJob.vue";
 import extensions from "@/views/extensions/extensions.vue";
 import infoBaseGraph from "@/views/info-base/graph/graph.vue";
+import settings from "@/views/settings/settings.vue";
 import { computed } from "vue";
 
 const router = createRouter({
@@ -41,6 +42,11 @@ const router = createRouter({
       path: "/info-base/graph",
       name: "InfoBaseGraph",
       component: infoBaseGraph,
+    },
+    {
+      path: "/settings",
+      name: "Settings",
+      component: settings,
     },
   ],
 });

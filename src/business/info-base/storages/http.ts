@@ -6,7 +6,7 @@
  */
 
 import type { Block } from "../block";
-import type { StorageHandler } from "../storage";
+import { Storage } from "../storage";
 
 // ============================================================================
 // HTTP Storage Configuration
@@ -27,10 +27,9 @@ const DEFAULT_TIMEOUT = 30000;
  * Base class for HTTP-based storage handlers.
  * Provides common URL fetching functionality.
  */
-export abstract class HttpStorage<ContentT = unknown>
-  implements StorageHandler<ContentT>
-{
-  abstract readonly type: string;
+export abstract class HttpStorage<
+  ContentT = unknown
+> extends Storage<ContentT> {
   protected abstract readonly acceptHeader: string;
 
   /**
@@ -63,86 +62,28 @@ export abstract class HttpStorage<ContentT = unknown>
       clearTimeout(timeoutId);
     }
   }
-
-  abstract getRawContent(
-    block: Block,
-    config?: Record<string, unknown>
-  ): Promise<ContentT>;
 }
 
 // ============================================================================
 // HTTP Image Storage
 // ============================================================================
 
-export interface ImageContent {
-  url: string;
-  blob?: Blob;
-  dataUrl?: string;
-  mimeType: string;
-  width?: number;
-  height?: number;
-}
-
 /**
- * Fetches image content from URL.
- * Returns the URL directly for lazy loading, or fetches as blob/dataUrl if configured.
+ * Fetches image content from (http/https)URL.
+ * Returns Blob.
  */
-export class HttpImageStorage extends HttpStorage<ImageContent> {
-  readonly type = "http-image";
+@Storage.registry("http-image")
+export class HttpImageStorage extends HttpStorage<Blob> {
   protected readonly acceptHeader = "image/*";
 
-  async getRawContent(
-    block: Block,
-    config?: Record<string, unknown>
-  ): Promise<ImageContent> {
+  protected async _getRawContent(block: Block): Promise<Blob> {
     const url = block.content.trim();
-    const fetchAsBlob = config?.fetchAsBlob ?? false;
-    const fetchAsDataUrl = config?.fetchAsDataUrl ?? false;
-
-    // Default: return URL for lazy loading (better performance in graphs)
-    if (!fetchAsBlob && !fetchAsDataUrl) {
-      return {
-        url,
-        mimeType: this.inferMimeType(url),
-      };
-    }
-
-    // Fetch as blob
-    const response = await this.fetchUrl(url, config as HttpStorageConfig);
-    const blob = await response.blob();
-    const mimeType =
-      response.headers.get("content-type") || this.inferMimeType(url);
-
-    const result: ImageContent = {
-      url,
-      blob,
-      mimeType,
-    };
-
-    // Convert to dataUrl if requested
-    if (fetchAsDataUrl) {
-      result.dataUrl = await this.blobToDataUrl(blob);
-    }
-
-    return result;
+    const response = await this.fetchUrl(url);
+    return await response.blob();
   }
 
-  private inferMimeType(url: string): string {
-    const ext = url.split(".").pop()?.toLowerCase().split("?")[0];
-    const mimeTypes: Record<string, string> = {
-      jpg: "image/jpeg",
-      jpeg: "image/jpeg",
-      png: "image/png",
-      gif: "image/gif",
-      webp: "image/webp",
-      svg: "image/svg+xml",
-      ico: "image/x-icon",
-      bmp: "image/bmp",
-    };
-    return mimeTypes[ext || ""] || "image/unknown";
-  }
-
-  private blobToDataUrl(blob: Blob): Promise<string> {
+  /** Base64 encoded image data */
+  public blobToDataUrl(blob: Blob): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result as string);
@@ -166,20 +107,16 @@ export interface VideoContent {
  * Fetches video content from URL.
  * Returns the URL for lazy loading (videos are typically streamed).
  */
+@Storage.registry("http-video")
 export class HttpVideoStorage extends HttpStorage<VideoContent> {
-  readonly type = "http-video";
   protected readonly acceptHeader = "video/*";
 
-  async getRawContent(
-    block: Block,
-    config?: Record<string, unknown>
-  ): Promise<VideoContent> {
+  protected async _getRawContent(block: Block): Promise<VideoContent> {
     const url = block.content.trim();
 
     return {
       url,
       mimeType: this.inferMimeType(url),
-      thumbnailUrl: config?.thumbnailUrl as string | undefined,
     };
   }
 
@@ -210,17 +147,14 @@ export interface TextContent {
 /**
  * Fetches plain text content from URL.
  */
+@Storage.registry("http-text")
 export class HttpTextStorage extends HttpStorage<TextContent> {
-  readonly type = "http-text";
   protected readonly acceptHeader = "text/plain";
 
-  async getRawContent(
-    block: Block,
-    config?: Record<string, unknown>
-  ): Promise<TextContent> {
+  protected async _getRawContent(block: Block): Promise<TextContent> {
     const url = block.content.trim();
 
-    const response = await this.fetchUrl(url, config as HttpStorageConfig);
+    const response = await this.fetchUrl(url);
     const text = await response.text();
     const encoding =
       response.headers.get("content-type")?.match(/charset=([^;]+)/)?.[1] ||
@@ -247,27 +181,22 @@ export interface HtmlContent {
  * Fetches HTML content from URL.
  * Optionally extracts title and sanitizes content.
  */
+@Storage.registry("http-html")
 export class HttpHtmlStorage extends HttpStorage<HtmlContent> {
-  readonly type = "http-html";
   protected readonly acceptHeader = "text/html";
 
-  async getRawContent(
-    block: Block,
-    config?: Record<string, unknown>
-  ): Promise<HtmlContent> {
+  protected async _getRawContent(block: Block): Promise<HtmlContent> {
     const url = block.content.trim();
 
-    const response = await this.fetchUrl(url, config as HttpStorageConfig);
+    const response = await this.fetchUrl(url);
     let html = await response.text();
 
     // Extract title
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
     const title = titleMatch ? titleMatch[1].trim() : undefined;
 
-    // Sanitize if configured (basic sanitization, use DOMPurify in production)
-    if (config?.sanitize !== false) {
-      html = this.sanitizeHtml(html);
-    }
+    // Basic sanitization - remove script tags and event handlers
+    html = this.sanitizeHtml(html);
 
     return {
       html,
@@ -298,17 +227,14 @@ export interface JsonContent {
 /**
  * Fetches JSON content from URL.
  */
+@Storage.registry("http-json")
 export class HttpJsonStorage extends HttpStorage<JsonContent> {
-  readonly type = "http-json";
   protected readonly acceptHeader = "application/json";
 
-  async getRawContent(
-    block: Block,
-    config?: Record<string, unknown>
-  ): Promise<JsonContent> {
+  protected async _getRawContent(block: Block): Promise<JsonContent> {
     const url = block.content.trim();
 
-    const response = await this.fetchUrl(url, config as HttpStorageConfig);
+    const response = await this.fetchUrl(url);
     const data = await response.json();
 
     return {

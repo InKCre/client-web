@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { watch } from "vue";
 import { useRoute } from "vue-router";
+import { useI18n } from "vue-i18n";
 import router from "@/router";
 import { appSidePanelProps, appSidePanelEmits } from "./AppSidePanel";
 import { InkButton } from "@inkcre/web-design";
@@ -8,6 +9,7 @@ import { InkButton } from "@inkcre/web-design";
 const props = defineProps(appSidePanelProps);
 const emit = defineEmits(appSidePanelEmits);
 const route = useRoute();
+const { t } = useI18n();
 
 // --- methods ---
 const onSourcesClick = () => {
@@ -19,8 +21,7 @@ const onExtensionsClick = () => {
 };
 
 const onSettingsClick = () => {
-  // Placeholder for settings navigation
-  console.log("Navigate to Settings");
+  router.push("/settings");
 };
 
 const onExploreClick = () => {
@@ -43,12 +44,12 @@ watch(
 <template>
   <aside class="app-side-panel" v-show="props.expanded">
     <div class="app-side-panel__content">
-      <h2 class="app-side-panel__title">Managing</h2>
-      <InkButton text="Sources" class="w-full" @click="onSourcesClick" />
-      <InkButton text="Extensions" class="w-full" @click="onExtensionsClick" />
-      <InkButton text="Settings" class="w-full" @click="onSettingsClick" />
+      <h2 class="app-side-panel__title">{{ t("sidePanel.managing") }}</h2>
+      <InkButton :text="t('sidePanel.sources')" class="w-full" @click="onSourcesClick" />
+      <InkButton :text="t('sidePanel.extensions')" class="w-full" @click="onExtensionsClick" />
+      <InkButton :text="t('sidePanel.settings')" class="w-full" @click="onSettingsClick" />
     </div>
-    <InkButton text="Explore" class="w-full" @click="onExploreClick" />
+    <InkButton :text="t('sidePanel.explore')" class="w-full" @click="onExploreClick" />
   </aside>
 </template>
 

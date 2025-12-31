@@ -13,4 +13,8 @@ import ContentText from "@/components/info-base/resolvers/ContentText.vue";
 export class TextResolver extends BaseResolver<string> {
   readonly type = "text";
   readonly contentComp = markRaw(ContentText);
+
+  protected async _getSolvedContent(): Promise<string> {
+    return this.getRawContent();
+  }
 }

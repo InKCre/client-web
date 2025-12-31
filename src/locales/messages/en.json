@@ -13,10 +13,31 @@
   "header": {
     "brand": "InKCre"
   },
+  "sidePanel": {
+    "managing": "Managing",
+    "sources": "Sources",
+    "extensions": "Extensions",
+    "settings": "Settings",
+    "explore": "Explore"
+  },
   "settings": {
     "title": "Settings",
+    "configAdapter": "Config Source",
+    "configAdapterDescription": "Choose where to load/save configuration",
+    "adapterLocalStorage": "Local Storage",
+    "adapterHttp": "Remote Server",
+    "coreUrl": "Core API URL",
+    "pgrestUrl": "PostgreSQL REST URL",
+    "extensionRegistryUrl": "Extension Registry URL",
+    "jwtSecret": "JWT Secret",
     "languageLabel": "Language",
-    "languageDescription": "Select your preferred language"
+    "languageDescription": "Select your preferred language",
+    "resetConfig": "Reset",
+    "resetConfirmTitle": "Reset Configuration",
+    "resetConfirmMessage": "Are you sure you want to reset all settings to default? This action cannot be undone.",
+    "exportConfig": "Export",
+    "importConfig": "Import",
+    "importError": "Failed to import configuration. Please check the file format."
   },
   "source": {
     "deleteConfirmTitle": "Delete Source",

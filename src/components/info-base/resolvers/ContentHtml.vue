@@ -1,29 +1,20 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { computed } from "vue";
 import type { ContentCompProps } from "@/business/info-base/resolver";
 import type { HtmlContent } from "@/business/info-base/storages/http";
-import { storageManager } from "@/business/info-base/storage";
 
-const props = withDefaults(defineProps<ContentCompProps>(), {
-  isSelected: false,
-  maxWidth: 200,
-  maxHeight: 150,
-});
+type HtmlRawContent = string | HtmlContent;
 
-const rawContent = ref<string | HtmlContent | null>(null);
-const isLoading = ref(true);
-const error = ref<Error | null>(null);
+const props = defineProps<ContentCompProps<HtmlRawContent>>();
 
 const displayContent = computed(() => {
   let html: string;
   let title: string | undefined;
 
-  if (!rawContent.value) {
-    html = props.resolver.block.content;
-  } else if (typeof rawContent.value === "string") {
-    html = rawContent.value;
+  if (typeof props.solvedContent === "string") {
+    html = props.solvedContent;
   } else {
-    const content = rawContent.value as HtmlContent;
+    const content = props.solvedContent as HtmlContent;
     html = content.html;
     title = content.title;
   }
@@ -52,37 +43,17 @@ function stripHtml(html: string): string {
     .replace(/\s+/g, " ")
     .trim();
 }
-
-onMounted(async () => {
-  try {
-    rawContent.value = await storageManager.getRawContent(props.resolver.block);
-  } catch (e) {
-    error.value = e instanceof Error ? e : new Error(String(e));
-  } finally {
-    isLoading.value = false;
-  }
-});
 </script>
 
 <template>
-  <div
-    class="content-html"
-    :class="{ 'content-html--selected': isSelected }"
-    :style="{ maxWidth: `${maxWidth}px`, maxHeight: `${maxHeight}px` }"
-  >
-    <div v-if="isLoading" class="content-html__loading">...</div>
-    <template v-else>
-      <div class="content-html__badge">HTML</div>
-      <div
-        v-if="displayContent.type === 'title'"
-        class="content-html__title"
-      >
-        {{ displayContent.text }}
-      </div>
-      <div v-else class="content-html__preview">
-        {{ displayContent.text }}
-      </div>
-    </template>
+  <div class="content-html">
+    <div class="content-html__badge">HTML</div>
+    <div v-if="displayContent.type === 'title'" class="content-html__title">
+      {{ displayContent.text }}
+    </div>
+    <div v-else class="content-html__preview">
+      {{ displayContent.text }}
+    </div>
   </div>
 </template>
 
@@ -92,15 +63,6 @@ onMounted(async () => {
   background: sys-var(color, surface, base);
   min-width: 80px;
   overflow: hidden;
-
-  &--selected {
-    box-shadow: 0 0 0 2px sys-var(color, border, primary);
-  }
-
-  &__loading {
-    @include apply-font(label-lg);
-    color: sys-var(color, text, subtle);
-  }
 
   &__badge {
     @include apply-font(label-sm, true);

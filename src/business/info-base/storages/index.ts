@@ -1,12 +1,15 @@
 /**
  * Built-in Storage Handlers Registration
  *
- * This module exports all built-in storage handlers and provides
- * a function to register them with the global StorageManager.
+ * This module imports all built-in storage handlers to trigger their
+ * decorator registration, and provides a function for initialization.
  */
 
-import { storageManager } from "../storage";
-import {
+// Import storages to trigger @Storage.registry() decorator registration
+import "./http";
+
+// Re-export storage classes for external use
+export {
   HttpImageStorage,
   HttpVideoStorage,
   HttpTextStorage,
@@ -14,18 +17,8 @@ import {
   HttpJsonStorage,
 } from "./http";
 
-// Export storage classes for external use
-export {
-  HttpImageStorage,
-  HttpVideoStorage,
-  HttpTextStorage,
-  HttpHtmlStorage,
-  HttpJsonStorage,
-};
-
 // Export content types
 export type {
-  ImageContent,
   VideoContent,
   TextContent,
   HtmlContent,
@@ -34,13 +27,11 @@ export type {
 } from "./http";
 
 /**
- * Register all built-in storage handlers with the global StorageManager.
+ * Initialize built-in storages.
+ * The decorators auto-register on import.
  * Call this during application initialization.
  */
-export function registerBuiltinStorages(): void {
-  storageManager.register("http-image", new HttpImageStorage());
-  storageManager.register("http-video", new HttpVideoStorage());
-  storageManager.register("http-text", new HttpTextStorage());
-  storageManager.register("http-html", new HttpHtmlStorage());
-  storageManager.register("http-json", new HttpJsonStorage());
+export function initBuiltinStorages(): void {
+  // Decorators have already registered all handlers on import.
+  // This function exists for consistency with initBuiltinResolvers().
 }

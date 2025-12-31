@@ -25,4 +25,7 @@
 - [ ] i18n skill
 - [ ] View
 - [ ] Component skill (全部丢进去，真的很占上下文，有8个references，你敢想象吗)
-- [ ] Resolver 与插件机制
+- [x] Resolver, Storage 与 Extension
+  - [ ] Extension 必须实现并暴露 `setup(hostApi): void`, hostApi 中包含 registerResolver, registerStorage
+- [ ] 增强可观测性，一堆 console.log 太要命了（logger, ConsoleHander, localStorageHandler）
+- [ ] 引入了 Client，所以 coreApi baseUrl 可以删掉了

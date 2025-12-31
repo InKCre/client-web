@@ -16,4 +16,8 @@ export type HtmlRawContent = string | HtmlContent;
 export class HtmlResolver extends BaseResolver<HtmlRawContent> {
   readonly type = "html";
   readonly contentComp = markRaw(ContentHtml);
+
+  protected async _getSolvedContent(): Promise<HtmlRawContent> {
+    return this.getRawContent();
+  }
 }
