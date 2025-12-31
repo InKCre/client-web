@@ -25,16 +25,9 @@ const ADAPTER_STORAGE_KEY = "inkcre_config_adapter";
 export type AdapterType = "localStorage" | "http";
 
 /**
- * Extended adapter interface with save method
+ * localStorage adapter for zod-config (read-only as per zod-config design)
  */
-export interface ConfigAdapter extends Adapter {
-  save(config: ConfigType): Promise<void>;
-}
-
-/**
- * Custom localStorage adapter
- */
-const createLocalStorageAdapter = (): ConfigAdapter => ({
+const localStorageAdapter: Adapter = {
   name: "localStorage",
   read: async (): Promise<Record<string, unknown>> => {
     try {
@@ -49,21 +42,12 @@ const createLocalStorageAdapter = (): ConfigAdapter => ({
     }
     return {};
   },
-  save: async (config: ConfigType): Promise<void> => {
-    try {
-      localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config));
-      console.log("[Config] Saved config to localStorage");
-    } catch (error) {
-      console.error("[Config] Failed to save config to localStorage:", error);
-      throw error;
-    }
-  },
-});
+};
 
 /**
- * Custom HTTP adapter
+ * HTTP adapter for zod-config (read-only as per zod-config design)
  */
-const createHttpAdapter = (): ConfigAdapter => ({
+const httpAdapter: Adapter = {
   name: "http",
   read: async (): Promise<Record<string, unknown>> => {
     try {
@@ -82,32 +66,57 @@ const createHttpAdapter = (): ConfigAdapter => ({
     }
     return {};
   },
-  save: async (config: ConfigType): Promise<void> => {
-    try {
-      const res = await fetch("/api/config", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(config),
-      });
-      if (res.ok) {
-        console.log("[Config] Saved config to HTTP endpoint");
-      } else {
-        console.error("[Config] Failed to save config to HTTP:", res.status);
-        throw new Error(`HTTP save failed with status ${res.status}`);
-      }
-    } catch (error) {
-      console.error("[Config] Failed to save config to HTTP:", error);
-      throw error;
-    }
-  },
-});
+};
 
 /**
- * Adapter instances
+ * Save config to localStorage
  */
-const adapters: Record<AdapterType, ConfigAdapter> = {
-  localStorage: createLocalStorageAdapter(),
-  http: createHttpAdapter(),
+async function saveToLocalStorage(config: ConfigType): Promise<void> {
+  try {
+    localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config));
+    console.log("[Config] Saved config to localStorage");
+  } catch (error) {
+    console.error("[Config] Failed to save config to localStorage:", error);
+    throw error;
+  }
+}
+
+/**
+ * Save config to HTTP endpoint
+ */
+async function saveToHttp(config: ConfigType): Promise<void> {
+  try {
+    const res = await fetch("/api/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(config),
+    });
+    if (res.ok) {
+      console.log("[Config] Saved config to HTTP endpoint");
+    } else {
+      console.error("[Config] Failed to save config to HTTP:", res.status);
+      throw new Error(`HTTP save failed with status ${res.status}`);
+    }
+  } catch (error) {
+    console.error("[Config] Failed to save config to HTTP:", error);
+    throw error;
+  }
+}
+
+/**
+ * Adapter map for loading config
+ */
+const adapters: Record<AdapterType, Adapter> = {
+  localStorage: localStorageAdapter,
+  http: httpAdapter,
+};
+
+/**
+ * Save function map for persisting config
+ */
+const saveFunctions: Record<AdapterType, (config: ConfigType) => Promise<void>> = {
+  localStorage: saveToLocalStorage,
+  http: saveToHttp,
 };
 
 /**
@@ -162,11 +171,6 @@ export const CONFIG = new Proxy({} as ConfigType, {
  */
 export const configManager = {
   /**
-   * Available adapters
-   */
-  adapters,
-
-  /**
    * Current adapter type (readonly computed)
    */
   currentAdapterType: computed(() => _currentAdapterType.value),
@@ -174,8 +178,8 @@ export const configManager = {
   /**
    * Get current adapter instance
    */
-  getCurrentAdapter(): ConfigAdapter {
-    return this.adapters[_currentAdapterType.value];
+  getCurrentAdapter(): Adapter {
+    return adapters[_currentAdapterType.value];
   },
 
   /**
@@ -226,11 +230,11 @@ export const configManager = {
   },
 
   /**
-   * Save config using current adapter
+   * Save config using current adapter's save function
    */
   async save(): Promise<void> {
-    const adapter = this.getCurrentAdapter();
-    await adapter.save({ ..._config });
+    const saveFunction = saveFunctions[_currentAdapterType.value];
+    await saveFunction({ ..._config });
   },
 
   /**
