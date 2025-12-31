@@ -31,15 +31,15 @@ const toggleModel = computed({
   get: () => {
     return togglePromise.value
       ? togglePromise.value
-      : !props.extension.disabled;
+      : props.extension.isEnabledForClient(props.clientId);
   },
   set: async (newValue: boolean) => {
     togglePromise.value = (async () => {
-      const updatedExtension = props.extension.disabled
-        ? await props.extension.enable()
-        : await props.extension.disable();
+      const updatedExtension = props.extension.isEnabledForClient(props.clientId)
+        ? await props.extension.disable(props.clientId)
+        : await props.extension.enable(props.clientId);
       emit("toggle", updatedExtension);
-      return !updatedExtension.disabled;
+      return updatedExtension.isEnabledForClient(props.clientId);
     })();
   },
 });

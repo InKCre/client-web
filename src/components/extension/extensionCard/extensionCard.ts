@@ -8,6 +8,11 @@ export const extensionCardProps = {
     required: true,
     default: () => Extension.parse({}),
   },
+  clientId: {
+    type: String,
+    required: true,
+    default: "",
+  },
 };
 
 // --- Emits ---
