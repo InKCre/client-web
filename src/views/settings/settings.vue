@@ -9,7 +9,7 @@ import {
   InkDoubleCheck,
   type DropdownOption,
 } from "@inkcre/web-design";
-import { CONFIG, configManager, type AdapterType } from "@/config";
+import { configManager, type AdapterType } from "@/config";
 import {
   setLocale,
   SUPPORT_LOCALES,
@@ -21,7 +21,7 @@ import i18n from "@/locales";
 const { t } = useI18n();
 
 // Local reactive copy of config for form editing
-const formConfig = reactive({ ...CONFIG });
+const formConfig = reactive(configManager.getConfig());
 
 // Adapter options
 const adapterOptions: DropdownOption[] = [
@@ -35,7 +35,7 @@ const currentAdapter = computed({
   set: async (value: string) => {
     await configManager.setAdapterType(value as AdapterType);
     // Reload form config after adapter change
-    Object.assign(formConfig, CONFIG);
+    Object.assign(formConfig, configManager.getConfig());
   },
 });
 
@@ -69,12 +69,12 @@ const onSave = async () => {
 const onReset = () => {
   configManager.reset();
   // Reload form config after reset
-  Object.assign(formConfig, CONFIG);
+  Object.assign(formConfig, configManager.getConfig());
 };
 
 // Export config
 const onExport = () => {
-  const configJson = JSON.stringify(CONFIG, null, 2);
+  const configJson = JSON.stringify(configManager.getConfig(), null, 2);
   const blob = new Blob([configJson], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -102,7 +102,7 @@ const onFileSelected = (event: Event) => {
       const content = e.target?.result as string;
       configManager.import(content);
       // Reload form config after import
-      Object.assign(formConfig, CONFIG);
+      Object.assign(formConfig, configManager.getConfig());
     } catch (error) {
       console.error("Failed to import config:", error);
       alert(t("settings.importError"));

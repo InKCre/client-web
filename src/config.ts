@@ -134,24 +134,24 @@ function getInitialAdapterType(): AdapterType {
 const _currentAdapterType = ref<AdapterType>(getInitialAdapterType());
 
 /**
- * Global config singleton
+ * Global config singleton - initialized with default values
  */
-let _config: ConfigType | null = null;
+let _config: ConfigType = ConfigSchema.parse({
+  INKCRE_CORE_URL: "",
+  INKCRE_PGREST_URL: "",
+  INKCRE_EXTENSION_REGISTRY_URL: "",
+  INKCRE_JWT_SECRET: "",
+  LOCAL_CLIENT_ID: null,
+});
 
 /**
  * Get config (singleton access)
  */
 export const CONFIG = new Proxy({} as ConfigType, {
   get(_target, prop) {
-    if (_config === null) {
-      throw new Error("[Config] Config not initialized. Call configManager.load() first.");
-    }
     return _config[prop as keyof ConfigType];
   },
   set(_target, prop, value) {
-    if (_config === null) {
-      throw new Error("[Config] Config not initialized. Call configManager.load() first.");
-    }
     (_config as any)[prop] = value;
     return true;
   },
@@ -229,9 +229,6 @@ export const configManager = {
    * Save config using current adapter
    */
   async save(): Promise<void> {
-    if (_config === null) {
-      throw new Error("[Config] Config not initialized");
-    }
     const adapter = this.getCurrentAdapter();
     await adapter.save({ ..._config });
   },
@@ -240,9 +237,6 @@ export const configManager = {
    * Update config values
    */
   update(partial: Partial<ConfigType>): void {
-    if (_config === null) {
-      throw new Error("[Config] Config not initialized");
-    }
     Object.assign(_config, partial);
   },
 
@@ -250,7 +244,6 @@ export const configManager = {
    * Check if config is valid
    */
   isValid(): boolean {
-    if (_config === null) return false;
     try {
       ConfigSchema.parse(_config);
       return true;
@@ -293,9 +286,6 @@ export const configManager = {
    * Get current config as plain object
    */
   getConfig(): ConfigType {
-    if (_config === null) {
-      throw new Error("[Config] Config not initialized");
-    }
     return { ..._config };
   },
 };
