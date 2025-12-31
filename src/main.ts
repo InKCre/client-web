@@ -22,9 +22,6 @@ import { initBuiltinResolvers } from "@/business/info-base/resolvers";
 // Module Federation runtime with plugins (must be imported before extensions)
 import "@/business/mf-plugins";
 
-// Extensions (import triggers decorator registration)
-import "../extensions/twitter";
-
 import { Extension } from "@/business/extension";
 
 initBuiltinStorages();

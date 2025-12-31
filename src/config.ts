@@ -230,6 +230,34 @@ export const configManager = {
       return false;
     }
   },
+
+  /**
+   * Reset config to defaults
+   */
+  reset() {
+    CONFIG.INKCRE_CORE_URL = "";
+    CONFIG.INKCRE_PGREST_URL = "";
+    CONFIG.INKCRE_EXTENSION_REGISTRY_URL = "";
+    CONFIG.INKCRE_JWT_SECRET = "";
+    CONFIG.LOCAL_CLIENT_ID = null;
+    localStorage.removeItem(CONFIG_STORAGE_KEY);
+    console.log("[Config] Config reset to defaults");
+  },
+
+  /**
+   * Import config from JSON string
+   */
+  import(configJson: string) {
+    try {
+      const parsed = JSON.parse(configJson);
+      const validated = ConfigSchema.parse(parsed);
+      Object.assign(CONFIG, validated);
+      console.log("[Config] Config imported successfully");
+    } catch (error) {
+      console.error("[Config] Failed to import config:", error);
+      throw new Error("Invalid config format");
+    }
+  },
 };
 
 // Auto-save on config changes (debounced via watch)
@@ -250,64 +278,3 @@ watch(
 
 // Initial load (async)
 configManager.load();
-
-/**
- * Config utilities (backward compatible)
- */
-export const configUtils = {
-  /**
-   * Get local client ID
-   */
-  getLocalClientId(): string | null {
-    return CONFIG.LOCAL_CLIENT_ID;
-  },
-
-  /**
-   * Set local client ID
-   */
-  setLocalClientId(clientId: string | null) {
-    CONFIG.LOCAL_CLIENT_ID = clientId;
-  },
-
-  /**
-   * Check if given client ID is local client
-   */
-  isLocalClient(clientId: string): boolean {
-    return CONFIG.LOCAL_CLIENT_ID === clientId;
-  },
-
-  /**
-   * Reset config to defaults
-   */
-  reset() {
-    CONFIG.INKCRE_CORE_URL = "";
-    CONFIG.INKCRE_PGREST_URL = "";
-    CONFIG.INKCRE_EXTENSION_REGISTRY_URL = "";
-    CONFIG.INKCRE_JWT_SECRET = "";
-    CONFIG.LOCAL_CLIENT_ID = null;
-    localStorage.removeItem(CONFIG_STORAGE_KEY);
-    console.log("[Config] Config reset to defaults");
-  },
-
-  /**
-   * Export config (for backup)
-   */
-  export(): string {
-    return JSON.stringify(CONFIG, null, 2);
-  },
-
-  /**
-   * Import config (for restore)
-   */
-  import(configJson: string) {
-    try {
-      const parsed = JSON.parse(configJson);
-      const validated = ConfigSchema.parse(parsed);
-      Object.assign(CONFIG, validated);
-      console.log("[Config] Config imported successfully");
-    } catch (error) {
-      console.error("[Config] Failed to import config:", error);
-      throw new Error("Invalid config format");
-    }
-  },
-};

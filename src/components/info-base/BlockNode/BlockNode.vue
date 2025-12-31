@@ -43,12 +43,6 @@ const onNodeClick = () => {
     @click="onNodeClick"
   >
     <BlockContent :block="block" />
-
-    <!-- Fallback to static preview if no contentComp -->
-    <div v-else class="block-node__content">
-      <div class="block-node__resolver">{{ resolverType }}</div>
-      <div class="block-node__preview">{{ fallbackPreview }}</div>
-    </div>
   </div>
 </template>
 

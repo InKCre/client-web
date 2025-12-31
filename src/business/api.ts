@@ -138,8 +138,9 @@ export class DBAPIClient<DT = any> extends PostgrestClient {
     protected relation: string,
     protected defSchema?: { parse<DT>(input: unknown): DT },
     public schemaName: "public" = "public",
-    protected baseUrl: string = CONFIG.INKCRE_PGREST_URL
+    protected baseUrl?: string
   ) {
+    baseUrl = baseUrl || CONFIG.INKCRE_PGREST_URL;
     super(baseUrl, {
       headers: new Headers({
         // Authorization will be set later

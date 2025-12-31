@@ -9,7 +9,7 @@ import {
   InkDoubleCheck,
   type DropdownOption,
 } from "@inkcre/web-design";
-import { CONFIG, configManager, configUtils, type AdapterType } from "@/config";
+import { CONFIG, configManager, type AdapterType } from "@/config";
 import { setLocale, SUPPORT_LOCALES, LOCALE_NAMES, type SupportLocale } from "@/locales";
 import i18n from "@/locales";
 
@@ -45,12 +45,12 @@ const currentLocale = computed({
 
 // Reset config
 const onReset = () => {
-  configUtils.reset();
+  configManager.reset();
 };
 
 // Export config
 const onExport = () => {
-  const configJson = configUtils.export();
+  const configJson = JSON.stringify(CONFIG, null, 2);
   const blob = new Blob([configJson], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -76,7 +76,7 @@ const onFileSelected = (event: Event) => {
   reader.onload = (e) => {
     try {
       const content = e.target?.result as string;
-      configUtils.import(content);
+      configManager.import(content);
     } catch (error) {
       console.error("Failed to import config:", error);
       alert(t("settings.importError"));
