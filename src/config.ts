@@ -20,9 +20,21 @@ const CONFIG_STORAGE_KEY = "inkcre_app_config";
 const ADAPTER_STORAGE_KEY = "inkcre_config_adapter";
 
 /**
- * Custom localStorage adapter for zod-config
+ * Adapter types
  */
-const createLocalStorageAdapter = (): Adapter => ({
+export type AdapterType = "localStorage" | "http";
+
+/**
+ * Extended adapter interface with save method
+ */
+export interface ConfigAdapter extends Adapter {
+  save(config: ConfigType): Promise<void>;
+}
+
+/**
+ * Custom localStorage adapter
+ */
+const createLocalStorageAdapter = (): ConfigAdapter => ({
   name: "localStorage",
   read: async (): Promise<Record<string, unknown>> => {
     try {
@@ -37,24 +49,21 @@ const createLocalStorageAdapter = (): Adapter => ({
     }
     return {};
   },
+  save: async (config: ConfigType): Promise<void> => {
+    try {
+      localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config));
+      console.log("[Config] Saved config to localStorage");
+    } catch (error) {
+      console.error("[Config] Failed to save config to localStorage:", error);
+      throw error;
+    }
+  },
 });
 
 /**
- * Save config to localStorage
+ * Custom HTTP adapter
  */
-async function saveToLocalStorage(config: ConfigType): Promise<void> {
-  try {
-    localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config));
-    console.log("[Config] Saved config to localStorage");
-  } catch (error) {
-    console.error("[Config] Failed to save config to localStorage:", error);
-  }
-}
-
-/**
- * Custom HTTP adapter for zod-config
- */
-const createHttpAdapter = (): Adapter => ({
+const createHttpAdapter = (): ConfigAdapter => ({
   name: "http",
   read: async (): Promise<Record<string, unknown>> => {
     try {
@@ -73,46 +82,90 @@ const createHttpAdapter = (): Adapter => ({
     }
     return {};
   },
+  save: async (config: ConfigType): Promise<void> => {
+    try {
+      const res = await fetch("/api/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
+      if (res.ok) {
+        console.log("[Config] Saved config to HTTP endpoint");
+      } else {
+        console.error("[Config] Failed to save config to HTTP:", res.status);
+        throw new Error(`HTTP save failed with status ${res.status}`);
+      }
+    } catch (error) {
+      console.error("[Config] Failed to save config to HTTP:", error);
+      throw error;
+    }
+  },
 });
 
 /**
- * Save config to HTTP endpoint
+ * Adapter instances
  */
-async function saveToHttp(config: ConfigType): Promise<void> {
-  try {
-    const res = await fetch("/api/config", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(config),
-    });
-    if (res.ok) {
-      console.log("[Config] Saved config to HTTP endpoint");
-    } else {
-      console.error("[Config] Failed to save config to HTTP:", res.status);
-    }
-  } catch (error) {
-    console.error("[Config] Failed to save config to HTTP:", error);
+const adapters: Record<AdapterType, ConfigAdapter> = {
+  localStorage: createLocalStorageAdapter(),
+  http: createHttpAdapter(),
+};
+
+/**
+ * Determine initial adapter type
+ */
+function getInitialAdapterType(): AdapterType {
+  // Check if adapter type is stored
+  const stored = localStorage.getItem(ADAPTER_STORAGE_KEY);
+  if (stored && stored in adapters) {
+    return stored as AdapterType;
   }
+  
+  // Auto-detect: use HTTP for Cloudflare deployment
+  if (import.meta.env.VITE_DEPLOY_TO === "CLOUDFLARE") {
+    return "http";
+  }
+  
+  return "localStorage";
 }
 
-// Auto-detect: use HTTP for Cloudflare deployment
-export let CONFIG = undefined;
-if (import.meta.env.VITE_DEPLOY_TO === "CLOUDFLARE") {
-  CONFIG = await loadConfig({
-    schema: ConfigSchema,
-    adapters: [createHttpAdapter()],
-  });
-} else {
-  CONFIG = await loadConfig({
-    schema: ConfigSchema,
-    adapters: [createLocalStorageAdapter()],
-  });
-}
+/**
+ * Current adapter type (reactive)
+ */
+const _currentAdapterType = ref<AdapterType>(getInitialAdapterType());
+
+/**
+ * Global config singleton
+ */
+let _config: ConfigType | null = null;
+
+/**
+ * Get config (singleton access)
+ */
+export const CONFIG = new Proxy({} as ConfigType, {
+  get(_target, prop) {
+    if (_config === null) {
+      throw new Error("[Config] Config not initialized. Call configManager.load() first.");
+    }
+    return _config[prop as keyof ConfigType];
+  },
+  set(_target, prop, value) {
+    if (_config === null) {
+      throw new Error("[Config] Config not initialized. Call configManager.load() first.");
+    }
+    (_config as any)[prop] = value;
+    return true;
+  },
+});
 
 /**
  * Config Manager - manages adapter selection, loading, and saving
  */
 export const configManager = {
+  /**
+   * Available adapters
+   */
+  adapters,
+
   /**
    * Current adapter type (readonly computed)
    */
@@ -149,7 +202,7 @@ export const configManager = {
     const adapter = this.getCurrentAdapter();
 
     try {
-      CONFIG = await loadConfig({
+      const loaded = await loadConfig({
         schema: ConfigSchema,
         adapters: [adapter],
         onError: (error) => {
@@ -157,11 +210,18 @@ export const configManager = {
         },
       });
 
+      _config = loaded;
       console.log("[Config] Config loaded successfully");
     } catch (error) {
       console.error("[Config] Failed to load config:", error);
       // Fallback to defaults
-      CONFIG = ConfigSchema.parse({});
+      _config = ConfigSchema.parse({
+        INKCRE_CORE_URL: "",
+        INKCRE_PGREST_URL: "",
+        INKCRE_EXTENSION_REGISTRY_URL: "",
+        INKCRE_JWT_SECRET: "",
+        LOCAL_CLIENT_ID: null,
+      });
     }
   },
 
@@ -169,23 +229,30 @@ export const configManager = {
    * Save config using current adapter
    */
   async save(): Promise<void> {
+    if (_config === null) {
+      throw new Error("[Config] Config not initialized");
+    }
     const adapter = this.getCurrentAdapter();
-    await adapter.save({ ...CONFIG });
+    await adapter.save({ ..._config });
   },
 
   /**
    * Update config values
    */
   update(partial: Partial<ConfigType>): void {
-    Object.assign(CONFIG, partial);
+    if (_config === null) {
+      throw new Error("[Config] Config not initialized");
+    }
+    Object.assign(_config, partial);
   },
 
   /**
    * Check if config is valid
    */
   isValid(): boolean {
+    if (_config === null) return false;
     try {
-      ConfigSchema.parse(CONFIG);
+      ConfigSchema.parse(_config);
       return true;
     } catch {
       return false;
@@ -196,7 +263,13 @@ export const configManager = {
    * Reset config to defaults
    */
   reset(): void {
-    CONFIG = ConfigSchema.parse({});
+    _config = ConfigSchema.parse({
+      INKCRE_CORE_URL: "",
+      INKCRE_PGREST_URL: "",
+      INKCRE_EXTENSION_REGISTRY_URL: "",
+      INKCRE_JWT_SECRET: "",
+      LOCAL_CLIENT_ID: null,
+    });
     localStorage.removeItem(CONFIG_STORAGE_KEY);
     console.log("[Config] Config reset to defaults");
   },
@@ -208,7 +281,7 @@ export const configManager = {
     try {
       const parsed = JSON.parse(configJson);
       const validated = ConfigSchema.parse(parsed);
-      CONFIG = validated;
+      _config = validated;
       console.log("[Config] Config imported successfully");
     } catch (error) {
       console.error("[Config] Failed to import config:", error);
@@ -220,6 +293,9 @@ export const configManager = {
    * Get current config as plain object
    */
   getConfig(): ConfigType {
-    return { ...CONFIG };
+    if (_config === null) {
+      throw new Error("[Config] Config not initialized");
+    }
+    return { ..._config };
   },
 };
