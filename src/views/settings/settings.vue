@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, reactive, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   InkForm,
@@ -10,10 +10,18 @@ import {
   type DropdownOption,
 } from "@inkcre/web-design";
 import { CONFIG, configManager, type AdapterType } from "@/config";
-import { setLocale, SUPPORT_LOCALES, LOCALE_NAMES, type SupportLocale } from "@/locales";
+import {
+  setLocale,
+  SUPPORT_LOCALES,
+  LOCALE_NAMES,
+  type SupportLocale,
+} from "@/locales";
 import i18n from "@/locales";
 
 const { t } = useI18n();
+
+// Local reactive copy of config for form editing
+const formConfig = reactive({ ...CONFIG });
 
 // Adapter options
 const adapterOptions: DropdownOption[] = [
@@ -24,8 +32,10 @@ const adapterOptions: DropdownOption[] = [
 // Current adapter (computed for v-model)
 const currentAdapter = computed({
   get: () => configManager.currentAdapterType.value,
-  set: (value: string) => {
-    configManager.setAdapterType(value as AdapterType);
+  set: async (value: string) => {
+    await configManager.setAdapterType(value as AdapterType);
+    // Reload form config after adapter change
+    Object.assign(formConfig, CONFIG);
   },
 });
 
@@ -43,9 +53,23 @@ const currentLocale = computed({
   },
 });
 
+// Save config
+const onSave = async () => {
+  try {
+    configManager.update(formConfig);
+    await configManager.save();
+    alert(t("settings.saveSuccess"));
+  } catch (error) {
+    console.error("Failed to save config:", error);
+    alert("Failed to save configuration");
+  }
+};
+
 // Reset config
 const onReset = () => {
   configManager.reset();
+  // Reload form config after reset
+  Object.assign(formConfig, CONFIG);
 };
 
 // Export config
@@ -77,6 +101,8 @@ const onFileSelected = (event: Event) => {
     try {
       const content = e.target?.result as string;
       configManager.import(content);
+      // Reload form config after import
+      Object.assign(formConfig, CONFIG);
     } catch (error) {
       console.error("Failed to import config:", error);
       alert(t("settings.importError"));
@@ -103,25 +129,25 @@ const onFileSelected = (event: Event) => {
 
       <!-- Config Fields -->
       <InkInput
-        v-model="CONFIG.INKCRE_CORE_URL"
+        v-model="formConfig.INKCRE_CORE_URL"
         :label="t('settings.coreUrl')"
         placeholder="http://127.0.0.1:8000"
       />
 
       <InkInput
-        v-model="CONFIG.INKCRE_PGREST_URL"
+        v-model="formConfig.INKCRE_PGREST_URL"
         :label="t('settings.pgrestUrl')"
         placeholder="https://..."
       />
 
       <InkInput
-        v-model="CONFIG.INKCRE_EXTENSION_REGISTRY_URL"
+        v-model="formConfig.INKCRE_EXTENSION_REGISTRY_URL"
         :label="t('settings.extensionRegistryUrl')"
         placeholder="https://..."
       />
 
       <InkInput
-        v-model="CONFIG.INKCRE_JWT_SECRET"
+        v-model="formConfig.INKCRE_JWT_SECRET"
         :label="t('settings.jwtSecret')"
         placeholder="..."
       />
@@ -136,6 +162,12 @@ const onFileSelected = (event: Event) => {
 
     <!-- Action Buttons -->
     <div class="settings-view__actions">
+      <InkButton
+        :text="t('settings.saveConfig')"
+        theme="primary"
+        @click="onSave"
+      />
+
       <InkDoubleCheck
         :title="t('settings.resetConfirmTitle')"
         :message="t('settings.resetConfirmMessage')"

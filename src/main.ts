@@ -4,6 +4,9 @@ import App from "./App.vue";
 import i18n from "./locales";
 import router from "./router";
 import store from "./stores";
+import { configManager } from "./config";
+
+configManager.load();
 
 // 样式
 import "uno.css";
@@ -36,4 +39,5 @@ Extension.startup().catch((error) => {
 
 window.addEventListener("beforeunload", () => {
   Extension.shutdown();
+  configManager.save();
 });

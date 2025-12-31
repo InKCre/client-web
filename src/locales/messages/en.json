@@ -32,6 +32,8 @@
     "jwtSecret": "JWT Secret",
     "languageLabel": "Language",
     "languageDescription": "Select your preferred language",
+    "saveConfig": "Save",
+    "saveSuccess": "Configuration saved successfully",
     "resetConfig": "Reset",
     "resetConfirmTitle": "Reset Configuration",
     "resetConfirmMessage": "Are you sure you want to reset all settings to default? This action cannot be undone.",
