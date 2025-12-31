@@ -1,4 +1,4 @@
-import { ref, computed } from "vue";
+import { ref, computed, reactive } from "vue";
 import { z } from "zod";
 import { loadConfig, type Adapter } from "zod-config";
 
@@ -104,9 +104,9 @@ async function saveToHttp(config: ConfigType): Promise<void> {
 }
 
 /**
- * Adapter map for loading config
+ * Adapter map for loading config (exported)
  */
-const adapters: Record<AdapterType, Adapter> = {
+export const ADAPTERS: Record<AdapterType, Adapter> = {
   localStorage: localStorageAdapter,
   http: httpAdapter,
 };
@@ -125,7 +125,7 @@ const saveFunctions: Record<AdapterType, (config: ConfigType) => Promise<void>> 
 function getInitialAdapterType(): AdapterType {
   // Check if adapter type is stored
   const stored = localStorage.getItem(ADAPTER_STORAGE_KEY);
-  if (stored && stored in adapters) {
+  if (stored && stored in ADAPTERS) {
     return stored as AdapterType;
   }
   
@@ -143,28 +143,9 @@ function getInitialAdapterType(): AdapterType {
 const _currentAdapterType = ref<AdapterType>(getInitialAdapterType());
 
 /**
- * Global config singleton - initialized with default values
+ * Global config (Vue reactive, initialized with defaults from ConfigSchema)
  */
-let _config: ConfigType = ConfigSchema.parse({
-  INKCRE_CORE_URL: "",
-  INKCRE_PGREST_URL: "",
-  INKCRE_EXTENSION_REGISTRY_URL: "",
-  INKCRE_JWT_SECRET: "",
-  LOCAL_CLIENT_ID: null,
-});
-
-/**
- * Get config (singleton access)
- */
-export const CONFIG = new Proxy({} as ConfigType, {
-  get(_target, prop) {
-    return _config[prop as keyof ConfigType];
-  },
-  set(_target, prop, value) {
-    (_config as any)[prop] = value;
-    return true;
-  },
-});
+export const CONFIG = reactive<ConfigType>(ConfigSchema.parse({}));
 
 /**
  * Config Manager - manages adapter selection, loading, and saving
@@ -179,14 +160,14 @@ export const configManager = {
    * Get current adapter instance
    */
   getCurrentAdapter(): Adapter {
-    return adapters[_currentAdapterType.value];
+    return ADAPTERS[_currentAdapterType.value];
   },
 
   /**
    * Set adapter type and persist choice
    */
   async setAdapterType(type: AdapterType): Promise<void> {
-    if (!(type in adapters)) {
+    if (!(type in ADAPTERS)) {
       console.error("[Config] Invalid adapter type:", type);
       return;
     }
@@ -214,18 +195,12 @@ export const configManager = {
         },
       });
 
-      _config = loaded;
+      Object.assign(CONFIG, loaded);
       console.log("[Config] Config loaded successfully");
     } catch (error) {
       console.error("[Config] Failed to load config:", error);
       // Fallback to defaults
-      _config = ConfigSchema.parse({
-        INKCRE_CORE_URL: "",
-        INKCRE_PGREST_URL: "",
-        INKCRE_EXTENSION_REGISTRY_URL: "",
-        INKCRE_JWT_SECRET: "",
-        LOCAL_CLIENT_ID: null,
-      });
+      Object.assign(CONFIG, ConfigSchema.parse({}));
     }
   },
 
@@ -234,14 +209,14 @@ export const configManager = {
    */
   async save(): Promise<void> {
     const saveFunction = saveFunctions[_currentAdapterType.value];
-    await saveFunction({ ..._config });
+    await saveFunction({ ...CONFIG });
   },
 
   /**
    * Update config values
    */
   update(partial: Partial<ConfigType>): void {
-    Object.assign(_config, partial);
+    Object.assign(CONFIG, partial);
   },
 
   /**
@@ -249,7 +224,7 @@ export const configManager = {
    */
   isValid(): boolean {
     try {
-      ConfigSchema.parse(_config);
+      ConfigSchema.parse(CONFIG);
       return true;
     } catch {
       return false;
@@ -260,13 +235,7 @@ export const configManager = {
    * Reset config to defaults
    */
   reset(): void {
-    _config = ConfigSchema.parse({
-      INKCRE_CORE_URL: "",
-      INKCRE_PGREST_URL: "",
-      INKCRE_EXTENSION_REGISTRY_URL: "",
-      INKCRE_JWT_SECRET: "",
-      LOCAL_CLIENT_ID: null,
-    });
+    Object.assign(CONFIG, ConfigSchema.parse({}));
     localStorage.removeItem(CONFIG_STORAGE_KEY);
     console.log("[Config] Config reset to defaults");
   },
@@ -278,7 +247,7 @@ export const configManager = {
     try {
       const parsed = JSON.parse(configJson);
       const validated = ConfigSchema.parse(parsed);
-      _config = validated;
+      Object.assign(CONFIG, validated);
       console.log("[Config] Config imported successfully");
     } catch (error) {
       console.error("[Config] Failed to import config:", error);
@@ -290,6 +259,6 @@ export const configManager = {
    * Get current config as plain object
    */
   getConfig(): ConfigType {
-    return { ..._config };
+    return { ...CONFIG };
   },
 };
