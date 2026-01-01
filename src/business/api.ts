@@ -2,6 +2,7 @@ import { CONFIG } from "../config";
 import { useAuthStore } from "@/stores/auth";
 import stores from "@/stores";
 import { PostgrestClient, PostgrestQueryBuilder } from "@supabase/postgrest-js";
+import { watch } from "vue";
 
 export class APIError extends Error {
   constructor(message: string, public status: number, public response?: any) {
@@ -22,7 +23,7 @@ export class CoreAPIClient<DT = any> {
     protected pathPrefix: string = "",
     protected defResBodySchema?: { parse<DT>(input: unknown): DT }
   ) {
-    this.baseURL = `${CONFIG.INKCRE_CORE_URL}${pathPrefix}`;
+    this.baseURL = `${CONFIG.value.INKCRE_CORE_URL}${pathPrefix}`;
   }
 
   protected async getAuthHeaders(): Promise<object> {
@@ -130,6 +131,10 @@ export class CoreAPIClient<DT = any> {
 
 /**
  * PostgREST API Client for database operations
+ *
+ * @param baseUrl - Base URL of the PostgREST API
+ * If not provided, will use CONFIG.INKCRE_PGREST_URL and reactively update on changes
+ * @generic DT - Data type for the records in the specified relation
  */
 export class DBAPIClient<DT = any> extends PostgrestClient {
   static authStore = useAuthStore(stores);
@@ -138,20 +143,28 @@ export class DBAPIClient<DT = any> extends PostgrestClient {
     protected relation: string,
     protected defSchema?: { parse<DT>(input: unknown): DT },
     public schemaName: "public" = "public",
-    protected baseUrl?: string
+    baseUrl: string = ""
   ) {
-    baseUrl = baseUrl || CONFIG.INKCRE_PGREST_URL;
     super(baseUrl, {
-      headers: new Headers({
-        // Authorization will be set later
-      }),
       schema: schemaName,
-      fetch,
+      // Custom fetch to dynamically inject auth token on each request
+      fetch: async (input, init) => {
+        const token = await DBAPIClient.authStore.getToken();
+        const headers = new Headers(init?.headers);
+        headers.set("Authorization", `Bearer ${token}`);
+        return fetch(input, { ...init, headers });
+      },
     });
 
-    DBAPIClient.authStore.getToken().then((token) => {
-      this.headers.set("Authorization", `Bearer ${token}`);
-    });
+    if (!baseUrl) {
+      watch(
+        () => CONFIG.value.INKCRE_PGREST_URL,
+        (newVal) => {
+          this.url = newVal;
+        },
+        { immediate: true }
+      );
+    }
   }
 
   public from(): PostgrestQueryBuilder<any, any, any> {

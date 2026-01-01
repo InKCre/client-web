@@ -24,7 +24,7 @@
     "title": "设置",
     "configAdapter": "配置来源",
     "configAdapterDescription": "选择配置的加载/保存位置",
-    "adapterLocalStorage": "本地存储",
+    "adapterLocalStorage": "Local Storage",
     "adapterHttp": "远程服务器",
     "coreUrl": "核心 API 地址",
     "pgrestUrl": "PostgreSQL REST 地址",
@@ -39,7 +39,8 @@
     "resetConfirmMessage": "确定要重置所有设置为默认值吗？此操作无法撤销。",
     "exportConfig": "导出",
     "importConfig": "导入",
-    "importError": "导入配置失败，请检查文件格式。"
+    "importError": "导入配置失败，请检查文件格式。",
+    "adapterDev": "开发模式"
   },
   "source": {
     "deleteConfirmTitle": "删除数据源",

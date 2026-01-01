@@ -84,13 +84,13 @@ export class Extension extends Z.class({
    * Extension instances registry for the local client.
    *
    * IMPORTANT: This map assumes all instances belong to the current local client
-   * (identified by `CONFIG.LOCAL_CLIENT_ID`). Do not use this registry
+   * (identified by `CONFIG.value.LOCAL_CLIENT_ID`). Do not use this registry
    * to manage extensions for remote clients.
    */
   private static _instances: Map<ExtensionRef, Extension> = new Map();
 
   private static getEnabledInstances(): Extension[] {
-    const clientId = CONFIG.LOCAL_CLIENT_ID;
+    const clientId = CONFIG.value.INKCRE_CLIENT_ID;
     if (!clientId) return [];
     return Array.from(Extension._instances.values()).filter((ext) =>
       ext.isEnabledForClient(clientId)
@@ -295,7 +295,7 @@ export class Extension extends Z.class({
    * Convention: ${registryUrl}/${extensionId}/client-web?version=${version}
    */
   getRemoteEntryUrl(): string {
-    const registryUrl = CONFIG.INKCRE_EXTENSION_REGISTRY_URL;
+    const registryUrl = CONFIG.value.INKCRE_EXTENSION_REGISTRY_URL;
     if (!registryUrl) {
       throw new Error(
         "Extension registry URL is not configured (INKCRE_EXTENSION_REGISTRY_URL)"
@@ -351,7 +351,7 @@ export class Extension extends Z.class({
   async enableForClient(clientId: ClientRef): Promise<void> {
     console.log(`[Extension] Enabling ${this.id} for client ${clientId}`);
 
-    if (CONFIG.LOCAL_CLIENT_ID === clientId) {
+    if (CONFIG.value.INKCRE_CLIENT_ID === clientId) {
       // Local client: call API to enable
       const updated = await (
         await Client.get(clientId)
@@ -397,7 +397,7 @@ export class Extension extends Z.class({
   async disableForClient(clientId: ClientRef): Promise<void> {
     console.log(`[Extension] Disabling ${this.id} for client ${clientId}`);
 
-    if (CONFIG.LOCAL_CLIENT_ID === clientId) {
+    if (CONFIG.value.INKCRE_CLIENT_ID === clientId) {
       // Deactivate if active
       if (this.runtimeState.value.status === ExtensionState.ACTIVE) {
         await this.deactivate();

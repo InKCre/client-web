@@ -24,7 +24,7 @@
     "title": "Settings",
     "configAdapter": "Config Source",
     "configAdapterDescription": "Choose where to load/save configuration",
-    "adapterLocalStorage": "Local Storage",
+    "adapterLocalStorage": "local storage",
     "adapterHttp": "Remote Server",
     "coreUrl": "Core API URL",
     "pgrestUrl": "PostgreSQL REST URL",
@@ -39,7 +39,8 @@
     "resetConfirmMessage": "Are you sure you want to reset all settings to default? This action cannot be undone.",
     "exportConfig": "Export",
     "importConfig": "Import",
-    "importError": "Failed to import configuration. Please check the file format."
+    "importError": "Failed to import configuration. Please check the file format.",
+    "adapterDev": "Dev"
   },
   "source": {
     "deleteConfirmTitle": "Delete Source",

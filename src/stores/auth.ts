@@ -1,52 +1,66 @@
 import { defineStore } from "pinia";
 import { SignJWT } from "jose";
 import { CONFIG } from "../config";
+import { ref, computed, watch } from "vue";
 
-interface AuthState {
-  token?: string;
-}
+export const useAuthStore = defineStore("auth", () => {
+  // State
+  const token = ref<string | undefined>(undefined);
 
-export const useAuthStore = defineStore("auth", {
-  state: (): AuthState => ({
-    token: undefined,
-  }),
+  // Actions
+  async function newToken(): Promise<string> {
+    if (!CONFIG.value.INKCRE_JWT_SECRET) {
+      throw new Error("JWT_SECRET not configured");
+    }
 
-  actions: {
-    /**
-     * Sign a new JWT token using the JWT secret from config
-     */
-    async newToken(): Promise<string> {
-      if (!CONFIG.INKCRE_JWT_SECRET) {
-        throw new Error("JWT_SECRET not configured");
-      }
+    try {
+      const secret = new TextEncoder().encode(CONFIG.value.INKCRE_JWT_SECRET);
+      const signedToken = await new SignJWT({
+        role: "authenticated",
+      })
+        .setProtectedHeader({ alg: "HS256" })
+        .setIssuedAt()
+        .setExpirationTime("24h")
+        .setIssuer("inkcre-client-web")
+        .setAudience("inkcre-client-web")
+        .sign(secret);
 
-      try {
-        // Create a new token with 24 hour expiration
+      token.value = signedToken;
+      return signedToken;
+    } catch (error) {
+      console.error("Failed to sign a new token:", error);
+      throw new Error("Failed to sign a new token");
+    }
+  }
 
-        const secret = new TextEncoder().encode(CONFIG.INKCRE_JWT_SECRET);
-        const token = await new SignJWT({
-          role: "authenticated",
-        })
-          .setProtectedHeader({ alg: "HS256" })
-          .setIssuedAt()
-          .setExpirationTime("24h")
-          .setIssuer("inkcre-client-web")
-          .setAudience("inkcre-client-web")
-          .sign(secret);
+  async function getToken(): Promise<string> {
+    if (!token.value) {
+      return await newToken();
+    }
+    return token.value;
+  }
 
-        this.token = token;
-        return this.token;
-      } catch (error) {
-        console.error("Failed to sign a new token:", error);
-        throw new Error("Failed to sign a new token");
+  async function refreshToken(): Promise<string> {
+    return await newToken();
+  }
+
+  // Watch for JWT secret changes and regenerate token
+  watch(
+    () => CONFIG.value.INKCRE_JWT_SECRET,
+    async (newSecret) => {
+      if (newSecret) {
+        await newToken();
+      } else {
+        token.value = undefined;
       }
     },
+    { immediate: true }
+  );
 
-    async getToken(): Promise<string> {
-      if (!this.token) {
-        return await this.newToken();
-      }
-      return this.token;
-    },
-  },
+  return {
+    token,
+    newToken,
+    getToken,
+    refreshToken,
+  };
 });
