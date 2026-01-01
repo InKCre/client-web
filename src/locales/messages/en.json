@@ -18,7 +18,8 @@
     "sources": "Sources",
     "extensions": "Extensions",
     "settings": "Settings",
-    "explore": "Explore"
+    "explore": "Explore",
+    "infoBase": "Info Base"
   },
   "settings": {
     "title": "Settings",
@@ -30,6 +31,7 @@
     "pgrestUrl": "PostgreSQL REST URL",
     "extensionRegistryUrl": "Extension Registry URL",
     "jwtSecret": "JWT Secret",
+    "clientId": "Client ID",
     "languageLabel": "Language",
     "languageDescription": "Select your preferred language",
     "saveConfig": "Save",
@@ -99,6 +101,19 @@
   "logs": {
     "title": "Logs",
     "empty": "No logs"
+  },
+  "client": {
+    "listTitle": "Clients",
+    "refresh": "Refresh",
+    "checkHealth": "Check Health",
+    "name": "Name",
+    "id": "ID",
+    "restUrl": "REST API URL",
+    "createdAt": "Created At",
+    "statusOnline": "Online",
+    "statusOffline": "Offline",
+    "statusUnknown": "Unknown",
+    "noClients": "No clients registered"
   },
   "infoBase": {
     "blockDetails": {

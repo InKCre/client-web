@@ -18,7 +18,8 @@
     "sources": "数据源",
     "extensions": "扩展",
     "settings": "设置",
-    "explore": "探索"
+    "explore": "探索",
+    "infoBase": "信息库"
   },
   "settings": {
     "title": "设置",
@@ -30,6 +31,7 @@
     "pgrestUrl": "PostgreSQL REST 地址",
     "extensionRegistryUrl": "扩展注册表地址",
     "jwtSecret": "JWT 密钥",
+    "clientId": "客户端 ID",
     "languageLabel": "语言",
     "languageDescription": "选择您的首选语言",
     "saveConfig": "保存",
@@ -98,6 +100,19 @@
   "logs": {
     "title": "日志",
     "empty": "暂无日志"
+  },
+  "client": {
+    "listTitle": "客户端",
+    "refresh": "刷新",
+    "checkHealth": "检查状态",
+    "name": "名称",
+    "id": "ID",
+    "restUrl": "REST API 地址",
+    "createdAt": "创建时间",
+    "statusOnline": "在线",
+    "statusOffline": "离线",
+    "statusUnknown": "未知",
+    "noClients": "暂无注册客户端"
   },
   "infoBase": {
     "blockDetails": {

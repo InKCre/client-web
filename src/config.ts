@@ -14,7 +14,7 @@ export const ConfigSchema = z.object({
   INKCRE_PGREST_URL: z.url().default(""),
   INKCRE_EXTENSION_REGISTRY_URL: z.url().default(""),
   INKCRE_JWT_SECRET: z.string().default(""),
-  INKCRE_CLIENT_ID: z.uuid().default(() => crypto.randomUUID()),
+  INKCRE_CLIENT_ID: z.uuid().default(""),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;

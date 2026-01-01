@@ -23,6 +23,7 @@ import {
   type SupportLocale,
 } from "@/locales";
 import i18n from "@/locales";
+import ClientList from "@/components/client/clientList/clientList.vue";
 
 const { t } = useI18n();
 
@@ -158,6 +159,12 @@ const onFileSelected = (event: Event) => {
         placeholder="..."
       />
 
+      <InkInput
+        v-model="formConfig.INKCRE_CLIENT_ID"
+        :label="t('settings.clientId')"
+        placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+      />
+
       <!-- Language Selection -->
       <InkDropdown
         v-model="currentLocale"
@@ -194,6 +201,9 @@ const onFileSelected = (event: Event) => {
       style="display: none"
       @change="onFileSelected"
     />
+
+    <!-- Clients Section -->
+    <ClientList />
   </main>
 </template>
 

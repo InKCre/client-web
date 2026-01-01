@@ -1,5 +1,3 @@
-@use "@inkcre/web-design/styles/mixins" as *;
-
 .app-side-panel {
   width: 25%;
   min-width: 320px;
@@ -9,6 +7,7 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  gap: sys-var(space, md);
   background-color: sys-var(color, surface, base);
 
   &__content {

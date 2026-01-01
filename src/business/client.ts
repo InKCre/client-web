@@ -1,7 +1,12 @@
 import { z } from "zod";
 import { Z } from "zod-class";
-import { CoreAPIClient, DBAPIClient } from "./api";
+import { DBAPIClient } from "./api";
 import { makeStringProp, makeObjectProp } from "@/utils/vue-props";
+import { CONFIG } from "@/config";
+import { watch } from "vue";
+import type { DropdownOption } from "@inkcre/web-design";
+import { useAuthStore } from "@/stores/auth";
+import stores from "@/stores";
 
 export type ClientRef = string;
 export const makeClientProp = (v?: any) => makeObjectProp<Client>(v);
@@ -19,9 +24,8 @@ export class Client extends Z.class({
   name: z.string(),
   labels: z.array(z.string()).default([]),
   rest_api_url: z.url().nullable().default(null),
-  created_at: z.string(),
+  created_at: z.coerce.date().default(() => new Date()),
 }) {
-  static coreApi: CoreAPIClient = new CoreAPIClient<Client>("/clients", Client);
   static dbApi: DBAPIClient = new DBAPIClient<Client>("clients", Client);
 
   /**
@@ -42,6 +46,17 @@ export class Client extends Z.class({
       .select()
       .order("name", { ascending: true });
     return results.data!.map((item) => new Client(item));
+  }
+
+  /**
+   * List as dropdown options
+   */
+  static async listAsOptions(): Promise<DropdownOption[]> {
+    const clients = await Client.list();
+    return clients.map((client) => ({
+      label: client.name,
+      value: client.id,
+    }));
   }
 
   /**
@@ -70,6 +85,11 @@ export class Client extends Z.class({
     query?: Record<string, any>;
   }): Promise<T> {
     const { method, path, body, query } = options;
+    if (!this.rest_api_url) {
+      throw new Error(
+        `Client ${this.id} does not have a REST API URL configured.`
+      );
+    }
     const url = new URL(`${this.rest_api_url}${path}`);
 
     if (query) {
@@ -78,10 +98,11 @@ export class Client extends Z.class({
       });
     }
 
+    const authStore = useAuthStore(stores);
     const config: RequestInit = {
       method,
       headers: {
-        "Content-Type": "application/json",
+        Authorization: `Bearer ${await authStore.getToken()}`,
       },
     };
 
@@ -108,13 +129,29 @@ export class Client extends Z.class({
  * 创建客户端的表单
  */
 export class CreateClientForm extends Z.class({
-  name: z.string().min(1),
-  description: z.string().optional(),
-  rest_api_url: z.url(),
+  ...Client.shape,
 }) {
-  async create(): Promise<Client> {
+  async upsert(): Promise<Client> {
     return new Client(
-      (await Client.dbApi.from().insert(this).select().single()).data!
+      (await Client.dbApi.from().upsert(this).select().single()).data!
     );
   }
+
+  static async registerSelf() {
+    const form = CreateClientForm.parse({
+      id: CONFIG.value.INKCRE_CLIENT_ID,
+      name: "client-web",
+    });
+    return form.upsert();
+  }
 }
+
+watch(
+  () => CONFIG.value.INKCRE_CLIENT_ID,
+  async (newId) => {
+    if (newId) {
+      await CreateClientForm.registerSelf();
+    }
+  },
+  { immediate: true }
+);

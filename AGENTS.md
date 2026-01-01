@@ -1,12 +1,12 @@
 # InKCre Client-Web
 
 InKCre is an information management application aims to provides automatic information collection, organization and powerful use of information.
-And this is the Vue implemetation of InKCre, mainly provides a GUI to manage info-base and use information.
+And this is the Web client of InKCre, mainly provides a GUI to manage the system, but also provides some sinks.
 
 ## Tech Stacks
 
 - Framework: Vue3 + TypeScript + SCSS
-- UI Library: `@inkcre/web-design` (Read doc in `node_modules/@inkcre/web-design/agent-skills`)
+- UI Library: `@inkcre/web-design` (Agent Skill provided)
 - Routing: vue-router
 - Internalization: vue-i18n
 - Date and time: dayjs
@@ -15,20 +15,21 @@ And this is the Vue implemetation of InKCre, mainly provides a GUI to manage inf
 ## Business Domains
 
 - source: Data collectors, the input of info-base
-- info-base
-  - block: Content units
+- info-base: graph based
+  - block: Info unit
   - relation: Links between blocks
   - storage: Store block content somewhere else than database.
-  - resolver: resolves block content
-- sink: Interface to use information base, the output of info-base
+  - resolver: resolves a block's star graph
+- sink: use of information base, the output of info-base
 - extension: extends info-base, source and sink abilities
+- client
 - obsrv: Observability
 
 ## Source Structure
 
-- `components/`: split by business domain
-- `views/`
-- `business/`: api requests, business logic, split by domain
+- `components/`: split by domain, read `components/AGENTS.md` for more.
+- `views/`: pages, split by domain
+- `business/`: api, business logic, split by domain
 - `stores/`: split by domain
 - `styles/`
 - `utils/`: utilities, composables
