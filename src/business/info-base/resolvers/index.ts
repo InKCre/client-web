@@ -23,12 +23,3 @@ export { HtmlResolver } from "./html";
 export type { ImageRawContent } from "./image";
 export type { VideoRawContent } from "./video";
 export type { HtmlRawContent } from "./html";
-
-/**
- * Initialize built-in resolvers.
- * The decorators auto-register on import, but we set text as default.
- * Call this during application initialization.
- */
-export function initBuiltinResolvers(): void {
-  resolverManager.setDefault("text");
-}

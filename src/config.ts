@@ -1,19 +1,23 @@
 import { ref, computed, reactive } from "vue";
 import { z } from "zod";
-import { loadConfig, type Adapter } from "zod-config";
+import {
+  loadConfig as ZodConfigLoadConfig,
+  type Adapter as ConfigAdapter,
+} from "zod-config";
+import { envAdapter } from "zod-config/env-adapter";
 
 /**
  * Config Schema
  */
 export const ConfigSchema = z.object({
-  INKCRE_CORE_URL: z.url().or(z.literal("")),
-  INKCRE_PGREST_URL: z.url().or(z.literal("")),
-  INKCRE_EXTENSION_REGISTRY_URL: z.url().or(z.literal("")),
-  INKCRE_JWT_SECRET: z.string(),
-  LOCAL_CLIENT_ID: z.uuid().nullable(),
+  INKCRE_CORE_URL: z.url().default(""),
+  INKCRE_PGREST_URL: z.url().default(""),
+  INKCRE_EXTENSION_REGISTRY_URL: z.url().default(""),
+  INKCRE_JWT_SECRET: z.string().default(""),
+  INKCRE_CLIENT_ID: z.uuid().default(() => crypto.randomUUID()),
 });
 
-export type ConfigType = z.infer<typeof ConfigSchema>;
+export type Config = z.infer<typeof ConfigSchema>;
 
 // Storage keys
 const CONFIG_STORAGE_KEY = "inkcre_app_config";
@@ -22,14 +26,18 @@ const ADAPTER_STORAGE_KEY = "inkcre_config_adapter";
 /**
  * Adapter types
  */
-export type AdapterType = "localStorage" | "http";
+export type AdapterType = "localStorage" | "http" | "dev";
+export interface ConfigAdapterWithWrite
+  extends ConfigAdapter<typeof ConfigSchema> {
+  write: (data: Record<string, unknown>) => Promise<void>;
+}
 
 /**
- * localStorage adapter for zod-config (read-only as per zod-config design)
+ * localStorage config adapter, compatible with zod-config.
  */
-const localStorageAdapter: Adapter = {
+const localStorageAdapter: ConfigAdapterWithWrite = {
   name: "localStorage",
-  read: async (): Promise<Record<string, unknown>> => {
+  read: async () => {
     try {
       const stored = localStorage.getItem(CONFIG_STORAGE_KEY);
       if (stored) {
@@ -42,14 +50,23 @@ const localStorageAdapter: Adapter = {
     }
     return {};
   },
+  write: async (config) => {
+    try {
+      localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config));
+      console.log("[Config] Saved config to localStorage");
+    } catch (error) {
+      console.error("[Config] Failed to save config to localStorage:", error);
+      throw error;
+    }
+  },
 };
 
 /**
- * HTTP adapter for zod-config (read-only as per zod-config design)
+ * HTTP config adapter, fetches config from a predefined endpoint
  */
-const httpAdapter: Adapter = {
+const httpAdapter: ConfigAdapterWithWrite = {
   name: "http",
-  read: async (): Promise<Record<string, unknown>> => {
+  read: async () => {
     try {
       const res = await fetch("/api/config");
       if (res.ok) {
@@ -66,199 +83,162 @@ const httpAdapter: Adapter = {
     }
     return {};
   },
+  write: async (config) => {
+    try {
+      const res = await fetch("/api/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
+      if (res.ok) {
+        console.log("[Config] Saved config to HTTP endpoint");
+      } else {
+        console.error("[Config] Failed to save config to HTTP:", res.status);
+        throw new Error(`HTTP save failed with status ${res.status}`);
+      }
+    } catch (error) {
+      console.error("[Config] Failed to save config to HTTP:", error);
+      throw error;
+    }
+  },
 };
 
 /**
- * Save config to localStorage
+ * Dev adapter: reads from env vars (like envAdapter), overlays with localStorage, writes to localStorage
  */
-async function saveToLocalStorage(config: ConfigType): Promise<void> {
-  try {
-    localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config));
-    console.log("[Config] Saved config to localStorage");
-  } catch (error) {
-    console.error("[Config] Failed to save config to localStorage:", error);
-    throw error;
-  }
-}
+const devAdapter: ConfigAdapterWithWrite = {
+  name: "dev",
+  read: async () => {
+    // First, read from env vars using envAdapter logic
+    const envData = envAdapter({
+      regex: /^VITE_/,
+      customEnv: import.meta.env,
+    }).read();
 
-/**
- * Save config to HTTP endpoint
- */
-async function saveToHttp(config: ConfigType): Promise<void> {
-  try {
-    const res = await fetch("/api/config", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(config),
-    });
-    if (res.ok) {
-      console.log("[Config] Saved config to HTTP endpoint");
-    } else {
-      console.error("[Config] Failed to save config to HTTP:", res.status);
-      throw new Error(`HTTP save failed with status ${res.status}`);
+    // Strip VITE_ prefix from keys to match ConfigSchema
+    const noViteEnvData = Object.fromEntries(
+      Object.entries(envData).map(([key, value]) => [
+        key.startsWith("VITE_") ? key.slice(5) : key,
+        value,
+      ])
+    );
+
+    // Then, overlay with localStorage data
+    try {
+      const stored = localStorage.getItem(CONFIG_STORAGE_KEY);
+      if (stored) {
+        const localData = JSON.parse(stored);
+        console.log("[Config] Loaded config from env and localStorage");
+        return { ...localData, ...noViteEnvData };
+      }
+    } catch (error) {
+      console.error("[Config] Failed to load config from localStorage:", error);
     }
-  } catch (error) {
-    console.error("[Config] Failed to save config to HTTP:", error);
-    throw error;
-  }
-}
+
+    console.log("[Config] Loaded config from env");
+    return noViteEnvData;
+  },
+  write: localStorageAdapter.write,
+};
 
 /**
- * Adapter map for loading config (exported)
+ * Adapter map
  */
-export const ADAPTERS: Record<AdapterType, Adapter> = {
+export const ADAPTERS: Record<AdapterType, ConfigAdapterWithWrite> = {
   localStorage: localStorageAdapter,
   http: httpAdapter,
+  dev: devAdapter,
 };
-
-/**
- * Save function map for persisting config
- */
-const saveFunctions: Record<AdapterType, (config: ConfigType) => Promise<void>> = {
-  localStorage: saveToLocalStorage,
-  http: saveToHttp,
-};
-
-/**
- * Determine initial adapter type
- */
-function getInitialAdapterType(): AdapterType {
-  // Check if adapter type is stored
-  const stored = localStorage.getItem(ADAPTER_STORAGE_KEY);
-  if (stored && stored in ADAPTERS) {
-    return stored as AdapterType;
-  }
-  
-  // Auto-detect: use HTTP for Cloudflare deployment
-  if (import.meta.env.VITE_DEPLOY_TO === "CLOUDFLARE") {
-    return "http";
-  }
-  
-  return "localStorage";
-}
 
 /**
  * Current adapter type (reactive)
  */
-const _currentAdapterType = ref<AdapterType>(getInitialAdapterType());
+const _currentAdapterType = ref<AdapterType>("localStorage");
+// Check if in dev mode
+if (import.meta.env.VITE_DEV_MODE === "true") {
+  _currentAdapterType.value = "dev";
+} else {
+  // Check if adapter type is stored
+  const stored_adapter_type = localStorage.getItem(ADAPTER_STORAGE_KEY);
+  if (stored_adapter_type && stored_adapter_type in ADAPTERS) {
+    _currentAdapterType.value = stored_adapter_type as AdapterType;
+  } else {
+    // Auto-detect: use HTTP for Cloudflare deployment
+    if (import.meta.env.VITE_DEPLOY_TO === "CLOUDFLARE") {
+      _currentAdapterType.value = "http";
+    }
+  }
+}
 
 /**
- * Global config (Vue reactive, initialized with defaults from ConfigSchema)
+ * Current adapter type (readonly computed)
  */
-export const CONFIG = reactive<ConfigType>(ConfigSchema.parse({}));
-
-/**
- * Config Manager - manages adapter selection, loading, and saving
- */
-export const configManager = {
-  /**
-   * Current adapter type (readonly computed)
-   */
-  currentAdapterType: computed(() => _currentAdapterType.value),
-
-  /**
-   * Get current adapter instance
-   */
-  getCurrentAdapter(): Adapter {
-    return ADAPTERS[_currentAdapterType.value];
-  },
-
-  /**
-   * Set adapter type and persist choice
-   */
-  async setAdapterType(type: AdapterType): Promise<void> {
-    if (!(type in ADAPTERS)) {
-      console.error("[Config] Invalid adapter type:", type);
+export const currentAdapterType = computed({
+  get: () => _currentAdapterType.value,
+  set: (value: AdapterType) => {
+    if (!(value in ADAPTERS)) {
+      console.error("[Config] Invalid adapter type:", value);
       return;
     }
 
-    _currentAdapterType.value = type;
-    localStorage.setItem(ADAPTER_STORAGE_KEY, type);
-    console.log("[Config] Switched adapter to:", type);
+    _currentAdapterType.value = value;
+    localStorage.setItem(ADAPTER_STORAGE_KEY, value);
+    console.log("[Config] Switched adapter to:", value);
 
     // Reload config from new adapter
-    await this.load();
+    loadConfig();
   },
+});
 
-  /**
-   * Load config using zod-config with current adapter
-   */
-  async load(): Promise<void> {
-    const adapter = this.getCurrentAdapter();
+/**
+ * Global config
+ */
+export const CONFIG = ref<Config>(ConfigSchema.parse({}));
 
-    try {
-      const loaded = await loadConfig({
-        schema: ConfigSchema,
-        adapters: [adapter],
-        onError: (error) => {
-          console.error("[Config] Validation error:", error);
-        },
-      });
+/**
+ * Load config using zod-config with current adapter
+ */
+export async function loadConfig(): Promise<void> {
+  try {
+    const loaded = await ZodConfigLoadConfig({
+      schema: ConfigSchema,
+      adapters: [ADAPTERS[_currentAdapterType.value]],
+    });
 
-      Object.assign(CONFIG, loaded);
-      console.log("[Config] Config loaded successfully");
-    } catch (error) {
-      console.error("[Config] Failed to load config:", error);
-      // Fallback to defaults
-      Object.assign(CONFIG, ConfigSchema.parse({}));
-    }
-  },
+    CONFIG.value = loaded;
+    console.log("[Config] Config loaded successfully");
+  } catch (error) {
+    console.error("[Config] Failed to load config:", error);
+    // Fallback to defaults
+    Object.assign(CONFIG.value, ConfigSchema.parse({}));
+  }
+}
 
-  /**
-   * Save config using current adapter's save function
-   */
-  async save(): Promise<void> {
-    const saveFunction = saveFunctions[_currentAdapterType.value];
-    await saveFunction({ ...CONFIG });
-  },
+/**
+ * Save config using current adapter's save function
+ */
+export async function saveConfig(newConfig?: Config): Promise<void> {
+  const writeFunction = ADAPTERS[_currentAdapterType.value].write;
+  await writeFunction(newConfig ?? structuredClone(CONFIG.value));
+}
 
-  /**
-   * Update config values
-   */
-  update(partial: Partial<ConfigType>): void {
-    Object.assign(CONFIG, partial);
-  },
+/**
+ * Reset config to defaults
+ */
+export function resetConfig() {
+  Object.assign(CONFIG, ConfigSchema.parse({}));
+  localStorage.removeItem(CONFIG_STORAGE_KEY);
+  console.log("[Config] Config reset to defaults");
+}
 
-  /**
-   * Check if config is valid
-   */
-  isValid(): boolean {
-    try {
-      ConfigSchema.parse(CONFIG);
-      return true;
-    } catch {
-      return false;
-    }
-  },
-
-  /**
-   * Reset config to defaults
-   */
-  reset(): void {
-    Object.assign(CONFIG, ConfigSchema.parse({}));
-    localStorage.removeItem(CONFIG_STORAGE_KEY);
-    console.log("[Config] Config reset to defaults");
-  },
-
-  /**
-   * Import config from JSON string
-   */
-  import(configJson: string): void {
-    try {
-      const parsed = JSON.parse(configJson);
-      const validated = ConfigSchema.parse(parsed);
-      Object.assign(CONFIG, validated);
-      console.log("[Config] Config imported successfully");
-    } catch (error) {
-      console.error("[Config] Failed to import config:", error);
-      throw new Error("Invalid config format");
-    }
-  },
-
-  /**
-   * Get current config as plain object
-   */
-  getConfig(): ConfigType {
-    return { ...CONFIG };
-  },
-};
+/**
+ * Check if config is valid
+ */
+export function isConfigValid(config?: Config): boolean {
+  try {
+    ConfigSchema.parse(config ?? CONFIG);
+    return true;
+  } catch {
+    return false;
+  }
+}

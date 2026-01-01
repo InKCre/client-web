@@ -25,13 +25,3 @@ export type {
   JsonContent,
   HttpStorageConfig,
 } from "./http";
-
-/**
- * Initialize built-in storages.
- * The decorators auto-register on import.
- * Call this during application initialization.
- */
-export function initBuiltinStorages(): void {
-  // Decorators have already registered all handlers on import.
-  // This function exists for consistency with initBuiltinResolvers().
-}
