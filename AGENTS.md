@@ -25,17 +25,28 @@ And this is the Web client of InKCre, mainly provides a GUI to manage the system
 - client
 - obsrv: Observability
 
-## Source Structure
+## File Structure (Crucial Only)
 
-- `components/`: split by domain, read `components/AGENTS.md` for more.
-- `views/`: pages, split by domain
-- `business/`: api, business logic, split by domain
-- `stores/`: split by domain
-- `styles/`
-- `utils/`: utilities, composables
-- `locales/`: locale file, split by language
-- `static/`
-- `router.ts`
+```
+extensions/<extension_id>
+server                          # Cloudflare Worker server-side code
+src
+src/business
+src/business/info-base
+src/business/mf-plugins
+src/components/<business_domain>
+src/views/<business_domain>
+src/composables
+src/locales
+src/static
+src/stores
+src/styles
+src/utils
+src/App.vue
+src/config.ts
+src/router.ts
+src/main.ts
+```
 
 ## Development Workflow
 
@@ -48,4 +59,4 @@ And this is the Web client of InKCre, mainly provides a GUI to manage the system
 - Do not repeat yourself:
   - Search across the codebase before you creating a new type or something might can be reused.
   - Make the code reusable if it's used in over two places.
-- [Write code for human](./.github/instructions/human-readable-code.instructions.md)
+- [Write code for human](.github/instructions/human-readable-code.instructions.md)

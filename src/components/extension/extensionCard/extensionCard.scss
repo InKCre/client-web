@@ -8,7 +8,6 @@
   box-sizing: border-box;
   width: 100%;
   min-width: 280px;
-  max-width: 380px;
 
   &__header {
     display: flex;
@@ -16,14 +15,8 @@
     align-items: center;
   }
 
-  &__info {
-    display: flex;
-    align-items: center;
-    gap: sys-var(space, sm);
-  }
-
   &__id {
-    @include apply-font(body-lg);
+    @include apply-font(label-lg);
   }
 
   &__version {

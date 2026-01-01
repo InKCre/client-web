@@ -119,11 +119,11 @@ export class Extension extends Z.class({
   }
 
   static async list(): Promise<Extension[]> {
-    const results = await Extension.dbApi
+    const query = Extension.dbApi
       .from()
       .select()
       .order("id", { ascending: true });
-    return results.data!.map((item) => new Extension(item));
+    return (await query).data!.map((item) => new Extension(item));
   }
 
   // ============================================================================
@@ -292,7 +292,7 @@ export class Extension extends Z.class({
 
   /**
    * Construct the remote entry URL for this extension.
-   * Convention: ${registryUrl}/${extensionId}/client-web?version=${version}
+   * Convention: ${registryUrl}/${extensionId}/client-web/remoteEntry.js?version=${version}
    */
   getRemoteEntryUrl(): string {
     const registryUrl = CONFIG.value.INKCRE_EXTENSION_REGISTRY_URL;
@@ -309,7 +309,7 @@ export class Extension extends Z.class({
     }
 
     const queryString = params.toString();
-    return `${baseUrl}/${this.id}/client-web${
+    return `${baseUrl}/${this.id}/client-web/remoteEntry.js${
       queryString ? `?${queryString}` : ""
     }`;
   }
@@ -318,7 +318,7 @@ export class Extension extends Z.class({
    * Get the unique remote name for this extension in Module Federation.
    */
   getRemoteName(): string {
-    return `extension_${this.id}`;
+    return `extension.${this.id}`;
   }
 
   private async loadModule(): Promise<IExtension> {
@@ -352,16 +352,7 @@ export class Extension extends Z.class({
     console.log(`[Extension] Enabling ${this.id} for client ${clientId}`);
 
     if (CONFIG.value.INKCRE_CLIENT_ID === clientId) {
-      // Local client: call API to enable
-      const updated = await (
-        await Client.get(clientId)
-      ).request<Extension>({
-        method: "POST",
-        path: `/extensions/${this.id}/enable`,
-      });
-      // Sync enabled array
-      this.enabled.length = 0;
-      this.enabled.push(...(updated.enabled || []));
+      // Local client
 
       // Activate if ready, or load->init->activate if discovered
       if (this.runtimeState.value.status === ExtensionState.READY) {

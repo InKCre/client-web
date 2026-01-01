@@ -7,7 +7,6 @@
 
 import {
   createInstance,
-  loadRemote as mfLoadRemote,
   type ModuleFederationRuntimePlugin,
 } from "@module-federation/runtime";
 import type { Extension, ExtensionRef } from "../extension";
@@ -20,7 +19,9 @@ import type { Extension, ExtensionRef } from "../extension";
  * Callback to get Extension instance by remote name.
  * This is set by Extension class to avoid circular dependency.
  */
-let getExtensionByRemoteName: ((remoteName: string) => Extension | undefined) | null = null;
+let getExtensionByRemoteName:
+  | ((remoteName: string) => Extension | undefined)
+  | null = null;
 
 /**
  * Register the Extension lookup callback.
@@ -199,10 +200,7 @@ export const mfInstance = createInstance({
   name: "host",
   remotes: [],
   shared: sharedConfig,
-  plugins: [
-    extensionLifecyclePlugin(),
-    loggingPlugin(DEBUG_MF),
-  ],
+  plugins: [extensionLifecyclePlugin(), loggingPlugin(DEBUG_MF)],
 });
 
 // ============================================================================
@@ -214,7 +212,7 @@ export const mfInstance = createInstance({
  * Wraps the MF loadRemote for consistent usage.
  */
 export async function loadRemote<T>(id: string): Promise<T | null> {
-  return mfLoadRemote<T>(id);
+  return mfInstance.loadRemote<T>(id);
 }
 
 /**

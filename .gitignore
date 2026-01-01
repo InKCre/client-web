@@ -43,8 +43,9 @@ coverage
 # env files
 .env 
 
-# Browser profile
+# Dev Browser
 .browser-profile/*
+.dev-browser-extension/*
 
 # Agent files
 .claude

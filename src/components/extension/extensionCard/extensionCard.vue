@@ -41,6 +41,7 @@ const toggleModel = computed({
         await props.extension.enableForClient(props.clientId);
       }
       emit("toggle", props.extension);
+      togglePromise.value = null;
       return props.extension.isEnabledForClient(props.clientId);
     })();
   },
@@ -70,15 +71,16 @@ const onConfirmConfig = () => {
 <template>
   <div v-if="extension" class="extension-card">
     <div class="extension-card__header">
-      <div class="extension-card__info">
-        <span class="extension-card__id">{{ extension.id }}</span>
-        <span class="extension-card__version">v{{ extension.version }}</span>
+      <div class="flex flex-col">
+        <div v-if="extension.nickname" class="extension-card__nickname">
+          {{ extension.nickname }}
+        </div>
+        <div class="flex flex-row items-center gap-2">
+          <span class="extension-card__id">{{ extension.id }}</span>
+          <span class="extension-card__version">v{{ extension.version }}</span>
+        </div>
       </div>
       <InkSwitch v-model="toggleModel" size="xs" />
-    </div>
-
-    <div v-if="extension.nickname" class="extension-card__nickname">
-      {{ extension.nickname }}
     </div>
 
     <div class="extension-card__actions">

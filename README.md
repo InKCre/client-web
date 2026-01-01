@@ -1,6 +1,4 @@
-# InKCre Web Client
-
-第三尺寸网页客户端
+# InKCre Web Client 第三持存 Web 端
 
 ## Deployment
 
@@ -19,8 +17,3 @@ pnpm run deploy:cf
 ## Development
 
 本项目依赖 `@inkcre/web-design` 包，本地开发时推荐通过 `pnpm link path/to/package` 的方式安装。
-
-## Documentation
-
-- Design token proposal: [`docs/Design Token 管理方案设计.md`](docs/Design%20Token%20%E7%AE%A1%E7%90%86%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1.md)
-- Design system usage: [`docs/design-system-usage.md`](docs/design-system-usage.md)
