@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch, onMounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import type { Block } from "@/business/info-base/block";
 import { resolverManager } from "@/business/info-base/resolver";
 import { InkLoading } from "@inkcre/web-design";
@@ -10,18 +10,22 @@ const props = defineProps<{
 
 // --- data ---
 const solvedContent = ref<any>(null);
+const resolver = new (resolverManager.getClass(props.block.resolver))(
+  props.block
+);
 
 // --- computed ---
-const resolver = computed(
-  () => new (resolverManager.getClass(props.block.resolver))(props.block)
-);
-const state = resolver.value.solvedContentState;
+const state = resolver.solvedContentState;
 const isLoading = computed(() => state.value.status === "loading");
 const isError = computed(() => state.value.status === "error");
 const isIdle = computed(() => state.value.status === "idle");
 
 onMounted(async () => {
-  solvedContent.value = await resolver.value.getSolvedContent();
+  solvedContent.value = await resolver.getSolvedContent();
+});
+
+onUnmounted(async () => {
+  await resolver.dispose();
 });
 </script>
 

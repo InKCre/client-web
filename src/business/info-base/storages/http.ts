@@ -1,5 +1,5 @@
 /**
- * HTTP-based Storage Handlers
+ * http_based Storage Handlers
  *
  * These handlers fetch content from URLs stored in block.content.
  * Aligned with core-py's app/business/info_base/storage/http.py
@@ -24,7 +24,7 @@ const DEFAULT_TIMEOUT = 30000;
 // ============================================================================
 
 /**
- * Base class for HTTP-based storage handlers.
+ * Base class for http_based storage handlers.
  * Provides common URL fetching functionality.
  */
 export abstract class HttpStorage<
@@ -72,7 +72,7 @@ export abstract class HttpStorage<
  * Fetches image content from (http/https)URL.
  * Returns Blob.
  */
-@Storage.registry("http-image")
+@Storage.registry("http_image")
 export class HttpImageStorage extends HttpStorage<Blob> {
   protected readonly acceptHeader = "image/*";
 
@@ -107,7 +107,7 @@ export interface VideoContent {
  * Fetches video content from URL.
  * Returns the URL for lazy loading (videos are typically streamed).
  */
-@Storage.registry("http-video")
+@Storage.registry("http_video")
 export class HttpVideoStorage extends HttpStorage<VideoContent> {
   protected readonly acceptHeader = "video/*";
 
@@ -147,7 +147,7 @@ export interface TextContent {
 /**
  * Fetches plain text content from URL.
  */
-@Storage.registry("http-text")
+@Storage.registry("http_text")
 export class HttpTextStorage extends HttpStorage<TextContent> {
   protected readonly acceptHeader = "text/plain";
 
@@ -181,7 +181,7 @@ export interface HtmlContent {
  * Fetches HTML content from URL.
  * Optionally extracts title and sanitizes content.
  */
-@Storage.registry("http-html")
+@Storage.registry("http_html")
 export class HttpHtmlStorage extends HttpStorage<HtmlContent> {
   protected readonly acceptHeader = "text/html";
 
@@ -227,7 +227,7 @@ export interface JsonContent {
 /**
  * Fetches JSON content from URL.
  */
-@Storage.registry("http-json")
+@Storage.registry("http_json")
 export class HttpJsonStorage extends HttpStorage<JsonContent> {
   protected readonly acceptHeader = "application/json";
 

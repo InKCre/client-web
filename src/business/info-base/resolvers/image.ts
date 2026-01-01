@@ -19,9 +19,23 @@ export type ImageRawContent = Blob;
 export class ImageResolver extends BaseResolver<Blob, string> {
   readonly type = "image";
   readonly contentComp = markRaw(ContentImage);
+  private _objectUrl: string | null = null;
 
   protected async _getSolvedContent(): Promise<string> {
     const rawContent = await this.getRawContent();
-    return URL.createObjectURL(rawContent);
+    this._objectUrl = URL.createObjectURL(rawContent);
+    return this._objectUrl;
+  }
+
+  /**
+   * ObjectURL requires explicit revocation to free memory.
+   * Check `chrome://blob-internals/` to see active Blob URLs.
+   * Run `fetch(_objectUrl)` to confirm revocation.
+   */
+  async dispose(): Promise<void> {
+    if (this._objectUrl) {
+      URL.revokeObjectURL(this._objectUrl);
+      this._objectUrl = null;
+    }
   }
 }

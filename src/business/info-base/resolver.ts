@@ -93,6 +93,11 @@ export interface Resolver<RawContentT = string, SolvedContentT = RawContentT> {
    * @returns The resolved content
    */
   getSolvedContent(forceRefresh?: boolean): Promise<SolvedContentT>;
+
+  /**
+   * Consumer of resolver should call dispose when done with it.
+   */
+  dispose(): Promise<void>;
 }
 
 // ============================================================================
@@ -198,6 +203,13 @@ export abstract class BaseResolver<
   }
 
   protected abstract _getSolvedContent(): Promise<SolvedContentT>;
+
+  /**
+   * Consumer should call dispose when done with it.
+   */
+  async dispose(): Promise<void> {
+    // Override in subclasses if needed
+  }
 }
 
 // ============================================================================
@@ -226,7 +238,7 @@ export type AnyResolverClass = ResolverClass<any, any>;
  * Stores resolver classes and provides factory methods.
  */
 export class ResolverManager {
-  private resolverClasses: Map<string, AnyResolverClass> = new Map();
+  private resolverClasses: Map<string, ResolverClass> = new Map();
   private defaultResolverType: string | null = null;
 
   /**
@@ -271,7 +283,7 @@ export class ResolverManager {
    * Returns default resolver class if not found.
    * @param type - The resolver type identifier
    */
-  getClass(type: string): AnyResolverClass {
+  getClass(type: string): ResolverClass {
     return (
       this.resolverClasses.get(type) ||
       this.resolverClasses.get(this.defaultResolverType!)!
