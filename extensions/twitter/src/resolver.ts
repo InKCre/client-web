@@ -6,7 +6,7 @@
  */
 
 import { markRaw } from "vue";
-import { BaseResolver, ResolverManager } from "@/business/info-base/resolver";
+import { BaseResolver, ResolverManager } from "@host/business/info-base/resolver";
 import { TweetSchema, type Tweet } from "./schema";
 import ContentTweet from "./components/ContentTweet.vue";
 

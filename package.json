@@ -9,7 +9,10 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:all": "concurrently \"pnpm dev\" \"pnpm -r --filter './extensions/*' dev\"",
     "build": "run-p type-check \"build-only {@}\" --",
+    "build:ext": "pnpm -r --filter './extensions/*' build",
+    "build:all": "pnpm build && pnpm build:ext",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
@@ -53,6 +56,8 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20251119.0",
+    "@module-federation/vite": "^1.1.0",
+    "concurrently": "^9.0.0",
     "@iconify-json/mdi": "^1.2.3",
     "@tsconfig/node22": "^22.0.2",
     "@types/d3-force": "^3.0.10",

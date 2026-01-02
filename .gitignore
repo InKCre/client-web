@@ -49,3 +49,7 @@ coverage
 
 # Agent files
 .claude
+
+# Temp files
+tmp
+temp
