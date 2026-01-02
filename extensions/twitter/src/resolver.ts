@@ -6,11 +6,10 @@
  */
 
 import { markRaw } from "vue";
-import { BaseResolver, ResolverManager } from "@host/business/info-base/resolver";
+import { BaseResolver } from "@inkcre/core";
 import { TweetSchema, type Tweet } from "./schema";
 import ContentTweet from "./components/ContentTweet.vue";
 
-@ResolverManager.registry("tweet")
 export class TweetResolver extends BaseResolver<string, Tweet> {
   readonly type = "tweet";
   readonly contentComp = markRaw(ContentTweet);

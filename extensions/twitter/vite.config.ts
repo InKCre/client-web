@@ -2,7 +2,7 @@ import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import vueJsx from "@vitejs/plugin-vue-jsx";
-import { federation } from "@module-federation/vite/rspack";
+import { federation } from "@module-federation/vite";
 
 const extensionId = "twitter";
 
@@ -28,7 +28,12 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@host": fileURLToPath(new URL("../../src", import.meta.url)),
+      "@inkcre/core": fileURLToPath(
+        new URL("../../packages/core/src", import.meta.url)
+      ),
+      "@host": fileURLToPath(
+        new URL("../../apps/client-web/src", import.meta.url)
+      ),
     },
   },
   server: {

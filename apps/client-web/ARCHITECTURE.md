@@ -20,7 +20,7 @@ InKCre Client-Web is a web-based application for information collection, organiz
 
 - Automated data collection with scheduled jobs
 - Knowledge graph with blocks and relations
-- Module Federation-based extensions
+- Module Federation-**based** extensions
 - Multi-client peer network
 - Interactive graph layouts
 - Pluggable content handling

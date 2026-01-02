@@ -5,7 +5,7 @@
  * This is the main export loaded by the host application.
  */
 
-import type { IExtension } from "@host/business/extension";
+import type { IExtension } from "@inkcre/core";
 
 // Import resolver to trigger @ResolverManager.registry() decorator registration
 import "./resolver";

@@ -11,49 +11,23 @@ import {
   registerExtensionLookup,
 } from "./mf-plugins";
 
+// Re-export from @inkcre/core for backwards compatibility
+export {
+  ExtensionState,
+  type IExtension,
+  type ExtensionRuntimeState,
+} from "@inkcre/core";
+import {
+  ExtensionState,
+  type IExtension,
+  type ExtensionRuntimeState,
+} from "@inkcre/core";
+
 export type ExtensionRef = string;
 export const makeExtensionProp = (v?: any) => makeObjectProp<Extension>(v);
 export const makeExtensionRefProp = (v?: any) =>
   makeStringProp<ExtensionRef>(v);
 export const ExtensionRefZ = z.string();
-
-/**
- * Extension lifecycle state
- */
-export const ExtensionState = {
-  DISCOVERED: "DISCOVERED", // Read from database
-  LOADING: "LOADING", // Module Federation loading
-  LOADED: "LOADED", // Module loaded, not initialized
-  INITIALIZING: "INITIALIZING", // Calling initialize
-  READY: "READY", // Initialized, waiting for activation
-  ACTIVATING: "ACTIVATING", // Activating
-  ACTIVE: "ACTIVE", // Working
-  DEACTIVATING: "DEACTIVATING", // Stopping, cleaning runtime resources
-  UNLOADING: "UNLOADING", // Cleaning all resources
-  UNLOADED: "UNLOADED", // Unloaded
-  ERROR: "ERROR", // Error state
-} as const;
-
-export type ExtensionState =
-  (typeof ExtensionState)[keyof typeof ExtensionState];
-
-/**
- * Extension module interface
- */
-export interface IExtension {
-  initialize?(): Promise<void>;
-  activate?(): Promise<void>;
-  deactivate?(): Promise<void>;
-  dispose?(): Promise<void>;
-}
-
-/**
- * Extension runtime state (reactive)
- */
-export interface ExtensionRuntimeState {
-  status: ExtensionState;
-  error: Error | null;
-}
 
 export class Extension extends Z.class({
   id: ExtensionRefZ,
@@ -364,10 +338,17 @@ export class Extension extends Z.class({
       }
 
       // Update local database after successful enable
-      await Extension.dbApi
-        .from()
-        .update({ enabled: this.enabled })
-        .eq("id", this.id);
+      if (this.runtimeState.value.status === ExtensionState.ACTIVE) {
+        this.enabled.push(clientId);
+        await Extension.dbApi
+          .from()
+          .update({ enabled: this.enabled })
+          .eq("id", this.id);
+      } else {
+        throw new Error(
+          `Failed to enable extension ${this.id} for local client`
+        );
+      }
     } else {
       // Remote client: call remote API
       const client = await Client.get(clientId);
@@ -394,22 +375,21 @@ export class Extension extends Z.class({
         await this.deactivate();
       }
 
-      // Call API to disable
-      const updated = await (
-        await Client.get(clientId)
-      ).request<Extension>({
-        method: "POST",
-        path: `/extensions/${this.id}/disable`,
-      });
-      // Sync enabled array
-      this.enabled.length = 0;
-      this.enabled.push(...(updated.enabled || []));
-
       // Update local database after successful disable
-      await Extension.dbApi
-        .from()
-        .update({ enabled: this.enabled })
-        .eq("id", this.id);
+      if (this.runtimeState.value.status === ExtensionState.READY) {
+        const index = this.enabled.indexOf(clientId);
+        if (index !== -1) {
+          this.enabled.splice(index, 1);
+        }
+        await Extension.dbApi
+          .from()
+          .update({ enabled: this.enabled })
+          .eq("id", this.id);
+      } else {
+        throw new Error(
+          `Failed to disable extension ${this.id} for local client`
+        );
+      }
     } else {
       // Remote client: call remote API
       const client = await Client.get(clientId);

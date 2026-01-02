@@ -12,9 +12,9 @@
     "experimentalDecorators": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"],
+      "@inkcre/core": ["../../packages/core/src/index.ts"],
+      "@inkcre/core/*": ["../../packages/core/src/*"]
     },
     "jsx": "preserve",
     "jsxImportSource": "vue",

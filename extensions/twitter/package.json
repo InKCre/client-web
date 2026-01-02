@@ -1,5 +1,5 @@
 {
-  "name": "@inkcre/extension-twitter",
+  "name": "@inkcre/ext-twitter",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -8,13 +8,19 @@
     "build": "vite build",
     "preview": "vite preview"
   },
+  "dependencies": {
+    "@inkcre/core": "workspace:*"
+  },
   "devDependencies": {
+    "@inkcre/ext-dev-utils": "workspace:*",
     "@module-federation/vite": "^1.1.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vitejs/plugin-vue-jsx": "^5.1.2",
+    "@vue/tsconfig": "^0.7.0",
     "sass-embedded": "^1.90.0",
     "typescript": "~5.8.0",
-    "vite": "^7.0.6"
+    "vite": "^7.0.6",
+    "@inkcre/web-design": "^1.2.0"
   },
   "peerDependencies": {
     "vue": "^3.5.0",

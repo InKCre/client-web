@@ -48,15 +48,14 @@ src/router.ts
 src/main.ts
 ```
 
-## Development Workflow
-
-- Package Manager: pnpm
-- Verify changes:
-  - Pass the build: `pnpm run build`
-
 ## Coding Guidelines
 
 - Do not repeat yourself:
   - Search across the codebase before you creating a new type or something might can be reused.
   - Make the code reusable if it's used in over two places.
 - [Write code for human](.github/instructions/human-readable-code.instructions.md)
+
+## Read More (Only when necessary)
+
+- [Development Workflow](./INFRASTRUCTURE.md)
+- [Overall Architecture](./ARCHITECTURE.md)
