@@ -300,12 +300,12 @@ export class Extension extends Z.class({
     const remoteEntry = this.getRemoteEntryUrl();
 
     // Register the remote with centralized MF instance
-    registerRemotes([{ name: remoteName, entry: remoteEntry }]);
+    registerRemotes([{ name: remoteName, entry: remoteEntry, type: "module" }]);
 
     // Load the Extension export from the remote
     // Error handling is delegated to MF errorLoadRemote plugin
     const loadedModule = await loadRemote<IExtension | { default: IExtension }>(
-      `${remoteName}/Extension`
+      remoteName
     );
 
     if (!loadedModule) {

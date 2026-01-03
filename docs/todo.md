@@ -25,8 +25,10 @@
 - [ ] i18n skill
 - [ ] View
 - [x] Component skill (全部丢进去，真的很占上下文，有8个references，你敢想象吗)
-- [x] Resolver, Storage 与 Extension
-  - [ ] Extension 必须实现并暴露 `setup(hostApi): void`, hostApi 中包含 registerResolver, registerStorage
+- [x] Resolver, Storage
+- [ ] Extension System
 - [ ] 增强可观测性，一堆 console.log 太要命了（logger, ConsoleHander, localStorageHandler）
-- [ ] 引入了 Client，所以 coreApi baseUrl 可以删掉了，且 coreApiClient 变为 clientApiClient
+- [ ] Merge CoreAPIClient into Client
 - [ ] Federated Types
+- [ ] Extension Playground uses Histoire
+- [ ] Graph Sink 而不是 Info-base graph

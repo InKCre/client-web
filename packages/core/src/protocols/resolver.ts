@@ -278,7 +278,8 @@ export class ResolverManager {
 
   /**
    * Register a resolver class.
-   * @param type - The type identifier
+   * @param type - The type identifier.
+   * If extension, use a namespaced type to avoid conflicts (e.g., "extensions.twitter.tweet")
    * @param resolverClass - The resolver class (constructor)
    */
   register(type: string, resolverClass: AnyResolverClass): void {

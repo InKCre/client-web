@@ -10,6 +10,7 @@ import {
   type ModuleFederationRuntimePlugin,
 } from "@module-federation/runtime";
 import type { Extension, ExtensionRef } from "../extension";
+import mfSharedDependencies from "../../../../../shared/mf-shared-dependencies";
 
 // ============================================================================
 // Extension Registry Bridge
@@ -153,41 +154,6 @@ const loggingPlugin = (enabled = false): ModuleFederationRuntimePlugin => ({
 });
 
 // ============================================================================
-// Shared Dependencies Configuration
-// ============================================================================
-
-/**
- * Shared dependencies configuration for host and extensions.
- * Ensures singleton instances of Vue ecosystem packages.
- */
-const sharedConfig = {
-  vue: {
-    shareConfig: {
-      singleton: true,
-      requiredVersion: "^3.0.0",
-    },
-  },
-  pinia: {
-    shareConfig: {
-      singleton: true,
-      requiredVersion: "^3.0.0",
-    },
-  },
-  "vue-router": {
-    shareConfig: {
-      singleton: true,
-      requiredVersion: "^4.0.0",
-    },
-  },
-  "@vueuse/core": {
-    shareConfig: {
-      singleton: true,
-      requiredVersion: "^14.0.0",
-    },
-  },
-};
-
-// ============================================================================
 // MF Instance Creation
 // ============================================================================
 
@@ -199,7 +165,7 @@ const DEBUG_MF = import.meta.env.DEV;
 export const mfInstance = createInstance({
   name: "host",
   remotes: [],
-  shared: sharedConfig,
+  shared: mfSharedDependencies,
   plugins: [extensionLifecyclePlugin(), loggingPlugin(DEBUG_MF)],
 });
 
@@ -219,7 +185,7 @@ export async function loadRemote<T>(id: string): Promise<T | null> {
  * Register remotes with the MF instance.
  */
 export function registerRemotes(
-  remotes: Array<{ name: string; entry: string }>
+  remotes: Array<{ name: string; entry: string; type: "module" | "script" }>
 ): void {
   mfInstance.registerRemotes(remotes);
 }

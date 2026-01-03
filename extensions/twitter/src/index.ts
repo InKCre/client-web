@@ -1,18 +1,34 @@
 /**
  * Twitter Extension
  *
- * This module imports the TweetResolver to trigger decorator registration.
- * Import this module in main.ts to enable tweet block support.
  */
 
-// Import resolver to trigger @ResolverManager.registry() decorator registration
-import "./resolver";
+/**
+ * Twitter Extension Entry Point
+ *
+ * Module Federation remote entry that implements IExtension interface.
+ * This is the main export loaded by the host application.
+ */
 
-// Re-export for external use
-export { TweetResolver } from "./resolver";
-export { TweetSchema, type Tweet, type TweetPhoto, type TweetVideo } from "./schema";
-export {
-  RELATION_ATTACHMENT_PHOTO,
-  RELATION_ATTACHMENT_VIDEO,
-  RELATION_ENTITIES_URL,
-} from "./schema";
+import { type IExtension, resolverManager } from "@inkcre/core";
+import { TweetResolver } from "./resolver";
+
+const Extension: IExtension = {
+  async initialize() {},
+
+  async activate() {
+    // TODO wait for package core ready
+    resolverManager.register("extensions.twitter.tweet", TweetResolver);
+  },
+
+  async deactivate() {
+    console.log("[Twitter Extension] Deactivated");
+  },
+
+  async dispose() {
+    console.log("[Twitter Extension] Disposed");
+    // Cleanup resources if needed
+  },
+};
+
+export default Extension;

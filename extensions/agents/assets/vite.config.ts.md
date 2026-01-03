@@ -1,3 +1,6 @@
+# Example of `extensions/*/vite.config.ts`
+
+```ts
 import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
@@ -5,12 +8,13 @@ import vueJsx from "@vitejs/plugin-vue-jsx";
 import { federation } from "@module-federation/vite";
 import mfSharedDependecies from "../../shared/mf-shared-dependecies";
 
+// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
     vueJsx(),
     federation({
-      name: `extension.twitter`,
+      name: `extension.extension_id`,
       filename: "remoteEntry.js",
       exposes: {
         ".": "./src/index.ts",
@@ -18,10 +22,8 @@ export default defineConfig({
       shared: mfSharedDependecies,
     }),
   ],
-  base: "/twitter/client-web/",
   resolve: {
     alias: {
-      // FIXME
       "@inkcre/core": fileURLToPath(
         new URL("../../packages/core/src", import.meta.url)
       ),
@@ -36,7 +38,6 @@ export default defineConfig({
     sourcemap: true,
   },
   css: {
-    // TODO add plugin
     preprocessorOptions: {
       scss: {
         additionalData: (source: string, file: string) => {
@@ -49,3 +50,4 @@ export default defineConfig({
     },
   },
 });
+```
