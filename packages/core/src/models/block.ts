@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Z } from "zod-class";
-import { DBAPIClient, CoreAPIClient } from "../api";
+import { DBAPIClient } from "../api";
 import { makeNumberProp, makeObjectProp } from "../utils/vue-props";
 
 export type BlockRef = number;
@@ -28,7 +28,6 @@ export class Block extends Z.class({
   content: z.string(),
 }) {
   static dbApi: DBAPIClient = new DBAPIClient("blocks", Block);
-  static coreApi: CoreAPIClient = new CoreAPIClient("/blocks", Block);
 
   static async get(id: BlockRef): Promise<Block> {
     return new Block((await this.dbApi.from().select().eq("id", id)).data![0]);

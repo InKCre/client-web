@@ -1,13 +1,8 @@
-// Initialize core package
-import { initializeCore } from "./core";
-import { localStorageAdapter } from "@inkcre/core";
-await initializeCore();
-
 import { createApp } from "vue";
 import App from "./App.vue";
 import i18n from "./locales";
 import router from "./router";
-import store from "./stores";
+import { store } from "@inkcre/core";
 
 // 样式
 import "uno.css";
@@ -21,17 +16,21 @@ app.use(store);
 app.use(router);
 app.mount("#app");
 
+// Initialize core package
+import { initializeCore } from "./core";
+await initializeCore();
+
 // Register built-in storages and resolvers
 import "@/storages";
 import "@/resolvers";
 
 // Initialize Extension
-import { Extension, saveConfig } from "@inkcre/core";
+import { Extension, configStore, localStorageAdapter } from "@inkcre/core";
 Extension.startup().catch((error) => {
   console.error("[Extension] Startup failed:", error);
 });
 
 window.addEventListener("beforeunload", () => {
   Extension.shutdown();
-  saveConfig(localStorageAdapter);
+  configStore.save(localStorageAdapter);
 });

@@ -55,7 +55,9 @@ const onConfirmConfig = () => {
   if (props.extension) {
     configPopupOpen.value = (async () => {
       try {
-        const updatedExtension = await props.extension.updateConfig();
+        const updatedExtension = await props.extension.updateConfig(
+          props.clientId
+        );
         emit("edit-config", updatedExtension);
         return false; // close dialog
       } catch (error) {

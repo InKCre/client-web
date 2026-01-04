@@ -1,6 +1,6 @@
 // (Information) Base Root module index
 
-import { inkcreApi } from "@/logic/storage";
+import { inkcreApi } from "~/logic/storage";
 import type { BlockForm } from "./block";
 import type { RelationForm } from "./relation";
 
@@ -8,7 +8,7 @@ export class ArcForm {
   constructor(
     public relation: RelationForm,
     public to_block: StarGraphForm | null = null,
-    public from_block: StarGraphForm | null = null,
+    public from_block: StarGraphForm | null = null
   ) {}
 }
 
@@ -16,7 +16,7 @@ export class StarGraphForm {
   constructor(
     public block: BlockForm,
     public out_relations: ArcForm[] = [],
-    public in_relations: ArcForm[] = [],
+    public in_relations: ArcForm[] = []
   ) {}
 
   create() {

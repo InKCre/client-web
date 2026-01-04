@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { Z } from "zod-class";
 import { ref, type Ref } from "vue";
-import { CoreAPIClient, DBAPIClient } from "../api";
+import { DBAPIClient, CoreAPIClient } from "../api";
 import { makeStringProp, makeObjectProp } from "../utils/vue-props";
 import { Client, type ClientRef } from "./client";
-import { CONFIG } from "../config";
+import { configStore as sharedConfigStore } from "../config";
 import {
   ExtensionState,
   type IExtension,
@@ -22,7 +22,9 @@ export const ExtensionRefZ = z.string();
  * Apps must provide implementation via setMFImplementation.
  */
 interface MFImplementation {
-  registerRemotes: (remotes: Array<{ name: string; entry: string; type: string }>) => void;
+  registerRemotes: (
+    remotes: Array<{ name: string; entry: string; type: string }>
+  ) => void;
   loadRemote: <T>(name: string) => Promise<T | null>;
 }
 
@@ -53,14 +55,12 @@ export class Extension extends Z.class({
   // Static API Clients
   // ============================================================================
 
-  static coreApi: CoreAPIClient = new CoreAPIClient<Extension>(
-    "/extensions",
-    Extension
-  );
   static dbApi: DBAPIClient = new DBAPIClient<Extension>(
     "extensions",
     Extension
   );
+
+  static coreApi = new CoreAPIClient("/extensions");
 
   // ============================================================================
   // Static Registry
@@ -76,7 +76,7 @@ export class Extension extends Z.class({
   private static _instances: Map<ExtensionRef, Extension> = new Map();
 
   private static getEnabledInstances(): Extension[] {
-    const clientId = CONFIG.value.INKCRE_CLIENT_ID;
+    const clientId = sharedConfigStore.config.INKCRE_CLIENT_ID;
     if (!clientId) return [];
     return Array.from(Extension._instances.values()).filter((ext) =>
       ext.isEnabledForClient(clientId)
@@ -148,8 +148,12 @@ export class Extension extends Z.class({
     return this.enabled.includes(clientId);
   }
 
-  async updateConfig(config?: Record<string, any>): Promise<Extension> {
-    return Extension.coreApi.request<Extension>({
+  async updateConfig(
+    clientId: ClientRef,
+    config?: Record<string, any>
+  ): Promise<Extension> {
+    const client = await Client.get(clientId);
+    return await client.request({
       method: "PUT",
       path: `/${this.id}/config`,
       body: config || this.config,
@@ -288,7 +292,7 @@ export class Extension extends Z.class({
    * Convention: ${registryUrl}/${extensionId}/client-web/remoteEntry.js?version=${version}
    */
   getRemoteEntryUrl(): string {
-    const registryUrl = CONFIG.value.INKCRE_EXTENSION_REGISTRY_URL;
+    const registryUrl = sharedConfigStore.config.INKCRE_EXTENSION_REGISTRY_URL;
     if (!registryUrl) {
       throw new Error(
         "Extension registry URL is not configured (INKCRE_EXTENSION_REGISTRY_URL)"
@@ -320,13 +324,15 @@ export class Extension extends Z.class({
     const mf = getMFImplementation();
 
     // Register the remote with centralized MF instance
-    mf.registerRemotes([{ name: remoteName, entry: remoteEntry, type: "module" }]);
+    mf.registerRemotes([
+      { name: remoteName, entry: remoteEntry, type: "module" },
+    ]);
 
     // Load the Extension export from the remote
     // Error handling is delegated to MF errorLoadRemote plugin
-    const loadedModule = await mf.loadRemote<IExtension | { default: IExtension }>(
-      remoteName
-    );
+    const loadedModule = await mf.loadRemote<
+      IExtension | { default: IExtension }
+    >(remoteName);
 
     if (!loadedModule) {
       throw new Error(
@@ -345,7 +351,7 @@ export class Extension extends Z.class({
   async enableForClient(clientId: ClientRef): Promise<void> {
     console.log(`[Extension] Enabling ${this.id} for client ${clientId}`);
 
-    if (CONFIG.value.INKCRE_CLIENT_ID === clientId) {
+    if (sharedConfigStore.config.INKCRE_CLIENT_ID === clientId) {
       // Local client
 
       // Activate if ready, or load->init->activate if discovered
@@ -389,7 +395,7 @@ export class Extension extends Z.class({
   async disableForClient(clientId: ClientRef): Promise<void> {
     console.log(`[Extension] Disabling ${this.id} for client ${clientId}`);
 
-    if (CONFIG.value.INKCRE_CLIENT_ID === clientId) {
+    if (sharedConfigStore.config.INKCRE_CLIENT_ID === clientId) {
       // Deactivate if active
       if (this.runtimeState.value.status === ExtensionState.ACTIVE) {
         await this.deactivate();

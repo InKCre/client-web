@@ -1,4 +1,4 @@
-import { CONFIG } from "../config";
+import { configStore as sharedConfigStore } from "../config";
 import { authStore } from "../auth";
 import { PostgrestClient, PostgrestQueryBuilder } from "@supabase/postgrest-js";
 import { watch } from "vue";
@@ -21,6 +21,7 @@ export class APIError extends Error {
  */
 export class CoreAPIClient<DT = any> {
   protected baseURL: string;
+  protected configStore = sharedConfigStore;
 
   /**
    * @param pathPrefix format `/...`
@@ -30,7 +31,7 @@ export class CoreAPIClient<DT = any> {
     protected pathPrefix: string = "",
     protected defResBodySchema?: { parse<DT>(input: unknown): DT }
   ) {
-    this.baseURL = `${CONFIG.value.INKCRE_CORE_URL}${pathPrefix}`;
+    this.baseURL = `${this.configStore.config.INKCRE_CORE_URL}${pathPrefix}`;
   }
 
   protected async getAuthHeaders(): Promise<Record<string, string>> {
@@ -122,7 +123,10 @@ export class CoreAPIClient<DT = any> {
               return schema ? schema.parse(retryData) : retryData;
             }
           } catch (retryError) {
-            console.warn("[CoreAPIClient] Token refresh and retry failed:", retryError);
+            console.warn(
+              "[CoreAPIClient] Token refresh and retry failed:",
+              retryError
+            );
           }
         }
 
@@ -151,6 +155,8 @@ export class CoreAPIClient<DT = any> {
  * @template DT - Data type for the records in the specified relation
  */
 export class DBAPIClient<DT = any> extends PostgrestClient {
+  protected configStore = sharedConfigStore;
+
   /**
    * @param relation - Database relation (table) name
    * @param defSchema - Optional default schema for parsing responses
@@ -174,10 +180,10 @@ export class DBAPIClient<DT = any> extends PostgrestClient {
       },
     });
 
-    // If no baseUrl provided, use CONFIG and watch for changes
+    // If no baseUrl provided, use configStore and watch for changes
     if (!baseUrl) {
       watch(
-        () => CONFIG.value.INKCRE_PGREST_URL,
+        () => this.configStore.config.INKCRE_PGREST_URL,
         (newVal) => {
           this.url = newVal;
         },

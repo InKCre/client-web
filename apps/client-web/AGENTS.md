@@ -39,7 +39,7 @@ src/views/<business_domain>
 src/composables
 src/locales
 src/static
-src/stores
+src/stores                      # Application specific stores
 src/styles
 src/utils
 src/App.vue

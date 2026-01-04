@@ -5,11 +5,10 @@ import extensionCard from "@/components/extension/extensionCard/extensionCard.vu
 import installExtension from "@/components/extension/installExtension/installExtension.vue";
 import { InkLoading, InkDropdown } from "@inkcre/web-design";
 import { Client } from "@inkcre/core";
-import { Extension } from "@inkcre/core";
-import { CONFIG } from "@/config";
+import { Extension, configStore } from "@inkcre/core";
 
 // --- data ---
-const selectedClientId = ref<string>(CONFIG.value.INKCRE_CLIENT_ID);
+const selectedClientId = ref<string>(configStore.config.INKCRE_CLIENT_ID);
 
 const {
   state: extensions,

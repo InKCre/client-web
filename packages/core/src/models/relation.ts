@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Z } from "zod-class";
-import { DBAPIClient, CoreAPIClient } from "../api";
+import { DBAPIClient } from "../api";
 import { BlockRefZ, type BlockRef } from "./block";
 import { makeNumberProp, makeObjectProp } from "../utils/vue-props";
 
@@ -24,7 +24,6 @@ export class Relation extends Z.class({
   content: z.string(),
 }) {
   static dbApi: DBAPIClient = new DBAPIClient("relations", Relation);
-  static coreApi: CoreAPIClient = new CoreAPIClient("/relation", Relation);
 
   static async get(id: RelationRef): Promise<Relation> {
     return new Relation(

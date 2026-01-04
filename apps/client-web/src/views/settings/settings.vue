@@ -10,12 +10,13 @@ import {
   type DropdownOption,
 } from "@inkcre/web-design";
 import {
-  saveConfig,
-  resetConfig,
-  CONFIG,
+  configStore,
+  localStorageAdapter,
+  httpAdapter,
+  devAdapter,
   type AdapterType,
-  currentAdapterType,
-} from "@/config";
+  type ConfigAdapterWithWrite,
+} from "@inkcre/core";
 import {
   setLocale,
   SUPPORT_LOCALES,
@@ -28,7 +29,7 @@ import ClientList from "@/components/client/clientList/clientList.vue";
 const { t } = useI18n();
 
 // Local reactive copy of config for form editing
-const formConfig = reactive({ ...CONFIG.value });
+const formConfig = reactive({ ...configStore.config });
 
 // Adapter options
 const adapterOptions: DropdownOption[] = [
@@ -37,13 +38,29 @@ const adapterOptions: DropdownOption[] = [
   { value: "dev", label: t("settings.adapterDev") },
 ];
 
+// Map adapter type to actual adapter instance
+const adapterMap: Record<
+  Exclude<AdapterType, "webext">,
+  ConfigAdapterWithWrite
+> = {
+  localStorage: localStorageAdapter,
+  http: httpAdapter,
+  dev: devAdapter,
+};
+
+// Current adapter type (from localStorage or default)
+const currentAdapterType = ref<Exclude<AdapterType, "webext">>("localStorage");
+
 // Current adapter (computed for v-model)
 const currentAdapter = computed({
   get: () => currentAdapterType.value,
   set: async (value: string) => {
-    currentAdapterType.value = value as AdapterType;
-    // Reload form config after adapter change
-    Object.assign(formConfig, CONFIG);
+    const adapterKey = value as Exclude<AdapterType, "webext">;
+    currentAdapterType.value = adapterKey;
+    localStorage.setItem("inkcre_config_adapter", value);
+    // Reload config from new adapter
+    await configStore.load([adapterMap[adapterKey]]);
+    Object.assign(formConfig, configStore.config);
   },
 });
 
@@ -64,7 +81,11 @@ const currentLocale = computed({
 // Save config
 const onSave = async () => {
   try {
-    saveConfig(formConfig);
+    // Update store config
+    Object.assign(configStore.config, formConfig);
+    // Save to current adapter
+    const adapter = adapterMap[currentAdapterType.value];
+    await configStore.save(adapter);
     alert(t("settings.saveSuccess"));
   } catch (error) {
     console.error("Failed to save config:", error);
@@ -74,14 +95,14 @@ const onSave = async () => {
 
 // Reset config
 const onReset = () => {
-  resetConfig();
+  configStore.reset();
   // Reload form config after reset
-  Object.assign(formConfig, structuredClone(CONFIG));
+  Object.assign(formConfig, structuredClone(configStore.config));
 };
 
 // Export config
 const onExport = () => {
-  const configJson = JSON.stringify(CONFIG, null, 2);
+  const configJson = JSON.stringify(configStore.config, null, 2);
   const blob = new Blob([configJson], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -98,18 +119,24 @@ const onImport = () => {
   fileInput.value?.click();
 };
 
-const onFileSelected = (event: Event) => {
+const onFileSelected = async (event: Event) => {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = (e) => {
+  reader.onload = async (e) => {
     try {
       const content = e.target?.result as string;
-      saveConfig(JSON.parse(content));
+      const imported = JSON.parse(content);
+      // Update store config
+      Object.assign(configStore.config, imported);
+      // Save to current adapter
+      const adapter = adapterMap[currentAdapterType.value];
+      await configStore.save(adapter);
       // Reload form config after import
-      Object.assign(formConfig, structuredClone(CONFIG));
+      Object.assign(formConfig, structuredClone(configStore.config));
+      alert(t("settings.saveSuccess"));
     } catch (error) {
       console.error("Failed to import config:", error);
       alert(t("settings.importError"));

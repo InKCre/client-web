@@ -1,8 +1,8 @@
 # AGENTS.md of InKCre Web Clients
 
-This is a monorepo with following repo:
+This is a monorepo with following repos:
 
-- `packages/core`
+- `packages/core`: logic shares acroos application and extensions
 - `packages/ext-dev-utils`
 - `apps/client-web`: web client
 - `apps/cliebt-webext`: browser extension client

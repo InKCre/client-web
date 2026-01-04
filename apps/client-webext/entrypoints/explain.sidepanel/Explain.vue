@@ -5,8 +5,11 @@ import { onNewTask } from "@/logic/task";
 import Response from "~/components/ai/Response/Response.vue";
 import ProviderPicker from "~/components/common/ProviderPicker/ProviderPicker.vue";
 import { useExplainChat, type Message } from "~/logic/explain";
-import { defaultModel, llmProviders } from "~/logic/storage";
+import { useConfigStore } from "@inkcre/core";
 import { routeToTakingNote } from "~/entrypoints/sidepanel/router";
+
+// Get config store
+const configStore = useConfigStore();
 
 const initialQuery = ref<string>("");
 const tabId = ref<number>();
@@ -16,12 +19,12 @@ const followUpInput = ref<string>("");
 const messages = ref<Message[]>([]);
 const isLoading = ref(false);
 const errorMessage = ref("");
-const selectedModel = ref(defaultModel.value);
+const selectedModel = ref(configStore.config.defaultModel);
 
 const explainChat = computed(() => {
   return useExplainChat({
     modelString: selectedModel.value,
-    providers: llmProviders.value,
+    providers: configStore.config.llmProviders,
     onUpdate: (update) => {
       if (update.messages !== undefined) messages.value = update.messages;
       if (update.isLoading !== undefined) isLoading.value = update.isLoading;
@@ -73,7 +76,10 @@ const retryExplanation = () => {
 const saveConversation = async () => {
   // Convert all messages to a formatted text
   const conversationText = messages.value
-    .map((msg) => `**${msg.role === "user" ? "Question" : "Answer"}:**\n${msg.content}`)
+    .map(
+      (msg) =>
+        `**${msg.role === "user" ? "Question" : "Answer"}:**\n${msg.content}`
+    )
     .join("\n\n---\n\n");
 
   await newTask({
@@ -136,7 +142,10 @@ onNewTask("explain", (task) => {
     <main class="explain-content">
       <div v-if="errorMessage" class="error-message">
         <p>{{ errorMessage }}</p>
-        <p v-if="!llmProviders?.some((p) => p.apiKey)" class="config-hint">
+        <p
+          v-if="!configStore.config.llmProviders?.some((p) => p.apiKey)"
+          class="config-hint"
+        >
           请在扩展选项中配置至少一个 LLM 提供商的 API Key。
         </p>
       </div>

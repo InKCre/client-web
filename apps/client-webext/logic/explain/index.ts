@@ -1,5 +1,5 @@
 import { stepCountIs, streamText } from "ai";
-import { explainInstruction } from "~/logic/storage";
+import { useConfigStore } from "@inkcre/core";
 import { parseModelString } from "../ai/provider-registry";
 import { getPageContent } from "./tools";
 import type { useExplainAgentOptions } from "./types";
@@ -52,9 +52,10 @@ export function useExplainAgent(options: useExplainAgentOptions) {
       options.onUpdate?.({ usedProvider, usedModel });
 
       // Stream the response with tools
+      const configStore = useConfigStore();
       const result = streamText({
         model: parseModelString(options.modelString, options.providers),
-        system: options.instructions || explainInstruction.value,
+        system: options.instructions || configStore.config.explainInstruction,
         tools: {
           getPageContent,
         },
@@ -89,7 +90,10 @@ export function useExplainAgent(options: useExplainAgentOptions) {
     } catch (err) {
       // Check if it was aborted
       const errObj = err as any;
-      if (errObj?.name === "AbortError" || errObj?.message?.includes("aborted")) {
+      if (
+        errObj?.name === "AbortError" ||
+        errObj?.message?.includes("aborted")
+      ) {
         error = "Explanation stopped";
       } else {
         console.error("Error in explain stream:", err);

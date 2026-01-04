@@ -1,5 +1,5 @@
 import { type ModelMessage, stepCountIs, streamText } from "ai";
-import { explainInstruction } from "~/logic/storage";
+import { useConfigStore } from "@inkcre/core";
 import { parseModelString } from "../ai/provider-registry";
 import { getPageContent } from "./tools";
 import type { LLMProviderConfig } from "../storage";
@@ -57,7 +57,7 @@ export function useExplainChat(options: useExplainChatOptions) {
 
   const sendMessage = async (
     userMessage: string,
-    tabId?: number,
+    tabId?: number
   ): Promise<void> => {
     // Add user message
     const newUserMessage: Message = {
@@ -86,9 +86,10 @@ export function useExplainChat(options: useExplainChatOptions) {
       }
 
       // Stream the response with tools
+      const configStore = useConfigStore();
       const result = streamText({
         model: parseModelString(options.modelString, options.providers),
-        system: options.instructions || explainInstruction.value,
+        system: options.instructions || configStore.config.explainInstruction,
         tools: {
           getPageContent,
         },
@@ -127,7 +128,10 @@ export function useExplainChat(options: useExplainChatOptions) {
     } catch (err) {
       // Check if it was aborted
       const errObj = err as any;
-      if (errObj?.name === "AbortError" || errObj?.message?.includes("aborted")) {
+      if (
+        errObj?.name === "AbortError" ||
+        errObj?.message?.includes("aborted")
+      ) {
         error = "Stopped";
       } else {
         console.error("Error in explain chat stream:", err);

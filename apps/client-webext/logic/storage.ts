@@ -1,10 +1,15 @@
 /**
  * Storage configuration for client-webext
  *
- * Integrates @inkcre/core CONFIG system with WebExtension storage.
+ * Separates core config (using Pinia store) from extension-specific storage.
  */
 
-import { CONFIG, createWebextAdapter, loadConfig } from "@inkcre/core";
+import {
+  useConfigStore,
+  createWebextAdapter,
+  DEFAULT_LLM_PROVIDERS,
+  DEFAULT_EXPLAIN_INSTRUCTION,
+} from "@inkcre/core";
 import { useWebExtensionStorage } from "~/composables/useWebExtensionStorage";
 
 // ============================================================================
@@ -14,29 +19,54 @@ import { useWebExtensionStorage } from "~/composables/useWebExtensionStorage";
 /**
  * Initialize core configuration with WebExtension storage adapter.
  * Call this early in the extension lifecycle (e.g., in background script).
+ *
+ * @example
+ * ```typescript
+ * // In background.ts
+ * import { initializeConfig } from "~/logic/storage";
+ * await initializeConfig();
+ *
+ * // Then use config store anywhere
+ * import { useConfigStore } from "@inkcre/core";
+ * const configStore = useConfigStore();
+ * console.log(configStore.config.llmProviders);
+ * ```
  */
 export async function initializeConfig() {
   const webextAdapter = createWebextAdapter({
     storageArea: "sync", // Use 'sync' for cross-device sync, 'local' for local-only
   });
 
-  await loadConfig([webextAdapter]);
+  const configStore = useConfigStore();
+  await configStore.load([webextAdapter]);
   console.log("[Client-WebExt] Core configuration loaded");
 }
 
 /**
- * Reactive reference to INKCRE_API (from core CONFIG)
+ * Save current config to WebExtension storage.
+ * Call this when config changes need to be persisted.
+ *
+ * @example
+ * ```typescript
+ * import { saveConfig } from "~/logic/storage";
+ * import { useConfigStore } from "@inkcre/core";
+ *
+ * const configStore = useConfigStore();
+ * configStore.config.llmProviders.push(newProvider);
+ * await saveConfig();
+ * ```
  */
-export const inkcreApi = {
-  get value() {
-    return CONFIG.value.INKCRE_API || import.meta.env.VITE_INKCRE_API || "https://api.inkcre.com";
-  },
-  set value(v: string) {
-    CONFIG.value.INKCRE_API = v;
-  },
-};
+export async function saveConfig() {
+  const webextAdapter = createWebextAdapter({
+    storageArea: "sync",
+  });
 
-// Re-export core config types and defaults for backwards compatibility
+  const configStore = useConfigStore();
+  await configStore.save(webextAdapter);
+  console.log("[Client-WebExt] Core configuration saved");
+}
+
+// Re-export core config types and defaults for convenience
 export {
   type ProviderType,
   type LLMProviderConfig,
@@ -44,32 +74,8 @@ export {
   DEFAULT_EXPLAIN_INSTRUCTION,
 } from "@inkcre/core";
 
-/**
- * Reactive reference to llmProviders (from core CONFIG)
- */
-export const llmProviders = {
-  get value() {
-    return CONFIG.value.llmProviders;
-  },
-  set value(v) {
-    CONFIG.value.llmProviders = v;
-  },
-};
-
-/**
- * Reactive reference to explainInstruction (from core CONFIG)
- */
-export const explainInstruction = {
-  get value() {
-    return CONFIG.value.explainInstruction || DEFAULT_EXPLAIN_INSTRUCTION;
-  },
-  set value(v: string) {
-    CONFIG.value.explainInstruction = v;
-  },
-};
-
 // ============================================================================
-// Extension-Specific Storage (Stopwords)
+// Extension-Specific Storage (Not in core config)
 // ============================================================================
 
 // Default English stopwords list (loaded from JSON)
@@ -83,3 +89,31 @@ export const DEFAULT_STOPWORDS: string[] = stopwordsList;
  */
 export const { data: stopwords, dataReady: stopwordsReady } =
   useWebExtensionStorage("stopwords", DEFAULT_STOPWORDS);
+
+/**
+ * InKCre API base URL (extension-specific, not in core).
+ * Used for info-base API calls.
+ */
+export const { data: inkcreApi, dataReady: inkcreApiReady } =
+  useWebExtensionStorage("inkcreApi", "http://127.0.0.1:8000");
+
+/**
+ * Re-export for backward compatibility with .value pattern
+ * @deprecated Use useConfigStore().config.llmProviders instead
+ */
+export const { data: llmProviders, dataReady: llmProvidersReady } =
+  useWebExtensionStorage("llmProviders", DEFAULT_LLM_PROVIDERS);
+
+/**
+ * Default model selection
+ * @deprecated Use useConfigStore().config.defaultModel instead
+ */
+export const { data: defaultModel, dataReady: defaultModelReady } =
+  useWebExtensionStorage("defaultModel", "openai-default:gpt-4o-mini");
+
+/**
+ * Explain instruction
+ * @deprecated Use useConfigStore().config.explainInstruction instead
+ */
+export const { data: explainInstruction, dataReady: explainInstructionReady } =
+  useWebExtensionStorage("explainInstruction", DEFAULT_EXPLAIN_INSTRUCTION);

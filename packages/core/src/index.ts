@@ -8,6 +8,9 @@
  * - Storage abstraction (Storage)
  */
 
+// Store
+export { store } from "./store";
+
 // Base utilities
 export { zinstance } from "./base";
 
@@ -41,11 +44,8 @@ export {
 
 // Configuration
 export {
-  CONFIG,
-  loadConfig,
-  saveConfig,
-  resetConfig,
-  isConfigValid,
+  useConfigStore,
+  configStore,
   ConfigSchema,
   AppConfigSchema,
   AIConfigSchema,

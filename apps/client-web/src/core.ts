@@ -6,14 +6,13 @@
  */
 
 import {
-  CONFIG,
-  loadConfig,
+  configStore,
   devAdapter,
   localStorageAdapter,
   setMFImplementation,
   setExtensionMFImplementation,
 } from "@inkcre/core";
-import { init } from "@module-federation/enhanced/runtime";
+import { createInstance } from "@module-federation/enhanced/runtime";
 import mfSharedDependencies from "../../../shared/mf-shared-dependencies";
 
 // ============================================================================
@@ -26,8 +25,8 @@ import mfSharedDependencies from "../../../shared/mf-shared-dependencies";
  */
 export async function initializeConfig(): Promise<void> {
   const adapter = import.meta.env.DEV ? devAdapter : localStorageAdapter;
-  await loadConfig([adapter]);
-  console.log("[Core] Configuration loaded:", CONFIG.value);
+  await configStore.load([adapter]);
+  console.log("[Core] Configuration loaded:", configStore.config);
 }
 
 // ============================================================================
@@ -38,16 +37,20 @@ export async function initializeConfig(): Promise<void> {
  * Initialize Module Federation runtime.
  * Creates the MF instance and injects it into core.
  */
+// TODO Integrate into core, client-webext also uses this
 export function initializeModuleFederation(): void {
-  const mfInstance = init({
+  const mfInstance = createInstance({
     name: "host",
     remotes: [],
-    shared: mfSharedDependencies as any,
+    // @ts-ignore
+    shared: mfSharedDependencies,
   });
 
   // Inject MF implementation into core
   const mfImpl = {
-    registerRemotes: (remotes: Array<{ name: string; entry: string; type: string }>) => {
+    registerRemotes: (
+      remotes: Array<{ name: string; entry: string; type: string }>
+    ) => {
       mfInstance.registerRemotes(remotes);
     },
     loadRemote: async <T>(remoteName: string): Promise<T | null> => {

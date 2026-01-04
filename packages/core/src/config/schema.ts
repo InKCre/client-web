@@ -32,6 +32,7 @@ export const AppConfigSchema = z.object({
   INKCRE_EXTENSION_REGISTRY_URL: z.string().url().default(""),
   INKCRE_JWT_SECRET: z.string().default(""),
   INKCRE_CLIENT_ID: z.string().uuid().default(""),
+  INKCRE_API: z.string().url().default("https://api.inkcre.com"), // For client-webext
 });
 
 /**
@@ -42,7 +43,9 @@ export const AIConfigSchema = z.object({
   defaultModel: z.string().default("openai-default:gpt-4o-mini"),
   explainInstruction: z
     .string()
-    .default("Explain user given text based on page content in a concise, clear, simple way."),
+    .default(
+      "Explain user given text based on page content in a concise, clear, simple way."
+    ),
 });
 
 /**

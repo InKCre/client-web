@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Z } from "zod-class";
-import { DBAPIClient, CoreAPIClient } from "../api";
+import { DBAPIClient } from "../api";
 import { makeNumberProp, makeObjectProp } from "../utils/vue-props";
 import dayjs from "dayjs";
 import { zinstance } from "../base";
@@ -111,7 +111,6 @@ export class Source extends Z.class({
   collect_at: zinstance<CollectAt>(CollectAt).nullable(),
 }) {
   static dbApi: DBAPIClient = new DBAPIClient("sources", Source);
-  static coreApi: CoreAPIClient<Source> = new CoreAPIClient("/source", Source);
 
   static async get(id: SourceRef): Promise<Source> {
     return new Source(
@@ -123,26 +122,8 @@ export class Source extends Z.class({
     return (await this.dbApi.from().select()).data!.map((d) => new Source(d));
   }
 
-  /**
-   * Get available source types
-   */
-  static async getTypes(): Promise<string[]> {
-    return Source.coreApi.request<string[]>({
-      method: "GET",
-      path: "/types",
-    });
-  }
-
   public async save(): Promise<Source> {
     return Source.dbApi.first(await Source.dbApi.from().upsert(this).select());
-  }
-
-  async collect(options: { full?: boolean } = {}): Promise<void> {
-    await Source.coreApi.request<any[]>({
-      method: "GET",
-      path: `/${this.id}/collect`,
-      query: options,
-    });
   }
 
   async delete(): Promise<void> {
@@ -190,10 +171,6 @@ export class SourceCollectJob extends Z.class({
 }) {
   static dbApi: DBAPIClient = new DBAPIClient(
     "sources_collect_jobs",
-    SourceCollectJob
-  );
-  static coreApi: CoreAPIClient<SourceCollectJob> = new CoreAPIClient(
-    "/source/collect-job",
     SourceCollectJob
   );
 

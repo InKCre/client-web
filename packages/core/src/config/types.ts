@@ -1,5 +1,4 @@
 import type { Adapter as ConfigAdapter } from "zod-config";
-import type { ConfigSchema } from "./schema";
 
 /**
  * Adapter type identifiers
@@ -9,7 +8,7 @@ export type AdapterType = "localStorage" | "http" | "dev" | "webext";
 /**
  * Config adapter with write capability
  */
-export interface ConfigAdapterWithWrite extends ConfigAdapter<typeof ConfigSchema> {
+export interface ConfigAdapterWithWrite extends ConfigAdapter {
   write: (data: Record<string, unknown>) => Promise<void>;
 }
 
@@ -18,3 +17,6 @@ export interface ConfigAdapterWithWrite extends ConfigAdapter<typeof ConfigSchem
  */
 export const CONFIG_STORAGE_KEY = "inkcre_app_config";
 export const ADAPTER_STORAGE_KEY = "inkcre_config_adapter";
+
+// Re-export Config type from schema for convenience
+export type { Config } from "./schema";

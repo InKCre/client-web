@@ -32,3 +32,4 @@
 - [ ] Federated Types
 - [ ] Extension Playground uses Histoire
 - [ ] Graph Sink 而不是 Info-base graph
+- [ ] Migrate client-webext to fully use the core (especially config part)

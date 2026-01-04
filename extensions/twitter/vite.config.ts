@@ -3,7 +3,7 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import vueJsx from "@vitejs/plugin-vue-jsx";
 import { federation } from "@module-federation/vite";
-import mfSharedDependecies from "../../shared/mf-shared-dependecies";
+import mfSharedDependencies from "../../shared/mf-shared-dependencies";
 
 export default defineConfig({
   plugins: [
@@ -15,7 +15,7 @@ export default defineConfig({
       exposes: {
         ".": "./src/index.ts",
       },
-      shared: mfSharedDependecies,
+      shared: mfSharedDependencies,
     }),
   ],
   base: "/twitter/client-web/",

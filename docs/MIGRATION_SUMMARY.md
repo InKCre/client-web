@@ -12,6 +12,7 @@ Successfully migrated shared business logic from `client-web` and `client-webext
 ## What Was Migrated
 
 ### 1. Configuration System (`packages/core/src/config/`)
+
 - ✅ Zod schemas for app and AI configuration
 - ✅ CONFIG ref with reactive updates
 - ✅ Multi-adapter support:
@@ -22,16 +23,19 @@ Successfully migrated shared business logic from `client-web` and `client-webext
 - ✅ Default LLM provider configurations (OpenAI, Anthropic, Google)
 
 ### 2. Authentication (`packages/core/src/auth/`)
+
 - ✅ JWT token management with jose library
 - ✅ Composable-based auth store (not Pinia)
 - ✅ Reactive token generation watching CONFIG.INKCRE_JWT_SECRET
 
 ### 3. API Clients (`packages/core/src/api/`)
+
 - ✅ `CoreAPIClient` - Base API client with auth and retry logic
 - ✅ `DBAPIClient` - PostgREST client with automatic auth injection
 - ✅ `APIError` - Structured error handling
 
 ### 4. Models (`packages/core/src/models/`)
+
 - ✅ **Client** - Peer-to-peer client with `.request()` method
 - ✅ **Extension** - Module Federation lifecycle management
 - ✅ **Block** - Info-base block model
@@ -41,6 +45,7 @@ Successfully migrated shared business logic from `client-web` and `client-webext
 - ✅ **Log** - Observability logging model
 
 ### 5. Info-Base Resolvers (`packages/core/src/info-base/resolvers/`)
+
 - ✅ `InfoBaseResolver` - Base resolver with lazy loading
 - ✅ `CoreTextResolver` - Text content resolver (logic only)
 - ✅ `CoreImageResolver` - Image content with Blob handling
@@ -49,6 +54,7 @@ Successfully migrated shared business logic from `client-web` and `client-webext
 - ✅ Apps extend these and add Vue `contentComp`
 
 ### 6. Info-Base Storages (`packages/core/src/info-base/storages/`)
+
 - ✅ `HttpImageStorage` - Fetch images from URLs
 - ✅ `HttpVideoStorage` - Fetch videos with metadata
 - ✅ `HttpTextStorage` - Fetch text content
@@ -57,6 +63,7 @@ Successfully migrated shared business logic from `client-web` and `client-webext
 - ✅ All use `@Storage.registry` decorator for auto-registration
 
 ### 7. Graph Utilities (`packages/core/src/sinks/graph/`)
+
 - ✅ Graph type definitions (BlockNode, RelationEdge)
 - ✅ Layout types and configurations (force, grid, circular, radial, dagre)
 - ✅ Topology detection types
@@ -65,11 +72,13 @@ Successfully migrated shared business logic from `client-web` and `client-webext
 - ✅ Converter functions: `blockToNode()`, `relationToEdge()`
 
 ### 8. Module Federation (`packages/core/src/module-federation/`)
+
 - ✅ Environment-agnostic MF abstractions
 - ✅ `setMFImplementation()` - Apps inject their MF runtime
 - ✅ `registerRemotes()`, `loadRemote()`, `isMFInitialized()`
 
 ### 9. AI Provider Integration (`packages/core/src/config/`)
+
 - ✅ AI SDK integration (@ai-sdk/*)
 - ✅ Support for OpenAI, Anthropic, Google providers
 - ✅ Provider configuration in CONFIG system
@@ -79,21 +88,25 @@ Successfully migrated shared business logic from `client-web` and `client-webext
 ## Architecture Decisions
 
 ### 1. **Peer-to-Peer Client Model**
+
 - ❌ No global API singleton
 - ✅ Each Client instance can `.request()` other clients
 - Every client is an equal peer
 
 ### 2. **Protocol Pattern**
+
 - Core defines protocols/interfaces
 - Apps provide implementations
 - Example: Resolvers in core are logic-only, apps add Vue components
 
 ### 3. **Reactive Configuration**
+
 - Single global `CONFIG` ref
 - Watch-based reactivity for JWT, database URL, etc.
 - Multi-adapter support for different environments
 
 ### 4. **Feature-Based Directory Structure**
+
 ```
 packages/core/src/
 ├── config/          # Configuration system
@@ -108,6 +121,7 @@ packages/core/src/
 ```
 
 ### 5. **Vue-Specific Utilities Kept**
+
 - Pinia composables preserved
 - Vue reactivity (ref, computed, watch) used in core
 - Vue component props utilities included
@@ -117,7 +131,9 @@ packages/core/src/
 ## Breaking Changes
 
 ### Import Paths
+
 **Before:**
+
 ```typescript
 import { Block } from "@/business/info-base/block";
 import { Client } from "@/business/client";
@@ -125,11 +141,13 @@ import { CONFIG } from "@/config";
 ```
 
 **After:**
+
 ```typescript
 import { Block, Client, CONFIG } from "@inkcre/core";
 ```
 
 ### Resolver Pattern
+
 **Before:** All-in-one resolver with component
 **After:** Apps extend core resolvers
 
@@ -145,19 +163,23 @@ export class TextResolver extends CoreTextResolver {
 ```
 
 ### Configuration Initialization
+
 **Before:**
+
 ```typescript
 import { loadConfig } from "@/config";
 await loadConfig();
 ```
 
 **After:**
+
 ```typescript
 import { initializeCore } from "./core";
 await initializeCore(); // Initializes config + MF
 ```
 
 ### Module Federation
+
 **Before:** Direct MF usage in extensions
 **After:** MF abstraction layer
 
@@ -180,16 +202,19 @@ setMFImplementation({
 ### Files Created/Modified
 
 #### New Files
+
 - [apps/client-web/src/core.ts](apps/client-web/src/core.ts) - Core initialization
 - [apps/client-web/src/resolvers/](apps/client-web/src/resolvers/) - App-level resolvers
 - [apps/client-web/src/storages/](apps/client-web/src/storages/) - Storage re-exports
 
 #### Modified Files
+
 - [apps/client-web/src/main.ts](apps/client-web/src/main.ts) - Use `initializeCore()`
 - All Vue components - Updated imports to `@inkcre/core`
 - All composables - Updated imports to `@inkcre/core`
 
 #### Deleted Files
+
 - `apps/client-web/src/business/` - **Entire directory removed** (migrated to core)
 
 ### Integration Pattern
@@ -222,6 +247,7 @@ window.addEventListener("beforeunload", () => {
 ## Package Configuration
 
 ### Core Package ([packages/core/package.json](packages/core/package.json))
+
 ```json
 {
   "name": "@inkcre/core",
@@ -245,6 +271,7 @@ window.addEventListener("beforeunload", () => {
 ```
 
 ### Build Configuration
+
 - **Bundler:** tsup
 - **Target:** esnext
 - **Format:** ESM
@@ -255,18 +282,21 @@ window.addEventListener("beforeunload", () => {
 ## Verification
 
 ### ✅ Type Check Passes
+
 ```bash
 cd apps/client-web
 npx vue-tsc --build  # ✅ No errors
 ```
 
 ### ✅ Core Package Builds
+
 ```bash
 cd packages/core
 pnpm build  # ✅ Success in ~3s
 ```
 
 ### ✅ All Key Exports Present
+
 - Models: Block, Client, Extension, Source, Storage, Log, Relation
 - Config: CONFIG, loadConfig, saveConfig, adapters
 - Resolvers: InfoBaseResolver, Core*Resolver
@@ -281,6 +311,7 @@ pnpm build  # ✅ Success in ~3s
 ## Known Issues
 
 ### UnoCSS/Vite 7 Compatibility
+
 **Status:** ⚠️ Build fails (unrelated to migration)
 **Error:** `cssPlugins.get(...).transform.call is not a function`
 **Resolution:** Upgrade UnoCSS to Vite 7 compatible version
@@ -292,6 +323,7 @@ pnpm build  # ✅ Success in ~3s
 ## Next Steps
 
 ### Completed ✅
+
 1. ✅ Phase 1: Foundation (config, auth)
 2. ✅ Phase 2: API & Core Models
 3. ✅ Phase 3: Info-Base & Sinks
@@ -300,23 +332,18 @@ pnpm build  # ✅ Success in ~3s
 6. ✅ Phase 6: Client-Web Integration
 
 ### Pending 📋
-7. **Client-WebExt Integration** - Directory is currently empty
-8. **Extension Updates** - Update extension templates to use @inkcre/core
-9. **Testing** - Add unit tests for core package
-10. **Documentation** - Update README and API docs
 
-### Optional Improvements 🚀
-- Add JSDoc comments to all public APIs
-- Create migration guide for extension developers
-- Add CI/CD pipeline for core package publishing
-- Performance benchmarks for resolver system
-- Integration tests with actual database
+7. **Client-WebExt Integration** - Directory is currently empty
+2. **Extension Updates** - Update extension templates to use @inkcre/core
+3. **Testing** - Add unit tests for core package
+4. **Documentation** - Update README and API docs
 
 ---
 
 ## Usage Examples
 
 ### Basic Configuration
+
 ```typescript
 import { CONFIG, loadConfig, localStorageAdapter } from "@inkcre/core";
 
@@ -331,6 +358,7 @@ CONFIG.value.INKCRE_JWT_SECRET = "new-secret";
 ```
 
 ### Using Models
+
 ```typescript
 import { Block, Client, Extension } from "@inkcre/core";
 
@@ -345,6 +373,7 @@ await Extension.startup();
 ```
 
 ### Resolvers
+
 ```typescript
 import { ResolverManager, CoreTextResolver } from "@inkcre/core";
 import { markRaw } from "vue";
@@ -362,6 +391,7 @@ const content = await resolver.getSolvedContent();
 ```
 
 ### Graph Utilities
+
 ```typescript
 import {
   blockToNode,
