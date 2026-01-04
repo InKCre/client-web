@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useEither } from "@/composables/use-either";
-import { Log } from "@/business/obsrv";
+import { Log } from "@inkcre/core";
 import { logEntryEmits, type LogEntryProps } from "./LogEntry";
 import dayjs from "dayjs";
 

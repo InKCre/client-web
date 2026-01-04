@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 import { useIntervalFn } from "@vueuse/core";
 import { InkLoading } from "@inkcre/web-design";
 import LogEntry from "@/components/obsrv/LogEntry/LogEntry.vue";
-import { Log } from "@/business/obsrv";
+import { Log } from "@inkcre/core";
 import { logsViewerEmits, logsViewerProps } from "./LogsViewer";
 
 const props = defineProps(logsViewerProps);

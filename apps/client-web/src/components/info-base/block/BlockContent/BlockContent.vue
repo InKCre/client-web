@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from "vue";
-import type { Block } from "@/business/info-base/block";
-import { resolverManager } from "@/business/info-base/resolver";
+import type { Block } from "@inkcre/core";
+import { resolverManager } from "@inkcre/core";
 import { InkLoading } from "@inkcre/web-design";
 
 const props = defineProps<{

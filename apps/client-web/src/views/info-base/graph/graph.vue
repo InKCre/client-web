@@ -13,9 +13,9 @@ import BlockDetailsPanel from "@/components/info-base/BlockDetailsPanel/BlockDet
 import CommunityNavigator from "@/components/info-base/CommunityNavigator/CommunityNavigator.vue";
 import LayoutSelector from "@/components/info-base/LayoutSelector/LayoutSelector.vue";
 
-import { Block } from "@/business/info-base/block";
-import { Relation } from "@/business/info-base/relation";
-import { LayoutType } from "@/business/info-base/graph/layout-types";
+import { Block } from "@inkcre/core";
+import { Relation } from "@inkcre/core";
+import { LayoutType } from "@inkcre/core";
 
 import { useLayoutManager } from "@/composables/useLayoutManager";
 import { useAllCommunitiesLayout } from "@/composables/useAllCommunitiesLayout";
@@ -27,7 +27,7 @@ import {
   type BlockNode,
   type BlockNodeData,
   type SimulationLink,
-} from "@/business/info-base/graph/graph-types";
+} from "@inkcre/core";
 
 const { t } = useI18n();
 

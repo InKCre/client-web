@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import LogEntry from "./LogEntry.vue";
-import { Log } from "@/business/obsrv";
+import { Log } from "@inkcre/core";
 
 // Mock Log.get
 vi.mock("@/business/obsrv", () => ({

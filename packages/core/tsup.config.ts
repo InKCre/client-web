@@ -5,6 +5,6 @@ export default defineConfig({
   format: ["esm"],
   dts: true,
   clean: true,
-  external: ["vue"],
+  external: ["vue", "@vue-flow/core", "graphology-shortest-path"],
   treeshake: true,
 });

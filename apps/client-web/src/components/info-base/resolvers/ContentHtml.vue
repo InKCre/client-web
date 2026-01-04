@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import type { ContentCompProps } from "@/business/info-base/resolver";
-import type { HtmlContent } from "@/business/info-base/storages/http";
+import type { ContentCompProps } from "@inkcre/core";
+import type { HtmlContent } from "@inkcre/core";
 
 type HtmlRawContent = string | HtmlContent;
 

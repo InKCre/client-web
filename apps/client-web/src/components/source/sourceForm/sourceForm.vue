@@ -11,7 +11,7 @@ import {
 } from "@inkcre/web-design";
 import collectAtForm from "@/components/source/collectAtForm/collectAtForm.vue";
 import { sourceFormProps, sourceFormEmits } from "./sourceForm";
-import { CollectAt, SourceType } from "@/business/source";
+import { CollectAt, SourceType } from "@inkcre/core";
 import { useI18n } from "vue-i18n";
 
 const props = defineProps(sourceFormProps);

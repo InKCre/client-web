@@ -1,5 +1,5 @@
-import type { Block } from "@/business/info-base/block";
-import type { Relation } from "@/business/info-base/relation";
+import type { Block } from "@inkcre/core";
+import type { Relation } from "@inkcre/core";
 
 export interface BlockDetailsPanelProps {
   block: Block;

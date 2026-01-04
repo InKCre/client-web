@@ -4,7 +4,7 @@ import {
   type CircularLayoutConfig,
   type LayoutResult,
   DEFAULT_CIRCULAR_CONFIG,
-} from "@/business/info-base/graph/layout-types";
+} from "@inkcre/core";
 
 export interface UseCircularLayoutOptions {
   config?: Partial<CircularLayoutConfig>;

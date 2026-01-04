@@ -1,11 +1,11 @@
 import { ref, type Ref } from "vue";
 import type { Node, Edge } from "@vue-flow/core";
-import type { CommunityMap } from "@/business/info-base/graph/community-types";
-import { classicalMDS } from "@/business/info-base/graph/mds";
+import type { CommunityMap } from "@inkcre/core";
+import { classicalMDS } from "@inkcre/core";
 import {
   computeIntraCommunityDistances,
   computeInterCommunityDistances,
-} from "@/business/info-base/graph/distance-matrix";
+} from "@inkcre/core";
 
 interface CommunityBounds {
   communityId: string;

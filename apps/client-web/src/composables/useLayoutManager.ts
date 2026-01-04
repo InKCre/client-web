@@ -4,9 +4,9 @@ import {
   LayoutType,
   type LayoutResult,
   type LayoutSelection,
-} from "@/business/info-base/graph/layout-types";
-import { TopologyType } from "@/business/info-base/graph/topology-types";
-import type { SimulationLink } from "@/business/info-base/graph/graph-types";
+} from "@inkcre/core";
+import { TopologyType } from "@inkcre/core";
+import type { SimulationLink } from "@inkcre/core";
 import { useTopologyDetection } from "./useTopologyDetection";
 import { useDagreLayout } from "./layouts/useDagreLayout";
 import { useCircularLayout } from "./layouts/useCircularLayout";

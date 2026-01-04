@@ -5,7 +5,7 @@ import {
   sourceCollectJobCardProps,
   sourceCollectJobCardEmits,
 } from "./sourceCollectJobCard";
-import { SourceCollectJobStatus } from "@/business/source";
+import { SourceCollectJobStatus } from "@inkcre/core";
 import dayjs from "dayjs";
 
 const props = defineProps(sourceCollectJobCardProps);

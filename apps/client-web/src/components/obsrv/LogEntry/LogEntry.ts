@@ -1,4 +1,4 @@
-import type { Log } from "@/business/obsrv";
+import type { Log } from "@inkcre/core";
 
 // --- Types ---
 

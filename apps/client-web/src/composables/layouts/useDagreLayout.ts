@@ -6,7 +6,7 @@ import {
   type LayoutResult,
   DEFAULT_DAGRE_CONFIG,
   LayoutDirection,
-} from "@/business/info-base/graph/layout-types";
+} from "@inkcre/core";
 
 const DEFAULT_NODE_WIDTH = 200;
 const DEFAULT_NODE_HEIGHT = 80;

@@ -1,5 +1,5 @@
 import type { NodeProps } from "@vue-flow/core";
-import type { BlockNodeData } from "@/business/info-base/graph/graph-types";
+import type { BlockNodeData } from "@inkcre/core";
 
 export type BlockNodeProps = NodeProps<BlockNodeData>;
 

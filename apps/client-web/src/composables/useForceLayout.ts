@@ -12,7 +12,7 @@ import {
   type ForceLayoutConfig,
   type SimulationNode,
   type SimulationLink,
-} from "@/business/info-base/graph/graph-types";
+} from "@inkcre/core";
 
 interface UseForceLayoutOptions {
   nodes: Ref<Node[]>;

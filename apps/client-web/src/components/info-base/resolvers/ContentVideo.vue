@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import type { ContentCompProps } from "@/business/info-base/resolver";
-import type { VideoContent } from "@/business/info-base/storages/http";
+import type { ContentCompProps } from "@inkcre/core";
+import type { VideoContent } from "@inkcre/core";
 
 type VideoRawContent = string | VideoContent;
 

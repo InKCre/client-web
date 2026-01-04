@@ -1,0 +1,76 @@
+/**
+ * Core Package Integration for client-web
+ *
+ * This file initializes @inkcre/core with client-web specific configuration.
+ * Import this file in main.ts before mounting the Vue app.
+ */
+
+import {
+  CONFIG,
+  loadConfig,
+  devAdapter,
+  localStorageAdapter,
+  setMFImplementation,
+  setExtensionMFImplementation,
+} from "@inkcre/core";
+import { init } from "@module-federation/enhanced/runtime";
+import mfSharedDependencies from "../../../shared/mf-shared-dependencies";
+
+// ============================================================================
+// Configuration
+// ============================================================================
+
+/**
+ * Initialize configuration system.
+ * Uses devAdapter in development, localStorageAdapter in production.
+ */
+export async function initializeConfig(): Promise<void> {
+  const adapter = import.meta.env.DEV ? devAdapter : localStorageAdapter;
+  await loadConfig([adapter]);
+  console.log("[Core] Configuration loaded:", CONFIG.value);
+}
+
+// ============================================================================
+// Module Federation
+// ============================================================================
+
+/**
+ * Initialize Module Federation runtime.
+ * Creates the MF instance and injects it into core.
+ */
+export function initializeModuleFederation(): void {
+  const mfInstance = init({
+    name: "host",
+    remotes: [],
+    shared: mfSharedDependencies as any,
+  });
+
+  // Inject MF implementation into core
+  const mfImpl = {
+    registerRemotes: (remotes: Array<{ name: string; entry: string; type: string }>) => {
+      mfInstance.registerRemotes(remotes);
+    },
+    loadRemote: async <T>(remoteName: string): Promise<T | null> => {
+      return mfInstance.loadRemote<T>(remoteName);
+    },
+  };
+
+  setMFImplementation(mfImpl);
+  setExtensionMFImplementation(mfImpl);
+
+  console.log("[Core] Module Federation initialized");
+}
+
+// ============================================================================
+// Full Initialization
+// ============================================================================
+
+/**
+ * Initialize all core systems.
+ * Call this in main.ts before creating the Vue app.
+ */
+export async function initializeCore(): Promise<void> {
+  await initializeConfig();
+  initializeModuleFederation();
+  console.log("[Core] Initialization complete");
+}

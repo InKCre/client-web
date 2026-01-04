@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import { nextTick } from "vue";
 import LogsViewer from "./LogsViewer.vue";
-import { Log } from "@/business/obsrv";
+import { Log } from "@inkcre/core";
 
 // Mock Log.getByTraceId
 vi.mock("@/business/obsrv", () => ({

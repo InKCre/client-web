@@ -1,5 +1,5 @@
 import type { PropType } from "vue";
-import { SourceForm } from "@/business/source";
+import { SourceForm } from "@inkcre/core";
 
 // --- Types ---
 

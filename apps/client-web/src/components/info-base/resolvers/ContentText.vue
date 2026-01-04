@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import type { ContentCompProps } from "@/business/info-base/resolver";
+import type { ContentCompProps } from "@inkcre/core";
 
 const props = defineProps<ContentCompProps<string>>();
 

@@ -10,7 +10,7 @@ import {
   SourceCollectJob,
   SourceCollectJobStatus,
   Source,
-} from "@/business/source";
+} from "@inkcre/core";
 import dayjs from "dayjs";
 
 const route = useRoute();

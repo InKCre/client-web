@@ -6,7 +6,7 @@ import {
   type TopologyAnalysis,
   type TopologyMetrics,
   topologyToLayout,
-} from "@/business/info-base/graph/topology-types";
+} from "@inkcre/core";
 
 /**
  * Build a graphology graph from Vue Flow nodes and edges

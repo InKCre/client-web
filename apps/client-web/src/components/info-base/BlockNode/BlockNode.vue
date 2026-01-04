@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { Handle, Position } from "@vue-flow/core";
 import type { BlockNodeProps } from "./BlockNode";
 import { blockNodeEmits } from "./BlockNode";
-import { resolverManager } from "@/business/info-base/resolver";
+import { resolverManager } from "@inkcre/core";
 import BlockContent from "../block/BlockContent/BlockContent.vue";
 
 const props = defineProps<BlockNodeProps>();

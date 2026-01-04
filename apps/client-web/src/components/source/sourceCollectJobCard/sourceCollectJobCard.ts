@@ -1,5 +1,5 @@
 import type { PropType } from "vue";
-import { SourceCollectJob } from "@/business/source";
+import { SourceCollectJob } from "@inkcre/core";
 
 // --- Props ---
 export const sourceCollectJobCardProps = {

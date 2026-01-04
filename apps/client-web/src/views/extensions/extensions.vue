@@ -4,8 +4,8 @@ import { useAsyncState } from "@vueuse/core";
 import extensionCard from "@/components/extension/extensionCard/extensionCard.vue";
 import installExtension from "@/components/extension/installExtension/installExtension.vue";
 import { InkLoading, InkDropdown } from "@inkcre/web-design";
-import { Client } from "@/business/client";
-import { Extension } from "@/business/extension";
+import { Client } from "@inkcre/core";
+import { Extension } from "@inkcre/core";
 import { CONFIG } from "@/config";
 
 // --- data ---

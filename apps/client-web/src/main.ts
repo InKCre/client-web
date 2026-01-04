@@ -1,5 +1,7 @@
-import { loadConfig, saveConfig } from "./config";
-await loadConfig();
+// Initialize core package
+import { initializeCore } from "./core";
+import { localStorageAdapter } from "@inkcre/core";
+await initializeCore();
 
 import { createApp } from "vue";
 import App from "./App.vue";
@@ -19,18 +21,17 @@ app.use(store);
 app.use(router);
 app.mount("#app");
 
-// Initialize built-in storages and resolvers
-import "@/business/info-base/storages";
-import "@/business/info-base/resolvers";
+// Register built-in storages and resolvers
+import "@/storages";
+import "@/resolvers";
 
 // Initialize Extension
-import "@/business/mf-plugins";
-import { Extension } from "@/business/extension";
+import { Extension, saveConfig } from "@inkcre/core";
 Extension.startup().catch((error) => {
   console.error("[Extension] Startup failed:", error);
 });
 
 window.addEventListener("beforeunload", () => {
   Extension.shutdown();
-  saveConfig();
+  saveConfig(localStorageAdapter);
 });

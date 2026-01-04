@@ -5,8 +5,8 @@ import { InkDropdown, type DropdownOption } from "@inkcre/web-design";
 import {
   LayoutType,
   type LayoutSelection,
-} from "@/business/info-base/graph/layout-types";
-import { TopologyType } from "@/business/info-base/graph/topology-types";
+} from "@inkcre/core";
+import { TopologyType } from "@inkcre/core";
 
 interface LayoutSelectorProps {
   selection: LayoutSelection;

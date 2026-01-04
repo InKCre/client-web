@@ -1,5 +1,5 @@
 import type { PropType } from "vue";
-import { CollectAt } from "@/business/source";
+import { CollectAt } from "@inkcre/core";
 
 export const collectAtFormProps = {
   modelValue: {

@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { InkForm, InkInput, InkButton } from "@inkcre/web-design";
 import { installExtensionEmits } from "./installExtension";
-import { InstallExtensionForm } from "@/business/extension";
+import { InstallExtensionForm } from "@inkcre/core";
 
 const emit = defineEmits(installExtensionEmits);
 const { t } = useI18n();

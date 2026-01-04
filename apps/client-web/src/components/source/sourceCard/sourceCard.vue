@@ -21,7 +21,7 @@ import {
   SourceCollectJobForm,
   SourceCollectJobStatus,
   SourceType,
-} from "@/business/source";
+} from "@inkcre/core";
 import { useCloned, computedAsync } from "@vueuse/core";
 
 const props = defineProps<SourceCardProps>();

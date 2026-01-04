@@ -1,5 +1,5 @@
-import { Extension, makeExtensionProp } from "@/business/extension";
-import { makeClientRefProp } from "@/business/client";
+import { Extension, makeExtensionProp } from "@inkcre/core";
+import { makeClientRefProp } from "@inkcre/core";
 
 // --- Props ---
 export const extensionCardProps = {

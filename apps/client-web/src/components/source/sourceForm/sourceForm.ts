@@ -1,5 +1,5 @@
 import type { PropType } from "vue";
-import { Source, SourceForm } from "@/business/source";
+import { Source, SourceForm } from "@inkcre/core";
 
 // --- Props ---
 export const sourceFormProps = {

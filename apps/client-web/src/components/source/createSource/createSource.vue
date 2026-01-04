@@ -3,7 +3,7 @@ import { reactive } from "vue";
 import { InkButton } from "@inkcre/web-design";
 import sourceForm from "../sourceForm/sourceForm.vue";
 import { createSourceEmits } from "./createSource";
-import { CollectAt, SourceForm } from "@/business/source";
+import { CollectAt, SourceForm } from "@inkcre/core";
 import { refManualReset } from "@vueuse/core";
 
 const emit = defineEmits(createSourceEmits);

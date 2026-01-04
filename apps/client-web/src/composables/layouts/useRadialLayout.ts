@@ -4,7 +4,7 @@ import {
   type RadialLayoutConfig,
   type LayoutResult,
   DEFAULT_RADIAL_CONFIG,
-} from "@/business/info-base/graph/layout-types";
+} from "@inkcre/core";
 
 export interface UseRadialLayoutOptions {
   config?: Partial<RadialLayoutConfig>;

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import type { ContentCompProps } from "@/business/info-base/resolver";
+import type { ContentCompProps } from "@inkcre/core";
 
 // ImageResolver transforms Blob to Object URL string
 const props = defineProps<ContentCompProps<string>>();

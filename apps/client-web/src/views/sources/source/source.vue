@@ -19,7 +19,7 @@ import {
   SourceCollectJob,
   SourceCollectJobForm,
   SourceCollectJobStatus,
-} from "@/business/source";
+} from "@inkcre/core";
 import type { PaginationState } from "@/views/sources/source/source";
 
 const route = useRoute();

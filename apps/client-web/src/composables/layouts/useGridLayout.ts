@@ -4,7 +4,7 @@ import {
   type GridLayoutConfig,
   type LayoutResult,
   DEFAULT_GRID_CONFIG,
-} from "@/business/info-base/graph/layout-types";
+} from "@inkcre/core";
 
 export interface UseGridLayoutOptions {
   config?: Partial<GridLayoutConfig>;

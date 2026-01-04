@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useAsyncState } from "@vueuse/core";
 import { InkButton, InkLoading } from "@inkcre/web-design";
-import { Client } from "@/business/client";
+import { Client } from "@inkcre/core";
 
 const { t } = useI18n();
 

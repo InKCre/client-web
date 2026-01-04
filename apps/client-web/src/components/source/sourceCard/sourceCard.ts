@@ -1,4 +1,4 @@
-import { Source } from "@/business/source";
+import { Source } from "@inkcre/core";
 
 // --- Types ---
 
