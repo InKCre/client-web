@@ -10,7 +10,6 @@ import {
   devAdapter,
   localStorageAdapter,
   setMFImplementation,
-  setExtensionMFImplementation,
 } from "@inkcre/core";
 import { createInstance } from "@module-federation/enhanced/runtime";
 import mfSharedDependencies from "../../../shared/mf-shared-dependencies";
@@ -59,7 +58,6 @@ export function initializeModuleFederation(): void {
   };
 
   setMFImplementation(mfImpl);
-  setExtensionMFImplementation(mfImpl);
 
   console.log("[Core] Module Federation initialized");
 }

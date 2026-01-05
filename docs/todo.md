@@ -33,3 +33,4 @@
 - [ ] Extension Playground uses Histoire
 - [ ] Graph Sink 而不是 Info-base graph
 - [ ] Migrate client-webext to fully use the core (especially config part)
+- [ ] 改进 joint-dev vite plugin ，它没有正确地处理 extension dev server 的重启

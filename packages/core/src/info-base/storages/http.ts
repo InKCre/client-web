@@ -4,7 +4,7 @@
  * These handlers fetch content from URLs stored in block.content.
  */
 
-import { Storage, type IStorageBlock } from "../../protocols/storage";
+import { Storage, type IStorageBlock } from "./base";
 
 // ============================================================================
 // HTTP Storage Configuration

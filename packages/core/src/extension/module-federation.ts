@@ -38,7 +38,7 @@ export function setMFImplementation(impl: MFImplementation): void {
   _mfImplementation = impl;
 }
 
-function getMFImplementation(): MFImplementation {
+export function getMFImplementation(): MFImplementation {
   if (!_mfImplementation) {
     throw new Error(
       "Module Federation not initialized. Call setMFImplementation() first."

@@ -8,16 +8,15 @@ export {
   type ClientRef,
 } from "./client";
 
-// Extension
+// Extension (re-exported from extension/)
 export {
   Extension,
   InstallExtensionForm,
   ExtensionRefZ,
   makeExtensionProp,
   makeExtensionRefProp,
-  setExtensionMFImplementation,
   type ExtensionRef,
-} from "./extension";
+} from "../extension";
 
 // Source
 export {

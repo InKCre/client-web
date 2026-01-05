@@ -1,11 +1,10 @@
 /**
- * Storage System Protocol
+ * Info-Base Storage System
  *
  * Storages provide a unified interface to retrieve "real" content from block.content.
  * For example, HttpImageStorage fetches image bytes from a URL stored in block.content.
  *
- * This module defines the abstract Storage class and registry pattern.
- * Concrete implementations are registered in the application.
+ * This module defines the Storage class and registry pattern.
  */
 
 import { z } from "zod";
@@ -43,7 +42,6 @@ export type StorageClass = new (...args: any[]) => Storage;
  * Abstract storage class - provides registry pattern and interface.
  *
  * Subclasses implement _getRawContent to provide type-specific content retrieval.
- * Applications extend this with DB integration.
  *
  * @template RawContentT - The type of content this storage returns
  */
@@ -62,7 +60,7 @@ export abstract class Storage<RawContentT = unknown> {
 
   /**
    * Decorator for auto-registering storage classes.
-   * Usage: @Storage.registry('http-image')
+   * Usage: @Storage.registry('http_image')
    *
    * @param type - The storage type identifier
    */

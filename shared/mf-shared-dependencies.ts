@@ -16,4 +16,9 @@ export default {
     requiredVersion: packageJson.dependencies["@vueuse/core"],
   },
   zod: { singleton: true, requiredVersion: packageJson.dependencies.zod },
+  "@inkcre/core": {
+    singleton: true,
+    requiredVersion: false,
+    eager: true,
+  },
 } as const;

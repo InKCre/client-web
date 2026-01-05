@@ -27,9 +27,6 @@ export default defineConfig(({ mode }) => {
       resolve: {
         alias: {
           "@": fileURLToPath(new URL("./src", import.meta.url)),
-          "@inkcre/core": fileURLToPath(
-            new URL("../../packages/core/src/index.ts", import.meta.url)
-          ),
         },
       },
       server: {
@@ -39,9 +36,9 @@ export default defineConfig(({ mode }) => {
         target: "esnext",
         sourcemap: "inline",
       },
-      optimizeDeps: {
-        exclude: ["@inkcre/core"],
-      },
+      // optimizeDeps: {
+      //   exclude: ["@inkcre/core"],
+      // },
       css: {
         devSourcemap: true,
         preprocessorOptions: {

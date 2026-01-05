@@ -14,27 +14,20 @@ export default defineConfig({
       filename: "remoteEntry.js",
       exposes: {
         ".": "./src/index.ts",
+        "./components/ContentTweet": "./src/components/ContentTweet.vue",
       },
       shared: mfSharedDependencies,
     }),
   ],
   base: "/twitter/client-web/",
-  resolve: {
-    alias: {
-      // FIXME
-      "@inkcre/core": fileURLToPath(
-        new URL("../../packages/core/src", import.meta.url)
-      ),
-      "@host": fileURLToPath(
-        new URL("../../apps/client-web/src", import.meta.url)
-      ),
-    },
-  },
   build: {
     target: "esnext",
     outDir: "dist/client-web",
     sourcemap: true,
   },
+  // optimizeDeps: {
+  //   exclude: ["@inkcre/core"],
+  // },
   css: {
     // TODO add plugin
     preprocessorOptions: {

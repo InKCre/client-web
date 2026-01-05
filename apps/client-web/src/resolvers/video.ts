@@ -1,14 +1,14 @@
 /**
  * Video Resolver for client-web
  *
- * Extends CoreVideoResolver from @inkcre/core with Vue component.
+ * Extends VideoResolver from @inkcre/core with Vue component.
  */
 
 import { markRaw } from "vue";
-import { CoreVideoResolver, ResolverManager } from "@inkcre/core";
+import { VideoResolver, ResolverManager } from "@inkcre/core";
 import ContentVideo from "@/components/info-base/resolvers/ContentVideo.vue";
 
 @ResolverManager.registry("video")
-export class VideoResolver extends CoreVideoResolver {
+export class VideoResolver extends VideoResolver {
   readonly contentComp = markRaw(ContentVideo);
 }

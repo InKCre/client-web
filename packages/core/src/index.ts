@@ -4,7 +4,7 @@
  * Core protocols and utilities for InKCre applications.
  * This package provides environment-agnostic interfaces for:
  * - Extension lifecycle (IExtension)
- * - Content resolution (Resolver, BaseResolver, ResolverManager)
+ * - Content resolution (Resolver, ResolverManager)
  * - Storage abstraction (Storage)
  */
 
@@ -14,25 +14,50 @@ export { store } from "./store";
 // Base utilities
 export { zinstance } from "./base";
 
-// Protocols
+// Extension System (protocols + Module Federation + Extension model)
 export {
-  // Extension
+  // Extension protocols
   ExtensionState,
   type IExtension,
   type ExtensionRuntimeState,
-  // Resolver
+  // Module Federation
+  setMFImplementation,
+  getMFImplementation,
+  registerRemotes,
+  loadRemote,
+  isMFInitialized,
+  type RemoteConfig,
+  type MFImplementation,
+  // Extension model (from models)
+  Extension,
+  InstallExtensionForm,
+  type ExtensionRef,
+} from "./extension";
+
+// Resolver System (protocols + implementations)
+export {
+  // Resolver protocols
   type IBlock,
   type IRelation,
   type ResolverContentState,
   type ContentCompProps,
-  type Resolver,
-  BaseResolver,
+  type IResolver,
   type ResolverClass,
   type AnyResolver,
   type AnyResolverClass,
   ResolverManager,
   resolverManager,
-  // Storage
+  // Resolver implementations
+  Resolver,
+  TextResolver,
+  ImageResolver,
+  VideoResolver,
+  HtmlResolver,
+} from "./info-base";
+
+// Storage System (protocols + implementations)
+export {
+  // Storage protocols
   type StorageTypeRef,
   StorageTypeRefZ,
   type StorageRef,
@@ -40,7 +65,15 @@ export {
   type IStorageBlock,
   type StorageClass,
   Storage,
-} from "./protocols";
+  // HTTP storage implementations
+  HttpImageStorage,
+  HttpVideoStorage,
+  HttpTextStorage,
+  HttpHtmlStorage,
+  HttpJsonStorage,
+  type VideoContent,
+  type HtmlContent,
+} from "./info-base";
 
 // Configuration
 export {
@@ -91,31 +124,8 @@ export {
   type XOR,
 } from "./utils/vue-props";
 
-// Info-Base Resolvers
-export {
-  InfoBaseResolver,
-  CoreTextResolver,
-  CoreImageResolver,
-  CoreVideoResolver,
-  CoreHtmlResolver,
-} from "./info-base";
-
-// Info-Base Storages
-export {
-  HttpImageStorage,
-  HttpVideoStorage,
-  HttpTextStorage,
-  HttpHtmlStorage,
-  HttpJsonStorage,
-  type VideoContent,
-  type HtmlContent,
-} from "./info-base";
-
 // Sinks (as namespace)
 export * as sinks from "./sinks";
 
 // Graph utilities and types (re-export for direct import)
 export * from "./sinks/graph";
-
-// Module Federation
-export { setMFImplementation } from "./module-federation";

@@ -6,14 +6,14 @@
  * Apps must extend this class and provide contentComp Vue component.
  */
 
-import { InfoBaseResolver } from "./base";
+import { Resolver } from "./base";
 
 /**
  * Abstract image resolver with logic implementation.
  * Expects raw content to be Blob, solved content to be Object URL.
  * Apps must extend and provide contentComp.
  */
-export abstract class CoreImageResolver extends InfoBaseResolver<Blob, string> {
+export abstract class ImageResolver extends Resolver<Blob, string> {
   readonly type = "image";
   protected _objectUrl: string | null = null;
 
@@ -35,3 +35,7 @@ export abstract class CoreImageResolver extends InfoBaseResolver<Blob, string> {
     }
   }
 }
+
+/**
+ * @deprecated Use `ImageResolver` instead. Will be removed in v2.0.
+ */

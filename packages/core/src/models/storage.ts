@@ -9,7 +9,7 @@ import {
   StorageRefZ,
   type StorageRef,
   type IStorageBlock,
-} from "../protocols/storage";
+} from "../info-base/storages/base";
 
 // ============================================================================
 // Storage Type Model
@@ -98,5 +98,5 @@ export class Storage<RawContentT = unknown> extends Z.class({
 }
 
 // Re-export protocol types and classes for convenience
-export { StorageTypeRefZ, StorageRefZ } from "../protocols/storage";
-export type { StorageTypeRef, StorageRef, StorageClass } from "../protocols/storage";
+export { StorageTypeRefZ, StorageRefZ } from "../info-base/storages/base";
+export type { StorageTypeRef, StorageRef, StorageClass } from "../info-base/storages/base";

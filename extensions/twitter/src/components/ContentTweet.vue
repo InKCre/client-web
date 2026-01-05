@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { type Tweet } from "../schema";
-import type { ContentCompProps } from "@host/business/info-base/resolver";
+import type { ContentCompProps } from "@inkcre/core";
 
 const props = defineProps<ContentCompProps<Tweet>>();
 

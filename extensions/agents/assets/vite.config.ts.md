@@ -22,16 +22,6 @@ export default defineConfig({
       shared: mfSharedDependecies,
     }),
   ],
-  resolve: {
-    alias: {
-      "@inkcre/core": fileURLToPath(
-        new URL("../../packages/core/src", import.meta.url)
-      ),
-      "@host": fileURLToPath(
-        new URL("../../apps/client-web/src", import.meta.url)
-      ),
-    },
-  },
   build: {
     target: "esnext",
     outDir: "dist/client-web",

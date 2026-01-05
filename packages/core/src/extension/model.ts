@@ -3,13 +3,14 @@ import { Z } from "zod-class";
 import { ref, type Ref } from "vue";
 import { DBAPIClient, CoreAPIClient } from "../api";
 import { makeStringProp, makeObjectProp } from "../utils/vue-props";
-import { Client, type ClientRef } from "./client";
+import { Client, type ClientRef } from "../models/client";
 import { configStore as sharedConfigStore } from "../config";
 import {
   ExtensionState,
   type IExtension,
   type ExtensionRuntimeState,
-} from "../protocols";
+} from "./extension";
+import { getMFImplementation } from "./module-federation";
 
 export type ExtensionRef = string;
 export const makeExtensionProp = (v?: any) => makeObjectProp<Extension>(v);
@@ -21,27 +22,6 @@ export const ExtensionRefZ = z.string();
  * Module Federation integration interface.
  * Apps must provide implementation via setMFImplementation.
  */
-interface MFImplementation {
-  registerRemotes: (
-    remotes: Array<{ name: string; entry: string; type: string }>
-  ) => void;
-  loadRemote: <T>(name: string) => Promise<T | null>;
-}
-
-let _mfImplementation: MFImplementation | null = null;
-
-export function setExtensionMFImplementation(impl: MFImplementation): void {
-  _mfImplementation = impl;
-}
-
-function getMFImplementation(): MFImplementation {
-  if (!_mfImplementation) {
-    throw new Error(
-      "Module Federation not initialized. Call setExtensionMFImplementation() first."
-    );
-  }
-  return _mfImplementation;
-}
 
 export class Extension extends Z.class({
   id: ExtensionRefZ,
