@@ -8,38 +8,13 @@
  * Architecture:
  * - Resolver instances are created per-block with optional relations
  * - Each resolver has a contentComp Vue component for rendering
- * - ResolverManager stores resolver classes and provides factory methods
+ * - Resolver stores resolver classes statically and provides factory methods
  * - This implementation integrates with Block, Relation, and Storage models
  */
 
 import { ref, type Component, type Ref } from "vue";
 import type { Block } from "../../models/block";
 import type { Relation } from "../../models/relation";
-
-// ============================================================================
-// Block Interface (minimal, for type compatibility)
-// ============================================================================
-
-/**
- * Minimal block interface for resolver compatibility.
- * The full Block class is defined in the application.
- */
-export interface IBlock {
-  id: number;
-  storage: number | null;
-  resolver: string;
-  content: string;
-}
-
-/**
- * Minimal relation interface for resolver compatibility.
- */
-export interface IRelation {
-  id: number;
-  from_: number;
-  to_: number;
-  content: string;
-}
 
 // ============================================================================
 // Resolver Content State
@@ -64,70 +39,15 @@ export interface ResolverContentState {
  */
 export interface ContentCompProps<SolvedContentT = any> {
   /** The resolver instance (provides access to block and relations) */
-  resolver: IResolver<any, SolvedContentT>;
+  resolver: Resolver<any, SolvedContentT>;
   solvedContent: SolvedContentT;
-}
-
-// ============================================================================
-// Resolver Interface
-// ============================================================================
-
-/**
- * Interface for block resolvers.
- * Each resolver handles a specific content type (text, image, video, html, tweet, etc.)
- *
- * @template RawContentT - The type of raw content from storage
- * @template SolvedContentT - The type of content after processing (defaults to RawContentT)
- */
-export interface IResolver<RawContentT = string, SolvedContentT = RawContentT> {
-  /**
-   * The resolver type identifier (e.g., "text", "image", "video", "html", "tweet")
-   * Used for registration and lookup.
-   */
-  readonly type: string;
-
-  /**
-   * Vue component for rendering block content.
-   * Receives ContentCompProps as props (includes pre-resolved content).
-   */
-  readonly contentComp: Component<ContentCompProps>;
-
-  /**
-   * The block this resolver instance is resolving.
-   */
-  readonly block: IBlock;
-
-  /**
-   * Current content loading state.
-   * Reactive - can be observed by Vue components.
-   */
-  readonly solvedContentState: Ref<ResolverContentState>;
-
-  /**
-   * Get relations for this block (lazy-loaded).
-   * Subclasses use this for accessing related blocks.
-   */
-  getRelations(): Promise<IRelation[]>;
-
-  /**
-   * Fetch and cache resolved content.
-   * Triggers state.status transitions: IDLE -> LOADING -> SUCCESS/ERROR
-   * Subsequent calls return cached content unless forceRefresh is true.
-   *
-   * @param forceRefresh - Force re-fetch even if cached
-   * @returns The resolved content
-   */
-  getSolvedContent(forceRefresh?: boolean): Promise<SolvedContentT>;
-
-  /**
-   * Consumer of resolver should call dispose when done with it.
-   */
-  dispose(): Promise<void>;
 }
 
 // ============================================================================
 // Resolver Base Class (with DB Integration)
 // ============================================================================
+
+type ResolverClass = new (block: Block, relations?: Relation[]) => Resolver;
 
 /**
  * Base class for resolver implementations with Block, Relation, and Storage integration.
@@ -136,25 +56,41 @@ export interface IResolver<RawContentT = string, SolvedContentT = RawContentT> {
  * This class merges the protocol-level BaseResolver with info-base-specific DB integration.
  *
  * Subclasses must:
- * - Set `type` and `contentComp`
+ * - Set static `type` and `contentComp`
  * - Override `_getSolvedContent()` for content transformation
  *
  * @template RawContentT - The type of raw content from storage
  * @template SolvedContentT - The type of content after processing
  */
-export abstract class Resolver<
-  RawContentT = string,
-  SolvedContentT = RawContentT
-> implements IResolver<RawContentT, SolvedContentT>
-{
+export class Resolver<RawContentT = any, SolvedContentT = RawContentT> {
   /** Resolver type identifier */
-  abstract readonly type: string;
+  static readonly type: string;
 
-  /** Vue component for rendering */
-  abstract readonly contentComp: Component;
+  /** Vue component for rendering - settable by applications */
+  static contentComp: Component;
+
+  private static resolverClasses: Map<string, ResolverClass> = new Map();
+  private static defaultResolverType: string | null = null;
+
+  static register(type: string, resolverClass: ResolverClass): void {
+    this.resolverClasses.set(type, resolverClass);
+    console.log("[Resolver] Registered resolver:", type);
+
+    if (!this.defaultResolverType) {
+      console.log("[Resolver] Set default resolver to:", type);
+      this.defaultResolverType = type;
+    }
+  }
+
+  static getClass(type: string): ResolverClass {
+    return (
+      this.resolverClasses.get(type) ||
+      this.resolverClasses.get(this.defaultResolverType!)!
+    );
+  }
 
   readonly block: Block;
-  protected _relations: IRelation[] | null;
+  protected _relations: Relation[] | null;
 
   protected _rawContent: RawContentT | null = null;
   readonly solvedContentState: Ref<ResolverContentState> = ref({
@@ -168,7 +104,7 @@ export abstract class Resolver<
    * @param block - The block to resolve
    * @param relations - Optional pre-loaded relations (lazy-loads if not provided)
    */
-  constructor(block: IBlock, relations?: IRelation[]) {
+  constructor(block: Block, relations?: Relation[]) {
     this.block = block as Block;
     this._relations = relations ?? null; // null means not loaded yet
 
@@ -186,7 +122,7 @@ export abstract class Resolver<
       const { Relation } = await import("../../models/relation");
       this._relations = (await Relation.getByBlock(
         this.block.id
-      )) as IRelation[];
+      )) as Relation[];
     }
     return this._relations as Relation[];
   }
@@ -203,7 +139,7 @@ export abstract class Resolver<
         // Dynamic import to avoid circular dependency
         const { Storage } = await import("../../models/storage");
         const storage = await Storage.get<RawContentT>(this.block.storage);
-        this._rawContent = await storage.getRawContent(this.block as IBlock);
+        this._rawContent = await storage.getRawContent(this.block);
       }
     }
     return this._rawContent;
@@ -237,9 +173,11 @@ export abstract class Resolver<
 
   /**
    * Transform raw content into solved content.
-   * Subclasses must implement this method.
+   * Override in subclasses to implement specific logic.
    */
-  protected abstract _getSolvedContent(): Promise<SolvedContentT>;
+  protected _getSolvedContent(): Promise<SolvedContentT> {
+    return this.getRawContent() as unknown as Promise<SolvedContentT>;
+  }
 
   /**
    * Cleanup when resolver is no longer needed.
@@ -249,107 +187,3 @@ export abstract class Resolver<
     // Override in subclasses if needed
   }
 }
-
-// ============================================================================
-// Resolver Manager
-// ============================================================================
-
-/**
- * Type for resolver classes (constructors).
- */
-export type ResolverClass<RawContentT = any, SolvedContentT = any> = new (
-  block: IBlock,
-  relations?: IRelation[]
-) => IResolver<RawContentT, SolvedContentT>;
-
-export type AnyResolver = IResolver<any, any>;
-export type AnyResolverClass = ResolverClass<any, any>;
-
-/**
- * Central manager for resolver registration and lookup.
- * Stores resolver classes and provides factory methods.
- */
-export class ResolverManager {
-  private resolverClasses: Map<string, ResolverClass> = new Map();
-  private defaultResolverType: string | null = null;
-
-  /**
-   * Decorator for auto-registering resolver classes.
-   * Usage: @ResolverManager.registry('tweet')
-   *
-   * @param type - The resolver type identifier
-   */
-  static registry(type: string) {
-    return function <T extends AnyResolverClass>(target: T): T {
-      resolverManager.register(type, target);
-      return target;
-    };
-  }
-
-  /**
-   * Register a resolver class.
-   * @param type - The type identifier.
-   * If extension, use a namespaced type to avoid conflicts (e.g., "extensions.twitter.tweet")
-   * @param resolverClass - The resolver class (constructor)
-   */
-  register(type: string, resolverClass: AnyResolverClass): void {
-    this.resolverClasses.set(type, resolverClass);
-
-    // First registered resolver becomes default
-    if (!this.defaultResolverType) {
-      this.defaultResolverType = type;
-    }
-  }
-
-  /**
-   * Set the default resolver type used when lookup fails.
-   * @param type - The type of the resolver to use as default
-   */
-  setDefault(type: string): void {
-    if (this.resolverClasses.has(type)) {
-      this.defaultResolverType = type;
-    }
-  }
-
-  /**
-   * Get a resolver class by type.
-   * Returns default resolver class if not found.
-   * @param type - The resolver type identifier
-   */
-  getClass(type: string): ResolverClass {
-    return (
-      this.resolverClasses.get(type) ||
-      this.resolverClasses.get(this.defaultResolverType!)!
-    );
-  }
-
-  /**
-   * Create a resolver instance for a block.
-   * @param block - The block to resolve
-   * @param relations - Optional pre-loaded relations
-   */
-  createResolver(block: IBlock, relations?: IRelation[]): AnyResolver {
-    const ResolverCls = this.getClass(block.resolver);
-    return new ResolverCls(block, relations);
-  }
-
-  /**
-   * Check if a resolver type is registered.
-   * @param type - The resolver type identifier
-   */
-  has(type: string): boolean {
-    return this.resolverClasses.has(type);
-  }
-
-  /**
-   * Get all registered resolver types.
-   */
-  getRegisteredTypes(): string[] {
-    return Array.from(this.resolverClasses.keys());
-  }
-}
-
-// Global resolver manager instance
-export const resolverManager = new ResolverManager();
-
-// ============================================================================

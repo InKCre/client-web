@@ -7,16 +7,8 @@ export {
   VideoResolver,
   HtmlResolver,
   // Resolver base types and utilities
-  type IBlock,
-  type IRelation,
   type ResolverContentState,
   type ContentCompProps,
-  type IResolver,
-  type ResolverClass,
-  type AnyResolver,
-  type AnyResolverClass,
-  ResolverManager,
-  resolverManager,
 } from "./resolvers";
 
 // Storages

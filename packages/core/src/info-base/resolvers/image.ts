@@ -13,9 +13,13 @@ import { Resolver } from "./base";
  * Expects raw content to be Blob, solved content to be Object URL.
  * Apps must extend and provide contentComp.
  */
-export abstract class ImageResolver extends Resolver<Blob, string> {
-  readonly type = "image";
+export class ImageResolver extends Resolver<Blob, string> {
+  static readonly type = "image";
   protected _objectUrl: string | null = null;
+
+  static {
+    Resolver.register("image", this);
+  }
 
   protected async _getSolvedContent(): Promise<string> {
     const rawContent = await this.getRawContent();
@@ -35,7 +39,3 @@ export abstract class ImageResolver extends Resolver<Blob, string> {
     }
   }
 }
-
-/**
- * @deprecated Use `ImageResolver` instead. Will be removed in v2.0.
- */

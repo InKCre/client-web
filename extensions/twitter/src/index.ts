@@ -10,15 +10,14 @@
  * This is the main export loaded by the host application.
  */
 
-import { type IExtension, resolverManager } from "@inkcre/core";
-import { TweetResolver } from "./resolver";
+import { type IExtension } from "@inkcre/core";
+import "./resolver";
 
 const Extension: IExtension = {
   async initialize() {},
 
   async activate() {
-    // TODO wait for package core ready
-    resolverManager.register("extensions.twitter.tweet", TweetResolver);
+    console.log("[Twitter Extension] Activated");
   },
 
   async deactivate() {

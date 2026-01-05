@@ -225,7 +225,7 @@ Content components receive standardized props:
 
 ### Resolver Registry
 
-**ResolverManager** uses singleton pattern for type registration and instantiation.
+The `Resolver` base class now hosts the registry itself using `Resolver.register`, `Resolver.registry`, and `Resolver.getClass` so implementations can self-register their `type` and the UI can resolve them by identifier.
 
 ### Resolver Lifecycle
 

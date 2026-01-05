@@ -19,14 +19,14 @@ export type VideoRawContent = string | VideoContent;
  * Abstract video resolver with logic implementation.
  * Apps must extend and provide contentComp.
  */
-export abstract class VideoResolver extends Resolver<VideoRawContent> {
-  readonly type = "video";
+export class VideoResolver extends Resolver<VideoRawContent> {
+  static readonly type = "video";
+
+  static {
+    Resolver.register("video", this);
+  }
 
   protected async _getSolvedContent(): Promise<VideoRawContent> {
     return this.getRawContent();
   }
 }
-
-/**
- * @deprecated Use `VideoResolver` instead. Will be removed in v2.0.
- */

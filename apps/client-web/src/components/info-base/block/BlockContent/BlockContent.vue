@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from "vue";
+import { Resolver } from "@inkcre/core";
 import type { Block } from "@inkcre/core";
-import { resolverManager } from "@inkcre/core";
 import { InkLoading } from "@inkcre/web-design";
 
 const props = defineProps<{
@@ -10,9 +10,8 @@ const props = defineProps<{
 
 // --- data ---
 const solvedContent = ref<any>(null);
-const resolver = new (resolverManager.getClass(props.block.resolver))(
-  props.block
-);
+const resolverCls = Resolver.getClass(props.block.resolver);
+const resolver = new resolverCls(props.block);
 
 // --- computed ---
 const state = resolver.solvedContentState;
@@ -53,7 +52,7 @@ onUnmounted(async () => {
     <!-- Success State - Render actual content component -->
     <component
       v-else-if="solvedContent"
-      :is="resolver.contentComp"
+      :is="resolverCls.contentComp"
       :solvedContent="solvedContent"
     />
 

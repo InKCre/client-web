@@ -4,7 +4,7 @@
  * Core protocols and utilities for InKCre applications.
  * This package provides environment-agnostic interfaces for:
  * - Extension lifecycle (IExtension)
- * - Content resolution (Resolver, ResolverManager)
+ * - Content resolution (Resolver)
  * - Storage abstraction (Storage)
  */
 
@@ -37,16 +37,8 @@ export {
 // Resolver System (protocols + implementations)
 export {
   // Resolver protocols
-  type IBlock,
-  type IRelation,
   type ResolverContentState,
   type ContentCompProps,
-  type IResolver,
-  type ResolverClass,
-  type AnyResolver,
-  type AnyResolverClass,
-  ResolverManager,
-  resolverManager,
   // Resolver implementations
   Resolver,
   TextResolver,

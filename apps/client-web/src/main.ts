@@ -20,10 +20,6 @@ app.mount("#app");
 import { initializeCore } from "./core";
 await initializeCore();
 
-// Register built-in storages and resolvers
-import "@/storages";
-import "@/resolvers";
-
 // Initialize Extension
 import { Extension, configStore, localStorageAdapter } from "@inkcre/core";
 Extension.startup().catch((error) => {

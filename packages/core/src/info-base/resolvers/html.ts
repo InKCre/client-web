@@ -19,14 +19,14 @@ export type HtmlRawContent = string | HtmlContent;
  * Abstract HTML resolver with logic implementation.
  * Apps must extend and provide contentComp.
  */
-export abstract class HtmlResolver extends Resolver<HtmlRawContent> {
-  readonly type = "html";
+export class HtmlResolver extends Resolver<HtmlRawContent> {
+  static readonly type = "html";
+
+  static {
+    Resolver.register("html", this);
+  }
 
   protected async _getSolvedContent(): Promise<HtmlRawContent> {
     return this.getRawContent();
   }
 }
-
-/**
- * @deprecated Use `HtmlResolver` instead. Will be removed in v2.0.
- */

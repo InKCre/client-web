@@ -1,19 +1,10 @@
 // Base resolver and utilities
 export {
-  // Main resolver class
+  // Main resolver class and helpers
   Resolver,
   // Protocol interfaces
-  type IBlock,
-  type IRelation,
   type ResolverContentState,
   type ContentCompProps,
-  type IResolver,
-  // Resolver manager
-  ResolverManager,
-  resolverManager,
-  type ResolverClass,
-  type AnyResolver,
-  type AnyResolverClass,
 } from "./base";
 
 // Concrete resolver implementations
@@ -24,8 +15,4 @@ export {
   type VideoContent,
   type VideoRawContent,
 } from "./video";
-export {
-  HtmlResolver,
-  type HtmlContent,
-  type HtmlRawContent,
-} from "./html";
+export { HtmlResolver, type HtmlContent, type HtmlRawContent } from "./html";

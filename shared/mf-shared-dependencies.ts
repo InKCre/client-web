@@ -19,6 +19,6 @@ export default {
   "@inkcre/core": {
     singleton: true,
     requiredVersion: false,
-    eager: true,
+    // eager: true,
   },
 } as const;

@@ -11,14 +11,14 @@ import { Resolver } from "./base";
  * Abstract text resolver with logic implementation.
  * Apps must extend and provide contentComp.
  */
-export abstract class TextResolver extends Resolver<string> {
-  readonly type = "text";
+export class TextResolver extends Resolver<string> {
+  static readonly type = "text";
+
+  static {
+    Resolver.register("text", this);
+  }
 
   protected async _getSolvedContent(): Promise<string> {
     return this.getRawContent();
   }
 }
-
-/**
- * @deprecated Use `TextResolver` instead. Will be removed in v2.0.
- */

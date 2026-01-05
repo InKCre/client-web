@@ -10,9 +10,34 @@ import {
   devAdapter,
   localStorageAdapter,
   setMFImplementation,
+  TextResolver,
+  ImageResolver,
+  VideoResolver,
+  HtmlResolver,
 } from "@inkcre/core";
 import { createInstance } from "@module-federation/enhanced/runtime";
 import mfSharedDependencies from "../../../shared/mf-shared-dependencies";
+import ContentText from "@/components/info-base/resolvers/ContentText.vue";
+import ContentImage from "@/components/info-base/resolvers/ContentImage.vue";
+import ContentVideo from "@/components/info-base/resolvers/ContentVideo.vue";
+import ContentHtml from "@/components/info-base/resolvers/ContentHtml.vue";
+
+// ============================================================================
+// Resolver Component Registration
+// ============================================================================
+
+/**
+ * Register content display components with resolver classes.
+ * Each resolver needs a Vue component to render content.
+ */
+export function setupResolvers(): void {
+  TextResolver.contentComp = ContentText;
+  ImageResolver.contentComp = ContentImage;
+  VideoResolver.contentComp = ContentVideo;
+  HtmlResolver.contentComp = ContentHtml;
+
+  console.log("[Core] Resolver components registered");
+}
 
 // ============================================================================
 // Configuration
@@ -71,6 +96,7 @@ export function initializeModuleFederation(): void {
  * Call this in main.ts before creating the Vue app.
  */
 export async function initializeCore(): Promise<void> {
+  setupResolvers();
   await initializeConfig();
   initializeModuleFederation();
   console.log("[Core] Initialization complete");
