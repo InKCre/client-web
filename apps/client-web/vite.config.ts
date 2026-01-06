@@ -34,10 +34,7 @@ export default defineConfig(({ mode }) => {
       },
       build: {
         target: "esnext",
-        sourcemap: "inline",
-      },
-      optimizeDeps: {
-        exclude: ["@inkcre/core"],
+        sourcemap: true,
       },
       css: {
         devSourcemap: true,

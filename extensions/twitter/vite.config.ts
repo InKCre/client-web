@@ -1,4 +1,3 @@
-import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import vueJsx from "@vitejs/plugin-vue-jsx";
@@ -24,15 +23,8 @@ export default defineConfig({
     target: "esnext",
     outDir: "dist/client-web",
     sourcemap: true,
-    rollupOptions: {
-      external: ["@inkcre/core"],
-    },
   },
-  // optimizeDeps: {
-  //   exclude: ["@inkcre/core"],
-  // },
   css: {
-    // TODO add plugin
     preprocessorOptions: {
       scss: {
         additionalData: (source: string, file: string) => {

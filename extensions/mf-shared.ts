@@ -16,7 +16,7 @@ export default {
   zod: { singleton: true, requiredVersion: packageJson.dependencies.zod },
   "@inkcre/core": {
     singleton: true,
-    requiredVersion: false,
+    requiredVersion: "0.0.0",
     import: false,
   },
 } as const;
