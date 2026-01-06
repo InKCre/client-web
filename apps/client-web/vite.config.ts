@@ -36,9 +36,9 @@ export default defineConfig(({ mode }) => {
         target: "esnext",
         sourcemap: "inline",
       },
-      // optimizeDeps: {
-      //   exclude: ["@inkcre/core"],
-      // },
+      optimizeDeps: {
+        exclude: ["@inkcre/core"],
+      },
       css: {
         devSourcemap: true,
         preprocessorOptions: {

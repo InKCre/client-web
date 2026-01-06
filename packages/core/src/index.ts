@@ -98,7 +98,21 @@ export { authStore, createAuthStore } from "./auth";
 export { APIError, CoreAPIClient, DBAPIClient } from "./api";
 
 // Models
-export * from "./models";
+export {
+  Block,
+  Relation,
+  Source,
+  CollectAt,
+  Log,
+  SourceCollectJob,
+  SourceCollectJobForm,
+  SourceCollectJobStatus,
+  SourceType,
+  SourceForm,
+  makeClientRefProp,
+  makeExtensionProp,
+  Client,
+} from "./models";
 
 // Utils
 export {
@@ -117,7 +131,23 @@ export {
 } from "./utils/vue-props";
 
 // Sinks (as namespace)
-export * as sinks from "./sinks";
+// export * as sinks from "./sinks";
 
 // Graph utilities and types (re-export for direct import)
-export * from "./sinks/graph";
+// export * as graphSink from "./sinks/graph";
+export {
+  LayoutType,
+  TopologyType,
+  topologyToLayout,
+  DEFAULT_DAGRE_CONFIG,
+  LayoutDirection,
+  DEFAULT_CIRCULAR_CONFIG,
+  DEFAULT_RADIAL_CONFIG,
+  DEFAULT_FORCE_CONFIG,
+  DEFAULT_GRID_CONFIG,
+  classicalMDS,
+  computeIntraCommunityDistances,
+  computeInterCommunityDistances,
+  blockToNode,
+  relationToEdge,
+} from "./sinks/graph";

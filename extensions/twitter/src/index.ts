@@ -13,6 +13,9 @@
 import { type IExtension } from "@inkcre/core";
 import "./resolver";
 
+// @ts-ignore
+console.log(__FEDERATION__.__SHARE__);
+
 const Extension: IExtension = {
   async initialize() {},
 

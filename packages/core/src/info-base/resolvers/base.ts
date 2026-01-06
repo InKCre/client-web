@@ -16,6 +16,10 @@ import { ref, type Component, type Ref } from "vue";
 import type { Block } from "../../models/block";
 import type { Relation } from "../../models/relation";
 
+// DEBUG
+const instanceId = Math.random().toString(36).substring(7);
+console.log(`[Core Init] Loading Core module. Instance ID: ${instanceId}`);
+
 // ============================================================================
 // Resolver Content State
 // ============================================================================

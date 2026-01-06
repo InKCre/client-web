@@ -3,7 +3,7 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import vueJsx from "@vitejs/plugin-vue-jsx";
 import { federation } from "@module-federation/vite";
-import mfSharedDependencies from "../../shared/mf-shared-dependencies";
+import mfShared from "../mf-shared";
 
 export default defineConfig({
   plugins: [
@@ -16,7 +16,7 @@ export default defineConfig({
         ".": "./src/index.ts",
         "./components/ContentTweet": "./src/components/ContentTweet.vue",
       },
-      shared: mfSharedDependencies,
+      shared: mfShared,
     }),
   ],
   base: "/twitter/client-web/",
@@ -24,6 +24,9 @@ export default defineConfig({
     target: "esnext",
     outDir: "dist/client-web",
     sourcemap: true,
+    rollupOptions: {
+      external: ["@inkcre/core"],
+    },
   },
   // optimizeDeps: {
   //   exclude: ["@inkcre/core"],

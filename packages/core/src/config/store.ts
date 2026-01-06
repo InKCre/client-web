@@ -43,7 +43,7 @@ import {
 export const useConfigStore = defineStore("inkcre-config", () => {
   // State - Direct access to config object
   const config = ref<Config>(ConfigSchema.parse({}));
-  const adapters = ref<ConfigAdapter[]>([]);
+  const adapters = ref<ConfigAdapterWithWrite[]>([]);
   const isLoading = ref(false);
   const error = ref<Error | null>(null);
 
@@ -56,7 +56,9 @@ export const useConfigStore = defineStore("inkcre-config", () => {
    * await configStore.load([localStorageAdapter]);
    * ```
    */
-  async function load(configAdapters?: ConfigAdapter[]): Promise<void> {
+  async function load(
+    configAdapters?: ConfigAdapterWithWrite[]
+  ): Promise<void> {
     isLoading.value = true;
     error.value = null;
     try {
@@ -79,17 +81,17 @@ export const useConfigStore = defineStore("inkcre-config", () => {
   /**
    * Save current configuration to adapter.
    *
-   * @param adapter - Config adapter with write capability
+   * @param configAdapter - Config adapter with write capability
    * @example
    * ```typescript
    * configStore.config.INKCRE_CORE_URL = "https://new-url.com";
    * await configStore.save(localStorageAdapter);
    * ```
    */
-  async function save(adapter: ConfigAdapterWithWrite): Promise<void> {
+  async function save(configAdapter?: ConfigAdapterWithWrite): Promise<void> {
     error.value = null;
     try {
-      await adapter.write(structuredClone(config.value));
+      await (configAdapter ?? adapters.value[0]).write({ ...config.value });
       console.log("[Config] Config saved successfully");
     } catch (err) {
       error.value = err as Error;

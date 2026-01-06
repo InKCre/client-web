@@ -16,7 +16,14 @@ import {
   HtmlResolver,
 } from "@inkcre/core";
 import { createInstance } from "@module-federation/enhanced/runtime";
-import mfSharedDependencies from "../../../shared/mf-shared-dependencies";
+// import { hostMfSharedDependencies } from "../../../shared/mf-shared-dependencies";
+import * as InKCreCore from "@inkcre/core";
+import * as Zod from "zod";
+import * as Vue from "vue";
+import * as Pinia from "pinia";
+import * as VueRouter from "vue-router";
+import * as VueUse from "@vueuse/core";
+import packageJson from "../package.json";
 import ContentText from "@/components/info-base/resolvers/ContentText.vue";
 import ContentImage from "@/components/info-base/resolvers/ContentImage.vue";
 import ContentVideo from "@/components/info-base/resolvers/ContentVideo.vue";
@@ -66,8 +73,56 @@ export function initializeModuleFederation(): void {
   const mfInstance = createInstance({
     name: "host",
     remotes: [],
-    // @ts-ignore
-    shared: mfSharedDependencies,
+    shared: {
+      zod: {
+        version: packageJson.dependencies.zod,
+        lib: () => Zod,
+        shareConfig: {
+          singleton: true,
+          requiredVersion: packageJson.dependencies.zod,
+        },
+      },
+      vue: {
+        version: packageJson.dependencies.vue,
+        lib: () => Vue,
+        shareConfig: {
+          singleton: true,
+          requiredVersion: false,
+        },
+      },
+      pinia: {
+        version: packageJson.dependencies.pinia,
+        lib: () => Pinia,
+        shareConfig: {
+          singleton: true,
+          requiredVersion: false,
+        },
+      },
+      "vue-router": {
+        version: packageJson.dependencies["vue-router"],
+        lib: () => VueRouter,
+        shareConfig: {
+          singleton: true,
+          requiredVersion: false,
+        },
+      },
+      "@vueuse/core": {
+        version: packageJson.dependencies["@vueuse/core"],
+        lib: () => VueUse,
+        shareConfig: {
+          singleton: true,
+          requiredVersion: false,
+        },
+      },
+      "@inkcre/core": {
+        version: "0.0.0",
+        lib: () => InKCreCore,
+        shareConfig: {
+          singleton: true,
+          requiredVersion: false,
+        },
+      },
+    },
   });
 
   // Inject MF implementation into core
