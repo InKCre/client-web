@@ -13,7 +13,6 @@ Information management system for automatic collection, organization, and use of
 ## Quick Reference
 
 - Package Manager: pnpm
-- Node: ^20.19.0 or >=22.12.0
 - Dev: `pnpm dev` / `pnpm dev:all`
 - Build: `pnpm build`
 

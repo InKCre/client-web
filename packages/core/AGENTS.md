@@ -17,8 +17,10 @@ Shared logic package for InKCre applications and extensions.
 
 ## Key Patterns
 
-### BusinessClass Pattern
-Zod schema + TypeScript class + static API clients:
+### ActiveRecord Pattern
+
+Zod schema + TypeScript class + DB API client:
+
 ```typescript
 // Schema defines shape
 const SourceSchema = z.object({ ... })
@@ -26,12 +28,10 @@ const SourceSchema = z.object({ ... })
 class Source extends ZodClass { static api = DBAPIClient }
 ```
 
-### Dual API Architecture
-- **DBAPIClient**: Direct PostgREST queries (fast CRUD)
-- **CoreAPIClient**: REST to core-py (complex logic)
-
 ### Registry Pattern
+
 Decorator-based registration for Storage & Resolver:
+
 ```typescript
 @Resolver.register('text')
 class TextResolver extends Resolver { ... }
