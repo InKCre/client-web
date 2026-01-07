@@ -26,11 +26,11 @@
 - [ ] View
 - [x] Component skill (全部丢进去，真的很占上下文，有8个references，你敢想象吗)
 - [x] Resolver, Storage
-- [ ] Extension System
+- [x] Extension System
 - [ ] 增强可观测性，一堆 console.log 太要命了（logger, ConsoleHander, localStorageHandler）
-- [ ] Merge CoreAPIClient into Client
+- [x] Merge CoreAPIClient into Client
 - [ ] Federated Types
 - [ ] Extension Playground uses Histoire
-- [ ] Graph Sink 而不是 Info-base graph
-- [ ] Migrate client-webext to fully use the core (especially config part)
+- [x] Graph Sink 而不是 Info-base graph
+- [x] Migrate client-webext to fully use the core (especially config part)
 - [ ] 改进 joint-dev vite plugin ，它没有正确地处理 extension dev server 的重启

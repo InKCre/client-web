@@ -568,18 +568,14 @@ export class InstallExtensionForm extends Z.class({
   version: z.string().optional(),
   enabled: z.array(z.string()).optional(), // optional initial enabled client IDs
 }) {
+  /**
+   * Install if not exist
+   */
   async install(): Promise<Extension> {
-    const params = new URLSearchParams()
-    if (this.version) {
-      params.append('version', this.version)
+    const existing = await Extension.dbApi.from().select().eq('id', this.id).single()
+    if (!existing.data) {
+      return new Extension((await Extension.dbApi.from().insert(this).select().single()).data!)
     }
-
-    const client = await Client.getSelf()
-    const path = `/extensions/${this.id}?${params.toString()}`
-    const result = await client.post<Extension>(
-      path,
-      this.enabled ? { enabled: this.enabled } : undefined
-    )
-    return new Extension(result)
+    return new Extension(existing.data)
   }
 }

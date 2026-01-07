@@ -32,6 +32,7 @@ export {
   isMFInitialized,
   type RemoteConfig,
   type MFImplementation,
+  makeExtensionProp,
 } from './extension'
 
 // Client
