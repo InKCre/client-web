@@ -12,4 +12,4 @@
 - [ ] 不需要DEBUG的插件怎么加载呢？
 - [ ] 进一步整理 GraphSink
 - [ ] meta config
-- [ ] update document of core (ActiveRecord, vue-coupled)
+- [x] update document of core (ActiveRecord, vue-coupled)

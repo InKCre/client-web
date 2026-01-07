@@ -39,15 +39,6 @@ src/
 └── main.ts              # Entry
 ```
 
-## Commands
-
-```bash
-pnpm dev              # Dev server
-pnpm build            # Production build
-pnpm type-check       # TypeScript check
-pnpm deploy:cf        # Deploy to Cloudflare
-```
-
 ## Coding Guidelines
 
 - Search codebase before creating new types
@@ -55,6 +46,5 @@ pnpm deploy:cf        # Deploy to Cloudflare
 
 ## Related Docs
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - Detailed architecture
-- [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) - Development workflow
-- [src/components/AGENTS.md](./src/components/AGENTS.md) - Component guide
+- [Development Guideline](./docs/development.md)
+- [Component AGENTS.md](./src/components/AGENTS.md)
