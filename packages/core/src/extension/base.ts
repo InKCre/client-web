@@ -1,3 +1,10 @@
+/**
+ * Extension System - Core Definitions and Model
+ *
+ * Defines the interface between host application and extensions,
+ * along with the Extension model for database persistence and lifecycle management.
+ */
+
 import { z } from 'zod'
 import { Z } from 'zod-class'
 import { ref, type Ref } from 'vue'
@@ -5,8 +12,78 @@ import { DBAPIClient } from '../base/db-api'
 import { makeStringProp, makeObjectProp } from '../utils/vue-props'
 import { Client, type ClientRef } from '../client/client'
 import { configStore as sharedConfigStore } from '../config'
-import { ExtensionState, type IExtension, type ExtensionRuntimeState } from './extension'
 import { getMFImplementation } from './module-federation'
+
+// ============================================================================
+// Extension Lifecycle State
+// ============================================================================
+
+/**
+ * Extension lifecycle state
+ */
+export const ExtensionState = {
+  DISCOVERED: 'DISCOVERED', // Read from database
+  LOADING: 'LOADING', // Module Federation loading
+  LOADED: 'LOADED', // Module loaded, not initialized
+  INITIALIZING: 'INITIALIZING', // Calling initialize
+  READY: 'READY', // Initialized, waiting for activation
+  ACTIVATING: 'ACTIVATING', // Activating
+  ACTIVE: 'ACTIVE', // Working
+  DEACTIVATING: 'DEACTIVATING', // Stopping, cleaning runtime resources
+  UNLOADING: 'UNLOADING', // Cleaning all resources
+  UNLOADED: 'UNLOADED', // Unloaded
+  ERROR: 'ERROR', // Error state
+} as const
+
+export type ExtensionState = (typeof ExtensionState)[keyof typeof ExtensionState]
+
+// ============================================================================
+// Extension Module Interface
+// ============================================================================
+
+/**
+ * Extension module interface - implemented by remote extensions.
+ *
+ * Extensions export a default object implementing this interface.
+ * The host calls these methods during the extension lifecycle.
+ */
+export interface ExtensionModule {
+  /**
+   * Called after the extension module is loaded.
+   * Use for one-time setup that doesn't depend on activation state.
+   */
+  initialize?(): Promise<void>
+
+  /**
+   * Called when the extension is activated (enabled for a client).
+   * Use for registering resolvers, handlers, and other runtime hooks.
+   */
+  activate?(): Promise<void>
+
+  /**
+   * Called when the extension is deactivated.
+   * Use for unregistering runtime hooks while keeping module loaded.
+   */
+  deactivate?(): Promise<void>
+
+  /**
+   * Called when the extension is being unloaded.
+   * Use for final cleanup before the module is removed.
+   */
+  dispose?(): Promise<void>
+}
+
+/**
+ * Extension runtime state (reactive in host application)
+ */
+export interface ExtensionRuntimeState {
+  status: ExtensionState
+  error: Error | null
+}
+
+// ============================================================================
+// Extension Model
+// ============================================================================
 
 export type ExtensionRef = string
 export const makeExtensionProp = (v?: any) => makeObjectProp<Extension>(v)
@@ -71,7 +148,7 @@ export class Extension extends Z.class({
     error: null,
   })
 
-  module: IExtension | null = null
+  module: ExtensionModule | null = null
 
   // ============================================================================
   // Static Database Methods
@@ -276,7 +353,7 @@ export class Extension extends Z.class({
     return `extension.${this.id}`
   }
 
-  private async loadModule(): Promise<IExtension> {
+  private async loadModule(): Promise<ExtensionModule> {
     const remoteName = this.getRemoteName()
     const remoteEntry = this.getRemoteEntryUrl()
     const mf = getMFImplementation()
@@ -286,7 +363,9 @@ export class Extension extends Z.class({
 
     // Load the Extension export from the remote
     // Error handling is delegated to MF errorLoadRemote plugin
-    const loadedModule = await mf.loadRemote<IExtension | { default: IExtension }>(remoteName)
+    const loadedModule = await mf.loadRemote<ExtensionModule | { default: ExtensionModule }>(
+      remoteName
+    )
 
     if (!loadedModule) {
       throw new Error(`Extension "${this.id}" failed to load (module returned null)`)

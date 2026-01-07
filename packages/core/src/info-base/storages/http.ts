@@ -65,7 +65,6 @@ export abstract class HttpStorage<ContentT = unknown> extends Storage<ContentT> 
  * Fetches image content from (http/https) URL.
  * Returns Blob.
  */
-@Storage.registry('http_image')
 export class HttpImageStorage extends HttpStorage<Blob> {
   protected readonly acceptHeader = 'image/*'
 
@@ -100,7 +99,6 @@ export interface VideoContent {
  * Fetches video content from URL.
  * Returns the URL for lazy loading (videos are typically streamed).
  */
-@Storage.registry('http_video')
 export class HttpVideoStorage extends HttpStorage<VideoContent> {
   protected readonly acceptHeader = 'video/*'
 
@@ -140,7 +138,6 @@ export interface TextContent {
 /**
  * Fetches plain text content from URL.
  */
-@Storage.registry('http_text')
 export class HttpTextStorage extends HttpStorage<TextContent> {
   protected readonly acceptHeader = 'text/plain'
 
@@ -172,7 +169,6 @@ export interface HtmlContent {
  * Fetches HTML content from URL.
  * Optionally extracts title and sanitizes content.
  */
-@Storage.registry('http_html')
 export class HttpHtmlStorage extends HttpStorage<HtmlContent> {
   protected readonly acceptHeader = 'text/html'
 
@@ -218,7 +214,6 @@ export interface JsonContent {
 /**
  * Fetches JSON content from URL.
  */
-@Storage.registry('http_json')
 export class HttpJsonStorage extends HttpStorage<JsonContent> {
   protected readonly acceptHeader = 'application/json'
 
@@ -234,3 +229,13 @@ export class HttpJsonStorage extends HttpStorage<JsonContent> {
     }
   }
 }
+
+// ============================================================================
+// Register all HTTP storage handlers
+// ============================================================================
+
+Storage.register('http_image', HttpImageStorage)
+Storage.register('http_video', HttpVideoStorage)
+Storage.register('http_text', HttpTextStorage)
+Storage.register('http_html', HttpHtmlStorage)
+Storage.register('http_json', HttpJsonStorage)

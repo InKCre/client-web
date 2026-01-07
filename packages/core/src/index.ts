@@ -16,10 +16,14 @@ export { APIError, DBAPIClient, CoreAPIClient } from './base'
 
 // Extension System (protocols + Module Federation + Extension model)
 export {
-  // Extension protocols
+  // Extension lifecycle
   ExtensionState,
-  type IExtension,
+  type ExtensionModule,
   type ExtensionRuntimeState,
+  // Extension model
+  Extension,
+  InstallExtensionForm,
+  type ExtensionRef,
   // Module Federation
   setMFImplementation,
   getMFImplementation,
@@ -28,10 +32,6 @@ export {
   isMFInitialized,
   type RemoteConfig,
   type MFImplementation,
-  // Extension model
-  Extension,
-  InstallExtensionForm,
-  type ExtensionRef,
 } from './extension'
 
 // Client
@@ -67,7 +67,6 @@ export {
   // Models
   Block,
   Relation,
-  Storage as StorageModel,
   type BlockRef,
   type RelationRef,
   makeBlockProp,
@@ -84,13 +83,13 @@ export {
   VideoResolver,
   HtmlResolver,
   // Storage protocols
+  Storage,
+  StorageType,
   type StorageTypeRef,
   StorageTypeRefZ,
   type StorageRef,
   StorageRefZ,
   type IStorageBlock,
-  type StorageClass,
-  Storage,
   // HTTP storage implementations
   HttpImageStorage,
   HttpVideoStorage,

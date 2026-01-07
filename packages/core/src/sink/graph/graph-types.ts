@@ -1,5 +1,5 @@
 import { type Node, type Edge, MarkerType } from '@vue-flow/core'
-import type { Block, BlockRef } from '../../info-base/block'
+import type { Block } from '../../info-base/block'
 import type { Relation } from '../../info-base/relation'
 
 /**

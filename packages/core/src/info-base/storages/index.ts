@@ -1,7 +1,7 @@
 // Base storage classes and types
 export {
   Storage,
-  type StorageClass,
+  StorageType,
   type StorageTypeRef,
   StorageTypeRefZ,
   type StorageRef,

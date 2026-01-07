@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { store } from '../store'
 import type { Config, ConfigAdapterWithWrite } from './types'
 import { ConfigSchema } from './schema'
-import { loadConfig as zodLoadConfig, type Adapter as ConfigAdapter } from 'zod-config'
+import { loadConfig as zodLoadConfig } from 'zod-config'
 
 /**
  * Config store using Pinia.

@@ -4,10 +4,12 @@
  * Storages provide a unified interface to retrieve "real" content from block.content.
  * For example, HttpImageStorage fetches image bytes from a URL stored in block.content.
  *
- * This module defines the Storage class and registry pattern.
+ * This module defines the Storage class with DB integration and registry pattern.
  */
 
 import { z } from 'zod'
+import { Z } from 'zod-class'
+import { DBAPIClient } from '../../base/db-api'
 
 // ============================================================================
 // Storage Type References
@@ -33,19 +35,37 @@ export interface IStorageBlock {
 }
 
 // ============================================================================
-// Storage Class
+// Storage Type Model
 // ============================================================================
 
-export type StorageClass = new (...args: any[]) => Storage
+export class StorageType extends Z.class({
+  id: StorageTypeRefZ,
+  description: z.string().optional(),
+  config_schema: z.record(z.string(), z.unknown()).optional().default({}),
+}) {
+  static dbApi: DBAPIClient = new DBAPIClient('storage_types', StorageType)
+
+  static async get(id: StorageTypeRef): Promise<StorageType> {
+    return new StorageType((await this.dbApi.from().select().eq('id', id).single()).data!)
+  }
+
+  static async getAll(): Promise<StorageType[]> {
+    return (await this.dbApi.from().select()).data!.map((d) => new StorageType(d))
+  }
+}
+
+// ============================================================================
+// Storage Class with DB Integration
+// ============================================================================
 
 /**
- * Abstract storage class - provides registry pattern and interface.
+ * Storage class - provides registry pattern, interface, and DB persistence.
  *
  * Subclasses implement _getRawContent to provide type-specific content retrieval.
  *
  * @template RawContentT - The type of content this storage returns
  */
-export abstract class Storage<RawContentT = unknown> {
+export class Storage<RawContentT = unknown> {
   // Storage record data
   readonly id?: StorageRef
   readonly type: StorageTypeRef
@@ -56,27 +76,18 @@ export abstract class Storage<RawContentT = unknown> {
   // Static Registry (Storage Manager)
   // ============================================================================
 
-  private static storageClasses: Map<StorageTypeRef, StorageClass> = new Map()
-
-  /**
-   * Decorator for auto-registering storage classes.
-   * Usage: @Storage.registry('http_image')
-   *
-   * @param type - The storage type identifier
-   */
-  static registry(type: StorageTypeRef) {
-    return function <T extends StorageClass>(target: T): T {
-      Storage.registerHandler(type, target)
-      return target
-    }
-  }
+  private static storageClasses: Map<
+    StorageTypeRef,
+    new (data: any) => Storage<any>
+  > = new Map()
+  private static dbApi: DBAPIClient = new DBAPIClient('storages')
 
   /**
    * Register a storage handler for a specific type.
    * @param type - The storage type identifier
    * @param handler - The handler class
    */
-  static registerHandler(type: StorageTypeRef, handler: StorageClass): void {
+  static register(type: StorageTypeRef, handler: new (data: any) => Storage<any>): void {
     this.storageClasses.set(type, handler)
   }
 
@@ -85,7 +96,7 @@ export abstract class Storage<RawContentT = unknown> {
    * @param type - The storage type identifier
    * @returns The handler class or undefined if not found
    */
-  static getHandler(type: StorageTypeRef): StorageClass | undefined {
+  static getHandler(type: StorageTypeRef): (new (data: any) => Storage<any>) | undefined {
     return this.storageClasses.get(type)
   }
 
@@ -94,6 +105,47 @@ export abstract class Storage<RawContentT = unknown> {
    */
   static getRegisteredTypes(): StorageTypeRef[] {
     return Array.from(this.storageClasses.keys())
+  }
+
+  // ============================================================================
+  // DB Integration Methods
+  // ============================================================================
+
+  /**
+   * Get a storage record by ID from the database.
+   * Returns an instance of the registered handler class.
+   */
+  static async get<RawContentT = unknown>(id: StorageRef): Promise<Storage<RawContentT>> {
+    const storageRecord = new Storage(
+      (await this.dbApi.from().select().eq('id', id).single()).data!
+    )
+    const Handler = Storage.getHandler(storageRecord.type)
+    if (!Handler) {
+      throw new Error(`No handler registered for storage type: ${storageRecord.type}`)
+    }
+    return new Handler(storageRecord) as Storage<RawContentT>
+  }
+
+  /**
+   * Get all storage records from the database.
+   */
+  static async getAll(): Promise<Storage[]> {
+    return (await this.dbApi.from().select()).data!.map((d) => new Storage(d))
+  }
+
+  /**
+   * Retrieve raw content for a block using its storage configuration.
+   * If block has no storage, returns block.content as passthrough.
+   *
+   * @param block - The block to retrieve content for
+   * @returns The raw content (type depends on storage handler)
+   */
+  static async fetchRawContent(block: IStorageBlock): Promise<unknown> {
+    if (block.storage === null || block.storage === undefined) {
+      return block.content
+    }
+    const storage = await Storage.get(block.storage)
+    return storage.getRawContent(block)
   }
 
   // ============================================================================

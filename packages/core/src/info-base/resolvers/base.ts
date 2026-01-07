@@ -136,7 +136,7 @@ export class Resolver<RawContentT = any, SolvedContentT = RawContentT> {
         this._rawContent = this.block.content as RawContentT
       } else {
         // Dynamic import to avoid circular dependency
-        const { Storage } = await import('../storage-model')
+        const { Storage } = await import('../storages/base')
         const storage = await Storage.get<RawContentT>(this.block.storage)
         this._rawContent = await storage.getRawContent(this.block)
       }

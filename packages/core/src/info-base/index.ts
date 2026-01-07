@@ -1,7 +1,6 @@
 // Models
 export * from './block'
 export * from './relation'
-export * from './storage-model'
 
 // Resolvers
 export * as resolvers from './resolvers'
@@ -21,7 +20,7 @@ export * as storages from './storages'
 export {
   // Storage base class and types
   Storage,
-  type StorageClass,
+  StorageType,
   type StorageTypeRef,
   StorageTypeRefZ,
   type StorageRef,
