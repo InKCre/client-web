@@ -1,36 +1,15 @@
 # InKCre/client-web TODO
 
 - [ ] 尝试使用 histoire
-- [x] 添加加载态组件
-- [x] 探索更多关于像 Nothing UI, Even Realities 风格的设计
-- [ ] 使用 zod-config ，并且始终保存配置在本地（可以从远程拉取初始配置或者手动）
-- [ ] 使 coreClient 和 apiClient 使用 useAsyncState，统一返回格式
-- [x] delete 需要二次确认
-- [x] source.nickname 也可以编辑
-- [x] collect_at.hour, minute 都用 Dropdown；collect_at.day_of_week 添加 Every day 选项；collect_at.hour 添加 every hour 选项
-- [x] 迁移组件到 inkcre/design
-- [x] Source edit config with JSON Schema
-- [x] Source type description
-- [x] 验证 source run now
-  - [x] 需要验证 IMAP Source 先
-- [ ] ARIA
-- [x] Incremental log polling (Log business class provided, with pre-configured filters)
-- [x] 抽离出独立的 logs viewer 组件 （按 trace_id 筛选，使用 id 作为游标，自动滑倒最底部）
-- [x] 抽离出 Log 组件 （点击查看更多）
-- [ ] 时区转换有问题
-- [x] LogsViewer 的滚动到底部实现有问题
-- [x] pending job 不应该 poll logs
-- [x] InkPagination new type
-- [x] Source 不是 info-base 的一部分
+- [ ] Enhance ARIA
 - [ ] i18n skill
 - [ ] View
 - [x] Component skill (全部丢进去，真的很占上下文，有8个references，你敢想象吗)
-- [x] Resolver, Storage
-- [x] Extension System
 - [ ] 增强可观测性，一堆 console.log 太要命了（logger, ConsoleHander, localStorageHandler）
-- [x] Merge CoreAPIClient into Client
 - [ ] Federated Types
 - [ ] Extension Playground uses Histoire
-- [x] Graph Sink 而不是 Info-base graph
-- [x] Migrate client-webext to fully use the core (especially config part)
 - [ ] 改进 joint-dev vite plugin ，它没有正确地处理 extension dev server 的重启
+- [ ] 不需要DEBUG的插件怎么加载呢？
+- [ ] 进一步整理 GraphSink
+- [ ] meta config
+- [ ] update document of core (ActiveRecord, vue-coupled)
