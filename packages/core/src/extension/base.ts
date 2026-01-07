@@ -329,9 +329,9 @@ export class Extension extends Z.class({
    * Convention: ${registryUrl}/${extensionId}/client-web/remoteEntry.js?version=${version}
    */
   getRemoteEntryUrl(): string {
-    const registryUrl = sharedConfigStore.config.INKCRE_EXTENSION_REGISTRY_URL
+    const registryUrl = sharedConfigStore.config.extension_registry_url
     if (!registryUrl) {
-      throw new Error('Extension registry URL is not configured (INKCRE_EXTENSION_REGISTRY_URL)')
+      throw new Error('Extension registry URL is not configured (extension_registry_url)')
     }
 
     const baseUrl = registryUrl.replace(/\/$/, '')

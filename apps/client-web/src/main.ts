@@ -28,5 +28,7 @@ Extension.startup().catch((error) => {
 
 window.addEventListener("beforeunload", () => {
   Extension.shutdown();
-  configStore.save(localStorageAdapter);
+  // Persist both meta and client config before unload
+  configStore.saveMeta(localStorageAdapter);
+  configStore.saveClient(localStorageAdapter);
 });

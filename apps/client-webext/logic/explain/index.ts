@@ -55,7 +55,8 @@ export function useExplainAgent(options: useExplainAgentOptions) {
       const configStore = useConfigStore();
       const result = streamText({
         model: parseModelString(options.modelString, options.providers),
-        system: options.instructions || configStore.config.explainInstruction,
+        system:
+          options.instructions || configStore.clientConfig.explainInstruction,
         tools: {
           getPageContent,
         },

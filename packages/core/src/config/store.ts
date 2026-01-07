@@ -1,96 +1,64 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { store } from '../store'
-import type { Config, ConfigAdapterWithWrite } from './types'
-import { ConfigSchema } from './schema'
+import type { ConfigAdapterWithWrite, MetaConfig } from './types'
+import { ClientConfigSchema, MetaConfigSchema } from './schema'
 import { loadConfig as zodLoadConfig } from 'zod-config'
+import { computedAsync } from '@vueuse/core'
+
+// Lazy import Client to avoid circular imports
+const lazyClient = async () => (await import('../client/client')).Client
 
 /**
- * Config store using Pinia.
- *
- * USAGE - Direct access pattern for loose coupling:
- * - Read: configStore.config.INKCRE_CORE_URL
- * - Write: configStore.config.INKCRE_CORE_URL = "new-url"
- * - Watch: watch(() => configStore.config.INKCRE_JWT_SECRET, ...)
- *
- * @example
- * ```typescript
- * import { useConfigStore } from "@inkcre/core";
- *
- * const configStore = useConfigStore();
- *
- * // Read
- * const url = configStore.config.INKCRE_CORE_URL;
- *
- * // Write
- * configStore.config.INKCRE_CORE_URL = "https://new-url.com";
- *
- * // Watch
- * watch(() => configStore.config.INKCRE_JWT_SECRET, (newSecret) => {
- *   console.log("JWT secret changed:", newSecret);
- * });
- *
- * // Load from adapters
- * await configStore.load([localStorageAdapter]);
- *
- * // Save to adapter
- * await configStore.save(localStorageAdapter);
- * ```
+ * Config store, includes metaConfig and clientConfig, managing their loading and saving.
  */
 export const useConfigStore = defineStore('inkcre-config', () => {
-  // State - Direct access to config object
-  const config = ref<Config>(ConfigSchema.parse({}))
+  // State
+  const metaConfig = ref<MetaConfig>(MetaConfigSchema.parse({}))
   const adapters = ref<ConfigAdapterWithWrite[]>([])
   const isLoading = ref(false)
   const error = ref<Error | null>(null)
 
-  /**
-   * Load configuration from adapters.
-   *
-   * @param configAdapters - Optional array of adapters to use for loading
-   * @example
-   * ```typescript
-   * await configStore.load([localStorageAdapter]);
-   * ```
-   */
-  async function load(configAdapters?: ConfigAdapterWithWrite[]): Promise<void> {
+  const clientConfig = computedAsync(async () => {
+    const Client = await lazyClient()
+    try {
+      const client = await Client.getSelf()
+      return await client.config
+    } catch (error) {
+      console.error('[Config] Failed to load client config:', error)
+      return ClientConfigSchema.parse({})
+    }
+  }, ClientConfigSchema.parse({}))
+
+  async function loadMeta(_adapters?: ConfigAdapterWithWrite[]): Promise<void> {
     isLoading.value = true
     error.value = null
     try {
-      const loaded = await zodLoadConfig({
-        schema: ConfigSchema,
-        adapters: configAdapters ?? adapters.value,
+      const loadedMeta = await zodLoadConfig({
+        schema: MetaConfigSchema,
+        adapters: _adapters ?? adapters.value,
       })
-      config.value = loaded
-      console.log('[Config] Config loaded successfully', loaded)
+      metaConfig.value = loadedMeta
+
+      console.log('[Config] MetaConfig loaded', { metaConfig: loadedMeta })
     } catch (err) {
       error.value = err as Error
-      console.error('[Config] Failed to load config:', err)
-      // Fallback to defaults
-      config.value = ConfigSchema.parse({})
+      console.error('[Config] Failed to load meta config:', err)
+      metaConfig.value = MetaConfigSchema.parse({})
     } finally {
       isLoading.value = false
     }
   }
 
-  /**
-   * Save current configuration to adapter.
-   *
-   * @param configAdapter - Config adapter with write capability
-   * @example
-   * ```typescript
-   * configStore.config.INKCRE_CORE_URL = "https://new-url.com";
-   * await configStore.save(localStorageAdapter);
-   * ```
-   */
-  async function save(configAdapter?: ConfigAdapterWithWrite): Promise<void> {
+  async function saveMeta(_adapter?: ConfigAdapterWithWrite): Promise<void> {
     error.value = null
     try {
-      await (configAdapter ?? adapters.value[0]).write({ ...config.value })
-      console.log('[Config] Config saved successfully')
+      const adapter = _adapter ?? adapters.value[0]
+      await adapter.write(metaConfig.value)
+      console.log('[Config] MetaConfig saved')
     } catch (err) {
       error.value = err as Error
-      console.error('[Config] Failed to save config:', err)
+      console.error('[Config] Failed to save meta config:', err)
       throw err
     }
   }
@@ -100,7 +68,8 @@ export const useConfigStore = defineStore('inkcre-config', () => {
    * Note: This only resets in-memory config, not persisted storage.
    */
   function reset(): void {
-    config.value = ConfigSchema.parse({})
+    metaConfig.value = MetaConfigSchema.parse({})
+    clientConfig.value = ClientConfigSchema.parse({})
     console.log('[Config] Config reset to defaults')
   }
 
@@ -115,14 +84,15 @@ export const useConfigStore = defineStore('inkcre-config', () => {
 
   return {
     // State - Exposed directly for consumer access
-    config,
+    metaConfig,
+    clientConfig,
     adapters,
     isLoading,
     error,
 
     // Actions
-    load,
-    save,
+    loadMeta,
+    saveMeta,
     reset,
     setAdapters,
   }

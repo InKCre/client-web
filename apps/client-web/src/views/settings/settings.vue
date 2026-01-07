@@ -28,8 +28,9 @@ import ClientList from "@/components/client/clientList/clientList.vue";
 
 const { t } = useI18n();
 
-// Local reactive copy of config for form editing
-const formConfig = reactive({ ...configStore.config });
+// Local reactive copies of config for form editing
+const metaFormConfig = reactive({ ...configStore.metaConfig });
+const clientFormConfig = reactive({ ...configStore.clientConfig });
 
 // Adapter options
 const adapterOptions: DropdownOption[] = [
@@ -59,8 +60,9 @@ const currentAdapter = computed({
     currentAdapterType.value = adapterKey;
     localStorage.setItem("inkcre_config_adapter", value);
     // Reload config from new adapter
-    await configStore.load([adapterMap[adapterKey]]);
-    Object.assign(formConfig, configStore.config);
+    await configStore.loadMeta([adapterMap[adapterKey]]);
+    Object.assign(metaFormConfig, configStore.metaConfig);
+    Object.assign(clientFormConfig, configStore.clientConfig);
   },
 });
 
@@ -82,10 +84,11 @@ const currentLocale = computed({
 const onSave = async () => {
   try {
     // Update store config
-    Object.assign(configStore.config, formConfig);
+    Object.assign(configStore.metaConfig, metaFormConfig);
+    Object.assign(configStore.clientConfig, clientFormConfig);
     // Save to current adapter
     const adapter = adapterMap[currentAdapterType.value];
-    await configStore.save(adapter);
+    await configStore.saveMeta(adapter);
     alert(t("settings.saveSuccess"));
   } catch (error) {
     console.error("Failed to save config:", error);
@@ -97,12 +100,17 @@ const onSave = async () => {
 const onReset = () => {
   configStore.reset();
   // Reload form config after reset
-  Object.assign(formConfig, structuredClone(configStore.config));
+  Object.assign(metaFormConfig, configStore.metaConfig);
+  Object.assign(clientFormConfig, configStore.clientConfig);
 };
 
 // Export config
 const onExport = () => {
-  const configJson = JSON.stringify(configStore.config, null, 2);
+  const fullConfig = {
+    metaConfig: configStore.metaConfig,
+    config: configStore.clientConfig,
+  };
+  const configJson = JSON.stringify(fullConfig, null, 2);
   const blob = new Blob([configJson], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -130,12 +138,18 @@ const onFileSelected = async (event: Event) => {
       const content = e.target?.result as string;
       const imported = JSON.parse(content);
       // Update store config
-      Object.assign(configStore.config, imported);
+      if (imported.metaConfig) {
+        Object.assign(configStore.metaConfig, imported.metaConfig);
+      }
+      if (imported.clientConfig) {
+        Object.assign(configStore.clientConfig, imported.clientConfig);
+      }
       // Save to current adapter
       const adapter = adapterMap[currentAdapterType.value];
-      await configStore.save(adapter);
+      await configStore.saveMeta(adapter);
       // Reload form config after import
-      Object.assign(formConfig, structuredClone(configStore.config));
+      Object.assign(metaFormConfig, configStore.metaConfig);
+      Object.assign(clientFormConfig, configStore.clientConfig);
       alert(t("settings.saveSuccess"));
     } catch (error) {
       console.error("Failed to import config:", error);
@@ -161,38 +175,40 @@ const onFileSelected = async (event: Event) => {
         :options="adapterOptions"
       />
 
-      <!-- Config Fields -->
+      <!-- Meta Configuration -->
+      <h2 class="settings-view__section-title">
+        {{ t("settings.metaConfig") }}
+      </h2>
       <InkInput
-        v-model="formConfig.INKCRE_CORE_URL"
-        :label="t('settings.coreUrl')"
-        placeholder="http://127.0.0.1:8000"
-      />
-
-      <InkInput
-        v-model="formConfig.INKCRE_PGREST_URL"
+        v-model="metaFormConfig.INKCRE_PGREST_URL"
         :label="t('settings.pgrestUrl')"
         placeholder="https://..."
       />
 
       <InkInput
-        v-model="formConfig.INKCRE_EXTENSION_REGISTRY_URL"
-        :label="t('settings.extensionRegistryUrl')"
-        placeholder="https://..."
-      />
-
-      <InkInput
-        v-model="formConfig.INKCRE_JWT_SECRET"
+        v-model="metaFormConfig.INKCRE_JWT_SECRET"
         :label="t('settings.jwtSecret')"
         placeholder="..."
       />
 
       <InkInput
-        v-model="formConfig.INKCRE_CLIENT_ID"
+        v-model="metaFormConfig.INKCRE_CLIENT_ID"
         :label="t('settings.clientId')"
         placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
       />
 
+      <!-- Client Configuration -->
+      <h2 class="settings-view__section-title">
+        {{ t("settings.clientConfig") }}
+      </h2>
+      <InkInput
+        v-model="clientFormConfig.extension_registry_url"
+        :label="t('settings.extensionRegistryUrl')"
+        placeholder="https://..."
+      />
+
       <!-- Language Selection -->
+      <h2 class="settings-view__section-title">{{ t("settings.language") }}</h2>
       <InkDropdown
         v-model="currentLocale"
         :label="t('settings.languageLabel')"

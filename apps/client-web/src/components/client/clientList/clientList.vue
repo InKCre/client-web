@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import { useAsyncState } from "@vueuse/core";
 import { InkButton, InkLoading } from "@inkcre/web-design";
 import { Client } from "@inkcre/core";
+import ClientCard from "../clientCard/clientCard.vue";
 
 const { t } = useI18n();
 
@@ -14,9 +15,9 @@ const {
   isLoading: clientsLoading,
 } = useAsyncState(() => Client.list(), [], { immediate: true });
 
-const clientHealthStatus = ref<Record<string, "online" | "offline" | "unknown">>(
-  {}
-);
+const clientHealthStatus = ref<
+  Record<string, "online" | "offline" | "unknown">
+>({});
 const healthCheckLoading = ref(false);
 
 // --- methods ---
@@ -25,7 +26,9 @@ const checkAllHealth = async () => {
   const results: Record<string, "online" | "offline" | "unknown"> = {};
   await Promise.all(
     clients.value.map(async (client) => {
-      results[client.id] = client.rest_api_url ? await client.ping() : "unknown";
+      results[client.id] = client.rest_api_url
+        ? await client.ping()
+        : "unknown";
     })
   );
   clientHealthStatus.value = results;
@@ -73,21 +76,13 @@ const getClientStatus = (clientId: string) => {
     </div>
 
     <div v-else class="client-list__list">
-      <div v-for="client in clients" :key="client.id" class="client-list__item">
-        <div class="client-list__item-info">
-          <span class="client-list__item-name">{{ client.name }}</span>
-          <span class="client-list__item-id">{{ client.id }}</span>
-          <span class="client-list__item-url">{{ client.rest_api_url || "-" }}</span>
-        </div>
-        <span
-          :class="[
-            'client-list__item-status',
-            `client-list__item-status--${getClientStatus(client.id)}`,
-          ]"
-        >
-          {{ getStatusText(getClientStatus(client.id)) }}
-        </span>
-      </div>
+      <ClientCard
+        v-for="client in clients"
+        :key="client.id"
+        :client="client"
+        :status="getClientStatus(client.id)"
+        @updated="refreshClients"
+      />
     </div>
   </section>
 </template>

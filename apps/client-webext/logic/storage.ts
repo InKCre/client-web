@@ -29,7 +29,7 @@ import { useWebExtensionStorage } from "~/composables/useWebExtensionStorage";
  * // Then use config store anywhere
  * import { useConfigStore } from "@inkcre/core";
  * const configStore = useConfigStore();
- * console.log(configStore.config.llmProviders);
+ * console.log(configStore.clientConfig.llmProviders);
  * ```
  */
 export async function initializeConfig() {
@@ -38,7 +38,7 @@ export async function initializeConfig() {
   });
 
   const configStore = useConfigStore();
-  await configStore.load([webextAdapter]);
+  await configStore.loadMeta([webextAdapter]);
   console.log("[Client-WebExt] Core configuration loaded");
 }
 
@@ -52,7 +52,7 @@ export async function initializeConfig() {
  * import { useConfigStore } from "@inkcre/core";
  *
  * const configStore = useConfigStore();
- * configStore.config.llmProviders.push(newProvider);
+ * configStore.clientConfig.llmProviders.push(newProvider);
  * await saveConfig();
  * ```
  */
@@ -62,7 +62,7 @@ export async function saveConfig() {
   });
 
   const configStore = useConfigStore();
-  await configStore.save(webextAdapter);
+  await configStore.saveMeta(webextAdapter);
   console.log("[Client-WebExt] Core configuration saved");
 }
 

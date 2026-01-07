@@ -1,22 +1,21 @@
 import { ref, watch } from 'vue'
 import { SignJWT } from 'jose'
-import { configStore as sharedConfigStore } from '../config'
+import { configStore } from '../config'
 
 /**
  * Create an auth store instance.
  * Returns reactive token and token management functions.
  */
-export function createAuthStore(storeInstance = sharedConfigStore) {
+export function createAuthStore(configStoreIns = configStore) {
   const token = ref<string | undefined>(undefined)
-  const configStore = storeInstance
 
   async function newToken(): Promise<string> {
-    if (!configStore.config.INKCRE_JWT_SECRET) {
+    if (!configStoreIns.metaConfig.INKCRE_JWT_SECRET) {
       throw new Error('JWT_SECRET not configured')
     }
 
     try {
-      const secret = new TextEncoder().encode(configStore.config.INKCRE_JWT_SECRET)
+      const secret = new TextEncoder().encode(configStoreIns.metaConfig.INKCRE_JWT_SECRET)
       const signedToken = await new SignJWT({
         role: 'authenticated',
       })
@@ -48,7 +47,7 @@ export function createAuthStore(storeInstance = sharedConfigStore) {
 
   // Watch for JWT secret changes and regenerate token
   watch(
-    () => configStore.config.INKCRE_JWT_SECRET,
+    () => configStoreIns.metaConfig.INKCRE_JWT_SECRET,
     async (newSecret) => {
       if (newSecret) {
         try {

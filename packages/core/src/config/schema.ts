@@ -20,18 +20,6 @@ export const LLMProviderConfigSchema = z.object({
 export type LLMProviderConfig = z.infer<typeof LLMProviderConfigSchema>
 
 /**
- * App configuration schema
- */
-export const AppConfigSchema = z.object({
-  INKCRE_CORE_URL: z.string().url().default(''),
-  INKCRE_PGREST_URL: z.string().url().default(''),
-  INKCRE_EXTENSION_REGISTRY_URL: z.string().url().default(''),
-  INKCRE_JWT_SECRET: z.string().default(''),
-  INKCRE_CLIENT_ID: z.string().uuid().default(''),
-  INKCRE_API: z.string().url().default('https://api.inkcre.com'), // For client-webext
-})
-
-/**
  * AI configuration schema (from client-webext)
  */
 export const AIConfigSchema = z.object({
@@ -43,44 +31,27 @@ export const AIConfigSchema = z.object({
 })
 
 /**
- * Combined configuration schema
+ * Meta configuration schema (bootstrap/runtime)
+ * Contains URLs and secrets needed to fetch and initialize app config
  */
-export const ConfigSchema = AppConfigSchema.merge(AIConfigSchema)
+export const MetaConfigSchema = z.object({
+  INKCRE_PGREST_URL: z.url().default(''),
+  INKCRE_JWT_SECRET: z.string().default(''),
+  INKCRE_CLIENT_ID: z.uuid().default(''),
+})
+
+export type MetaConfig = z.infer<typeof MetaConfigSchema>
+
+/**
+ * App configuration schema (runtime)
+ * Contains extension registry URL, AI settings, and runtime app configuration
+ */
+export const ClientConfigSchema = z.object({
+  extension_registry_url: z.url().default(''),
+  ai: AIConfigSchema.default(() => AIConfigSchema.parse({})),
+})
 
 /**
  * Config type
  */
-export type Config = z.infer<typeof ConfigSchema>
-
-/**
- * Default LLM providers (from client-webext)
- */
-export const DEFAULT_LLM_PROVIDERS: LLMProviderConfig[] = [
-  {
-    id: 'openai-default',
-    name: 'OpenAI',
-    type: 'openai',
-    apiKey: '',
-    models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo'],
-  },
-  {
-    id: 'anthropic-default',
-    name: 'Anthropic',
-    type: 'anthropic',
-    apiKey: '',
-    models: ['claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022', 'claude-3-opus-20240229'],
-  },
-  {
-    id: 'google-default',
-    name: 'Google Gemini',
-    type: 'google',
-    apiKey: '',
-    models: ['gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-1.5-flash'],
-  },
-]
-
-/**
- * Default explain instruction (from client-webext)
- */
-export const DEFAULT_EXPLAIN_INSTRUCTION =
-  'Explain user given text based on page content in a concise, clear, simple way.'
+export type ClientConfig = z.infer<typeof ClientConfigSchema>

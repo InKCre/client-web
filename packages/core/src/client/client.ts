@@ -3,7 +3,7 @@ import { Z } from 'zod-class'
 import { DBAPIClient, APIError } from '../base/db-api'
 import { makeStringProp, makeObjectProp } from '../utils/vue-props'
 import { authStore } from '../auth'
-import { configStore as sharedConfigStore } from '../config'
+import { configStore } from '../config'
 
 export type ClientRef = string
 export const makeClientProp = (v?: any) => makeObjectProp<Client>(v)
@@ -25,6 +25,7 @@ export class Client extends Z.class({
   name: z.string(),
   labels: z.array(z.string()).default([]),
   rest_api_url: z.url().nullable().default(null),
+  config: z.looseObject({}).default({}),
   created_at: z.coerce.date().default(() => new Date()),
 }) {
   static dbApi: DBAPIClient = new DBAPIClient<Client>('clients', Client)
@@ -60,7 +61,7 @@ export class Client extends Z.class({
    * This client is used for Core API requests.
    */
   static async getSelf(): Promise<Client> {
-    const clientId = sharedConfigStore.config.INKCRE_CLIENT_ID
+    const clientId = configStore.metaConfig.INKCRE_CLIENT_ID
     if (!clientId) {
       throw new Error('INKCRE_CLIENT_ID is not configured')
     }
@@ -257,10 +258,17 @@ export class Client extends Z.class({
   async delete<T = any>(path: string, resBodySchema?: { parse<T>(input: unknown): T }): Promise<T> {
     return this.request<T>({ method: 'DELETE', path, resBodySchema })
   }
+
+  /**
+   * Save only the config field to the database
+   */
+  async saveConfig(): Promise<void> {
+    await Client.dbApi.from().upsert({ id: this.id, config: this.config }).select().single()
+  }
 }
 
 /**
- * Form for creating/updating clients
+ * Form for creating clients
  */
 export class CreateClientForm extends Z.class({
   ...Client.shape,

@@ -56,8 +56,8 @@ export function setupResolvers(): void {
  */
 export async function initializeConfig(): Promise<void> {
   const adapter = import.meta.env.DEV ? devAdapter : localStorageAdapter;
-  await configStore.load([adapter]);
-  console.log("[Core] Configuration loaded:", configStore.config);
+  await configStore.loadMeta([adapter]);
+  console.log("[Core] Configuration loaded:", configStore.clientConfig);
 }
 
 // ============================================================================
@@ -68,7 +68,6 @@ export async function initializeConfig(): Promise<void> {
  * Initialize Module Federation runtime.
  * Creates the MF instance and injects it into core.
  */
-// TODO Integrate into core, client-webext also uses this
 export function initializeModuleFederation(): void {
   const mfInstance = createInstance({
     name: "host",
