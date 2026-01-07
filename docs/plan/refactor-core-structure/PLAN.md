@@ -1,20 +1,26 @@
-# Refactoring Plan: packages/core Structure
+# Refactoring Plan: packages/core Structure - Ruthless Evolution
 
 ## Executive Summary
 
-This plan outlines the refactoring of `packages/core` from the current mixed layer/feature architecture to a cleaner domain-driven structure. The refactoring will reorganize ~4,500 lines of code across 41 TypeScript files while preserving all functionality.
+This plan outlines a **complete evolution** of `packages/core` from the current mixed layer/feature architecture to a clean domain-driven structure. The refactoring will reorganize ~4,500 lines of code across 41 TypeScript files with **zero backwards compatibility** - a ruthless, bold refactoring for complete modernization.
 
 **Key Constraints (Expected Behavior):**
 - ✅ Vue coupling (Pinia stores, reactive state, Vue Flow integration)
 - ✅ Module-level singletons (configStore, authStore, static dbApi instances)
 - ✅ Mixed domain objects with data access (Active Record pattern)
 
+**Breaking Changes:**
+- ❌ **NO backwards compatibility** - all old import paths will break
+- 🔄 **Consolidate API clients** - merge CoreAPIClient into DBAPIClient
+- 📦 **Complete reorganization** - models/ directory will be deleted
+- 🧹 **Code quality enforcement** - Prettier + ESLint for automated verification
+
 ## Target Structure
 
 ```
 packages/core/src/
 ├── base/
-│   └── db-api.ts           # Centralized API clients (DBAPIClient, CoreAPIClient, APIError)
+│   └── db-api.ts           # Unified API client (DBAPIClient consolidated with CoreAPIClient)
 ├── extension/              # Extension system (Module Federation, lifecycle)
 │   ├── extension.ts        # IExtension protocol, ExtensionState
 │   ├── model.ts            # Extension class with Active Record pattern
@@ -23,14 +29,15 @@ packages/core/src/
 ├── client/                 # Client peer management
 │   ├── client.ts           # Client model (Active Record)
 │   └── index.ts            # Exports
-├── obsrc/                  # Observable sources (data collection)
+├── source/                 # Data collection sources
 │   ├── source.ts           # Source model (Active Record)
 │   ├── source-type.ts      # SourceType model
 │   ├── collect-job.ts      # SourceCollectJob model
 │   ├── collect-at.ts       # CollectAt scheduling
 │   └── index.ts            # Exports
-├── source/                 # (Reserved for future use or merge with obsrc)
-│   └── index.ts
+├── obsrv/                  # Observability (o11y)
+│   ├── log.ts              # Log model (Active Record)
+│   └── index.ts            # Exports
 ├── info-base/              # Information base (blocks, relations, content)
 │   ├── storages/           # Content storage handlers
 │   │   ├── base.ts         # Storage base class + registry
@@ -71,20 +78,19 @@ packages/core/src/
 │   ├── zinstance.ts        # Zod instance helper
 │   └── index.ts            # Exports
 ├── libs/
-│   └── ai/                 # AI provider integration (future)
-│       └── index.ts        # Placeholder
-├── models/                 # (Legacy - for backwards compatibility)
-│   ├── log.ts              # Log model (Active Record)
-│   └── index.ts            # Re-exports from new locations
+│   └── ai/                 # AI provider integration (placeholder)
+│       └── index.ts        # Placeholder exports
 ├── store.ts                # Pinia singleton (root level)
-└── index.ts                # Main entry point
+├── index.ts                # Main entry point
+├── .prettierrc             # Prettier configuration
+└── .eslintrc.js            # ESLint configuration
 ```
 
 ## Current vs Target Mapping
 
 | Current Path | Target Path | Notes |
 |--------------|-------------|-------|
-| `src/api/index.ts` | `src/base/db-api.ts` | Rename and relocate API clients |
+| `src/api/index.ts` | `src/base/db-api.ts` | **CONSOLIDATE** CoreAPIClient into DBAPIClient |
 | `src/auth/index.ts` | `src/auth/store.ts` | Rename file for clarity |
 | `src/config/*` | `src/config/*` | Keep structure, update imports |
 | `src/extension/*` | `src/extension/*` | Keep structure, update imports |
@@ -92,8 +98,8 @@ packages/core/src/
 | `src/models/relation.ts` | `src/info-base/relation.ts` | Move to info-base domain |
 | `src/models/storage.ts` | `src/info-base/storage-model.ts` | Move and rename |
 | `src/models/client.ts` | `src/client/client.ts` | Move to dedicated client domain |
-| `src/models/source.ts` | `src/obsrc/` | Split into 4 files (source, type, job, schedule) |
-| `src/models/log.ts` | `src/models/log.ts` | Keep for now (observability domain) |
+| `src/models/source.ts` | `src/source/` | Split into 4 files (source, type, job, schedule) |
+| `src/models/log.ts` | `src/obsrv/log.ts` | Move to observability domain |
 | `src/info-base/storages/*` | `src/info-base/storages/*` | Keep structure |
 | `src/info-base/resolvers/*` | `src/info-base/resolvers/*` | Keep structure |
 | `src/sinks/*` | `src/sink/*` | Rename directory (singular) |
@@ -101,9 +107,71 @@ packages/core/src/
 | `src/base.ts` | `src/utils/zinstance.ts` | Move and rename |
 | `src/store.ts` | `src/store.ts` | Keep at root |
 | (new) | `src/libs/ai/index.ts` | Create placeholder |
-| (new) | `src/source/index.ts` | Create placeholder |
+| `src/models/` | **DELETE** | ❌ **NO BACKWARDS COMPATIBILITY** |
+| `src/api/` | **DELETE** | Replaced by `src/base/` |
 
 ## Detailed Refactoring Steps
+
+### Phase 0: Code Quality Setup
+
+**Step 0.1: Add Prettier configuration**
+
+Create `packages/core/.prettierrc`:
+```json
+{
+  "semi": false,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "useTabs": false,
+  "trailingComma": "es5",
+  "printWidth": 100,
+  "arrowParens": "always"
+}
+```
+
+**Step 0.2: Add ESLint configuration**
+
+Create `packages/core/.eslintrc.js`:
+```javascript
+module.exports = {
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'prettier'
+  ],
+  parser: '@typescript-eslint/parser',
+  plugins: ['@typescript-eslint'],
+  root: true,
+  env: {
+    node: true,
+    es2022: true
+  },
+  rules: {
+    '@typescript-eslint/no-explicit-any': 'warn',
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    'no-console': 'warn'
+  }
+}
+```
+
+**Step 0.3: Update package.json scripts**
+```json
+{
+  "scripts": {
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "verify": "npm run format:check && npm run lint && npm run build"
+  }
+}
+```
+
+**Step 0.4: Install dev dependencies**
+```bash
+cd packages/core
+pnpm add -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-config-prettier prettier
+```
 
 ### Phase 1: Setup & Preparation
 
@@ -111,103 +179,244 @@ packages/core/src/
 ```bash
 mkdir -p packages/core/src/base
 mkdir -p packages/core/src/client
-mkdir -p packages/core/src/obsrc
 mkdir -p packages/core/src/source
+mkdir -p packages/core/src/obsrv
 mkdir -p packages/core/src/libs/ai
 mkdir -p packages/core/src/sink/graph
 # info-base/storages, info-base/resolvers already exist
 ```
 
-**Step 1.2: Create placeholder files for new domains**
-- `src/libs/ai/index.ts` - Export placeholder for future AI integration
-- `src/source/index.ts` - Export placeholder (or merge with obsrc later)
+**Step 1.2: Create placeholder files**
 
-### Phase 2: Move Utility Files (No Dependencies)
+Create `src/libs/ai/index.ts`:
+```typescript
+// Placeholder for future AI provider integration
+// TODO: Implement AI provider abstraction layer
+export {}
+```
 
-**Step 2.1: Move base.ts → utils/zinstance.ts**
-- Move `src/base.ts` → `src/utils/zinstance.ts`
-- Update imports across the codebase:
-  - `models/source.ts` imports `zinstance`
-  - Update `src/index.ts` exports
+### Phase 2: Consolidate & Move Base Layer (API Clients)
 
-**Step 2.2: Create utils/index.ts**
-- Export `zinstance` from `utils/zinstance.ts`
-- Export `vue-props.ts` utilities
+**Step 2.1: Read and analyze current API clients**
+- Read `src/api/index.ts` to understand both clients
+- Identify overlap between `CoreAPIClient` and `DBAPIClient`
+- Plan consolidation strategy
 
-### Phase 3: Move API Layer (Foundation)
+**Step 2.2: Create unified DBAPIClient in base/db-api.ts**
 
-**Step 3.1: Move api/index.ts → base/db-api.ts**
-- Move `src/api/index.ts` → `src/base/db-api.ts`
-- Update imports across codebase:
-  - All model files import `DBAPIClient`
-  - Extension model imports both clients
-  - Update `src/index.ts` exports
+Consolidation strategy:
+- Merge `CoreAPIClient` functionality into `DBAPIClient`
+- Keep PostgREST methods from `DBAPIClient`
+- Add custom endpoint methods from `CoreAPIClient`
+- Single unified client with both capabilities
 
-**Step 3.2: Create base/index.ts**
-- Export `APIError`, `CoreAPIClient`, `DBAPIClient`
+Create `src/base/db-api.ts`:
+```typescript
+import { PostgrestClient } from '@supabase/postgrest-js'
+import { watch } from 'vue'
+import { configStore } from '../config/store'
+import { authStore } from '../auth/store'
 
-### Phase 4: Reorganize Auth & Config (Keep Structure)
+export class APIError extends Error {
+  constructor(
+    message: string,
+    public statusCode?: number,
+    public details?: any
+  ) {
+    super(message)
+    this.name = 'APIError'
+  }
+}
+
+// Unified API client with both PostgREST and custom endpoint capabilities
+export class DBAPIClient extends PostgrestClient {
+  private baseURL: string
+  private headers: Record<string, string> = {}
+
+  constructor(url?: string, options?: any) {
+    const baseURL = url || configStore.app.CORE_API_URL
+    super(baseURL, options)
+    this.baseURL = baseURL
+
+    // Watch for config changes
+    watch(
+      () => configStore.app.CORE_API_URL,
+      (newURL) => {
+        this.baseURL = newURL
+        this.url = new URL(newURL)
+      }
+    )
+
+    // Watch for auth token changes
+    watch(
+      () => authStore.token,
+      (token) => {
+        if (token) {
+          this.headers['Authorization'] = `Bearer ${token}`
+        } else {
+          delete this.headers['Authorization']
+        }
+      },
+      { immediate: true }
+    )
+  }
+
+  // Custom endpoint methods (from CoreAPIClient)
+  async request<T = any>(
+    method: string,
+    path: string,
+    data?: any,
+    options?: RequestInit
+  ): Promise<T> {
+    const url = `${this.baseURL}${path}`
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        ...this.headers,
+        ...options?.headers,
+      },
+      body: data ? JSON.stringify(data) : undefined,
+      ...options,
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: response.statusText }))
+      throw new APIError(error.message || 'Request failed', response.status, error)
+    }
+
+    return response.json()
+  }
+
+  // Convenience methods
+  async get<T = any>(path: string, options?: RequestInit): Promise<T> {
+    return this.request<T>('GET', path, undefined, options)
+  }
+
+  async post<T = any>(path: string, data?: any, options?: RequestInit): Promise<T> {
+    return this.request<T>('POST', path, data, options)
+  }
+
+  async put<T = any>(path: string, data?: any, options?: RequestInit): Promise<T> {
+    return this.request<T>('PUT', path, data, options)
+  }
+
+  async patch<T = any>(path: string, data?: any, options?: RequestInit): Promise<T> {
+    return this.request<T>('PATCH', path, data, options)
+  }
+
+  async delete<T = any>(path: string, options?: RequestInit): Promise<T> {
+    return this.request<T>('DELETE', path, undefined, options)
+  }
+}
+```
+
+**Step 2.3: Create base/index.ts**
+```typescript
+export * from './db-api'
+```
+
+### Phase 3: Move Utils (No Dependencies)
+
+**Step 3.1: Move base.ts → utils/zinstance.ts**
+```bash
+mv packages/core/src/base.ts packages/core/src/utils/zinstance.ts
+```
+
+**Step 3.2: Create/update utils/index.ts**
+```typescript
+export * from './vue-props'
+export * from './zinstance'
+```
+
+### Phase 4: Move Auth & Config Domains
 
 **Step 4.1: Rename auth/index.ts → auth/store.ts**
-- Move `src/auth/index.ts` → `src/auth/store.ts`
-- Update `src/auth/index.ts` to re-export from `store.ts`
-- Update imports (should be minimal, most use named imports)
+```bash
+mv packages/core/src/auth/index.ts packages/core/src/auth/store.ts
+```
 
-**Step 4.2: Update config imports**
-- Verify all config files remain in `src/config/`
-- Update any broken imports from API layer move
+**Step 4.2: Update auth imports in auth/store.ts**
+- Update import from `../api` to `../base/db-api`
+- Keep all other code the same
+
+**Step 4.3: Create auth/index.ts**
+```typescript
+export * from './store'
+```
+
+**Step 4.4: Update config domain**
+- Verify all config files have correct imports
+- Update any imports from `../api` to `../base/db-api` if present
+
+**Step 4.5: Create config/index.ts (if not exists)**
+```typescript
+export * from './adapters'
+export * from './schema'
+export * from './store'
+export * from './types'
+```
 
 ### Phase 5: Move Client Domain
 
 **Step 5.1: Move models/client.ts → client/client.ts**
-- Move `src/models/client.ts` → `src/client/client.ts`
-- Update imports:
-  - Extension model imports Client (circular dependency)
-  - Update `src/models/index.ts` re-export
-  - Update `src/index.ts` exports
+```bash
+mv packages/core/src/models/client.ts packages/core/src/client/client.ts
+```
 
-**Step 5.2: Create client/index.ts**
-- Export `Client`, `CreateClientForm`
-
-### Phase 6: Split Source Domain into obsrc/
-
-**Step 6.1: Split models/source.ts into 4 files**
-
-Create `src/obsrc/collect-at.ts`:
+**Step 5.2: Update client/client.ts imports**
 ```typescript
-// Extract CollectAt class
+// Update imports
+import { DBAPIClient } from '../base/db-api'  // was '../api'
+import { authStore } from '../auth/store'     // was '../auth'
+```
+
+**Step 5.3: Create client/index.ts**
+```typescript
+export * from './client'
+```
+
+### Phase 6: Move Source Domain
+
+**Step 6.1: Read models/source.ts to understand structure**
+
+**Step 6.2: Split models/source.ts into 4 files**
+
+Create `src/source/collect-at.ts`:
+```typescript
+import dayjs, { type Dayjs } from 'dayjs'
+
 export class CollectAt {
-  // ... existing code
+  // Extract CollectAt class from models/source.ts
+  // ... copy implementation
 }
 ```
 
-Create `src/obsrc/source-type.ts`:
+Create `src/source/source-type.ts`:
 ```typescript
-// Extract SourceType class
 import { DBAPIClient } from '../base/db-api'
 
 export class SourceType {
   static dbApi: DBAPIClient | null = null
-  // ... existing code
+  // ... copy implementation
 }
 ```
 
-Create `src/obsrc/collect-job.ts`:
+Create `src/source/collect-job.ts`:
 ```typescript
-// Extract SourceCollectJob class
 import { DBAPIClient } from '../base/db-api'
 import type { Source } from './source'
 
 export class SourceCollectJob {
   static dbApi: DBAPIClient | null = null
-  // ... existing code
+  // ... copy implementation
 }
 ```
 
-Create `src/obsrc/source.ts`:
+Create `src/source/source.ts`:
 ```typescript
-// Main Source class
 import { DBAPIClient } from '../base/db-api'
+import { zinstance } from '../utils/zinstance'  // was '../base'
 import { CollectAt } from './collect-at'
 import { SourceType } from './source-type'
 
@@ -215,11 +424,11 @@ export class Source {
   static dbApi: DBAPIClient | null = null
   collectAt?: CollectAt
   sourceType?: SourceType
-  // ... existing code
+  // ... copy implementation
 }
 ```
 
-**Step 6.2: Create obsrc/index.ts**
+**Step 6.3: Create source/index.ts**
 ```typescript
 export * from './collect-at'
 export * from './source-type'
@@ -227,33 +436,67 @@ export * from './collect-job'
 export * from './source'
 ```
 
-**Step 6.3: Update imports**
-- Update `src/models/index.ts` to re-export from obsrc
-- Update any direct imports of Source classes
+### Phase 7: Move Observability Domain
 
-### Phase 7: Move Info-Base Models
+**Step 7.1: Create obsrv directory and move log**
+```bash
+mkdir -p packages/core/src/obsrv
+mv packages/core/src/models/log.ts packages/core/src/obsrv/log.ts
+```
 
-**Step 7.1: Move models/block.ts → info-base/block.ts**
-- Move `src/models/block.ts` → `src/info-base/block.ts`
-- Update imports:
-  - `info-base/resolvers/base.ts` dynamically imports Block
-  - `sinks/graph/graph-types.ts` imports Block
-  - Update `src/models/index.ts` re-export
-  - Update `src/info-base/index.ts` export
+**Step 7.2: Update obsrv/log.ts imports**
+```typescript
+import { DBAPIClient } from '../base/db-api'  // was '../api'
+```
 
-**Step 7.2: Move models/relation.ts → info-base/relation.ts**
-- Move `src/models/relation.ts` → `src/info-base/relation.ts`
-- Update imports:
-  - `info-base/resolvers/base.ts` dynamically imports Relation
-  - `sinks/graph/graph-types.ts` imports Relation
-  - Update `src/models/index.ts` re-export
-  - Update `src/info-base/index.ts` export
+**Step 7.3: Create obsrv/index.ts**
+```typescript
+export * from './log'
+```
 
-**Step 7.3: Move models/storage.ts → info-base/storage-model.ts**
-- Move `src/models/storage.ts` → `src/info-base/storage-model.ts`
-- Update imports in `src/models/index.ts` and `src/info-base/index.ts`
+### Phase 8: Move Info-Base Domain
 
-**Step 7.4: Update info-base/index.ts**
+**Step 8.1: Move models/block.ts → info-base/block.ts**
+```bash
+mv packages/core/src/models/block.ts packages/core/src/info-base/block.ts
+```
+
+**Step 8.2: Update info-base/block.ts imports**
+```typescript
+import { DBAPIClient } from '../base/db-api'  // was '../api'
+import { makeObjectProp, makeStringProp, makeNumberProp } from '../utils/vue-props'  // was '../utils/vue-props'
+```
+
+**Step 8.3: Move models/relation.ts → info-base/relation.ts**
+```bash
+mv packages/core/src/models/relation.ts packages/core/src/info-base/relation.ts
+```
+
+**Step 8.4: Update info-base/relation.ts imports**
+```typescript
+import { DBAPIClient } from '../base/db-api'  // was '../api'
+import type { Block } from './block'  // was './block'
+```
+
+**Step 8.5: Move models/storage.ts → info-base/storage-model.ts**
+```bash
+mv packages/core/src/models/storage.ts packages/core/src/info-base/storage-model.ts
+```
+
+**Step 8.6: Update info-base/storage-model.ts imports**
+```typescript
+import { DBAPIClient } from '../base/db-api'  // was '../api'
+import { Storage } from './storages/base'     // was '../info-base/storages/base'
+```
+
+**Step 8.7: Update info-base/resolvers/base.ts**
+```typescript
+// Update dynamic imports
+const { Block } = await import('../block')       // was '../../models/block'
+const { Relation } = await import('../relation') // was '../../models/relation'
+```
+
+**Step 8.8: Update info-base/index.ts**
 ```typescript
 export * from './block'
 export * from './relation'
@@ -262,39 +505,55 @@ export * from './resolvers'
 export * from './storages'
 ```
 
-### Phase 8: Rename sinks → sink
+### Phase 9: Move Extension Domain
 
-**Step 8.1: Rename directory**
+**Step 9.1: Update extension/model.ts imports**
+```typescript
+import { DBAPIClient } from '../base/db-api'  // was '../api'
+import { configStore } from '../config/store' // was '../config'
+import type { Client } from '../client/client' // was '../models/client'
+```
+
+**Step 9.2: Verify extension/index.ts**
+```typescript
+export * from './extension'
+export * from './model'
+export * from './module-federation'
+```
+
+### Phase 10: Move Sink Domain
+
+**Step 10.1: Rename sinks → sink**
 ```bash
 mv packages/core/src/sinks packages/core/src/sink
 ```
 
-**Step 8.2: Update imports**
-- Update `src/index.ts` export path
-- Update any consumers of sink exports
-
-### Phase 9: Update models/ for Backwards Compatibility
-
-**Step 9.1: Update models/index.ts**
+**Step 10.2: Update sink/graph/graph-types.ts**
 ```typescript
-// Re-export from new locations for backwards compatibility
-export * from '../info-base/block'
-export * from '../info-base/relation'
-export * from '../info-base/storage-model'
-export * from '../client/client'
-export * from '../obsrc'
-export * from './log'  // Keep log here for now
+import type { Block } from '../../info-base/block'       // was '../../models/block'
+import type { Relation } from '../../info-base/relation' // was '../../models/relation'
 ```
 
-**Step 9.2: Keep models/log.ts**
-- Log is observability domain, keep in models/ for now
-- May move to dedicated observability/ domain in future
-
-### Phase 10: Update Main Entry Point
-
-**Step 10.1: Update src/index.ts**
+**Step 10.3: Verify sink/index.ts**
 ```typescript
-// Core singletons
+export * from './graph'
+```
+
+**Step 10.4: Verify sink/graph/index.ts**
+```typescript
+export * from './graph-types'
+export * from './layout-types'
+export * from './topology-types'
+export * from './distance-matrix'
+export * from './mds'
+export * from './community-types'
+```
+
+### Phase 11: Update Main Entry Point & Cleanup
+
+**Step 11.1: Update src/index.ts**
+```typescript
+// Core singleton
 export { store } from './store'
 
 // Base layer
@@ -303,225 +562,182 @@ export * from './base'
 // Domain modules
 export * from './extension'
 export * from './client'
-export * from './obsrc'
+export * from './source'
+export * from './obsrv'
 export * from './info-base'
 export * from './sink'
 export * from './auth'
 export * from './config'
 export * from './utils'
 export * from './libs/ai'
-
-// Backwards compatibility
-export * from './models'
 ```
 
-### Phase 11: Update Extension System
-
-**Step 11.1: Update extension/model.ts imports**
-- Import Client from `../client`
-- Import API clients from `../base/db-api`
-- Import configStore from `../config`
-
-**Step 11.2: Verify extension/index.ts**
-- Ensure all extension exports are correct
-
-### Phase 12: Update Resolver & Storage Imports
-
-**Step 12.1: Update info-base/resolvers/base.ts**
-- Update dynamic imports:
-  ```typescript
-  // Before
-  const { Block } = await import('../models/block')
-
-  // After
-  const { Block } = await import('../block')
-  ```
-
-**Step 12.2: Update info-base/storages/base.ts**
-- Verify no import changes needed (self-contained)
-
-### Phase 13: Update Sink/Graph Imports
-
-**Step 13.1: Update sink/graph/graph-types.ts**
-```typescript
-// Update imports
-import type { Block } from '../../info-base/block'
-import type { Relation } from '../../info-base/relation'
+**Step 11.2: Delete old directories**
+```bash
+rm -rf packages/core/src/models
+rm -rf packages/core/src/api
 ```
 
-### Phase 14: Verification & Testing
+### Phase 12: Code Quality Verification
 
-**Step 14.1: Build verification**
+**Step 12.1: Run Prettier**
 ```bash
 cd packages/core
-npm run build
-# or
-pnpm build
+pnpm format
 ```
 
-**Step 14.2: Check for broken imports**
+**Step 12.2: Run ESLint**
 ```bash
-# Search for old import paths
-grep -r "from '../models/block'" packages/core/src/
-grep -r "from '../models/relation'" packages/core/src/
-grep -r "from '../models/client'" packages/core/src/
-grep -r "from '../models/source'" packages/core/src/
-grep -r "from '../api'" packages/core/src/
-grep -r "from '../sinks'" packages/core/src/
+pnpm lint:fix
 ```
 
-**Step 14.3: Verify exports**
-- Check that all exports in `src/index.ts` are valid
-- Ensure backwards compatibility through `models/index.ts`
+**Step 12.3: Manual fixes for ESLint issues**
+- Fix any ESLint errors that auto-fix couldn't handle
+- Review warnings and fix critical ones
 
-**Step 14.4: TypeScript type checking**
+### Phase 13: Build & Type Verification
+
+**Step 13.1: TypeScript type checking**
 ```bash
+cd packages/core
 npx tsc --noEmit
 ```
 
-## Dependency Management
+**Step 13.2: Build verification**
+```bash
+pnpm build
+```
 
-### Critical Dependencies to Track
+**Step 13.3: Search for broken imports**
+```bash
+# Search for old import patterns (should return nothing)
+grep -rn "from '../models" src/ || echo "✓ No old models imports"
+grep -rn "from '../api'" src/ || echo "✓ No old api imports"
+grep -rn "from '../sinks" src/ || echo "✓ No old sinks imports"
+grep -rn "from '.*base'" src/ | grep -v "from '../base" || echo "✓ No old base imports"
+```
 
-1. **Circular Dependencies (Managed via Dynamic Imports):**
-   - Extension ↔ Client: Extension imports Client, keep as is
-   - Resolver → Block/Relation: Dynamic imports, update paths only
+### Phase 14: Final Verification
 
-2. **Singleton Dependencies:**
-   - All models depend on `DBAPIClient` from `base/db-api.ts`
-   - Extension depends on `configStore` from `config/store.ts`
-   - Client depends on `authStore` from `auth/store.ts`
-   - API clients depend on `configStore` and `authStore`
+**Step 14.1: Run complete verification**
+```bash
+pnpm verify  # Runs format:check + lint + build
+```
 
-3. **Vue Dependencies (Preserved):**
-   - `store.ts` exports Pinia singleton
-   - `config/store.ts` uses Pinia
-   - `auth/store.ts` uses Vue reactivity
-   - `extension/model.ts` uses Vue refs
-   - `info-base/resolvers/base.ts` uses Vue refs
-   - `sink/graph/*` uses Vue Flow types
+**Step 14.2: Test if package exports work**
+```bash
+# In another package that depends on @inkcre/core
+pnpm install
+pnpm build
+```
 
-### Import Update Checklist
+## API Client Consolidation Details
 
-For each moved file, update imports in:
-- ✅ The moved file itself (relative paths change)
-- ✅ Files that import the moved file
-- ✅ `src/index.ts` main exports
-- ✅ `src/models/index.ts` backwards compatibility exports
-- ✅ Domain-specific `index.ts` files
+### Current State
+- **DBAPIClient**: PostgREST client for database operations
+- **CoreAPIClient**: Custom HTTP client for Core API endpoints
+- Both clients watch configStore and authStore separately
+
+### Consolidated State
+- **DBAPIClient (unified)**: Single client extending PostgrestClient
+  - Inherits all PostgREST methods (`.from()`, `.rpc()`, etc.)
+  - Adds custom endpoint methods (`.get()`, `.post()`, `.request()`, etc.)
+  - Single source for config/auth watching
+  - Simplified initialization in models
+
+### Migration Guide (for reference)
+```typescript
+// Before
+Extension.dbApi = new DBAPIClient()
+Extension.coreApi = new CoreAPIClient()
+
+// After
+Extension.dbApi = new DBAPIClient()  // Has both capabilities now
+```
+
+## Code Quality Enforcement
+
+### Prettier Configuration
+- Semi: false (no semicolons)
+- Single quotes
+- Tab width: 2 spaces
+- Trailing commas: ES5
+- Print width: 100
+
+### ESLint Rules
+- TypeScript recommended rules
+- Warn on `any` usage
+- Error on unused vars (except `_` prefix)
+- Warn on console.log
+
+### Verification Scripts
+- `pnpm format` - Auto-format all files
+- `pnpm lint` - Check for lint errors
+- `pnpm lint:fix` - Auto-fix lint errors
+- `pnpm verify` - Complete verification pipeline
 
 ## Risk Assessment
 
-### Low Risk
-- ✅ Moving utility files (`base.ts` → `utils/zinstance.ts`)
-- ✅ Renaming `sinks` → `sink`
-- ✅ Creating placeholder directories (`libs/ai`, `source`)
+### High Impact Changes
+- 🔴 **API client consolidation** - affects all models
+- 🔴 **No backwards compatibility** - breaking change for consumers
+- 🔴 **Directory deletions** - models/ and api/ completely removed
 
 ### Medium Risk
-- ⚠️ Moving API layer (`api/index.ts` → `base/db-api.ts`) - affects all models
-- ⚠️ Splitting `models/source.ts` - requires careful dependency management
-- ⚠️ Moving Block/Relation - dynamic imports need path updates
+- ⚠️ **Source splitting** - 1 file → 4 files requires careful dependency management
+- ⚠️ **Dynamic imports** - resolver paths must be updated correctly
+- ⚠️ **Extension ↔ Client** - circular dependency must be preserved
 
-### High Risk
-- 🔴 Extension ↔ Client circular dependency - must preserve import structure
-- 🔴 Resolver dynamic imports - must update paths correctly
-- 🔴 Backwards compatibility - must maintain `models/index.ts` exports
-
-### Mitigation Strategies
-
-1. **Incremental Approach:** Move files one domain at a time, verify build after each
-2. **Backwards Compatibility:** Keep `models/index.ts` re-exporting from new locations
-3. **Build Validation:** Run `npm run build` after each phase
-4. **Import Search:** Use grep to find all import statements before moving files
-
-## Testing Strategy
-
-### Build Testing
-```bash
-cd packages/core
-pnpm install  # Ensure dependencies are fresh
-pnpm build    # Verify TypeScript compilation
-```
-
-### Import Verification
-```bash
-# Search for old import patterns
-grep -rn "from '../api'" src/
-grep -rn "from '../models/block'" src/
-grep -rn "from '../models/relation'" src/
-grep -rn "from '../models/client'" src/
-grep -rn "from '../models/source'" src/
-grep -rn "from '../sinks'" src/
-
-# Should return no results after refactoring
-```
-
-### Type Checking
-```bash
-npx tsc --noEmit --project packages/core/tsconfig.json
-```
-
-### Integration Testing
-- If the project has tests, run them after refactoring:
-  ```bash
-  pnpm test
-  # or
-  npm test
-  ```
-
-## Rollback Plan
-
-If critical issues arise:
-
-1. **Git Reset:** Use git to revert to pre-refactoring state
-   ```bash
-   git checkout develop
-   git reset --hard HEAD
-   ```
-
-2. **Partial Rollback:** If only specific files are problematic:
-   ```bash
-   git checkout HEAD -- packages/core/src/[problematic-path]
-   ```
-
-3. **Incremental Fix:** Fix import issues one by one using TypeScript errors as guide
+### Mitigation
+1. **Incremental execution** - one phase at a time
+2. **Build verification** - after each major phase
+3. **Automated verification** - Prettier + ESLint + TypeScript
+4. **Import search** - grep for old patterns before completion
 
 ## Success Criteria
 
 ✅ All files moved to target structure
 ✅ Zero TypeScript compilation errors
-✅ All imports updated correctly
-✅ Backwards compatibility maintained via `models/index.ts`
+✅ Zero ESLint errors
+✅ All code formatted with Prettier
 ✅ Build succeeds (`pnpm build`)
-✅ No broken circular dependencies
-✅ All singletons preserved (configStore, authStore, dbApi instances)
+✅ No old import patterns found
+✅ `models/` directory deleted
+✅ `api/` directory deleted
+✅ CoreAPIClient merged into DBAPIClient
+✅ All singletons preserved (configStore, authStore, static dbApi)
 ✅ Vue integration intact (Pinia, reactive state, Vue Flow)
-✅ Active Record pattern preserved (domain + data access mixed)
+✅ Active Record pattern preserved
+
+## Breaking Changes Notice
+
+⚠️ **BREAKING CHANGES** - All consumers of `@inkcre/core` must update imports:
+
+```typescript
+// ❌ OLD (will break)
+import { Block } from '@inkcre/core/models'
+import { DBAPIClient, CoreAPIClient } from '@inkcre/core/api'
+
+// ✅ NEW
+import { Block } from '@inkcre/core/info-base'
+import { DBAPIClient } from '@inkcre/core/base'
+// CoreAPIClient is now part of DBAPIClient
+```
 
 ## Post-Refactoring Tasks
 
-1. **Update Documentation:** Update any architecture docs to reflect new structure
-2. **Update Dependent Packages:** Check if other packages in monorepo import from `packages/core`
-3. **Consider Future Improvements:**
-   - Extract Log model to dedicated `observability/` domain
+1. ✅ **Update all dependent packages** in the monorepo
+2. ✅ **Update documentation** to reflect new structure
+3. ✅ **Update CI/CD** to run verification scripts
+4. ✅ **Create migration guide** for external consumers
+5. 🔮 **Future improvements:**
    - Implement AI provider integration in `libs/ai/`
-   - Clarify `source/` vs `obsrc/` distinction
-   - Consider separating data access layer (if requirements change)
+   - Consider separating data access layer (Repository pattern)
+   - Add unit tests for each domain
 
 ## Notes
 
-- **Expected Behavior Preserved:**
-  - Vue coupling maintained (Pinia, refs, Vue Flow)
-  - Singletons maintained (configStore, authStore, static dbApi)
-  - Active Record pattern maintained (mixed domain + data access)
-
-- **Philosophy:**
-  - Domain-driven organization over layer-based
-  - Clear boundaries between features (extension, client, info-base, obsrc)
-  - Backwards compatibility during transition
-  - Preserve existing architectural patterns (not a re-architecture)
-
-- **Timeline:**
-  - Estimated: 2-4 hours for careful execution
-  - Can be done incrementally (phase by phase)
-  - Build verification after each phase recommended
+- **Philosophy:** Ruthless evolution, zero technical debt preservation
+- **Approach:** Domain-driven organization with clear boundaries
+- **Quality:** Automated verification via Prettier + ESLint
+- **Timeline:** ~3-5 hours for careful execution with verification
