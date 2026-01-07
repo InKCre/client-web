@@ -1,6 +1,6 @@
-import { z } from "zod";
-import { Z } from "zod-class";
-import { DBAPIClient } from "../api";
+import { z } from 'zod'
+import { Z } from 'zod-class'
+import { DBAPIClient } from '../base/db-api'
 import {
   Storage as ProtocolStorage,
   type StorageClass,
@@ -9,7 +9,7 @@ import {
   StorageRefZ,
   type StorageRef,
   type IStorageBlock,
-} from "../info-base/storages/base";
+} from './storages/base'
 
 // ============================================================================
 // Storage Type Model
@@ -20,22 +20,14 @@ export class StorageType extends Z.class({
   description: z.string().optional(),
   config_schema: z.record(z.string(), z.unknown()).optional().default({}),
 }) {
-  static dbApi: DBAPIClient = new DBAPIClient(
-    "storage_types",
-    StorageType,
-    "public"
-  );
+  static dbApi: DBAPIClient = new DBAPIClient('storage_types', StorageType, 'public')
 
   static async get(id: StorageTypeRef): Promise<StorageType> {
-    return new StorageType(
-      (await this.dbApi.from().select().eq("id", id).single()).data!
-    );
+    return new StorageType((await this.dbApi.from().select().eq('id', id).single()).data!)
   }
 
   static async getAll(): Promise<StorageType[]> {
-    return (await this.dbApi.from().select()).data!.map(
-      (d) => new StorageType(d)
-    );
+    return (await this.dbApi.from().select()).data!.map((d) => new StorageType(d))
   }
 }
 
@@ -53,32 +45,28 @@ export class Storage<RawContentT = unknown> extends Z.class({
   nickname: z.string().nullable(),
   config: z.looseObject({}).default({}),
 }) {
-  private static dbApi: DBAPIClient = new DBAPIClient("storages", Storage);
+  private static dbApi: DBAPIClient = new DBAPIClient('storages', Storage)
 
   /**
    * Get a storage record by ID from the database.
    * Returns an instance of the registered handler class.
    */
-  static async get<RawContentT = unknown>(
-    id: StorageRef
-  ): Promise<ProtocolStorage<RawContentT>> {
+  static async get<RawContentT = unknown>(id: StorageRef): Promise<ProtocolStorage<RawContentT>> {
     const storageRecord = new Storage(
-      (await this.dbApi.from().select().eq("id", id).single()).data!
-    );
-    const Handler = ProtocolStorage.getHandler(storageRecord.type);
+      (await this.dbApi.from().select().eq('id', id).single()).data!
+    )
+    const Handler = ProtocolStorage.getHandler(storageRecord.type)
     if (!Handler) {
-      throw new Error(
-        `No handler registered for storage type: ${storageRecord.type}`
-      );
+      throw new Error(`No handler registered for storage type: ${storageRecord.type}`)
     }
-    return new Handler(storageRecord) as ProtocolStorage<RawContentT>;
+    return new Handler(storageRecord) as ProtocolStorage<RawContentT>
   }
 
   /**
    * Get all storage records from the database.
    */
   static async getAll(): Promise<Storage[]> {
-    return (await this.dbApi.from().select()).data!.map((d) => new Storage(d));
+    return (await this.dbApi.from().select()).data!.map((d) => new Storage(d))
   }
 
   /**
@@ -90,13 +78,13 @@ export class Storage<RawContentT = unknown> extends Z.class({
    */
   static async fetchRawContent(block: IStorageBlock): Promise<unknown> {
     if (block.storage === null || block.storage === undefined) {
-      return block.content;
+      return block.content
     }
-    const storage = await Storage.get(block.storage);
-    return storage.getRawContent(block);
+    const storage = await Storage.get(block.storage)
+    return storage.getRawContent(block)
   }
 }
 
 // Re-export protocol types and classes for convenience
-export { StorageTypeRefZ, StorageRefZ } from "../info-base/storages/base";
-export type { StorageTypeRef, StorageRef, StorageClass } from "../info-base/storages/base";
+export { StorageTypeRefZ, StorageRefZ } from '../info-base/storages/base'
+export type { StorageTypeRef, StorageRef, StorageClass } from '../info-base/storages/base'

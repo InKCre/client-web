@@ -6,7 +6,7 @@
  * Apps must extend this class and provide contentComp Vue component.
  */
 
-import { Resolver } from "./base";
+import { Resolver } from './base'
 
 /**
  * Abstract image resolver with logic implementation.
@@ -14,17 +14,17 @@ import { Resolver } from "./base";
  * Apps must extend and provide contentComp.
  */
 export class ImageResolver extends Resolver<Blob, string> {
-  static readonly type = "image";
-  protected _objectUrl: string | null = null;
+  static readonly type = 'image'
+  protected _objectUrl: string | null = null
 
   static {
-    Resolver.register("image", this);
+    Resolver.register('image', this)
   }
 
   protected async _getSolvedContent(): Promise<string> {
-    const rawContent = await this.getRawContent();
-    this._objectUrl = URL.createObjectURL(rawContent);
-    return this._objectUrl;
+    const rawContent = await this.getRawContent()
+    this._objectUrl = URL.createObjectURL(rawContent)
+    return this._objectUrl
   }
 
   /**
@@ -34,8 +34,8 @@ export class ImageResolver extends Resolver<Blob, string> {
    */
   async dispose(): Promise<void> {
     if (this._objectUrl) {
-      URL.revokeObjectURL(this._objectUrl);
-      this._objectUrl = null;
+      URL.revokeObjectURL(this._objectUrl)
+      this._objectUrl = null
     }
   }
 }

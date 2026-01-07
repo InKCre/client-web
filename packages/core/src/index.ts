@@ -8,11 +8,11 @@
  * - Storage abstraction (Storage)
  */
 
-// Store
-export { store } from "./store";
+// Core singleton
+export { store } from './store'
 
-// Base utilities
-export { zinstance } from "./base";
+// Base layer
+export { APIError, DBAPIClient, CoreAPIClient } from './base'
 
 // Extension System (protocols + Module Federation + Extension model)
 export {
@@ -28,14 +28,52 @@ export {
   isMFInitialized,
   type RemoteConfig,
   type MFImplementation,
-  // Extension model (from models)
+  // Extension model
   Extension,
   InstallExtensionForm,
   type ExtensionRef,
-} from "./extension";
+} from './extension'
 
-// Resolver System (protocols + implementations)
+// Client
 export {
+  Client,
+  CreateClientForm,
+  type ClientRef,
+  makeClientProp,
+  makeClientRefProp,
+} from './client'
+
+// Source
+export {
+  Source,
+  SourceForm,
+  SourceType,
+  CollectAt,
+  SourceCollectJob,
+  SourceCollectJobForm,
+  SourceCollectJobStatus,
+  type SourceRef,
+  type SourceTypeRef,
+  type SourceCollectJobRef,
+  makeSourceProp,
+  makeSourceRefProp,
+} from './source'
+
+// Observability
+export { Log, type LogRef } from './obsrv'
+
+// Info-Base (Blocks, Relations, Storage, Resolvers)
+export {
+  // Models
+  Block,
+  Relation,
+  Storage as StorageModel,
+  type BlockRef,
+  type RelationRef,
+  makeBlockProp,
+  makeBlockRefProp,
+  makeRelationProp,
+  makeRelationRefProp,
   // Resolver protocols
   type ResolverContentState,
   type ContentCompProps,
@@ -45,10 +83,6 @@ export {
   ImageResolver,
   VideoResolver,
   HtmlResolver,
-} from "./info-base";
-
-// Storage System (protocols + implementations)
-export {
   // Storage protocols
   type StorageTypeRef,
   StorageTypeRefZ,
@@ -65,7 +99,25 @@ export {
   HttpJsonStorage,
   type VideoContent,
   type HtmlContent,
-} from "./info-base";
+} from './info-base'
+
+// Sink (Output formatters)
+export {
+  LayoutType,
+  TopologyType,
+  topologyToLayout,
+  DEFAULT_DAGRE_CONFIG,
+  LayoutDirection,
+  DEFAULT_CIRCULAR_CONFIG,
+  DEFAULT_RADIAL_CONFIG,
+  DEFAULT_FORCE_CONFIG,
+  DEFAULT_GRID_CONFIG,
+  classicalMDS,
+  computeIntraCommunityDistances,
+  computeInterCommunityDistances,
+  blockToNode,
+  relationToEdge,
+} from './sink/graph'
 
 // Configuration
 export {
@@ -89,30 +141,10 @@ export {
   type LLMProviderConfig,
   type AdapterType,
   type ConfigAdapterWithWrite,
-} from "./config";
+} from './config'
 
 // Authentication
-export { authStore, createAuthStore } from "./auth";
-
-// API Clients
-export { APIError, CoreAPIClient, DBAPIClient } from "./api";
-
-// Models
-export {
-  Block,
-  Relation,
-  Source,
-  CollectAt,
-  Log,
-  SourceCollectJob,
-  SourceCollectJobForm,
-  SourceCollectJobStatus,
-  SourceType,
-  SourceForm,
-  makeClientRefProp,
-  makeExtensionProp,
-  Client,
-} from "./models";
+export { authStore, createAuthStore } from './auth'
 
 // Utils
 export {
@@ -128,26 +160,8 @@ export {
   makeObjectProp,
   useOptionalVModel,
   type XOR,
-} from "./utils/vue-props";
+  zinstance,
+} from './utils'
 
-// Sinks (as namespace)
-// export * as sinks from "./sinks";
-
-// Graph utilities and types (re-export for direct import)
-// export * as graphSink from "./sinks/graph";
-export {
-  LayoutType,
-  TopologyType,
-  topologyToLayout,
-  DEFAULT_DAGRE_CONFIG,
-  LayoutDirection,
-  DEFAULT_CIRCULAR_CONFIG,
-  DEFAULT_RADIAL_CONFIG,
-  DEFAULT_FORCE_CONFIG,
-  DEFAULT_GRID_CONFIG,
-  classicalMDS,
-  computeIntraCommunityDistances,
-  computeInterCommunityDistances,
-  blockToNode,
-  relationToEdge,
-} from "./sinks/graph";
+// AI (placeholder)
+export * from './libs/ai'

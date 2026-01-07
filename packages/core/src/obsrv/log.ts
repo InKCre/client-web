@@ -1,9 +1,9 @@
-import { z } from "zod";
-import { Z } from "zod-class";
-import { DBAPIClient } from "../api";
+import { z } from 'zod'
+import { Z } from 'zod-class'
+import { DBAPIClient } from '../base/db-api'
 
-export type LogRef = number;
-export const LogRefZ = z.number();
+export type LogRef = number
+export const LogRefZ = z.number()
 
 /**
  * Log model for observability logs.
@@ -19,29 +19,23 @@ export class Log extends Z.class({
   span_id: z.string().nullable(),
   attributes: z.looseObject({}).default(() => ({})),
 }) {
-  static dbApi: DBAPIClient = new DBAPIClient("logs", Log);
+  static dbApi: DBAPIClient = new DBAPIClient('logs', Log)
 
   static async get(id: LogRef): Promise<Log> {
-    return new Log(
-      (await this.dbApi.from().select().eq("id", id).single()).data!
-    );
+    return new Log((await this.dbApi.from().select().eq('id', id).single()).data!)
   }
 
   static async getByTraceId(
     traceId: string,
     options?: { limit?: number; cursor?: number }
   ): Promise<Log[]> {
-    let query = this.dbApi
-      .from()
-      .select()
-      .eq("trace_id", traceId)
-      .order("id", { ascending: true });
+    let query = this.dbApi.from().select().eq('trace_id', traceId).order('id', { ascending: true })
     if (options?.cursor) {
-      query = query.gt("id", options.cursor);
+      query = query.gt('id', options.cursor)
     }
     if (options?.limit) {
-      query = query.limit(options.limit);
+      query = query.limit(options.limit)
     }
-    return (await query).data?.map((item) => new Log(item)) ?? [];
+    return (await query).data?.map((item) => new Log(item)) ?? []
   }
 }

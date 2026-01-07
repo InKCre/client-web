@@ -1,4 +1,4 @@
-import z from "zod";
+import z from 'zod'
 
 /**
  * Create a zod transformer that accepts either a plain object or an instance.
@@ -9,14 +9,14 @@ import z from "zod";
  * @returns A zod transformer
  */
 export function zinstance<T = any>(cls: {
-  parse: (arg: any) => T;
-  [Symbol.hasInstance](instance: T): boolean;
+  parse: (arg: any) => T
+  [Symbol.hasInstance](instance: T): boolean
 }) {
   return z.transform<any, T>((val) => {
     if (val instanceof cls) {
-      return val;
+      return val
     } else {
-      return cls.parse(val);
+      return cls.parse(val)
     }
-  });
+  })
 }

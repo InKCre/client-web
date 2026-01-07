@@ -1,12 +1,9 @@
-import { defineStore } from "pinia";
-import { ref } from "vue";
-import { store } from "../store";
-import type { Config, ConfigAdapterWithWrite } from "./types";
-import { ConfigSchema } from "./schema";
-import {
-  loadConfig as zodLoadConfig,
-  type Adapter as ConfigAdapter,
-} from "zod-config";
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+import { store } from '../store'
+import type { Config, ConfigAdapterWithWrite } from './types'
+import { ConfigSchema } from './schema'
+import { loadConfig as zodLoadConfig, type Adapter as ConfigAdapter } from 'zod-config'
 
 /**
  * Config store using Pinia.
@@ -40,12 +37,12 @@ import {
  * await configStore.save(localStorageAdapter);
  * ```
  */
-export const useConfigStore = defineStore("inkcre-config", () => {
+export const useConfigStore = defineStore('inkcre-config', () => {
   // State - Direct access to config object
-  const config = ref<Config>(ConfigSchema.parse({}));
-  const adapters = ref<ConfigAdapterWithWrite[]>([]);
-  const isLoading = ref(false);
-  const error = ref<Error | null>(null);
+  const config = ref<Config>(ConfigSchema.parse({}))
+  const adapters = ref<ConfigAdapterWithWrite[]>([])
+  const isLoading = ref(false)
+  const error = ref<Error | null>(null)
 
   /**
    * Load configuration from adapters.
@@ -56,25 +53,23 @@ export const useConfigStore = defineStore("inkcre-config", () => {
    * await configStore.load([localStorageAdapter]);
    * ```
    */
-  async function load(
-    configAdapters?: ConfigAdapterWithWrite[]
-  ): Promise<void> {
-    isLoading.value = true;
-    error.value = null;
+  async function load(configAdapters?: ConfigAdapterWithWrite[]): Promise<void> {
+    isLoading.value = true
+    error.value = null
     try {
       const loaded = await zodLoadConfig({
         schema: ConfigSchema,
         adapters: configAdapters ?? adapters.value,
-      });
-      config.value = loaded;
-      console.log("[Config] Config loaded successfully", loaded);
+      })
+      config.value = loaded
+      console.log('[Config] Config loaded successfully', loaded)
     } catch (err) {
-      error.value = err as Error;
-      console.error("[Config] Failed to load config:", err);
+      error.value = err as Error
+      console.error('[Config] Failed to load config:', err)
       // Fallback to defaults
-      config.value = ConfigSchema.parse({});
+      config.value = ConfigSchema.parse({})
     } finally {
-      isLoading.value = false;
+      isLoading.value = false
     }
   }
 
@@ -89,14 +84,14 @@ export const useConfigStore = defineStore("inkcre-config", () => {
    * ```
    */
   async function save(configAdapter?: ConfigAdapterWithWrite): Promise<void> {
-    error.value = null;
+    error.value = null
     try {
-      await (configAdapter ?? adapters.value[0]).write({ ...config.value });
-      console.log("[Config] Config saved successfully");
+      await (configAdapter ?? adapters.value[0]).write({ ...config.value })
+      console.log('[Config] Config saved successfully')
     } catch (err) {
-      error.value = err as Error;
-      console.error("[Config] Failed to save config:", err);
-      throw err;
+      error.value = err as Error
+      console.error('[Config] Failed to save config:', err)
+      throw err
     }
   }
 
@@ -105,8 +100,8 @@ export const useConfigStore = defineStore("inkcre-config", () => {
    * Note: This only resets in-memory config, not persisted storage.
    */
   function reset(): void {
-    config.value = ConfigSchema.parse({});
-    console.log("[Config] Config reset to defaults");
+    config.value = ConfigSchema.parse({})
+    console.log('[Config] Config reset to defaults')
   }
 
   /**
@@ -114,8 +109,8 @@ export const useConfigStore = defineStore("inkcre-config", () => {
    *
    * @param newAdapters - Array of config adapters
    */
-  function setAdapters(newAdapters: ConfigAdapter[]): void {
-    adapters.value = newAdapters;
+  function setAdapters(newAdapters: ConfigAdapterWithWrite[]): void {
+    adapters.value = newAdapters
   }
 
   return {
@@ -130,7 +125,7 @@ export const useConfigStore = defineStore("inkcre-config", () => {
     save,
     reset,
     setAdapters,
-  };
-});
+  }
+})
 
-export const configStore = useConfigStore(store);
+export const configStore = useConfigStore(store)

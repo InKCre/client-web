@@ -25,9 +25,9 @@
  */
 
 // Export store
-export { useConfigStore, configStore } from "./store";
+export { useConfigStore, configStore } from './store'
 
 // Re-export everything from other config modules
-export * from "./schema";
-export * from "./types";
-export * from "./adapters";
+export * from './schema'
+export * from './types'
+export * from './adapters'

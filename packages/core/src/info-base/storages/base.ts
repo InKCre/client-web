@@ -7,17 +7,17 @@
  * This module defines the Storage class and registry pattern.
  */
 
-import { z } from "zod";
+import { z } from 'zod'
 
 // ============================================================================
 // Storage Type References
 // ============================================================================
 
-export type StorageTypeRef = string;
-export const StorageTypeRefZ = z.string();
+export type StorageTypeRef = string
+export const StorageTypeRefZ = z.string()
 
-export type StorageRef = number;
-export const StorageRefZ = z.number();
+export type StorageRef = number
+export const StorageRefZ = z.number()
 
 // ============================================================================
 // Block Interface (minimal, for type compatibility)
@@ -27,16 +27,16 @@ export const StorageRefZ = z.number();
  * Minimal block interface for storage compatibility.
  */
 export interface IStorageBlock {
-  id: number;
-  storage: number | null;
-  content: string;
+  id: number
+  storage: number | null
+  content: string
 }
 
 // ============================================================================
 // Storage Class
 // ============================================================================
 
-export type StorageClass = new (...args: any[]) => Storage;
+export type StorageClass = new (...args: any[]) => Storage
 
 /**
  * Abstract storage class - provides registry pattern and interface.
@@ -47,16 +47,16 @@ export type StorageClass = new (...args: any[]) => Storage;
  */
 export abstract class Storage<RawContentT = unknown> {
   // Storage record data
-  readonly id?: StorageRef;
-  readonly type: StorageTypeRef;
-  readonly nickname: string | null;
-  readonly config: Record<string, unknown>;
+  readonly id?: StorageRef
+  readonly type: StorageTypeRef
+  readonly nickname: string | null
+  readonly config: Record<string, unknown>
 
   // ============================================================================
   // Static Registry (Storage Manager)
   // ============================================================================
 
-  private static storageClasses: Map<StorageTypeRef, StorageClass> = new Map();
+  private static storageClasses: Map<StorageTypeRef, StorageClass> = new Map()
 
   /**
    * Decorator for auto-registering storage classes.
@@ -66,9 +66,9 @@ export abstract class Storage<RawContentT = unknown> {
    */
   static registry(type: StorageTypeRef) {
     return function <T extends StorageClass>(target: T): T {
-      Storage.registerHandler(type, target);
-      return target;
-    };
+      Storage.registerHandler(type, target)
+      return target
+    }
   }
 
   /**
@@ -77,7 +77,7 @@ export abstract class Storage<RawContentT = unknown> {
    * @param handler - The handler class
    */
   static registerHandler(type: StorageTypeRef, handler: StorageClass): void {
-    this.storageClasses.set(type, handler);
+    this.storageClasses.set(type, handler)
   }
 
   /**
@@ -86,14 +86,14 @@ export abstract class Storage<RawContentT = unknown> {
    * @returns The handler class or undefined if not found
    */
   static getHandler(type: StorageTypeRef): StorageClass | undefined {
-    return this.storageClasses.get(type);
+    return this.storageClasses.get(type)
   }
 
   /**
    * Get all registered storage type identifiers.
    */
   static getRegisteredTypes(): StorageTypeRef[] {
-    return Array.from(this.storageClasses.keys());
+    return Array.from(this.storageClasses.keys())
   }
 
   // ============================================================================
@@ -101,15 +101,15 @@ export abstract class Storage<RawContentT = unknown> {
   // ============================================================================
 
   constructor(data: {
-    id?: StorageRef;
-    type: StorageTypeRef;
-    nickname?: string | null;
-    config?: Record<string, unknown>;
+    id?: StorageRef
+    type: StorageTypeRef
+    nickname?: string | null
+    config?: Record<string, unknown>
   }) {
-    this.id = data.id;
-    this.type = data.type;
-    this.nickname = data.nickname ?? null;
-    this.config = data.config ?? {};
+    this.id = data.id
+    this.type = data.type
+    this.nickname = data.nickname ?? null
+    this.config = data.config ?? {}
   }
 
   // ============================================================================
@@ -124,7 +124,7 @@ export abstract class Storage<RawContentT = unknown> {
    * @returns The raw content
    */
   async getRawContent(block: IStorageBlock): Promise<RawContentT> {
-    return this._getRawContent(block);
+    return this._getRawContent(block)
   }
 
   /**
@@ -136,6 +136,6 @@ export abstract class Storage<RawContentT = unknown> {
    * @returns The raw content
    */
   protected async _getRawContent(block: IStorageBlock): Promise<RawContentT> {
-    return block.content as RawContentT;
+    return block.content as RawContentT
   }
 }

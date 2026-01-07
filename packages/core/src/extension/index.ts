@@ -1,9 +1,5 @@
 // Extension protocol
-export {
-  ExtensionState,
-  type IExtension,
-  type ExtensionRuntimeState,
-} from "./extension";
+export { ExtensionState, type IExtension, type ExtensionRuntimeState } from './extension'
 
 // Module Federation
 export {
@@ -14,7 +10,7 @@ export {
   isMFInitialized,
   type RemoteConfig,
   type MFImplementation,
-} from "./module-federation";
+} from './module-federation'
 
 // Extension Model
 export {
@@ -24,4 +20,4 @@ export {
   ExtensionRefZ,
   makeExtensionProp,
   makeExtensionRefProp,
-} from "./model";
+} from './model'

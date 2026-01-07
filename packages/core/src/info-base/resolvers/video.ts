@@ -5,28 +5,28 @@
  * Apps must extend this class and provide contentComp Vue component.
  */
 
-import { Resolver } from "./base";
+import { Resolver } from './base'
 
 export interface VideoContent {
-  url: string;
-  mimeType: string;
-  thumbnailUrl?: string;
+  url: string
+  mimeType: string
+  thumbnailUrl?: string
 }
 
-export type VideoRawContent = string | VideoContent;
+export type VideoRawContent = string | VideoContent
 
 /**
  * Abstract video resolver with logic implementation.
  * Apps must extend and provide contentComp.
  */
 export class VideoResolver extends Resolver<VideoRawContent> {
-  static readonly type = "video";
+  static readonly type = 'video'
 
   static {
-    Resolver.register("video", this);
+    Resolver.register('video', this)
   }
 
   protected async _getSolvedContent(): Promise<VideoRawContent> {
-    return this.getRawContent();
+    return this.getRawContent()
   }
 }

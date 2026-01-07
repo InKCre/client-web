@@ -7,7 +7,7 @@ export {
   type StorageRef,
   StorageRefZ,
   type IStorageBlock,
-} from "./base";
+} from './base'
 
 // HTTP storage implementations
 export {
@@ -22,4 +22,4 @@ export {
   type TextContent,
   type HtmlContent,
   type JsonContent,
-} from "./http";
+} from './http'

@@ -6,17 +6,17 @@
  */
 
 export interface RemoteConfig {
-  name: string;
-  entry: string;
-  type: "module" | "script";
+  name: string
+  entry: string
+  type: 'module' | 'script'
 }
 
 export interface MFImplementation {
-  registerRemotes: (remotes: RemoteConfig[]) => void;
-  loadRemote: <T>(remoteName: string) => Promise<T | null>;
+  registerRemotes: (remotes: RemoteConfig[]) => void
+  loadRemote: <T>(remoteName: string) => Promise<T | null>
 }
 
-let _mfImplementation: MFImplementation | null = null;
+let _mfImplementation: MFImplementation | null = null
 
 /**
  * Set the Module Federation implementation.
@@ -35,16 +35,14 @@ let _mfImplementation: MFImplementation | null = null;
  * ```
  */
 export function setMFImplementation(impl: MFImplementation): void {
-  _mfImplementation = impl;
+  _mfImplementation = impl
 }
 
 export function getMFImplementation(): MFImplementation {
   if (!_mfImplementation) {
-    throw new Error(
-      "Module Federation not initialized. Call setMFImplementation() first."
-    );
+    throw new Error('Module Federation not initialized. Call setMFImplementation() first.')
   }
-  return _mfImplementation;
+  return _mfImplementation
 }
 
 /**
@@ -54,7 +52,7 @@ export function getMFImplementation(): MFImplementation {
  * @throws Error if MF not initialized
  */
 export function registerRemotes(remotes: RemoteConfig[]): void {
-  getMFImplementation().registerRemotes(remotes);
+  getMFImplementation().registerRemotes(remotes)
 }
 
 /**
@@ -65,12 +63,12 @@ export function registerRemotes(remotes: RemoteConfig[]): void {
  * @throws Error if MF not initialized
  */
 export async function loadRemote<T = any>(remoteName: string): Promise<T | null> {
-  return getMFImplementation().loadRemote<T>(remoteName);
+  return getMFImplementation().loadRemote<T>(remoteName)
 }
 
 /**
  * Check if Module Federation has been initialized.
  */
 export function isMFInitialized(): boolean {
-  return _mfImplementation !== null;
+  return _mfImplementation !== null
 }

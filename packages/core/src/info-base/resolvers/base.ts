@@ -12,13 +12,13 @@
  * - This implementation integrates with Block, Relation, and Storage models
  */
 
-import { ref, type Component, type Ref } from "vue";
-import type { Block } from "../../models/block";
-import type { Relation } from "../../models/relation";
+import { ref, type Component, type Ref } from 'vue'
+import type { Block } from '../block'
+import type { Relation } from '../relation'
 
 // DEBUG
-const instanceId = Math.random().toString(36).substring(7);
-console.log(`[Core Init] Loading Core module. Instance ID: ${instanceId}`);
+const instanceId = Math.random().toString(36).substring(7)
+console.log(`[Core Init] Loading Core module. Instance ID: ${instanceId}`)
 
 // ============================================================================
 // Resolver Content State
@@ -29,8 +29,8 @@ console.log(`[Core Init] Loading Core module. Instance ID: ${instanceId}`);
  * Used by UI wrappers to show loading/error states.
  */
 export interface ResolverContentState {
-  status: "idle" | "loading" | "success" | "error";
-  error: Error | null;
+  status: 'idle' | 'loading' | 'success' | 'error'
+  error: Error | null
 }
 
 // ============================================================================
@@ -43,15 +43,15 @@ export interface ResolverContentState {
  */
 export interface ContentCompProps<SolvedContentT = any> {
   /** The resolver instance (provides access to block and relations) */
-  resolver: Resolver<any, SolvedContentT>;
-  solvedContent: SolvedContentT;
+  resolver: Resolver<any, SolvedContentT>
+  solvedContent: SolvedContentT
 }
 
 // ============================================================================
 // Resolver Base Class (with DB Integration)
 // ============================================================================
 
-type ResolverClass = new (block: Block, relations?: Relation[]) => Resolver;
+type ResolverClass = new (block: Block, relations?: Relation[]) => Resolver
 
 /**
  * Base class for resolver implementations with Block, Relation, and Storage integration.
@@ -68,40 +68,37 @@ type ResolverClass = new (block: Block, relations?: Relation[]) => Resolver;
  */
 export class Resolver<RawContentT = any, SolvedContentT = RawContentT> {
   /** Resolver type identifier */
-  static readonly type: string;
+  static readonly type: string
 
   /** Vue component for rendering - settable by applications */
-  static contentComp: Component;
+  static contentComp: Component
 
-  private static resolverClasses: Map<string, ResolverClass> = new Map();
-  private static defaultResolverType: string | null = null;
+  private static resolverClasses: Map<string, ResolverClass> = new Map()
+  private static defaultResolverType: string | null = null
 
   static register(type: string, resolverClass: ResolverClass): void {
-    this.resolverClasses.set(type, resolverClass);
-    console.log("[Resolver] Registered resolver:", type);
+    this.resolverClasses.set(type, resolverClass)
+    console.log('[Resolver] Registered resolver:', type)
 
     if (!this.defaultResolverType) {
-      console.log("[Resolver] Set default resolver to:", type);
-      this.defaultResolverType = type;
+      console.log('[Resolver] Set default resolver to:', type)
+      this.defaultResolverType = type
     }
   }
 
   static getClass(type: string): ResolverClass {
-    return (
-      this.resolverClasses.get(type) ||
-      this.resolverClasses.get(this.defaultResolverType!)!
-    );
+    return this.resolverClasses.get(type) || this.resolverClasses.get(this.defaultResolverType!)!
   }
 
-  readonly block: Block;
-  protected _relations: Relation[] | null;
+  readonly block: Block
+  protected _relations: Relation[] | null
 
-  protected _rawContent: RawContentT | null = null;
+  protected _rawContent: RawContentT | null = null
   readonly solvedContentState: Ref<ResolverContentState> = ref({
-    status: "idle",
+    status: 'idle',
     error: null,
-  });
-  protected _solvedContent: SolvedContentT | null = null;
+  })
+  protected _solvedContent: SolvedContentT | null = null
 
   /**
    * Create a resolver instance for a block.
@@ -109,11 +106,11 @@ export class Resolver<RawContentT = any, SolvedContentT = RawContentT> {
    * @param relations - Optional pre-loaded relations (lazy-loads if not provided)
    */
   constructor(block: Block, relations?: Relation[]) {
-    this.block = block as Block;
-    this._relations = relations ?? null; // null means not loaded yet
+    this.block = block as Block
+    this._relations = relations ?? null // null means not loaded yet
 
     if (block.storage === null) {
-      this._rawContent = block.content as RawContentT;
+      this._rawContent = block.content as RawContentT
     }
   }
 
@@ -123,12 +120,10 @@ export class Resolver<RawContentT = any, SolvedContentT = RawContentT> {
   async getRelations(force = false): Promise<Relation[]> {
     if (this._relations === null || force) {
       // Dynamic import to avoid circular dependency
-      const { Relation } = await import("../../models/relation");
-      this._relations = (await Relation.getByBlock(
-        this.block.id
-      )) as Relation[];
+      const { Relation } = await import('../relation')
+      this._relations = (await Relation.getByBlock(this.block.id)) as Relation[]
     }
-    return this._relations as Relation[];
+    return this._relations as Relation[]
   }
 
   /**
@@ -138,15 +133,15 @@ export class Resolver<RawContentT = any, SolvedContentT = RawContentT> {
   async getRawContent(force = false): Promise<RawContentT> {
     if (!this._rawContent || force) {
       if (this.block.storage === null) {
-        this._rawContent = this.block.content as RawContentT;
+        this._rawContent = this.block.content as RawContentT
       } else {
         // Dynamic import to avoid circular dependency
-        const { Storage } = await import("../../models/storage");
-        const storage = await Storage.get<RawContentT>(this.block.storage);
-        this._rawContent = await storage.getRawContent(this.block);
+        const { Storage } = await import('../storage-model')
+        const storage = await Storage.get<RawContentT>(this.block.storage)
+        this._rawContent = await storage.getRawContent(this.block)
       }
     }
-    return this._rawContent;
+    return this._rawContent
   }
 
   /**
@@ -155,23 +150,23 @@ export class Resolver<RawContentT = any, SolvedContentT = RawContentT> {
    */
   async getSolvedContent(force = false): Promise<SolvedContentT> {
     if (this._solvedContent && !force) {
-      return this._solvedContent;
+      return this._solvedContent
     }
-    if (this.solvedContentState.value.status === "loading") {
+    if (this.solvedContentState.value.status === 'loading') {
       // Prevent concurrent loads
-      throw new Error("Content is already loading");
+      throw new Error('Content is already loading')
     }
     try {
-      this.solvedContentState.value.status = "loading";
-      this.solvedContentState.value.error = null;
-      this._solvedContent = await this._getSolvedContent();
-      this.solvedContentState.value.status = "success";
-      return this._solvedContent;
+      this.solvedContentState.value.status = 'loading'
+      this.solvedContentState.value.error = null
+      this._solvedContent = await this._getSolvedContent()
+      this.solvedContentState.value.status = 'success'
+      return this._solvedContent
     } catch (error) {
-      this.solvedContentState.value.status = "error";
+      this.solvedContentState.value.status = 'error'
       this.solvedContentState.value.error =
-        error instanceof Error ? error : new Error(String(error));
-      throw error;
+        error instanceof Error ? error : new Error(String(error))
+      throw error
     }
   }
 
@@ -180,7 +175,7 @@ export class Resolver<RawContentT = any, SolvedContentT = RawContentT> {
    * Override in subclasses to implement specific logic.
    */
   protected _getSolvedContent(): Promise<SolvedContentT> {
-    return this.getRawContent() as unknown as Promise<SolvedContentT>;
+    return this.getRawContent() as unknown as Promise<SolvedContentT>
   }
 
   /**
