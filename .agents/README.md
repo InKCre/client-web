@@ -6,17 +6,15 @@ AI agent resources for this repository.
 
 ```
 .agents/
-├── prompts/              # Reusable prompt templates
-│   └── code-for-human.md # Human-readable code guidelines
-└── README.md             # This file
+├── prompts/                        # Reusable prompt templates
+│   └── code-for-human.md
+├── rules/                          # Agent behavior rules
+│   └── writing-agent-document.md
+└── README.md
 ```
-
-## Usage
-
-Reference prompts from AGENTS.md or .github/instructions files.
 
 ## Related
 
-- [Root AGENTS.md](../AGENTS.md) - Main agent guide
-- [.github/instructions/](../.github/instructions/) - Context-specific instructions
-- [.github/agents/](../.github/agents/) - GitHub Copilot agents
+- [Root AGENTS.md](../AGENTS.md)
+- [.github/instructions/](../.github/instructions/)
+- [.github/agents/](../.github/agents/)

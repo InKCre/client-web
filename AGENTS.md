@@ -12,10 +12,10 @@ Information management system for automatic collection, organization, and use of
 
 ## Quick Reference
 
-- **Package Manager**: pnpm
-- **Node**: ^20.19.0 or >=22.12.0
-- **Dev**: `pnpm dev` / `pnpm dev:all`
-- **Build**: `pnpm build`
+- Package Manager: pnpm
+- Node: ^20.19.0 or >=22.12.0
+- Dev: `pnpm dev` / `pnpm dev:all`
+- Build: `pnpm build`
 
 ## Key Documents
 
@@ -27,14 +27,16 @@ Information management system for automatic collection, organization, and use of
 
 ## Business Domains
 
-- **source** - Data collectors (input)
-- **info-base** - Graph: block, relation, storage, resolver
-- **sink** - Output/visualization
-- **extension** - Plugin system (Module Federation)
-- **client** - Multi-client management
-- **obsrv** - Observability/logging
+- source - Data collectors (input)
+- info-base - Graph: block, relation, storage, resolver
+- sink - Output/visualization
+- extension - Plugin system (Module Federation)
+- client - Multi-client management
+- obsrv - Observability/logging
 
-## Coding Guidelines
+## Guidelines
 
 - Search before creating new types/utilities
 - [Write code for humans](./.agents/prompts/code-for-human.md)
+- [Writing agent documents](./.agents/rules/writing-agent-document.md)
+- After significant changes, refresh relevant AGENTS.md/ARCHITECTURE.md/FILESYSTEM.md
