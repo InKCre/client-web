@@ -1,30 +1,26 @@
 # Client-Web AGENTS.md
 
-Web client for InKCre - provides GUI for system management and visualization.
+Web client for InKCre - GUI for system management and visualization.
 
 ## Tech Stack
 
-| Category | Technology |
-|----------|------------|
-| Framework | Vue3 + TypeScript |
-| Styling | SCSS + UnoCSS |
-| UI Library | `@inkcre/web-design` |
-| Routing | vue-router |
-| State | pinia |
-| i18n | vue-i18n |
-| Graphs | Vue Flow, D3, dagre |
-| Deploy | Cloudflare Workers |
+- **Framework**: Vue3 + TypeScript
+- **Styling**: SCSS + UnoCSS
+- **UI Library**: `@inkcre/web-design`
+- **Routing**: vue-router
+- **State**: pinia
+- **i18n**: vue-i18n
+- **Graphs**: Vue Flow, D3, dagre
+- **Deploy**: Cloudflare Workers
 
 ## Business Domains
 
-| Domain | Purpose |
-|--------|---------|
-| source | Data collectors (input) |
-| info-base | Graph: block, relation, storage, resolver |
-| sink | Output/visualization |
-| extension | Plugin system |
-| client | Multi-client management |
-| obsrv | Observability/logging |
+- **source** - Data collectors (input)
+- **info-base** - Graph: block, relation, storage, resolver
+- **sink** - Output/visualization
+- **extension** - Plugin system
+- **client** - Multi-client management
+- **obsrv** - Observability/logging
 
 ## Directory Structure
 

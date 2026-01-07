@@ -4,14 +4,12 @@ Read [/.github/instructions/component.instructions.md](/.github/instructions/com
 
 ## Quick Reference
 
-| Domain | Components |
-|--------|------------|
-| client | clientList |
-| common | AppSidePanel |
-| extension | extensionCard, installExtension |
-| info-base | BlockNode, BlockDetailsPanel, resolvers/* |
-| obsrv | LogEntry, LogsViewer |
-| source | sourceCard, sourceForm, collectAtForm, collectJobForm |
+- **client**: clientList
+- **common**: AppSidePanel
+- **extension**: extensionCard, installExtension
+- **info-base**: BlockNode, BlockDetailsPanel, resolvers/*
+- **obsrv**: LogEntry, LogsViewer
+- **source**: sourceCard, sourceForm, collectAtForm, collectJobForm
 
 ## Component Pattern
 

@@ -4,18 +4,16 @@ Shared logic package for InKCre applications and extensions.
 
 ## Exports Overview
 
-| Module | Purpose |
-|--------|---------|
-| `auth` | Authentication store |
-| `base` | DBAPIClient, APIError |
-| `client` | Client model & API |
-| `config` | Configuration adapters & schema |
-| `extension` | Extension lifecycle, Module Federation |
-| `info-base` | Block, Relation, Storage, Resolvers |
-| `obsrv` | Observability (Log) |
-| `sink/graph` | Graph layouts & algorithms |
-| `source` | Source, CollectJob, CollectAt |
-| `utils` | Vue prop helpers |
+- `auth` - Authentication store
+- `base` - DBAPIClient, APIError
+- `client` - Client model & API
+- `config` - Configuration adapters & schema
+- `extension` - Extension lifecycle, Module Federation
+- `info-base` - Block, Relation, Storage, Resolvers
+- `obsrv` - Observability (Log)
+- `sink/graph` - Graph layouts & algorithms
+- `source` - Source, CollectJob, CollectAt
+- `utils` - Vue prop helpers
 
 ## Key Patterns
 

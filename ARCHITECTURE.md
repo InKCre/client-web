@@ -23,13 +23,11 @@
 
 ## Core Patterns
 
-| Pattern | Location | Purpose |
-|---------|----------|---------|
-| BusinessClass | `packages/core/src/` | Zod schema + TS class + static API |
-| Dual API | `core/src/base`, `core/src/client` | DBAPIClient (PostgREST) + CoreAPIClient (REST) |
-| Module Federation | `core/src/extension` | Dynamic plugin loading |
-| Registry | `core/src/info-base/` | Pluggable Storage & Resolver |
-| Config Adapters | `core/src/config` | Multi-source configuration |
+- **BusinessClass** (`core/src/`) - Zod schema + TS class + static API
+- **Dual API** (`core/src/base`, `core/src/client`) - DBAPIClient (PostgREST) + CoreAPIClient (REST)
+- **Module Federation** (`core/src/extension`) - Dynamic plugin loading
+- **Registry** (`core/src/info-base/`) - Pluggable Storage & Resolver
+- **Config Adapters** (`core/src/config`) - Multi-source configuration
 
 ## Data Flow
 
@@ -67,13 +65,11 @@
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Framework | Vue 3 (Composition API) |
-| Build | Vite, tsup |
-| Types | TypeScript, Zod |
-| State | Pinia |
-| Styling | SCSS, UnoCSS |
-| Graphs | Vue Flow, D3, Graphology |
-| Extensions | Module Federation |
-| Deploy | Cloudflare Workers |
+- **Framework**: Vue 3 (Composition API)
+- **Build**: Vite, tsup
+- **Types**: TypeScript, Zod
+- **State**: Pinia
+- **Styling**: SCSS, UnoCSS
+- **Graphs**: Vue Flow, D3, Graphology
+- **Extensions**: Module Federation
+- **Deploy**: Cloudflare Workers

@@ -20,12 +20,10 @@ extensions/
 
 ## Required Files
 
-| File | Purpose |
-|------|---------|
-| `src/index.ts` | Federation module entry, exports resolvers/storages |
-| `src/main.ts` | Development playground |
-| `vite.config.ts` | Module Federation configuration |
-| `package.json` | Extension dependencies |
+- `src/index.ts` - Federation module entry, exports resolvers/storages
+- `src/main.ts` - Development playground
+- `vite.config.ts` - Module Federation configuration
+- `package.json` - Extension dependencies
 
 ## Commands
 
