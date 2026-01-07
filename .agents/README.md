@@ -1,20 +1,12 @@
 # .agents Directory
 
-AI agent resources for this repository.
+AI agent resources. See [index.md](./index.md) for full catalog.
 
 ## Structure
 
 ```
 .agents/
-├── prompts/                        # Reusable prompt templates
-│   └── code-for-human.md
-├── rules/                          # Agent behavior rules
-│   └── writing-agent-document.md
-└── README.md
+├── index.md      # Document catalog
+├── prompts/      # Reusable prompts
+└── rules/        # Agent behavior rules
 ```
-
-## Related
-
-- [Root AGENTS.md](../AGENTS.md)
-- [.github/instructions/](../.github/instructions/)
-- [.github/agents/](../.github/agents/)

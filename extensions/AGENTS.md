@@ -35,8 +35,8 @@ pnpm build    # Build for production
 ## Extension Capabilities
 
 Extensions can register:
-- Custom **Resolvers** for new content types
-- Custom **Storages** for data retrieval
+- Custom Resolvers for new content types
+- Custom Storages for data retrieval
 - UI components
 
 ## Related
