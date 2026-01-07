@@ -12,7 +12,7 @@
 export { store } from './store'
 
 // Base layer
-export { APIError, DBAPIClient, CoreAPIClient } from './base'
+export { APIError, DBAPIClient } from './base'
 
 // Extension System (protocols + Module Federation + Extension model)
 export {

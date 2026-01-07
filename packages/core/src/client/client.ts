@@ -1,8 +1,9 @@
 import { z } from 'zod'
 import { Z } from 'zod-class'
-import { DBAPIClient } from '../base/db-api'
+import { DBAPIClient, APIError } from '../base/db-api'
 import { makeStringProp, makeObjectProp } from '../utils/vue-props'
 import { authStore } from '../auth'
+import { configStore as sharedConfigStore } from '../config'
 
 export type ClientRef = string
 export const makeClientProp = (v?: any) => makeObjectProp<Client>(v)
@@ -10,10 +11,13 @@ export const makeClientRefProp = (v?: any) => makeStringProp<ClientRef>(v)
 export const ClientRefZ = z.uuid()
 
 /**
- * Client
+ * Client Active Record
  *
- * All clients are equal peers. Each client can make requests to other clients
- * through their REST API endpoints.
+ * Clients represent API endpoints in the system. Each client has a REST API URL
+ * and provides methods for making authenticated requests to that endpoint.
+ *
+ * This class consolidates both peer-to-peer communication and Core API requests.
+ * To make a request, instantiate a Client by ID and use the request methods.
  */
 export class Client extends Z.class({
   id: ClientRefZ.default(() => crypto.randomUUID()),
@@ -52,9 +56,33 @@ export class Client extends Z.class({
   }
 
   /**
+   * Get the self/core client from config (INKCRE_CLIENT_ID).
+   * This client is used for Core API requests.
+   */
+  static async getSelf(): Promise<Client> {
+    const clientId = sharedConfigStore.config.INKCRE_CLIENT_ID
+    if (!clientId) {
+      throw new Error('INKCRE_CLIENT_ID is not configured')
+    }
+    return Client.get(clientId)
+  }
+
+  /**
+   * Get auth headers for requests
+   */
+  private async getAuthHeaders(): Promise<Record<string, string>> {
+    return {
+      Authorization: `Bearer ${await authStore.getToken()}`,
+    }
+  }
+
+  /**
    * Ping client to check online status
    */
   async ping(): Promise<'online' | 'offline'> {
+    if (!this.rest_api_url) {
+      return 'offline'
+    }
     try {
       const response = await fetch(`${this.rest_api_url}/health`, {
         method: 'GET',
@@ -68,22 +96,61 @@ export class Client extends Z.class({
   }
 
   /**
-   * Send request to this client's REST API endpoint
+   * Make a request to this client's REST API endpoint.
    *
-   * This enables peer-to-peer communication where Client A can make
-   * requests to Client B's API.
+   * Supports full HTTP request capabilities including:
+   * - Multiple HTTP methods (GET, POST, PUT, PATCH, DELETE)
+   * - JSON body or FormData/Blob
+   * - Query parameters
+   * - Schema-based response parsing
+   * - Automatic authentication
+   * - Token refresh on 401 errors
+   *
+   * @param options Request options
+   * @returns Parsed response data
+   * @throws APIError if the request fails
    */
   async request<T = any>(options: {
     method: string
     path: string
     body?: any
     query?: Record<string, any>
+    resBodySchema?: { parse<T>(input: unknown): T }
   }): Promise<T> {
-    const { method, path, body, query } = options
+    const { method, path, body, query, resBodySchema } = options
+
     if (!this.rest_api_url) {
       throw new Error(`Client ${this.id} does not have a REST API URL configured.`)
     }
+
     const url = new URL(`${this.rest_api_url}${path}`)
+
+    const config: RequestInit = {
+      method,
+      headers: {
+        ...(await this.getAuthHeaders()),
+      },
+    }
+
+    if (body !== undefined) {
+      if (
+        typeof body === 'object' &&
+        body !== null &&
+        !(body instanceof FormData) &&
+        !(body instanceof Blob) &&
+        !(body instanceof ArrayBuffer)
+      ) {
+        // JSON
+        config.body = JSON.stringify(body)
+        config.headers = {
+          'Content-Type': 'application/json',
+          ...config.headers,
+        }
+      } else {
+        // FormData / Blob / string / ArrayBuffer
+        config.body = body
+      }
+    }
 
     if (query) {
       Object.entries(query).forEach(([key, value]) => {
@@ -91,29 +158,104 @@ export class Client extends Z.class({
       })
     }
 
-    const config: RequestInit = {
-      method,
-      headers: {
-        Authorization: `Bearer ${await authStore.getToken()}`,
-      },
-    }
-
-    if (body !== undefined) {
-      config.body = JSON.stringify(body)
-    }
-
     try {
       const response = await fetch(url, config)
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`
+        let responseData
+
+        try {
+          responseData = await response.json()
+          if (responseData.message) {
+            errorMessage = responseData.message
+          } else if (responseData.error) {
+            errorMessage = responseData.error
+          }
+        } catch {
+          // If response is not JSON, use status text
+        }
+
+        // If unauthorized, try refreshing token and retry once
+        if (response.status === 401) {
+          try {
+            await authStore.refreshToken()
+            const retryResponse = await fetch(url, {
+              ...config,
+              headers: { ...(await this.getAuthHeaders()) },
+            })
+
+            if (retryResponse.ok) {
+              const retryData = await retryResponse.json()
+              return resBodySchema ? resBodySchema.parse(retryData) : retryData
+            }
+          } catch (retryError) {
+            console.warn('[Client] Token refresh and retry failed:', retryError)
+          }
+        }
+
+        throw new APIError(errorMessage, response.status, responseData)
       }
 
-      return await response.json()
+      const responseData = await response.json()
+      return resBodySchema ? resBodySchema.parse(responseData) : responseData
     } catch (error) {
-      console.error(`[Client] Request failed for ${this.id}:`, error)
-      throw error
+      if (error instanceof APIError) {
+        throw error
+      }
+      throw new APIError(error instanceof Error ? error.message : 'Network error', 0)
     }
+  }
+
+  /**
+   * Convenience method for GET requests
+   */
+  async get<T = any>(
+    path: string,
+    query?: Record<string, any>,
+    resBodySchema?: { parse<T>(input: unknown): T }
+  ): Promise<T> {
+    return this.request<T>({ method: 'GET', path, query, resBodySchema })
+  }
+
+  /**
+   * Convenience method for POST requests
+   */
+  async post<T = any>(
+    path: string,
+    body?: any,
+    resBodySchema?: { parse<T>(input: unknown): T }
+  ): Promise<T> {
+    return this.request<T>({ method: 'POST', path, body, resBodySchema })
+  }
+
+  /**
+   * Convenience method for PUT requests
+   */
+  async put<T = any>(
+    path: string,
+    body?: any,
+    resBodySchema?: { parse<T>(input: unknown): T }
+  ): Promise<T> {
+    return this.request<T>({ method: 'PUT', path, body, resBodySchema })
+  }
+
+  /**
+   * Convenience method for PATCH requests
+   */
+  async patch<T = any>(
+    path: string,
+    body?: any,
+    resBodySchema?: { parse<T>(input: unknown): T }
+  ): Promise<T> {
+    return this.request<T>({ method: 'PATCH', path, body, resBodySchema })
+  }
+
+  /**
+   * Convenience method for DELETE requests
+   */
+  async delete<T = any>(path: string, resBodySchema?: { parse<T>(input: unknown): T }): Promise<T> {
+    return this.request<T>({ method: 'DELETE', path, resBodySchema })
   }
 }
 

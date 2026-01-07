@@ -76,10 +76,7 @@ export class Storage<RawContentT = unknown> {
   // Static Registry (Storage Manager)
   // ============================================================================
 
-  private static storageClasses: Map<
-    StorageTypeRef,
-    new (data: any) => Storage<any>
-  > = new Map()
+  private static storageClasses: Map<StorageTypeRef, new (data: any) => Storage<any>> = new Map()
   private static dbApi: DBAPIClient = new DBAPIClient('storages')
 
   /**

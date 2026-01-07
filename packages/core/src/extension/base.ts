@@ -109,8 +109,6 @@ export class Extension extends Z.class({
 
   static dbApi: DBAPIClient = new DBAPIClient<Extension>('extensions', Extension)
 
-  static coreApi = new DBAPIClient('extensions', undefined, '/extensions')
-
   // ============================================================================
   // Static Registry
   // ============================================================================
@@ -576,12 +574,12 @@ export class InstallExtensionForm extends Z.class({
       params.append('version', this.version)
     }
 
-    const path = `/${this.id}?${params.toString()}`
-    const result = await Extension.coreApi.request<Extension>({
-      method: 'POST',
-      path: path,
-      body: this.enabled ? { enabled: this.enabled } : undefined,
-    })
+    const client = await Client.getSelf()
+    const path = `/extensions/${this.id}?${params.toString()}`
+    const result = await client.post<Extension>(
+      path,
+      this.enabled ? { enabled: this.enabled } : undefined
+    )
     return new Extension(result)
   }
 }
