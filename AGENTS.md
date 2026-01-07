@@ -1,17 +1,41 @@
-# AGENTS.md of InKCre Web Clients
+# AGENTS.md - InKCre Web Monorepo
 
-This is a monorepo with following repos:
+Information management system for automatic collection, organization, and use of information.
 
-- `packages/core`: logic shares acroos application and extensions
-- `packages/ext-dev-utils`
-- `apps/client-web`: web client
-- `apps/cliebt-webext`: browser extension client
-- `extensions/<extension_id>`: built-in InKCre web extension
+## Monorepo Structure
 
-## Development Workflow
+- `packages/core` - Shared logic: models, APIs, extensions, storage, resolvers
+- `packages/ext-dev-utils` - Extension development utilities
+- `apps/client-web` - Main web client (Vue3 + Vite)
+- `apps/client-webext` - Browser extension (WXT)
+- `extensions/<id>` - Module Federation remotes
 
-- Package manager: pnpm
+## Quick Reference
 
-## Coding Guideline
+- Package Manager: pnpm
+- Dev: `pnpm dev` / `pnpm dev:all`
+- Build: `pnpm build`
 
-- [Coding for human](/.agents/prompts/code-for-human.md)
+## Key Documents
+
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture
+- [FILESYSTEM.md](./FILESYSTEM.md) - Directory structure
+- [.agents/prompts/code-for-human.md](./.agents/prompts/code-for-human.md) - Code guidelines
+- [apps/client-web/AGENTS.md](./apps/client-web/AGENTS.md) - Client-web guide
+- [extensions/AGENTS.md](./extensions/AGENTS.md) - Extension guide
+
+## Business Domains
+
+- source - Data collectors (input)
+- info-base - Graph: block, relation, storage, resolver
+- sink - Output/visualization
+- extension - Plugin system (Module Federation)
+- client - Multi-client management
+- obsrv - Observability/logging
+
+## Guidelines
+
+- Search before creating new types/utilities
+- [Write code for humans](./.agents/prompts/code-for-human.md)
+- [Writing agent documents](./.agents/rules/writing-agent-document.md)
+- After significant changes, refresh relevant AGENTS.md/ARCHITECTURE.md/FILESYSTEM.md

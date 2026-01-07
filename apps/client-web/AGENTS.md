@@ -1,61 +1,60 @@
-# InKCre Client-Web
+# Client-Web AGENTS.md
 
-InKCre is an information management application aims to provides automatic information collection, organization and powerful use of information.
-And this is the Web client of InKCre, mainly provides a GUI to manage the system, but also provides some sinks.
+Web client for InKCre - GUI for system management and visualization.
 
-## Tech Stacks
+## Tech Stack
 
-- Framework: Vue3 + TypeScript + SCSS
-- UI Library: `@inkcre/web-design` (Agent Skill provided)
+- Framework: Vue3 + TypeScript
+- Styling: SCSS + UnoCSS
+- UI Library: `@inkcre/web-design`
 - Routing: vue-router
-- Internalization: vue-i18n
-- Date and time: dayjs
-- State management: pinia
+- State: pinia
+- i18n: vue-i18n
+- Graphs: Vue Flow, D3, dagre
+- Deploy: Cloudflare Workers
 
 ## Business Domains
 
-- source: Data collectors, the input of info-base
-- info-base: graph based
-  - block: Info unit
-  - relation: Links between blocks
-  - storage: Store block content somewhere else than database.
-  - resolver: resolves a block's star graph
-- sink: use of information base, the output of info-base
-- extension: extends info-base, source and sink abilities
-- client
-- obsrv: Observability
+- source - Data collectors (input)
+- info-base - Graph: block, relation, storage, resolver
+- sink - Output/visualization
+- extension - Plugin system
+- client - Multi-client management
+- obsrv - Observability/logging
 
-## File Structure (Crucial Only)
+## Directory Structure
 
 ```
-extensions/<extension_id>
-server                          # Cloudflare Worker server-side code
-src
-src/business
-src/business/info-base
-src/business/mf-plugins
-src/components/<business_domain>
-src/views/<business_domain>
-src/composables
-src/locales
-src/static
-src/stores                      # Application specific stores
-src/styles
-src/utils
-src/App.vue
-src/config.ts
-src/router.ts
-src/main.ts
+server/                  # Cloudflare Workers
+src/
+├── components/<domain>/ # Vue components by domain
+├── composables/         # Composition functions
+├── locales/             # i18n
+├── views/<domain>/      # Route views
+├── storages/            # App storage
+├── styles/              # Global SCSS
+├── utils/               # Utilities
+├── core.ts              # Core initialization
+├── router.ts            # Routes
+└── main.ts              # Entry
+```
+
+## Commands
+
+```bash
+pnpm dev              # Dev server
+pnpm build            # Production build
+pnpm type-check       # TypeScript check
+pnpm deploy:cf        # Deploy to Cloudflare
 ```
 
 ## Coding Guidelines
 
-- Do not repeat yourself:
-  - Search across the codebase before you creating a new type or something might can be reused.
-  - Make the code reusable if it's used in over two places.
-- [Write code for human](.github/instructions/human-readable-code.instructions.md)
+- Search codebase before creating new types
+- [Write code for humans](/.agents/prompts/code-for-human.md)
 
-## Read More (Only when necessary)
+## Related Docs
 
-- [Development Workflow](./INFRASTRUCTURE.md)
-- [Overall Architecture](./ARCHITECTURE.md)
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - Detailed architecture
+- [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) - Development workflow
+- [src/components/AGENTS.md](./src/components/AGENTS.md) - Component guide
