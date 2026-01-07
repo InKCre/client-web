@@ -42,7 +42,7 @@
     "exportConfig": "Export",
     "importConfig": "Import",
     "importError": "Failed to import configuration. Please check the file format.",
-    "adapterDev": "Dev"
+    "adapterEnv": "Environment Variables"
   },
   "source": {
     "deleteConfirmTitle": "Delete Source",

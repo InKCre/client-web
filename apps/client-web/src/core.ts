@@ -7,7 +7,7 @@
 
 import {
   configStore,
-  devAdapter,
+  envAdapter,
   localStorageAdapter,
   setMFImplementation,
   TextResolver,
@@ -52,10 +52,10 @@ export function setupResolvers(): void {
 
 /**
  * Initialize configuration system.
- * Uses devAdapter in development, localStorageAdapter in production.
+ * Uses envAdapter in development, localStorageAdapter in production.
  */
 export async function initializeConfig(): Promise<void> {
-  const adapter = import.meta.env.DEV ? devAdapter : localStorageAdapter;
+  const adapter = import.meta.env.DEV ? envAdapter : localStorageAdapter;
   await configStore.loadMeta([adapter]);
   console.log("[Core] Configuration loaded:", configStore.clientConfig);
 }

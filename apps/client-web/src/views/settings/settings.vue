@@ -13,7 +13,7 @@ import {
   configStore,
   localStorageAdapter,
   httpAdapter,
-  devAdapter,
+  envAdapter,
   type AdapterType,
   type ConfigAdapterWithWrite,
 } from "@inkcre/core";
@@ -36,7 +36,7 @@ const clientFormConfig = reactive({ ...configStore.clientConfig });
 const adapterOptions: DropdownOption[] = [
   { value: "localStorage", label: t("settings.adapterLocalStorage") },
   { value: "http", label: t("settings.adapterHttp") },
-  { value: "dev", label: t("settings.adapterDev") },
+  { value: "env", label: t("settings.adapterEnv") },
 ];
 
 // Map adapter type to actual adapter instance
@@ -46,7 +46,7 @@ const adapterMap: Record<
 > = {
   localStorage: localStorageAdapter,
   http: httpAdapter,
-  dev: devAdapter,
+  env: envAdapter,
 };
 
 // Current adapter type (from localStorage or default)
