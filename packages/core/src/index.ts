@@ -121,15 +121,14 @@ export {
 
 // Configuration
 export {
-  useConfigStore,
   configStore,
-  ClientConfigSchema as ConfigSchema,
+  ClientConfigSchema,
   AIConfigSchema,
   LLMProviderConfigSchema,
   localStorageAdapter,
   httpAdapter,
-  devAdapter,
-  createDevAdapter,
+  envAdapter,
+  createEnvAdapter,
   createWebextAdapter,
   CONFIG_STORAGE_KEY,
   ADAPTER_STORAGE_KEY,
@@ -141,7 +140,7 @@ export {
 } from './config'
 
 // Authentication
-export { authStore, createAuthStore } from './auth'
+export { authStore } from './auth'
 
 // Utils
 export {

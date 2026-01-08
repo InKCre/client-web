@@ -16,32 +16,7 @@
  *   - defaultModel: Default LLM model
  *   - explainInstruction: Explain feature instruction
  *
- * Use `useConfigStore()` to access and modify config.
- *
- * @example
- * ```typescript
- * import { useConfigStore, localStorageAdapter } from "@inkcre/core";
- *
- * const configStore = useConfigStore();
- *
- * // Load config (both metaConfig and config)
- * await configStore.load([localStorageAdapter]);
- *
- * // Read MetaConfig
- * const pgUrl = configStore.metaConfig.INKCRE_PGREST_URL;
- * const clientId = configStore.metaConfig.INKCRE_CLIENT_ID;
- *
- * // Read ClientConfig
- * const registryUrl = configStore.clientConfig.extension_registry_url;
- * const models = configStore.clientConfig.ai.llmProviders;
- * const defaultModel = configStore.clientConfig.ai.defaultModel;
- *
- * // Write ClientConfig
- * configStore.clientConfig.ai.defaultModel = "claude-3-opus";
- *
- * // Save config (saves both metaConfig and config)
- * await configStore.save(localStorageAdapter);
- * ```
+ * Use `configStore` to access and modify config.
  */
 
 // Export store

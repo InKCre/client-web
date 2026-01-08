@@ -72,13 +72,13 @@ export const httpAdapter: ConfigAdapterWithWrite = {
 }
 
 /**
- * Dev adapter: reads from env vars, overlays with localStorage, writes to localStorage.
- * Used in development mode to combine environment variables with local overrides.
+ * Env adapter: reads from environment variables only, throws error on write.
+ * Used to read configuration from environment variables without allowing runtime modifications.
  *
  * Note: This adapter uses import.meta.env which is specific to Vite-based applications.
  * Applications using this adapter need to provide their own env adapter.
  */
-export function createDevAdapter(
+export function createEnvAdapter(
   options: {
     envPrefix?: string
     customEnv?: Record<string, any>
@@ -87,7 +87,7 @@ export function createDevAdapter(
   const { envPrefix = 'VITE_', customEnv } = options
 
   return {
-    name: 'dev',
+    name: 'env',
     read: async () => {
       // Read from environment variables
       const env =
@@ -106,30 +106,19 @@ export function createDevAdapter(
         }
       })
 
-      // Then, overlay with localStorage data
-      try {
-        const stored = localStorage.getItem(CONFIG_STORAGE_KEY)
-        if (stored) {
-          const localData = JSON.parse(stored)
-          console.log('[Config] Loaded config from env and localStorage')
-          // Local storage takes precedence over env vars
-          return { ...envData, ...localData }
-        }
-      } catch (error) {
-        console.error('[Config] Failed to load config from localStorage:', error)
-      }
-
-      console.log('[Config] Loaded config from env')
+      console.log('[Config] Loaded config from environment variables')
       return envData
     },
-    write: localStorageAdapter.write,
+    write: async () => {
+      throw new Error('[Config] envAdapter is read-only. Cannot write to environment variables.')
+    },
   }
 }
 
 /**
- * Default dev adapter for Vite applications
+ * Default env adapter for Vite applications
  */
-export const devAdapter = createDevAdapter()
+export const envAdapter = createEnvAdapter()
 
 /**
  * WebExtension adapter factory.

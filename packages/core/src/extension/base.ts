@@ -123,7 +123,7 @@ export class Extension extends Z.class({
   private static _instances: Map<ExtensionRef, Extension> = new Map()
 
   private static getEnabledInstances(): Extension[] {
-    const clientId = sharedConfigStore.config.INKCRE_CLIENT_ID
+    const clientId = sharedConfigStore.metaConfig.INKCRE_CLIENT_ID
     if (!clientId) return []
     return Array.from(Extension._instances.values()).filter((ext) =>
       ext.isEnabledForClient(clientId)
@@ -329,7 +329,7 @@ export class Extension extends Z.class({
    * Convention: ${registryUrl}/${extensionId}/client-web/remoteEntry.js?version=${version}
    */
   getRemoteEntryUrl(): string {
-    const registryUrl = sharedConfigStore.config.extension_registry_url
+    const registryUrl = sharedConfigStore.clientConfig.extension_registry_url
     if (!registryUrl) {
       throw new Error('Extension registry URL is not configured (extension_registry_url)')
     }

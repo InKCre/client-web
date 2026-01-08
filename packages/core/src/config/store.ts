@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { store } from '../store'
-import type { ConfigAdapterWithWrite, MetaConfig } from './types'
+import type { ConfigAdapterWithWrite } from './types'
 import { ClientConfigSchema, MetaConfigSchema } from './schema'
 import { loadConfig as zodLoadConfig } from 'zod-config'
 import { computedAsync } from '@vueuse/core'
+import { envAdapter } from './adapters'
 
 // Lazy import Client to avoid circular imports
 const lazyClient = async () => (await import('../client/client')).Client
@@ -14,10 +15,23 @@ const lazyClient = async () => (await import('../client/client')).Client
  */
 export const useConfigStore = defineStore('inkcre-config', () => {
   // State
-  const metaConfig = ref<MetaConfig>(MetaConfigSchema.parse({}))
-  const adapters = ref<ConfigAdapterWithWrite[]>([])
+  const metaAdapter = ref<ConfigAdapterWithWrite>(envAdapter)
   const isLoading = ref(false)
   const error = ref<Error | null>(null)
+
+  const metaConfig = computedAsync(async () => {
+    try {
+      const loadedMeta = await zodLoadConfig({
+        schema: MetaConfigSchema,
+        adapters: [metaAdapter.value],
+      })
+      console.log('[Config] MetaConfig loaded', loadedMeta)
+      return loadedMeta
+    } catch (err) {
+      console.error('[Config] Failed to load meta config:', err)
+      return MetaConfigSchema.parse({})
+    }
+  }, MetaConfigSchema.parse({}))
 
   const clientConfig = computedAsync(async () => {
     const Client = await lazyClient()
@@ -30,31 +44,10 @@ export const useConfigStore = defineStore('inkcre-config', () => {
     }
   }, ClientConfigSchema.parse({}))
 
-  async function loadMeta(_adapters?: ConfigAdapterWithWrite[]): Promise<void> {
-    isLoading.value = true
+  async function saveMeta(): Promise<void> {
     error.value = null
     try {
-      const loadedMeta = await zodLoadConfig({
-        schema: MetaConfigSchema,
-        adapters: _adapters ?? adapters.value,
-      })
-      metaConfig.value = loadedMeta
-
-      console.log('[Config] MetaConfig loaded', { metaConfig: loadedMeta })
-    } catch (err) {
-      error.value = err as Error
-      console.error('[Config] Failed to load meta config:', err)
-      metaConfig.value = MetaConfigSchema.parse({})
-    } finally {
-      isLoading.value = false
-    }
-  }
-
-  async function saveMeta(_adapter?: ConfigAdapterWithWrite): Promise<void> {
-    error.value = null
-    try {
-      const adapter = _adapter ?? adapters.value[0]
-      await adapter.write(metaConfig.value)
+      await metaAdapter.value.write(metaConfig.value)
       console.log('[Config] MetaConfig saved')
     } catch (err) {
       error.value = err as Error
@@ -73,28 +66,17 @@ export const useConfigStore = defineStore('inkcre-config', () => {
     console.log('[Config] Config reset to defaults')
   }
 
-  /**
-   * Set the default adapters to use for loading.
-   *
-   * @param newAdapters - Array of config adapters
-   */
-  function setAdapters(newAdapters: ConfigAdapterWithWrite[]): void {
-    adapters.value = newAdapters
-  }
-
   return {
     // State - Exposed directly for consumer access
     metaConfig,
     clientConfig,
-    adapters,
+    metaAdapter,
     isLoading,
     error,
 
     // Actions
-    loadMeta,
     saveMeta,
     reset,
-    setAdapters,
   }
 })
 

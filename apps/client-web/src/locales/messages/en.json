@@ -23,6 +23,7 @@
   },
   "settings": {
     "title": "Settings",
+    "metaConfig": "Meta Configuration",
     "configAdapter": "Config Source",
     "configAdapterDescription": "Choose where to load/save configuration",
     "adapterLocalStorage": "local storage",
@@ -42,7 +43,8 @@
     "exportConfig": "Export",
     "importConfig": "Import",
     "importError": "Failed to import configuration. Please check the file format.",
-    "adapterDev": "Dev"
+    "adapterEnv": "Environment Variables",
+    "language": "Language"
   },
   "source": {
     "deleteConfirmTitle": "Delete Source",
@@ -113,7 +115,8 @@
     "statusOnline": "Online",
     "statusOffline": "Offline",
     "statusUnknown": "Unknown",
-    "noClients": "No clients registered"
+    "noClients": "No clients registered",
+    "editConfig": "Edit Config"
   },
   "infoBase": {
     "blockDetails": {

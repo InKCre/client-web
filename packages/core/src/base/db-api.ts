@@ -58,7 +58,7 @@ export class DBAPIClient<DT = any> extends PostgrestClient {
     // If no baseUrl provided, use configStore and watch for changes
     if (!baseUrl) {
       watch(
-        () => this.configStore.clientConfig.INKCRE_PGREST_URL,
+        () => this.configStore.metaConfig.INKCRE_PGREST_URL,
         (newVal) => {
           this.url = newVal
         },

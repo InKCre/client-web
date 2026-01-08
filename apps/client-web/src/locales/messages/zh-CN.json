@@ -42,7 +42,7 @@
     "exportConfig": "导出",
     "importConfig": "导入",
     "importError": "导入配置失败，请检查文件格式。",
-    "adapterDev": "开发模式"
+    "adapterEnv": "环境变量"
   },
   "source": {
     "deleteConfirmTitle": "删除数据源",

@@ -3,7 +3,7 @@ import type { Adapter as ConfigAdapter } from 'zod-config'
 /**
  * Adapter type identifiers
  */
-export type AdapterType = 'localStorage' | 'http' | 'dev' | 'webext'
+export type AdapterType = 'localStorage' | 'http' | 'env' | 'webext'
 
 /**
  * Config adapter with write capability
