@@ -1,6 +1,5 @@
 # InKCre/client-web TODO
 
-- [ ] 尝试使用 histoire
 - [ ] Enhance ARIA
 - [ ] i18n skill
 - [ ] View
@@ -11,5 +10,5 @@
 - [ ] 改进 joint-dev vite plugin ，它没有正确地处理 extension dev server 的重启
 - [ ] 不需要DEBUG的插件怎么加载呢？
 - [ ] 进一步整理 GraphSink
-- [ ] meta config
+- [x] meta config
 - [x] update document of core (ActiveRecord, vue-coupled)
