@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   InkForm,
@@ -24,13 +24,20 @@ import {
   type SupportLocale,
 } from "@/locales";
 import i18n from "@/locales";
-import ClientList from "@/components/client/clientList/clientList.vue";
 
 const { t } = useI18n();
 
-// Local reactive copies of config for form editing
+// Local reactive copy of metaConfig for form editing
 const metaFormConfig = reactive({ ...configStore.metaConfig });
-const clientFormConfig = reactive({ ...configStore.clientConfig });
+
+// Synchronize metaFormConfig with configStore.metaConfig
+watch(
+  () => configStore.metaConfig,
+  (newMetaConfig) => {
+    Object.assign(metaFormConfig, newMetaConfig);
+  },
+  { deep: true }
+);
 
 // Adapter options
 const adapterOptions: DropdownOption[] = [
@@ -49,20 +56,14 @@ const adapterMap: Record<
   env: envAdapter,
 };
 
-// Current adapter type (from localStorage or default)
-const currentAdapterType = ref<Exclude<AdapterType, "webext">>("localStorage");
-
 // Current adapter (computed for v-model)
 const currentAdapter = computed({
-  get: () => currentAdapterType.value,
+  get: () => configStore.metaAdapter.name,
   set: async (value: string) => {
     const adapterKey = value as Exclude<AdapterType, "webext">;
-    currentAdapterType.value = adapterKey;
     localStorage.setItem("inkcre_config_adapter", value);
     // Reload config from new adapter
-    await configStore.loadMeta([adapterMap[adapterKey]]);
-    Object.assign(metaFormConfig, configStore.metaConfig);
-    Object.assign(clientFormConfig, configStore.clientConfig);
+    configStore.metaAdapter = adapterMap[adapterKey];
   },
 });
 
@@ -85,10 +86,7 @@ const onSave = async () => {
   try {
     // Update store config
     Object.assign(configStore.metaConfig, metaFormConfig);
-    Object.assign(configStore.clientConfig, clientFormConfig);
-    // Save to current adapter
-    const adapter = adapterMap[currentAdapterType.value];
-    await configStore.saveMeta(adapter);
+    await configStore.saveMeta();
     alert(t("settings.saveSuccess"));
   } catch (error) {
     console.error("Failed to save config:", error);
@@ -101,14 +99,12 @@ const onReset = () => {
   configStore.reset();
   // Reload form config after reset
   Object.assign(metaFormConfig, configStore.metaConfig);
-  Object.assign(clientFormConfig, configStore.clientConfig);
 };
 
 // Export config
 const onExport = () => {
   const fullConfig = {
     metaConfig: configStore.metaConfig,
-    config: configStore.clientConfig,
   };
   const configJson = JSON.stringify(fullConfig, null, 2);
   const blob = new Blob([configJson], { type: "application/json" });
@@ -141,15 +137,9 @@ const onFileSelected = async (event: Event) => {
       if (imported.metaConfig) {
         Object.assign(configStore.metaConfig, imported.metaConfig);
       }
-      if (imported.clientConfig) {
-        Object.assign(configStore.clientConfig, imported.clientConfig);
-      }
-      // Save to current adapter
-      const adapter = adapterMap[currentAdapterType.value];
-      await configStore.saveMeta(adapter);
+      // Save
+      await configStore.saveMeta();
       // Reload form config after import
-      Object.assign(metaFormConfig, configStore.metaConfig);
-      Object.assign(clientFormConfig, configStore.clientConfig);
       alert(t("settings.saveSuccess"));
     } catch (error) {
       console.error("Failed to import config:", error);
@@ -197,16 +187,6 @@ const onFileSelected = async (event: Event) => {
         placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
       />
 
-      <!-- Client Configuration -->
-      <h2 class="settings-view__section-title">
-        {{ t("settings.clientConfig") }}
-      </h2>
-      <InkInput
-        v-model="clientFormConfig.extension_registry_url"
-        :label="t('settings.extensionRegistryUrl')"
-        placeholder="https://..."
-      />
-
       <!-- Language Selection -->
       <h2 class="settings-view__section-title">{{ t("settings.language") }}</h2>
       <InkDropdown
@@ -244,9 +224,6 @@ const onFileSelected = async (event: Event) => {
       style="display: none"
       @change="onFileSelected"
     />
-
-    <!-- Clients Section -->
-    <ClientList />
   </main>
 </template>
 

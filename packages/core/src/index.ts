@@ -121,9 +121,8 @@ export {
 
 // Configuration
 export {
-  useConfigStore,
   configStore,
-  ClientConfigSchema as ConfigSchema,
+  ClientConfigSchema,
   AIConfigSchema,
   LLMProviderConfigSchema,
   localStorageAdapter,
@@ -141,7 +140,7 @@ export {
 } from './config'
 
 // Authentication
-export { authStore, createAuthStore } from './auth'
+export { authStore } from './auth'
 
 // Utils
 export {

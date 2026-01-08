@@ -16,7 +16,6 @@ import {
   HtmlResolver,
 } from "@inkcre/core";
 import { createInstance } from "@module-federation/enhanced/runtime";
-// import { hostMfSharedDependencies } from "../../../shared/mf-shared-dependencies";
 import * as InKCreCore from "@inkcre/core";
 import * as Zod from "zod";
 import * as Vue from "vue";
@@ -55,8 +54,9 @@ export function setupResolvers(): void {
  * Uses envAdapter in development, localStorageAdapter in production.
  */
 export async function initializeConfig(): Promise<void> {
-  const adapter = import.meta.env.DEV ? envAdapter : localStorageAdapter;
-  await configStore.loadMeta([adapter]);
+  configStore.metaAdapter = import.meta.env.DEV
+    ? envAdapter
+    : localStorageAdapter;
   console.log("[Core] Configuration loaded:", configStore.clientConfig);
 }
 
