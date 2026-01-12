@@ -21,12 +21,12 @@ export const useConfigStore = defineStore('inkcre-config', () => {
 
   const metaConfig = computedAsync(async () => {
     try {
-      const loadedMeta = await zodLoadConfig({
+      const loaded = await zodLoadConfig({
         schema: MetaConfigSchema,
         adapters: [metaAdapter.value],
       })
-      console.log('[Config] MetaConfig loaded', loadedMeta)
-      return loadedMeta
+      console.log('[Config] MetaConfig loaded', loaded)
+      return loaded
     } catch (err) {
       console.error('[Config] Failed to load meta config:', err)
       return MetaConfigSchema.parse({})
@@ -36,8 +36,9 @@ export const useConfigStore = defineStore('inkcre-config', () => {
   const clientConfig = computedAsync(async () => {
     const Client = await lazyClient()
     try {
-      const client = await Client.getSelf()
-      return await client.config
+      const loaded = await Client.getSelf()
+      console.log('[Config] ClientConfig loaded', loaded)
+      return loaded.config
     } catch (error) {
       console.error('[Config] Failed to load client config:', error)
       return ClientConfigSchema.parse({})

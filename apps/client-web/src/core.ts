@@ -44,21 +44,8 @@ export function setupResolvers(): void {
 
   console.log("[Core] Resolver components registered");
 }
-
-// ============================================================================
 // Configuration
 // ============================================================================
-
-/**
- * Initialize configuration system.
- * Uses envAdapter in development, localStorageAdapter in production.
- */
-export async function initializeConfig(): Promise<void> {
-  configStore.metaAdapter = import.meta.env.DEV
-    ? envAdapter
-    : localStorageAdapter;
-  console.log("[Core] Configuration loaded:", configStore.clientConfig);
-}
 
 // ============================================================================
 // Module Federation
@@ -151,7 +138,9 @@ export function initializeModuleFederation(): void {
  */
 export async function initializeCore(): Promise<void> {
   setupResolvers();
-  await initializeConfig();
+  if (import.meta.env.DEV) {
+    configStore.metaAdapter = envAdapter;
+  }
   initializeModuleFederation();
   console.log("[Core] Initialization complete");
 }
