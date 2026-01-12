@@ -1,99 +1,84 @@
-// vite-plugin-extension-dev.ts
-import { Plugin, ProxyOptions, ViteDevServer } from "vite";
+// joint-dev-extension.ts
+import { Plugin, ViteDevServer, createServer, build, InlineConfig } from "vite";
 import path from "path";
 import fs from "fs";
-import { spawn, ChildProcess } from "child_process";
-import net from "net";
-import os from "os";
+import getPort from "get-port";
+import colors from "picocolors";
+import sirv from "sirv";
 
 interface ExtensionDevOptions {
-  extensionsDir?: string;
-  activeExtensions: string[];
+  dir?: string; // 扩展根目录，默认为 "extensions"
+  active: string[]; // 需要 Dev 的扩展 ID 列表
+  exclude?: string[]; // 排除的扩展 ID 列表
 }
 
-// --- 工具函数 ---
-
-async function getPort(startPort = 3000): Promise<number> {
-  const isAvailable = (port: number) => {
-    return new Promise((resolve) => {
-      const server = net.createServer();
-      server.once("error", () => resolve(false));
-      server.once("listening", () => {
-        server.close();
-        resolve(true);
-      });
-      server.listen(port);
-    });
-  };
-
-  let port = startPort;
-  while (!(await isAvailable(port))) {
-    port++;
-  }
-  return port;
+interface ExtensionInfo {
+  id: string;
+  dir: string;
+  mode: "dev" | "static";
+  port?: number; // 仅 dev 模式有
 }
 
-/**
- * 强力杀死进程（兼容 Windows shell: true）
- */
-function killProcess(pid: number) {
-  try {
-    if (os.platform() === "win32") {
-      // Windows 下 spawn 开启 shell: true 后，需要杀掉整个进程树
-      spawn("taskkill", ["/pid", pid.toString(), "/f", "/t"]);
-    } else {
-      process.kill(pid, "SIGTERM");
-    }
-  } catch (e) {
-    // 忽略进程已不存在的错误
-  }
-}
-
-/**
- * 核心插件工厂函数
- */
 export async function useExtensionDevServer(options: ExtensionDevOptions) {
   const rootDir = process.cwd();
-  const extDir = path.resolve(rootDir, options.extensionsDir || "extensions");
+  const extBaseDir = path.resolve(rootDir, options.dir || "extensions");
+  const excludeList = new Set(options.exclude || []);
+  const activeSet = new Set(options.active);
 
-  // 1. 预计算阶段：先计算好端口和 Proxy 配置
-  //    注意：这里不要启动进程！只做配置准备。
-  const extConfigs: Array<{ id: string; dir: string; port: number }> = [];
-  const proxyConfig: Record<string, ProxyOptions> = {};
+  // 1. 扫描并分类扩展
+  const extensions: ExtensionInfo[] = [];
 
-  if (options.activeExtensions && options.activeExtensions.length > 0) {
+  if (fs.existsSync(extBaseDir)) {
+    const items = fs.readdirSync(extBaseDir, { withFileTypes: true });
+
+    // 预留端口起始点
     let portCursor = 4000;
 
-    // 串行获取端口，避免冲突
-    for (const extId of options.activeExtensions) {
-      const activeExtDir = path.join(extDir, extId);
-
-      if (!fs.existsSync(activeExtDir)) {
-        console.warn(`⚠️ [Extension Dev] Directory not found: ${activeExtDir}`);
+    for (const item of items) {
+      if (
+        !item.isDirectory() ||
+        excludeList.has(item.name) ||
+        item.name.startsWith(".") ||
+        item.name === "node_modules"
+      )
         continue;
+
+      const extId = item.name;
+      const extDir = path.join(extBaseDir, extId);
+      const isDev = activeSet.has(extId);
+
+      // 如果是 Dev 模式，分配端口
+      let port: number | undefined;
+      if (isDev) {
+        port = await getPort({ port: portCursor });
+        portCursor = port + 1;
       }
 
-      const port = await getPort(portCursor);
-      portCursor = port + 1;
-
-      extConfigs.push({
+      extensions.push({
         id: extId,
-        dir: activeExtDir,
-        port: port,
+        dir: extDir,
+        mode: isDev ? "dev" : "static",
+        port,
       });
-
-      // 生成 Proxy 配置
-      proxyConfig[`^/${extId}/client-web`] = {
-        target: `http://localhost:${port}`,
-        changeOrigin: true,
-      };
     }
   }
+
+  // 2. 生成 Proxy 配置 (仅针对 Dev 模式)
+  const proxyConfig: Record<string, any> = {};
+  extensions
+    .filter((e) => e.mode === "dev")
+    .forEach((e) => {
+      // 这里的路径规则根据你的实际需求调整
+      proxyConfig[`^/${e.id}/client-web`] = {
+        target: `http://localhost:${e.port}`,
+        changeOrigin: true,
+      };
+    });
 
   const plugin: Plugin = {
     name: "vite-plugin-extension-manager",
 
-    // 2. 将 Proxy 配置注入 Vite
+    // 注入 Proxy
     config(config) {
       return {
         server: {
@@ -105,64 +90,137 @@ export async function useExtensionDevServer(options: ExtensionDevOptions) {
       };
     },
 
-    // 3. 服务启动阶段：真正启动子进程并管理生命周期
     configureServer(server: ViteDevServer) {
-      // 当前实例管理的子进程列表
-      const currentProcesses: ChildProcess[] = [];
+      const subServers: ViteDevServer[] = [];
 
-      // A. 定义启动逻辑
-      const startAll = () => {
-        if (extConfigs.length === 0) return;
+      // A. 处理 Static 模式：检查构建 + 注册中间件
+      const setupStaticExtensions = async () => {
+        const staticExts = extensions.filter((e) => e.mode === "static");
 
-        console.log(
-          `\n🚀 [Extension Dev] Starting ${extConfigs.length} extensions...`
-        );
-
-        extConfigs.forEach(({ id, dir, port }) => {
-          console.log(`   -> [${id}] spawning on port ${port}...`);
-
-          const child = spawn(
-            "npx",
-            ["vite", "--port", String(port), "--strictPort"],
-            {
-              cwd: dir,
-              stdio: "inherit",
-              shell: true, // 注意：shell: true 在 Windows 下会导致 kill 困难，见下方 killProcess
-            }
-          );
-
-          currentProcesses.push(child);
-        });
-      };
-
-      // B. 定义清理逻辑
-      const cleanup = () => {
-        if (currentProcesses.length > 0) {
+        if (staticExts.length > 0) {
           console.log(
-            `🛑 [Extension Dev] Stopping ${currentProcesses.length} subprocesses...`
+            colors.blue(
+              `\n📦 [Extension Manager] Checking builds for ${staticExts.length} static extensions...`
+            )
           );
-          currentProcesses.forEach((p) => {
-            if (p.pid) killProcess(p.pid);
+        }
+
+        for (const ext of staticExts) {
+          const outDir = path.join(ext.dir, "dist"); // 假设输出目录是 dist
+          const entryFile = path.join(outDir, "index.html"); // 简单判断构建是否存在的依据
+
+          // 1. 如果没有构建产物，自动执行构建
+          if (!fs.existsSync(entryFile)) {
+            console.log(
+              colors.yellow(`  ⚡ [${ext.id}] Build missing, building now...`)
+            );
+            try {
+              // 使用 Vite Build API
+              await build({
+                root: ext.dir,
+                configFile: path.resolve(ext.dir, "vite.config.ts"),
+                logLevel: "warn", // 减少日志噪音
+                build: {
+                  // 确保构建产物不带 hash 或者符合你的引用习惯（可选）
+                  outDir: "dist",
+                  emptyOutDir: true,
+                },
+              } as InlineConfig);
+              console.log(colors.green(`  ✅ [${ext.id}] Built successfully.`));
+            } catch (e) {
+              console.error(colors.red(`  ❌ [${ext.id}] Build failed.`), e);
+              continue; // 构建失败则跳过挂载
+            }
+          }
+
+          // 2. 注册静态文件中间件 (使用 sirv)
+          // 拦截路径: /extension-id/client-web/...
+          const routePrefix = `/${ext.id}/client-web`;
+
+          // sirv 实例 (dev 模式下开启 etag 等)
+          const serve = sirv(outDir, { dev: true, single: true });
+
+          server.middlewares.use((req, res, next) => {
+            if (req.url?.startsWith(routePrefix)) {
+              // URL Rewrite: 把 /extension-a/client-web/assets/app.js 变成 /assets/app.js
+              const originalUrl = req.url;
+              req.url = req.url.slice(routePrefix.length);
+              if (req.url === "") req.url = "/"; // 处理根路径
+
+              serve(req, res, () => {
+                // 如果 sirv 没找到文件（404），还原 URL 并交给下一个中间件
+                // 这样避免因为 rewrite 导致其他中间件逻辑混乱
+                req.url = originalUrl;
+                next();
+              });
+            } else {
+              next();
+            }
           });
-          // 清空数组
-          currentProcesses.length = 0;
         }
       };
 
-      // C. 启动子进程
-      startAll();
+      // B. 处理 Dev 模式：启动子 Server
+      const startDevServers = async () => {
+        const devExts = extensions.filter((e) => e.mode === "dev");
+        if (devExts.length === 0) return;
 
-      // D. 监听当前 Server 关闭事件 (Vite 重启或退出时触发)
-      // 这是实现自动重载的关键：Vite 重启 = 旧 Server Close + 新 Server Start
+        console.log(
+          colors.cyan(
+            `\n🚀 [Extension Manager] Starting ${devExts.length} dev servers...`
+          )
+        );
+
+        for (const ext of devExts) {
+          try {
+            const subServer = await createServer({
+              root: ext.dir,
+              configFile: path.resolve(ext.dir, "vite.config.ts"),
+              server: {
+                port: ext.port,
+                strictPort: true,
+                hmr: { port: ext.port },
+                middlewareMode: false,
+              },
+              logLevel: "error", // 仅显示错误，避免刷屏
+            });
+
+            await subServer.listen();
+            subServers.push(subServer);
+
+            console.log(
+              colors.green(`  ➜ [${ext.id}] Dev Server: `) +
+                colors.gray(`http://localhost:${ext.port}`)
+            );
+          } catch (e) {
+            console.error(
+              colors.red(`❌ [${ext.id}] Failed to start dev server:`),
+              e
+            );
+          }
+        }
+      };
+
+      const cleanup = async () => {
+        await Promise.all(subServers.map((s) => s.close()));
+        subServers.length = 0;
+      };
+
+      // 执行初始化流程
+      // 注意：这里建议 await setupStaticExtensions，因为构建可能需要一点时间，
+      // 我们希望构建完成后主服务才算完全 ready。
+      // startDevServers 可以异步跑。
+
+      // 我们将其包装在一个 async IIFE 中以免阻塞 configureServer 的同步返回值
+      (async () => {
+        await setupStaticExtensions();
+        startDevServers();
+      })();
+
       server.httpServer?.on("close", cleanup);
-
-      // E. 兜底：处理主进程意外退出
-      // 虽然 server.close 通常够用，但为了防止 Ctrl+C 残留，做双重保险
       process.once("exit", cleanup);
     },
   };
 
-  return {
-    plugin,
-  };
+  return { plugin };
 }

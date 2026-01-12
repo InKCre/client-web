@@ -48,6 +48,7 @@ coverage
 
 # Agent files
 .claude
+.github/skills/vercel-ai-sdk-integration
 
 # Temp files
 tmp

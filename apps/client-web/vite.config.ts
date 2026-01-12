@@ -18,8 +18,8 @@ export default defineConfig(({ mode }) => {
 
   return (async () => {
     const { plugin: extensionDevPlugin } = await useExtensionDevServer({
-      activeExtensions: toDebugExtensions,
-      extensionsDir: "../../extensions",
+      active: toDebugExtensions,
+      dir: "../../extensions",
     });
 
     return {

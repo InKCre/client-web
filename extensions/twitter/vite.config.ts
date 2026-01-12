@@ -3,6 +3,7 @@ import vue from "@vitejs/plugin-vue";
 import vueJsx from "@vitejs/plugin-vue-jsx";
 import { federation } from "@module-federation/vite";
 import mfShared from "../mf-shared";
+import path from "path";
 
 export default defineConfig({
   plugins: [
@@ -12,8 +13,11 @@ export default defineConfig({
       name: `extension.twitter`,
       filename: "remoteEntry.js",
       exposes: {
-        ".": "./src/index.ts",
-        "./components/ContentTweet": "./src/components/ContentTweet.vue",
+        ".": path.resolve(__dirname, "./src/index.ts"),
+        "./components/ContentTweet": path.resolve(
+          __dirname,
+          "./src/components/ContentTweet.vue"
+        ),
       },
       shared: mfShared,
     }),
