@@ -28,14 +28,9 @@ const SourceSchema = z.object({ ... })
 class Source extends ZodClass { static api = DBAPIClient }
 ```
 
-### Registry Pattern
+### Coupled with Vue
 
-Decorator-based registration for Storage & Resolver:
-
-```typescript
-@Resolver.register('text')
-class TextResolver extends Resolver { ... }
-```
+Make use of Vue reactivity thorughout-ly.
 
 ## Directory Structure
 

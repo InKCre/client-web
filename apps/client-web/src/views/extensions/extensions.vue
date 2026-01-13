@@ -8,7 +8,7 @@ import { Client } from "@inkcre/core";
 import { Extension, configStore } from "@inkcre/core";
 
 // --- data ---
-const selectedClientId = ref<string>(configStore.config.INKCRE_CLIENT_ID);
+const selectedClientId = ref<string>(configStore.metaConfig.INKCRE_CLIENT_ID);
 
 const {
   state: extensions,
