@@ -30,7 +30,8 @@ export const TweetVideoSchema = z.object({
 export const TweetSchema = z.object({
   id: z.number(),
   user_id: z.string(),
-  text: z.string(), // Contains [photo], [video], [link] placeholders
+  text: z.string(), // Contains mentions, hashtags, and URLs as plain text
+  attachments: z.array(z.string()).optional(), // Array of ObjectURLs (blob URLs)
 });
 
 // Type exports
