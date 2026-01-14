@@ -12,4 +12,4 @@
 - [ ] 进一步整理 GraphSink
 - [x] meta config
 - [x] update document of core (ActiveRecord, vue-coupled)
-- [ ] GraphSink 需要让 Resolver 来处理 Nodes 和 Edges （Relation / Block 和 Edge/Node 不是 1:1 的）
+- [ ] SolvedContent 可以包含从 Relation 解析出来的数据，因为 Relation 是 Block 的 Dynamic Attribute，而且这也就体现了为什么 Resolver 是在 Resolving Block 的 Star Graph

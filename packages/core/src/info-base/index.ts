@@ -6,6 +6,7 @@ export * from './relation'
 export * as resolvers from './resolvers'
 export {
   Resolver,
+  ResolverCache,
   TextResolver,
   ImageResolver,
   VideoResolver,

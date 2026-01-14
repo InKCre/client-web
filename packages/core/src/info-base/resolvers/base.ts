@@ -116,13 +116,37 @@ export class Resolver<RawContentT = any, SolvedContentT = RawContentT> {
 
   /**
    * Get relations for this block (lazy-loaded from database).
+   * @param options.force - Force reload relations from database
+   * @param options.includeIn - Include relations where block is to_ (incoming relations)
+   * @param options.includeOut - Include relations where block is from_ (outgoing relations)
    */
-  async getRelations(force = false): Promise<Relation[]> {
+  async getRelations(
+    options?: { force?: boolean; includeIn?: boolean; includeOut?: boolean } | boolean
+  ): Promise<Relation[]> {
+    // Handle backward compatibility: boolean parameter is force
+    const {
+      force = false,
+      includeIn = true,
+      includeOut = true,
+    } = typeof options === 'boolean' ? { force: options } : (options ?? {})
+
     if (this._relations === null || force) {
       // Dynamic import to avoid circular dependency
       const { Relation } = await import('../relation')
       this._relations = (await Relation.getByBlock(this.block.id)) as Relation[]
     }
+
+    // Filter by direction if needed
+    if (!includeIn || !includeOut) {
+      return this._relations!.filter((rel) => {
+        const isIncoming = rel.to_ === this.block.id
+        const isOutgoing = rel.from_ === this.block.id
+        if (includeIn && isIncoming) return true
+        if (includeOut && isOutgoing) return true
+        return false
+      })
+    }
+
     return this._relations as Relation[]
   }
 

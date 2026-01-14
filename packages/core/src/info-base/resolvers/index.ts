@@ -7,6 +7,9 @@ export {
   type ContentCompProps,
 } from './base'
 
+// Cache system
+export { ResolverCache } from './cache'
+
 // Concrete resolver implementations
 export { TextResolver } from './text'
 export { ImageResolver } from './image'

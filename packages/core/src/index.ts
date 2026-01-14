@@ -79,6 +79,7 @@ export {
   type ContentCompProps,
   // Resolver implementations
   Resolver,
+  ResolverCache,
   TextResolver,
   ImageResolver,
   VideoResolver,
