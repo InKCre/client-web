@@ -5,7 +5,8 @@ import type { ContentCompProps } from "@inkcre/core";
 
 const props = defineProps<ContentCompProps<Tweet>>();
 
-const photoUrls = ref<string[]>([]);
+// Track failed image loads
+const failedAttachments = ref<Set<number>>(new Set());
 
 // Display text - truncated for graph view
 const displayText = computed(() => {
@@ -18,6 +19,31 @@ const displayText = computed(() => {
   const maxLen = 80;
   return text.length > maxLen ? text.slice(0, maxLen) + "..." : text;
 });
+
+// Attachments from resolved content (blob URLs)
+const attachments = computed(() => {
+  return props.solvedContent?.attachments || [];
+});
+
+// Limit to max 4 attachments (Twitter-like behavior)
+const displayAttachments = computed(() => {
+  return attachments.value.slice(0, 4);
+});
+
+// Count for dynamic grid class
+const attachmentCount = computed(() => {
+  return displayAttachments.value.length;
+});
+
+// Handle image load errors
+const onImageError = (index: number) => {
+  failedAttachments.value.add(index);
+};
+
+// Check if attachment failed to load
+const isAttachmentFailed = (index: number) => {
+  return failedAttachments.value.has(index);
+};
 </script>
 
 <template>
@@ -26,52 +52,28 @@ const displayText = computed(() => {
     <span class="content-tweet__user">@{{ props.solvedContent.user_id }}</span>
   </div>
   <div class="content-tweet__text">{{ displayText }}</div>
-  <div v-if="photoUrls.length" class="content-tweet__media">
-    <img :src="photoUrls[0]" alt="Tweet photo" class="content-tweet__img" />
+  <div v-if="attachmentCount > 0" class="content-tweet__media">
+    <div
+      class="content-tweet__media-grid"
+      :class="`content-tweet__media-grid--${attachmentCount}`"
+    >
+      <div
+        v-for="(attachment, index) in displayAttachments"
+        :key="index"
+        class="content-tweet__media-item"
+      >
+        <img
+          v-if="!isAttachmentFailed(index)"
+          :src="attachment"
+          :alt="`Tweet attachment ${index + 1}`"
+          @error="onImageError(index)"
+        />
+        <div v-else class="content-tweet__media-error">
+          <span class="content-tweet__media-error-icon">!</span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
-<style lang="scss" scoped>
-.content-tweet {
-  background: sys-var(color, surface, base);
-  overflow: hidden;
-
-  &__header {
-    display: flex;
-    align-items: center;
-    gap: sys-var(space, xs);
-    margin-bottom: sys-var(space, xs);
-  }
-
-  &__icon {
-    font-size: 14px;
-    font-weight: bold;
-  }
-
-  &__user {
-    @include apply-font(label-sm);
-    color: sys-var(color, text, subtle);
-    font-weight: 500;
-  }
-
-  &__text {
-    @include apply-font(label-lg);
-    color: sys-var(color, text, base);
-    word-break: break-word;
-    line-height: 1.4;
-  }
-
-  &__media {
-    margin-top: sys-var(space, sm);
-    border-radius: sys-var(radius, sm);
-    overflow: hidden;
-  }
-
-  &__img {
-    width: 100%;
-    height: auto;
-    max-height: 80px;
-    object-fit: cover;
-  }
-}
-</style>
+<style lang="scss" scoped src="./ContentTweet.scss" />

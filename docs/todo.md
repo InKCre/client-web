@@ -13,3 +13,4 @@
 - [x] meta config
 - [x] update document of core (ActiveRecord, vue-coupled)
 - [ ] SolvedContent 可以包含从 Relation 解析出来的数据，因为 Relation 是 Block 的 Dynamic Attribute，而且这也就体现了为什么 Resolver 是在 Resolving Block 的 Star Graph
+- [ ] Info-base Graph reactive layout
