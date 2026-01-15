@@ -16,7 +16,7 @@ export default defineConfig({
         ".": path.resolve(__dirname, "./src/index.ts"),
         "./components/ContentTweet": path.resolve(
           __dirname,
-          "./src/components/ContentTweet.vue"
+          "./src/components/contentTweet/contentTweet.vue"
         ),
       },
       shared: mfShared,

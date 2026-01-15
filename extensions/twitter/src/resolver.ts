@@ -19,8 +19,7 @@ import {
   RELATION_ATTACHMENT_PHOTO,
   RELATION_ATTACHMENT_VIDEO,
 } from "./schema";
-import ContentTweet from "./components/ContentTweet.vue";
-import type { Block } from "@inkcre/core";
+import ContentTweet from "./components/contentTweet/contentTweet.vue";
 
 export class TweetResolver extends Resolver<string, Tweet> {
   static readonly type = "extensions.twitter.tweet";
