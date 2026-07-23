@@ -13,13 +13,13 @@ InKCre 是一个基于知识图谱的笔记和 AI 辅助写作浏览器扩展。
 
 ### 环境要求
 
-- Node.js 20+
-- pnpm 9+
+- Node.js 22.22.3
+- pnpm 10.26.2
 
 ### 安装依赖
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 ```
 
 ### 开发模式

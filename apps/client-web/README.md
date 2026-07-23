@@ -16,4 +16,4 @@ pnpm run deploy:cf
 
 ## Development
 
-本项目依赖 `@inkcre/web-design` 包，本地开发时推荐通过 `pnpm link path/to/package` 的方式安装。
+本项目依赖 GitHub Packages 中的 `@inkcre/web-design`。按照仓库根 `README.md` 配置只读 package token，并始终从 monorepo 根目录执行 frozen install；不要用 `pnpm link` 替代可复现依赖。
