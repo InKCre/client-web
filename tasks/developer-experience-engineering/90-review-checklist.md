@@ -8,7 +8,7 @@
 - [ ] D3: hard-cut formatting/linting to Oxfmt/Oxlint; use tsdown only for real libraries.
 - [ ] D3a: stable TypeScript remains required; TS7 native preview is shadow-only.
 - [ ] D4: core-py remains schema authority; client-web consumes a versioned Docker PostgREST development capability without copying migrations.
-- [ ] D5: adopt official SVC `10.0.1` and settle the docs Hub before adding the client-web shared mount.
+- [x] D5: adopt official SVC `10.0.1`, publish the settled docs Hub, then add the exact published commit as the client-web shared mount.
 - [ ] D6: fast-forward and protect `main`, then retire long-lived `develop`.
 
 ## Hard Cut-Off Boundary
@@ -31,8 +31,9 @@ No compatibility shim, duplicate schema, dual formatter, alternate production br
 
 ## Authorization Boundary
 
-- Step 1 authorization covered the reproducibility contract: version metadata, install documentation, the Copilot setup workflow, one manifest cleanup, lock generation, dependency restore, and ignored generated build/check outputs.
-- Outside that slice, no product source, Cloudflare, Docker, database, branch, submodule, sibling-repository, commit, push, or external-resource mutation is authorized.
+- Step 1 authorization covered the reproducibility contract and its isolated commit.
+- Step 2 authorization covers client-web SVC adoption and shared-reference integration plus the `InKCre/docs` v10 Hub migration. The user separately authorized the isolated Hub commit/push and the two isolated client-web commits; client-web push remains unauthorized.
+- Outside those slices, no product source, Cloudflare, Docker, database, branch, submodule, sibling-repository commit/push, or external-resource mutation is authorized.
 - No production credential inspection.
 - No server-issued auth/BFF redesign without separate product intent.
 - No copied core-py migrations or SVC framework corpus.
@@ -50,3 +51,9 @@ No compatibility shim, duplicate schema, dual formatter, alternate production br
 - 2026-07-23: user explicitly started Phase 0 reproducibility work.
 - 2026-07-23: pnpm's trusted-auth boundary was corrected; lock generation was temporarily paused because the available GitHub credentials could not read `@inkcre/web-design`.
 - 2026-07-23: user granted the active GitHub CLI identity `read:packages`; all six importers were locked, frozen installation succeeded, and actual baseline failures were recorded without expanding the slice into code repair.
+- 2026-07-23: user authorized and created the isolated Step 1 commit `6245d77`, then explicitly started Step 2.
+- 2026-07-23: client-web and the docs Hub adopted official wheel SVC 10.0.1 with healthy, idempotent generated surfaces.
+- 2026-07-23: the local docs Hub branch hard-cut copied v9 framework documents while preserving PRD, Product TDD, and InKCre-owned shared-reference operations. Publication remains gated.
+- 2026-07-23: user authorized the isolated Hub commit/push; `ad464fd` was pushed to `origin/codex/svc-v10-adoption`.
+- 2026-07-23: client-web added `docs/_shared` at exact published commit `ad464fd` and a thin canonical-skill wrapper, with the shared ref staged separately from Spoke-local SVC changes.
+- 2026-07-23: user authorized two isolated client-web commits; shared-reference introduction was recorded as `e398afe`, followed separately by the Spoke-local SVC/navigation changes.

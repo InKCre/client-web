@@ -64,13 +64,32 @@ This file records observed facts only. Decisions and desired state live in adjac
 - Client Vite uses an implicit port and `host: true`; joint extension dev allocates from 4000; WXT fixes Chromium debugging to 9222.
 - There is no Docker/Compose/PostgreSQL/PostgREST/schema/seed/readiness implementation in client-web.
 - Sibling `core-py` owns migrations and has a PostgreSQL Compose service, but no PostgREST service.
-- Client-web has no `svc.json`, SVC skill, `docs/_shared`, or task-retention instruction.
-- An official SVC `10.0.1` init dry-run is ready; no apply occurred.
-- `InKCre/docs` contains PRD and Product TDD but its local worktree currently carries a copied SVC v9.8 projection on a feature branch.
+- Client-web now has schema-v2 `svc.json`, the generated Codex skill, bounded root/docs navigation, and the managed local-overlay ignore block from the official SVC 10.0.1 wheel. Official `svc status --json` reports healthy and repeated init reports `noop`.
+- `docs/_shared` is a git submodule pointing to published Hub commit `ad464fd9bc9f6c9a8c316e5e75bc5f16e794ecd7`; `.gitmodules` uses `https://github.com/InKCre/docs.git` and does not float on a branch.
+- `InKCre/docs` contains PRD and Product TDD. Its local `codex/svc-v10-adoption` branch now has an official, healthy SVC 10.0.1 adoption and removes the copied v9 framework projection while keeping InKCre-owned submodule operations/profile/skill.
+- The Hub PRD and Product TDD trees have no diff in the v10 migration.
+- The official SVC 10.0.1 wheel was installed in an isolated temporary environment; the dirty unreleased `../../svc` source worktree was not used as the adoption authority.
 - `origin/main` is an ancestor of `origin/develop` and is 144 commits behind it.
 - During audit, a failed frozen offline install recreated only ignored `node_modules`; tracked source stayed clean. After GitHub Packages access was restored, a real `pnpm install --frozen-lockfile` completed all six workspace projects and ran `wxt prepare`.
 - pnpm 10 ignores environment-expanded credentials in repository-controlled npmrc files. The repository now keeps only the `@inkcre` registry mapping and requires trusted user/CI auth.
 - Initial credentials returned HTTP 401/403 for `@inkcre/web-design`. After the user granted the active GitHub CLI identity `read:packages`, a trusted temporary npmrc generated the lock and restored dependencies; the temporary credential file was not part of the repository.
+
+## SVC v10 and Shared-Docs Results
+
+Validated on 2026-07-23 with an isolated Python environment containing the published `sustainable-vibe-coding==10.0.1` wheel; commands invoked that environment's exact `svc` binary rather than the dirty sibling SVC source tree or an assumed global executable.
+
+| Repository | Command | Result |
+| --- | --- | --- |
+| client-web | `svc status --json` | healthy; schema v2; adopted 10.0.1; wheel runtime current |
+| client-web | `svc init --agent codex --json` | `noop`; generated surfaces remain current |
+| `InKCre/docs` | `svc status --json` | healthy; schema v2; adopted 10.0.1; wheel runtime current |
+| `InKCre/docs` | `svc init --agent codex --json` | `noop`; generated surfaces remain current |
+
+- SVC v10 has no `_svc_v10.md`, `svc migrate`, or copied consumer corpus. Framework guidance remains in the installed distribution and is queried with `svc lookup`.
+- The Hub retains `00-meta/submodule-profile.md`, `submodule-operations.md`, and `skills/edit-svc-shared-docs/**` because they are InKCre-specific operational owners rather than SVC framework copies.
+- The removed v9 files remain recoverable from Git history. Existing Spokes continue to read their pinned old Hub commit until they deliberately adopt v10 and bump the shared reference.
+- Hub commit `ad464fd` was pushed to `origin/codex/svc-v10-adoption` before client-web recorded the shared reference.
+- The canonical Hub `check-submodule.sh --mode pre-commit` validates the client-web URL, clean submodule worktree, and remote reachability of the exact commit.
 
 ## Restored Baseline Results
 

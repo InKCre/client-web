@@ -5,7 +5,9 @@
 ```
 .
 ├── .agents/              # AI agent prompts and assets
-│   └── prompts/          # Reusable prompt templates
+│   ├── prompts/          # Reusable prompt templates
+│   └── skills/
+│       └── svc/          # Generated SVC CLI operating skill
 ├── .github/
 │   ├── agents/           # GitHub Copilot agent definitions
 │   ├── instructions/     # Copilot instructions by context
@@ -13,14 +15,19 @@
 ├── apps/
 │   ├── client-web/       # Main web application
 │   └── client-webext/    # Browser extension
-├── docs/                 # Additional documentation
+├── docs/
+│   ├── index.md          # Local documentation and SVC navigation
+│   ├── _shared/          # Read-only InKCre/docs Hub submodule
+│   └── ...               # Local architecture notes and historical plans
 ├── extensions/           # Module Federation remotes
 ├── packages/
 │   ├── core/             # Shared logic package
 │   └── ext-dev-utils/    # Extension dev utilities
+├── tasks/                # Active agent-owned task packets
 ├── AGENTS.md             # This repo's agent guide
 ├── ARCHITECTURE.md       # System architecture
-└── FILESYSTEM.md         # This file
+├── FILESYSTEM.md         # This file
+└── svc.json              # Committed SVC adoption and dev-capability contract
 ```
 
 ## packages/core/src/
