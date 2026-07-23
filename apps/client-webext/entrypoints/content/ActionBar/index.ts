@@ -1,2 +1,2 @@
-import ActionBar from "./actionBar.vue";
-export default ActionBar;
+import ActionBar from './actionBar.vue'
+export default ActionBar

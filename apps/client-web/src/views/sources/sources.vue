@@ -1,41 +1,41 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
-import { useAsyncState } from "@vueuse/core";
-import sourceCard from "@/components/source/sourceCard/sourceCard.vue";
-import CreateSource from "@/components/source/createSource/createSource.vue";
-import { InkLoading } from "@inkcre/web-design";
-import { Source } from "@inkcre/core";
+import { onMounted } from 'vue'
+import { useAsyncState } from '@vueuse/core'
+import sourceCard from '@/components/source/sourceCard/sourceCard.vue'
+import CreateSource from '@/components/source/createSource/createSource.vue'
+import { InkLoading } from '@inkcre/web-design'
+import { Source } from '@inkcre/core'
 
 // Use useAsyncState for sources with refetch capability
 const {
   state: sources,
   execute: refetchSources,
   isLoading: sourcesLoading,
-} = useAsyncState(() => Source.getAll(), []);
+} = useAsyncState(() => Source.getAll(), [])
 
 // --- lifecycle ---
 onMounted(() => {
-  refetchSources();
-});
+  refetchSources()
+})
 
 // --- methods ---
 const onCreateSource = () => {
-  refetchSources();
-};
+  refetchSources()
+}
 
 const onDeleteSource = (source: Source) => {
   source.delete().then(() => {
     // Refetch after delete
-    refetchSources();
-  });
-};
+    refetchSources()
+  })
+}
 
 const onEditConfig = (source: Source) => {
   source.save().then(() => {
     // Refetch after edit
-    refetchSources();
-  });
-};
+    refetchSources()
+  })
+}
 </script>
 
 <template>

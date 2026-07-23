@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref } from 'vue'
 
 // --- data ---
-const searchQuery = ref("");
+const searchQuery = ref('')
 
 // --- methods ---
 const onSearch = () => {
   // Placeholder for search business logic
-  console.log("Search for:", searchQuery.value);
-};
+  console.log('Search for:', searchQuery.value)
+}
 </script>
 
 <template>

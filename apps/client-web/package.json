@@ -9,7 +9,6 @@
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
-    "format": "prettier --write src/",
     "deploy:cf": "npm run build -- --mode cloudflare && wrangler deploy"
   },
   "dependencies": {
@@ -48,7 +47,6 @@
     "zod-config": "^1.4.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.8",
     "@cloudflare/workers-types": "^4.20251119.0",
     "@iconify-json/mdi": "^1.2.3",
     "@module-federation/enhanced": "^0.22.0",
@@ -66,12 +64,12 @@
     "picocolors": "^1.1.1",
     "sass-embedded": "^1.90.0",
     "sirv": "^3.0.2",
-    "typescript": "~5.8.0",
+    "typescript": "catalog:",
     "unocss": "^66.5.12",
     "vite": "^7.2.4",
     "vite-plugin-vue-devtools": "^8.0.0",
     "vitest": "^4.0.16",
-    "vue-tsc": "^3.0.4",
+    "vue-tsc": "catalog:",
     "wrangler": "^4.49.0"
   }
 }

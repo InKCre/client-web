@@ -10,29 +10,25 @@ The Response component is based on AI SDK Elements and provides a polished inter
 
 ```vue
 <template>
-  <Response 
-    :content="aiResponse" 
-    :isLoading="isStreaming"
-    className="custom-response"
-  />
+  <Response :content="aiResponse" :isLoading="isStreaming" className="custom-response" />
 </template>
 
 <script setup lang="ts">
-import Response from "~/components/ai/Response/Response.vue";
-import { ref } from "vue";
+import Response from '~/components/ai/Response/Response.vue'
+import { ref } from 'vue'
 
-const aiResponse = ref("");
-const isStreaming = ref(false);
+const aiResponse = ref('')
+const isStreaming = ref(false)
 </script>
 ```
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `content` | `string` | `""` | The markdown content to render |
+| Prop        | Type      | Default | Description                                         |
+| ----------- | --------- | ------- | --------------------------------------------------- |
+| `content`   | `string`  | `""`    | The markdown content to render                      |
 | `isLoading` | `boolean` | `false` | Whether the response is currently streaming/loading |
-| `className` | `string` | `""` | Custom class name for additional styling |
+| `className` | `string`  | `""`    | Custom class name for additional styling            |
 
 ## Features
 
@@ -56,7 +52,7 @@ The component renders full Markdown with support for:
 - **Tables** with bordered layout
 - **Images** with responsive sizing
 - **Horizontal rules**
-- **Bold** and *italic* text
+- **Bold** and _italic_ text
 
 ### Styling Features
 
@@ -134,23 +130,23 @@ The component includes CSS animations:
 
 ```vue
 <script setup lang="ts">
-import Response from "~/components/ai/Response/Response.vue";
-import { ref } from "vue";
+import Response from '~/components/ai/Response/Response.vue'
+import { ref } from 'vue'
 
-const content = ref("");
-const isLoading = ref(true);
+const content = ref('')
+const isLoading = ref(true)
 
 // Simulate streaming
 async function streamContent() {
-  const fullText = "This is a streaming response...";
-  isLoading.value = true;
-  
+  const fullText = 'This is a streaming response...'
+  isLoading.value = true
+
   for (let i = 0; i < fullText.length; i++) {
-    content.value += fullText[i];
-    await new Promise(resolve => setTimeout(resolve, 50));
+    content.value += fullText[i]
+    await new Promise((resolve) => setTimeout(resolve, 50))
   }
-  
-  isLoading.value = false;
+
+  isLoading.value = false
 }
 </script>
 
@@ -177,6 +173,7 @@ async function streamContent() {
 ## Browser Support
 
 Compatible with all modern browsers that support:
+
 - CSS animations
 - CSS Grid/Flexbox
 - ES6+ JavaScript features

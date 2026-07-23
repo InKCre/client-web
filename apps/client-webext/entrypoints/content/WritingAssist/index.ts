@@ -1,2 +1,2 @@
-import WritingAssist from "./WritingAssist.vue";
-export default WritingAssist;
+import WritingAssist from './WritingAssist.vue'
+export default WritingAssist

@@ -5,5 +5,5 @@
  * Provides a playground environment for extension development.
  */
 
-export { bootstrapExtension, type BootstrapOptions } from "./bootstrap";
-export { default as DevLayout } from "./components/Layout.vue";
+export { bootstrapExtension, type BootstrapOptions } from './bootstrap'
+export { default as DevLayout } from './components/Layout.vue'

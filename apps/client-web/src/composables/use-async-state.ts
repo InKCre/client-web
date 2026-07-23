@@ -1,17 +1,17 @@
-import { ref, computed, type Ref } from "vue";
+import { ref, computed, type Ref } from 'vue'
 
 /**
  * Options for useAsyncState composable
  */
 export interface UseAsyncStateOptions {
   /** Whether to execute immediately on initialization */
-  immediate?: boolean;
+  immediate?: boolean
   /** Callback when async operation succeeds */
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: any) => void
   /** Callback when async operation fails */
-  onError?: (error: Error) => void;
+  onError?: (error: Error) => void
   /** Whether to use last state instead of initial state during loading */
-  useLast?: boolean;
+  useLast?: boolean
 }
 
 /**
@@ -26,30 +26,30 @@ export function useEAsyncState<T>(
   initialState: T,
   options: UseAsyncStateOptions = {}
 ) {
-  const state = ref<T>(initialState) as Ref<T>;
-  const isLoading = ref(false);
-  const error = ref<Error | null>(null);
+  const state = ref<T>(initialState) as Ref<T>
+  const isLoading = ref(false)
+  const error = ref<Error | null>(null)
 
   const execute = async () => {
-    isLoading.value = true;
-    error.value = null;
+    isLoading.value = true
+    error.value = null
     if (!options.useLast) {
-      state.value = initialState;
+      state.value = initialState
     }
     try {
-      const result = await asyncFn();
-      state.value = result;
-      options.onSuccess?.(result);
+      const result = await asyncFn()
+      state.value = result
+      options.onSuccess?.(result)
     } catch (e) {
-      error.value = e as Error;
-      options.onError?.(error.value);
+      error.value = e as Error
+      options.onError?.(error.value)
     } finally {
-      isLoading.value = false;
+      isLoading.value = false
     }
-  };
+  }
 
   if (options.immediate) {
-    execute();
+    void execute()
   }
 
   return {
@@ -57,5 +57,5 @@ export function useEAsyncState<T>(
     isLoading: computed(() => isLoading.value),
     error: computed(() => error.value),
     execute,
-  };
+  }
 }

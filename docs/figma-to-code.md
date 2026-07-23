@@ -1,5 +1,5 @@
 ---
-description: "Notes for writing code referencing Figma design"
+description: 'Notes for writing code referencing Figma design'
 ---
 
 ## Conversion

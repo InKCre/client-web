@@ -1,32 +1,36 @@
-import { onMessage, sendMessage } from "webext-bridge/background";
-import { browser } from "wxt/browser";
+import { onMessage, sendMessage } from 'webext-bridge/background'
+import { browser } from 'wxt/browser'
 
 export default defineBackground(() => {
-  onMessage("open-sidepanel", ({ sender, data }) => {
-    const tabId = sender.tabId;
-    const path = data?.path;
+  onMessage('open-sidepanel', ({ sender, data }) => {
+    const tabId = sender.tabId
+    const path = data?.path
 
-    browser.sidePanel.open({ tabId }).then(() => {
-      // Keep notifying content script that sidepanel was opened
-      sendMessage("sidepanel-opened", undefined, `content-script@${tabId}`);
-      browser.sidePanel.setOptions({
-        path,
-        tabId,
-      });
-    });
-  });
+    void browser.sidePanel
+      .open({ tabId })
+      .then(async () => {
+        // Keep notifying content script that sidepanel was opened
+        await Promise.all([
+          sendMessage('sidepanel-opened', undefined, `content-script@${tabId}`),
+          browser.sidePanel.setOptions({
+            path,
+            tabId,
+          }),
+        ])
+      })
+      .catch((error) => console.error('Failed to open side panel:', error))
+  })
   browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (msg.type === "get-tab-id") {
-      if (msg.from !== "sidepanel") {
-        sendResponse({ tabId: sender.tab?.id });
-      }
-      else {
+    if (msg.type === 'get-tab-id') {
+      if (msg.from !== 'sidepanel') {
+        sendResponse({ tabId: sender.tab?.id })
+      } else {
         browser.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
-          const tabId = tabs[0]?.id;
-          sendResponse({ tabId });
-        });
+          const tabId = tabs[0]?.id
+          sendResponse({ tabId })
+        })
       }
     }
-    return true;
-  });
-});
+    return true
+  })
+})

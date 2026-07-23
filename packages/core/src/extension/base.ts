@@ -380,7 +380,7 @@ export class Extension extends Z.class({
   async enableForClient(clientId: ClientRef): Promise<void> {
     console.log(`[Extension] Enabling ${this.id} for client ${clientId}`)
 
-    if (sharedConfigStore.config.INKCRE_CLIENT_ID === clientId) {
+    if (sharedConfigStore.metaConfig.INKCRE_CLIENT_ID === clientId) {
       // Local client
 
       // Activate if ready, or load->init->activate if discovered
@@ -419,7 +419,7 @@ export class Extension extends Z.class({
   async disableForClient(clientId: ClientRef): Promise<void> {
     console.log(`[Extension] Disabling ${this.id} for client ${clientId}`)
 
-    if (sharedConfigStore.config.INKCRE_CLIENT_ID === clientId) {
+    if (sharedConfigStore.metaConfig.INKCRE_CLIENT_ID === clientId) {
       // Deactivate if active
       if (this.runtimeState.value.status === ExtensionState.ACTIVE) {
         await this.deactivate()

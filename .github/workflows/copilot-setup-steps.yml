@@ -1,4 +1,4 @@
-name: "Copilot Setup Steps"
+name: 'Copilot Setup Steps'
 
 on:
   workflow_dispatch:
@@ -28,10 +28,10 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: ".node-version"
-          registry-url: "https://npm.pkg.github.com"
-          scope: "@inkcre"
-          cache: "pnpm"
+          node-version-file: '.node-version'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@inkcre'
+          cache: 'pnpm'
 
       # setup-node writes a NODE_AUTH_TOKEN placeholder; scope the token itself
       # to the only step that reads the private registry.

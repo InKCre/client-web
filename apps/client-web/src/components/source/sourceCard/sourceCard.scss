@@ -9,7 +9,9 @@
   min-width: 280px;
   max-width: 380px;
   cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
 
   &:hover {
     border-color: sys-var(color, border, subtle);

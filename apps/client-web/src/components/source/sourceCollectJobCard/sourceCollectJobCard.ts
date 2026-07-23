@@ -1,5 +1,5 @@
-import type { PropType } from "vue";
-import { SourceCollectJob } from "@inkcre/core";
+import type { PropType } from 'vue'
+import { SourceCollectJob } from '@inkcre/core'
 
 // --- Props ---
 export const sourceCollectJobCardProps = {
@@ -7,9 +7,9 @@ export const sourceCollectJobCardProps = {
     type: Object as PropType<SourceCollectJob>,
     required: true,
   },
-} as const;
+} as const
 
 // --- Emits ---
 export const sourceCollectJobCardEmits = {
   click: () => true,
-} as const;
+} as const

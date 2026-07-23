@@ -1,16 +1,9 @@
-import { computed, isRef, type Ref, unref } from "vue";
+import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
-export function anyMeets<T = any>(
-  args: T[],
-  predicate: (arg: T) => boolean
-): boolean {
-  return args.some(predicate);
+export function anyMeets<T = unknown>(args: T[], predicate: (arg: T) => boolean): boolean {
+  return args.some(predicate)
 }
 
-export const anyTrue = (...args: (Ref<any> | any | (() => any))[]) => {
-  return computed(() =>
-    anyMeets(args, (arg) =>
-      Boolean(typeof arg === "function" ? arg() : unref(arg))
-    )
-  );
-};
+export const anyTrue = (...args: MaybeRefOrGetter<unknown>[]) => {
+  return computed(() => anyMeets(args, (arg) => Boolean(toValue(arg))))
+}

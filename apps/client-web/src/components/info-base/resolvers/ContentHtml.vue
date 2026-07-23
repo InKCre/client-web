@@ -1,47 +1,44 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import type { ContentCompProps } from "@inkcre/core";
-import type { HtmlContent } from "@inkcre/core";
+import { computed } from 'vue'
+import type { ContentCompProps } from '@inkcre/core'
+import type { HtmlContent } from '@inkcre/core'
 
-type HtmlRawContent = string | HtmlContent;
+type HtmlRawContent = string | HtmlContent
 
-const props = defineProps<ContentCompProps<HtmlRawContent>>();
+const props = defineProps<ContentCompProps<HtmlRawContent>>()
 
 const displayContent = computed(() => {
-  let html: string;
-  let title: string | undefined;
+  let html: string
+  let title: string | undefined
 
-  if (typeof props.solvedContent === "string") {
-    html = props.solvedContent;
+  if (typeof props.solvedContent === 'string') {
+    html = props.solvedContent
   } else {
-    const content = props.solvedContent as HtmlContent;
-    html = content.html;
-    title = content.title;
+    const content = props.solvedContent as HtmlContent
+    html = content.html
+    title = content.title
   }
 
   // If we have a title, show that
   if (title) {
-    return { type: "title" as const, text: title };
+    return { type: 'title' as const, text: title }
   }
 
   // Extract text content from HTML for preview
-  const textContent = stripHtml(html);
-  const maxLen = 80;
-  const preview =
-    textContent.length > maxLen
-      ? textContent.slice(0, maxLen) + "..."
-      : textContent;
+  const textContent = stripHtml(html)
+  const maxLen = 80
+  const preview = textContent.length > maxLen ? textContent.slice(0, maxLen) + '...' : textContent
 
-  return { type: "preview" as const, text: preview || "[HTML]" };
-});
+  return { type: 'preview' as const, text: preview || '[HTML]' }
+})
 
 function stripHtml(html: string): string {
   return html
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 </script>
 

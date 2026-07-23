@@ -24,6 +24,38 @@ git submodule update --init --recursive
 pnpm install --frozen-lockfile
 ```
 
+## Canonical commands
+
+Run repository-wide commands from the root:
+
+```bash
+pnpm run doctor      # Diagnose required versions and generated state
+pnpm dev             # Start the web client
+pnpm dev:all         # Start the web client with local remotes
+pnpm format          # Apply the Oxfmt baseline
+pnpm lint            # Run the required Oxlint rules
+pnpm type-check      # Type-check every workspace member
+pnpm check           # Non-mutating format, lint, type, package, and build gate
+pnpm build           # Build core, web, Chromium extension, and remotes
+```
+
+Type-aware Oxlint and native TypeScript 7 are green shadow lanes:
+
+```bash
+pnpm lint:type-aware
+pnpm type-check:ts7
+```
+
+The required stable lane uses TypeScript 5.9 and Vue TSC. Unit and E2E participation join
+`pnpm check` in the testing phase; no placeholder test pass is reported today.
+
+## Package contract
+
+`@inkcre/core` is an ESM-only library built by tsdown. Its published contract is
+`dist/index.js` plus declarations and declaration maps. Vite and WXT applications alias
+`@inkcre/core` to source during monorepo development, while package consumers resolve the built
+`dist` entry.
+
 Install the adopted SVC CLI in an isolated Python environment, then verify the repository integration:
 
 ```bash

@@ -1,126 +1,128 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { newTask } from "~/logic/task";
-import { onNewTask } from "@/logic/task";
-import Response from "~/components/ai/Response/Response.vue";
-import ProviderPicker from "~/components/common/ProviderPicker/ProviderPicker.vue";
-import { useExplainChat, type Message } from "~/logic/explain";
-import { useConfigStore } from "@inkcre/core";
-import { routeToTakingNote } from "~/entrypoints/sidepanel/router";
+import { computed, ref, watch } from 'vue'
+import { newTask } from '~/logic/task'
+import { onNewTask } from '@/logic/task'
+import Response from '~/components/ai/Response/Response.vue'
+import ProviderPicker from '~/components/common/ProviderPicker/ProviderPicker.vue'
+import { useExplainChat, type Message } from '~/logic/explain'
+import { defaultModel, llmProviders } from '~/logic/storage'
+import { routeToTakingNote } from '~/entrypoints/sidepanel/router'
 
-// Get config store
-const configStore = useConfigStore();
-
-const initialQuery = ref<string>("");
-const tabId = ref<number>();
-const followUpInput = ref<string>("");
+const initialQuery = ref<string>('')
+const tabId = ref<number>()
+const followUpInput = ref<string>('')
 
 // Chat state
-const messages = ref<Message[]>([]);
-const isLoading = ref(false);
-const errorMessage = ref("");
-const selectedModel = ref(configStore.config.defaultModel);
+const messages = ref<Message[]>([])
+const isLoading = ref(false)
+const errorMessage = ref('')
+const selectedModel = ref(defaultModel.value)
 
 const explainChat = computed(() => {
   return useExplainChat({
     modelString: selectedModel.value,
-    providers: configStore.config.llmProviders,
+    providers: llmProviders.value,
     onUpdate: (update) => {
-      if (update.messages !== undefined) messages.value = update.messages;
-      if (update.isLoading !== undefined) isLoading.value = update.isLoading;
-      if (update.error !== undefined) errorMessage.value = update.error;
+      if (update.messages !== undefined) messages.value = update.messages
+      if (update.isLoading !== undefined) isLoading.value = update.isLoading
+      if (update.error !== undefined) errorMessage.value = update.error
     },
     onError: (error) => {
-      console.error("Chat error:", error);
+      console.error('Chat error:', error)
     },
     onFinish() {
       // Clear input after successful send
-      followUpInput.value = "";
+      followUpInput.value = ''
     },
-  });
-});
+  })
+})
 
 const startExplanation = async () => {
   try {
     if (!initialQuery.value) {
-      throw new Error("Nothing to explain");
+      throw new Error('Nothing to explain')
     }
-    await explainChat.value.sendMessage(initialQuery.value, tabId.value);
+    await explainChat.value.sendMessage(initialQuery.value, tabId.value)
   } catch (error) {
-    console.error("Error starting explanation:", error);
+    console.error('Error starting explanation:', error)
   }
-};
+}
 
 const sendFollowUp = async () => {
-  const message = followUpInput.value.trim();
-  if (!message || isLoading.value) return;
+  const message = followUpInput.value.trim()
+  if (!message || isLoading.value) return
 
   try {
-    await explainChat.value.sendMessage(message);
+    await explainChat.value.sendMessage(message)
   } catch (error) {
-    console.error("Error sending follow-up:", error);
+    console.error('Error sending follow-up:', error)
   }
-};
+}
 
 const stopExplanation = () => {
-  explainChat.value.stop();
-};
+  explainChat.value.stop()
+}
 
 const retryExplanation = () => {
   if (initialQuery.value) {
-    explainChat.value.reset();
-    startExplanation();
+    explainChat.value.reset()
+    startExplanation()
   }
-};
+}
 
 const saveConversation = async () => {
   // Convert all messages to a formatted text
   const conversationText = messages.value
-    .map(
-      (msg) =>
-        `**${msg.role === "user" ? "Question" : "Answer"}:**\n${msg.content}`
-    )
-    .join("\n\n---\n\n");
+    .map((msg) => `**${msg.role === 'user' ? 'Question' : 'Answer'}:**\n${msg.content}`)
+    .join('\n\n---\n\n')
 
   await newTask({
-    type: "taking-note",
+    type: 'taking-note',
     parameters: { text: conversationText },
-    from: "sidepanel",
-  });
-  routeToTakingNote();
-};
+    from: 'sidepanel',
+  })
+  routeToTakingNote()
+}
 
 const saveQuery = (event: Event) => {
-  const newText = (event.target as HTMLElement).innerText.trim();
-  initialQuery.value = newText;
+  const newText = (event.target as HTMLElement).innerText.trim()
+  initialQuery.value = newText
   if (newText && messages.value.length === 0) {
-    startExplanation();
+    startExplanation()
   }
-};
+}
 
 const handleFollowUpKeydown = (event: KeyboardEvent) => {
-  if (event.key === "Enter" && !event.shiftKey) {
-    event.preventDefault();
-    sendFollowUp();
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault()
+    sendFollowUp()
   }
-};
+}
 
 watch(initialQuery, (newQuery) => {
   if (newQuery && messages.value.length === 0) {
-    startExplanation();
+    startExplanation()
   }
-});
+})
 
 watch(selectedModel, () => {
   if (initialQuery.value && messages.value.length === 0) {
-    startExplanation();
+    startExplanation()
   }
-});
+})
 
-onNewTask("explain", (task) => {
-  initialQuery.value = task.parameters.selectedText;
-  tabId.value = task.sender.tabId;
-});
+watch(
+  defaultModel,
+  (value) => {
+    selectedModel.value = value
+  },
+  { immediate: true }
+)
+
+onNewTask('explain', (task) => {
+  initialQuery.value = task.parameters.selectedText
+  tabId.value = task.sender.tabId
+})
 </script>
 
 <template>
@@ -142,10 +144,7 @@ onNewTask("explain", (task) => {
     <main class="explain-content">
       <div v-if="errorMessage" class="error-message">
         <p>{{ errorMessage }}</p>
-        <p
-          v-if="!configStore.config.llmProviders?.some((p) => p.apiKey)"
-          class="config-hint"
-        >
+        <p v-if="!llmProviders.some((p) => p.apiKey)" class="config-hint">
           请在扩展选项中配置至少一个 LLM 提供商的 API Key。
         </p>
       </div>
@@ -158,7 +157,7 @@ onNewTask("explain", (task) => {
           :class="['message', `message-${message.role}`]"
         >
           <div class="message-role">
-            {{ message.role === "user" ? "问题" : "回答" }}
+            {{ message.role === 'user' ? '问题' : '回答' }}
           </div>
           <div class="message-content">
             <Response :content="message.content" />

@@ -9,7 +9,6 @@
     "resolveJsonModule": true,
     "jsx": "preserve",
     "jsxImportSource": "vue",
-    "composite": true,
     "paths": {
       "@inkcre/core": ["../core/src/index.ts"],
       "@inkcre/core/*": ["../core/src/*"]

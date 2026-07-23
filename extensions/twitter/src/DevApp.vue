@@ -5,5 +5,5 @@
 </template>
 
 <script setup lang="ts">
-import { DevLayout } from "@inkcre/ext-dev-utils";
+import { DevLayout } from '@inkcre/ext-dev-utils'
 </script>

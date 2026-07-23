@@ -1,82 +1,82 @@
 // joint-dev-extension.ts
-import { Plugin, ViteDevServer, createServer, build, InlineConfig } from "vite";
-import path from "path";
-import fs from "fs";
-import getPort from "get-port";
-import colors from "picocolors";
-import sirv from "sirv";
+import { Plugin, ViteDevServer, createServer, build, InlineConfig } from 'vite'
+import path from 'path'
+import fs from 'fs'
+import getPort from 'get-port'
+import colors from 'picocolors'
+import sirv from 'sirv'
 
 interface ExtensionDevOptions {
-  dir?: string; // 扩展根目录，默认为 "extensions"
-  active: string[]; // 需要 Dev 的扩展 ID 列表
-  exclude?: string[]; // 排除的扩展 ID 列表
+  dir?: string // 扩展根目录，默认为 "extensions"
+  active: string[] // 需要 Dev 的扩展 ID 列表
+  exclude?: string[] // 排除的扩展 ID 列表
 }
 
 interface ExtensionInfo {
-  id: string;
-  dir: string;
-  mode: "dev" | "static";
-  port?: number; // 仅 dev 模式有
+  id: string
+  dir: string
+  mode: 'dev' | 'static'
+  port?: number // 仅 dev 模式有
 }
 
 export async function useExtensionDevServer(options: ExtensionDevOptions) {
-  const rootDir = process.cwd();
-  const extBaseDir = path.resolve(rootDir, options.dir || "extensions");
-  const excludeList = new Set(options.exclude || []);
-  const activeSet = new Set(options.active);
+  const rootDir = process.cwd()
+  const extBaseDir = path.resolve(rootDir, options.dir || 'extensions')
+  const excludeList = new Set(options.exclude || [])
+  const activeSet = new Set(options.active)
 
   // 1. 扫描并分类扩展
-  const extensions: ExtensionInfo[] = [];
+  const extensions: ExtensionInfo[] = []
 
   if (fs.existsSync(extBaseDir)) {
-    const items = fs.readdirSync(extBaseDir, { withFileTypes: true });
+    const items = fs.readdirSync(extBaseDir, { withFileTypes: true })
 
     // 预留端口起始点
-    let portCursor = 4000;
+    let portCursor = 4000
 
     for (const item of items) {
       if (
         !item.isDirectory() ||
         excludeList.has(item.name) ||
-        item.name.startsWith(".") ||
-        item.name === "node_modules"
+        item.name.startsWith('.') ||
+        item.name === 'node_modules'
       )
-        continue;
+        continue
 
-      const extId = item.name;
-      const extDir = path.join(extBaseDir, extId);
-      const isDev = activeSet.has(extId);
+      const extId = item.name
+      const extDir = path.join(extBaseDir, extId)
+      const isDev = activeSet.has(extId)
 
       // 如果是 Dev 模式，分配端口
-      let port: number | undefined;
+      let port: number | undefined
       if (isDev) {
-        port = await getPort({ port: portCursor });
-        portCursor = port + 1;
+        port = await getPort({ port: portCursor })
+        portCursor = port + 1
       }
 
       extensions.push({
         id: extId,
         dir: extDir,
-        mode: isDev ? "dev" : "static",
+        mode: isDev ? 'dev' : 'static',
         port,
-      });
+      })
     }
   }
 
   // 2. 生成 Proxy 配置 (仅针对 Dev 模式)
-  const proxyConfig: Record<string, any> = {};
+  const proxyConfig: Record<string, any> = {}
   extensions
-    .filter((e) => e.mode === "dev")
+    .filter((e) => e.mode === 'dev')
     .forEach((e) => {
       // 这里的路径规则根据你的实际需求调整
       proxyConfig[`^/${e.id}/client-web`] = {
         target: `http://localhost:${e.port}`,
         changeOrigin: true,
-      };
-    });
+      }
+    })
 
   const plugin: Plugin = {
-    name: "vite-plugin-extension-manager",
+    name: 'vite-plugin-extension-manager',
 
     // 注入 Proxy
     config(config) {
@@ -87,124 +87,117 @@ export async function useExtensionDevServer(options: ExtensionDevOptions) {
             ...proxyConfig,
           },
         },
-      };
+      }
     },
 
     configureServer(server: ViteDevServer) {
-      const subServers: ViteDevServer[] = [];
+      const subServers: ViteDevServer[] = []
 
       // A. 处理 Static 模式：检查构建 + 注册中间件
       const setupStaticExtensions = async () => {
-        const staticExts = extensions.filter((e) => e.mode === "static");
+        const staticExts = extensions.filter((e) => e.mode === 'static')
 
         if (staticExts.length > 0) {
           console.log(
             colors.blue(
               `\n📦 [Extension Manager] Checking builds for ${staticExts.length} static extensions...`
             )
-          );
+          )
         }
 
         for (const ext of staticExts) {
-          const outDir = path.join(ext.dir, "dist"); // 假设输出目录是 dist
-          const entryFile = path.join(outDir, "index.html"); // 简单判断构建是否存在的依据
+          const outDir = path.join(ext.dir, 'dist') // 假设输出目录是 dist
+          const entryFile = path.join(outDir, 'index.html') // 简单判断构建是否存在的依据
 
           // 1. 如果没有构建产物，自动执行构建
           if (!fs.existsSync(entryFile)) {
-            console.log(
-              colors.yellow(`  ⚡ [${ext.id}] Build missing, building now...`)
-            );
+            console.log(colors.yellow(`  ⚡ [${ext.id}] Build missing, building now...`))
             try {
               // 使用 Vite Build API
               await build({
                 root: ext.dir,
-                configFile: path.resolve(ext.dir, "vite.config.ts"),
-                logLevel: "warn", // 减少日志噪音
+                configFile: path.resolve(ext.dir, 'vite.config.ts'),
+                logLevel: 'warn', // 减少日志噪音
                 build: {
                   // 确保构建产物不带 hash 或者符合你的引用习惯（可选）
-                  outDir: "dist",
+                  outDir: 'dist',
                   emptyOutDir: true,
                 },
-              } as InlineConfig);
-              console.log(colors.green(`  ✅ [${ext.id}] Built successfully.`));
+              } as InlineConfig)
+              console.log(colors.green(`  ✅ [${ext.id}] Built successfully.`))
             } catch (e) {
-              console.error(colors.red(`  ❌ [${ext.id}] Build failed.`), e);
-              continue; // 构建失败则跳过挂载
+              console.error(colors.red(`  ❌ [${ext.id}] Build failed.`), e)
+              continue // 构建失败则跳过挂载
             }
           }
 
           // 2. 注册静态文件中间件 (使用 sirv)
           // 拦截路径: /extension-id/client-web/...
-          const routePrefix = `/${ext.id}/client-web`;
+          const routePrefix = `/${ext.id}/client-web`
 
           // sirv 实例 (dev 模式下开启 etag 等)
-          const serve = sirv(outDir, { dev: true, single: true });
+          const serve = sirv(outDir, { dev: true, single: true })
 
           server.middlewares.use((req, res, next) => {
             if (req.url?.startsWith(routePrefix)) {
               // URL Rewrite: 把 /extension-a/client-web/assets/app.js 变成 /assets/app.js
-              const originalUrl = req.url;
-              req.url = req.url.slice(routePrefix.length);
-              if (req.url === "") req.url = "/"; // 处理根路径
+              const originalUrl = req.url
+              req.url = req.url.slice(routePrefix.length)
+              if (req.url === '') req.url = '/' // 处理根路径
 
               serve(req, res, () => {
                 // 如果 sirv 没找到文件（404），还原 URL 并交给下一个中间件
                 // 这样避免因为 rewrite 导致其他中间件逻辑混乱
-                req.url = originalUrl;
-                next();
-              });
+                req.url = originalUrl
+                next()
+              })
             } else {
-              next();
+              next()
             }
-          });
+          })
         }
-      };
+      }
 
       // B. 处理 Dev 模式：启动子 Server
       const startDevServers = async () => {
-        const devExts = extensions.filter((e) => e.mode === "dev");
-        if (devExts.length === 0) return;
+        const devExts = extensions.filter((e) => e.mode === 'dev')
+        if (devExts.length === 0) return
 
         console.log(
-          colors.cyan(
-            `\n🚀 [Extension Manager] Starting ${devExts.length} dev servers...`
-          )
-        );
+          colors.cyan(`\n🚀 [Extension Manager] Starting ${devExts.length} dev servers...`)
+        )
 
         for (const ext of devExts) {
           try {
             const subServer = await createServer({
               root: ext.dir,
-              configFile: path.resolve(ext.dir, "vite.config.ts"),
+              configFile: path.resolve(ext.dir, 'vite.config.ts'),
               server: {
                 port: ext.port,
                 strictPort: true,
                 hmr: { port: ext.port },
                 middlewareMode: false,
               },
-              logLevel: "error", // 仅显示错误，避免刷屏
-            });
+              logLevel: 'error', // 仅显示错误，避免刷屏
+            })
 
-            await subServer.listen();
-            subServers.push(subServer);
+            await subServer.listen()
+            subServers.push(subServer)
 
             console.log(
               colors.green(`  ➜ [${ext.id}] Dev Server: `) +
                 colors.gray(`http://localhost:${ext.port}`)
-            );
+            )
           } catch (e) {
-            console.error(
-              colors.red(`❌ [${ext.id}] Failed to start dev server:`),
-              e
-            );
+            console.error(colors.red(`❌ [${ext.id}] Failed to start dev server:`), e)
           }
         }
-      };
+      }
 
       const cleanup = async () => {
-        await Promise.all(subServers.map((s) => s.close()));
-        subServers.length = 0;
-      };
+        await Promise.all(subServers.map((s) => s.close()))
+        subServers.length = 0
+      }
 
       // 执行初始化流程
       // 注意：这里建议 await setupStaticExtensions，因为构建可能需要一点时间，
@@ -212,15 +205,17 @@ export async function useExtensionDevServer(options: ExtensionDevOptions) {
       // startDevServers 可以异步跑。
 
       // 我们将其包装在一个 async IIFE 中以免阻塞 configureServer 的同步返回值
-      (async () => {
-        await setupStaticExtensions();
-        startDevServers();
-      })();
+      void (async () => {
+        await setupStaticExtensions()
+        await startDevServers()
+      })().catch((error) => {
+        server.config.logger.error(`Failed to start joint extension development: ${error}`)
+      })
 
-      server.httpServer?.on("close", cleanup);
-      process.once("exit", cleanup);
+      server.httpServer?.on('close', cleanup)
+      process.once('exit', cleanup)
     },
-  };
+  }
 
-  return { plugin };
+  return { plugin }
 }

@@ -1,57 +1,57 @@
-import { createRouter, createWebHistory } from "vue-router";
-import type { Router, RouteLocationNormalizedLoaded } from "vue-router";
-import type { InkRouter } from "@inkcre/web-design";
-import start from "@/views/start/start.vue";
-import sources from "@/views/sources/sources.vue";
-import source from "@/views/sources/source/source.vue";
-import sourceCollectJob from "@/views/sources/sourceCollectJob/sourceCollectJob.vue";
-import extensions from "@/views/extensions/extensions.vue";
-import infoBaseGraph from "@/views/info-base/graph/graph.vue";
-import settings from "@/views/settings/settings.vue";
-import { computed } from "vue";
+import { createRouter, createWebHistory } from 'vue-router'
+import type { Router, RouteLocationNormalizedLoaded } from 'vue-router'
+import type { InkRouter } from '@inkcre/web-design'
+import start from '@/views/start/start.vue'
+import sources from '@/views/sources/sources.vue'
+import source from '@/views/sources/source/source.vue'
+import sourceCollectJob from '@/views/sources/sourceCollectJob/sourceCollectJob.vue'
+import extensions from '@/views/extensions/extensions.vue'
+import infoBaseGraph from '@/views/info-base/graph/graph.vue'
+import settings from '@/views/settings/settings.vue'
+import { computed } from 'vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: "/",
-      name: "InKCre",
+      path: '/',
+      name: 'InKCre',
       component: start,
     },
     {
-      path: "/sources",
-      name: "Sources",
+      path: '/sources',
+      name: 'Sources',
       component: sources,
     },
     {
-      path: "/sources/collectJob/:id",
-      name: "SourceCollectJob",
+      path: '/sources/collectJob/:id',
+      name: 'SourceCollectJob',
       component: sourceCollectJob,
     },
     {
-      path: "/sources/:id",
-      name: "Source",
+      path: '/sources/:id',
+      name: 'Source',
       component: source,
     },
     {
-      path: "/extensions",
-      name: "Extensions",
+      path: '/extensions',
+      name: 'Extensions',
       component: extensions,
     },
     {
-      path: "/info-base/graph",
-      name: "InfoBaseGraph",
+      path: '/info-base/graph',
+      name: 'InfoBaseGraph',
       component: infoBaseGraph,
     },
     {
-      path: "/settings",
-      name: "Settings",
+      path: '/settings',
+      name: 'Settings',
       component: settings,
     },
   ],
-});
+})
 
-export default router;
+export default router
 
 export function createInkRouterAdapter(
   router: Router,
@@ -60,5 +60,5 @@ export function createInkRouterAdapter(
   return {
     currentPath: computed(() => route.path),
     currentName: computed(() => (route.name as string) || null),
-  };
+  }
 }

@@ -1,40 +1,37 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { useConfigStore } from "@inkcre/core";
-
-// Get config store
-const configStore = useConfigStore();
+import { computed } from 'vue'
+import { defaultModel, llmProviders } from '~/logic/storage'
 
 const props = withDefaults(defineProps<{ modelValue?: string }>(), {
-  modelValue: () => configStore.config.defaultModel,
-});
+  modelValue: () => defaultModel.value,
+})
 
 const emit = defineEmits<{
-  "update:modelValue": [value: string];
-}>();
+  'update:modelValue': [value: string]
+}>()
 
 const localValue = computed({
   get: () => props.modelValue,
-  set: (value: string) => emit("update:modelValue", value),
-});
+  set: (value: string) => emit('update:modelValue', value),
+})
 
 // Compute available models from all providers
 const availableModels = computed(() => {
-  const models: { value: string; label: string; disabled: boolean }[] = [];
+  const models: { value: string; label: string; disabled: boolean }[] = []
 
-  configStore.config.llmProviders.forEach((provider) => {
-    const hasApiKey = provider.apiKey && provider.apiKey.length > 0;
+  llmProviders.value.forEach((provider) => {
+    const hasApiKey = provider.apiKey && provider.apiKey.length > 0
     provider.models.forEach((model) => {
       models.push({
         value: `${provider.id}:${model}`,
         label: `${provider.name} - ${model}`,
         disabled: !hasApiKey,
-      });
-    });
-  });
+      })
+    })
+  })
 
-  return models;
-});
+  return models
+})
 </script>
 
 <template>
@@ -48,7 +45,7 @@ const availableModels = computed(() => {
         :disabled="model.disabled"
       >
         {{ model.label }}
-        {{ model.disabled ? "(未配置)" : "" }}
+        {{ model.disabled ? '(未配置)' : '' }}
       </option>
     </select>
   </div>

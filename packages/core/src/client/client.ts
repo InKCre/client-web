@@ -125,12 +125,11 @@ export class Client extends Z.class({
     }
 
     const url = new URL(`${this.rest_api_url}${path}`)
+    const headers = await this.getAuthHeaders()
 
     const config: RequestInit = {
       method,
-      headers: {
-        ...(await this.getAuthHeaders()),
-      },
+      headers,
     }
 
     if (body !== undefined) {
@@ -143,10 +142,7 @@ export class Client extends Z.class({
       ) {
         // JSON
         config.body = JSON.stringify(body)
-        config.headers = {
-          'Content-Type': 'application/json',
-          ...config.headers,
-        }
+        headers['Content-Type'] = 'application/json'
       } else {
         // FormData / Blob / string / ArrayBuffer
         config.body = body

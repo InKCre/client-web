@@ -114,7 +114,7 @@ All phases of the plan have been successfully implemented. The implementation fo
   - Missing ES2015+ lib configuration for Map, Set, Promise
   - Extension system type errors in `extension/base.ts`
   - Config store type errors
-  
+
 These errors existed before this implementation and are not caused by the changes made.
 
 ## Next Steps

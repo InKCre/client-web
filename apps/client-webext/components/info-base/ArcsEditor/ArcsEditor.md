@@ -10,36 +10,31 @@ The ArcsEditor component provides an interface for creating and managing multipl
 
 ```vue
 <template>
-  <ArcsEditor
-    v-model="arcs"
-    type="incoming"
-    relationType="y"
-    ref="arcsEditorRef"
-  />
+  <ArcsEditor v-model="arcs" type="incoming" relationType="y" ref="arcsEditorRef" />
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import ArcsEditor from "~/components/info-base/ArcsEditor/ArcsEditor.vue";
-import { ArcForm } from "~/logic/info-base/root";
+import { ref } from 'vue'
+import ArcsEditor from '~/components/info-base/ArcsEditor/ArcsEditor.vue'
+import { ArcForm } from '~/logic/info-base/root'
 
-const arcs = ref<ArcForm[]>([]);
-const arcsEditorRef = ref<InstanceType<typeof ArcsEditor>>();
+const arcs = ref<ArcForm[]>([])
+const arcsEditorRef = ref<InstanceType<typeof ArcsEditor>>()
 
 // Programmatically add an arc
 const addNewArc = () => {
-  arcsEditorRef.value?.addArc();
-};
+  arcsEditorRef.value?.addArc()
+}
 </script>
 ```
 
 ## Props
 
-| Prop | Type | Required | Default | Description |
-|------|------|----------|---------|-------------|
-| `modelValue` | `ArcForm[]` | Yes | - | Array of arc forms to display and edit |
-| `type` | `"incoming" \| "outgoing"` | Yes | - | Whether these are incoming or outgoing arcs |
-| `relationType` | `"x" \| "y"` | No | `"x"` | Type of relation visualization (horizontal or vertical) |
+| Prop           | Type                       | Required | Default | Description                                             |
+| -------------- | -------------------------- | -------- | ------- | ------------------------------------------------------- |
+| `modelValue`   | `ArcForm[]`                | Yes      | -       | Array of arc forms to display and edit                  |
+| `type`         | `"incoming" \| "outgoing"` | Yes      | -       | Whether these are incoming or outgoing arcs             |
+| `relationType` | `"x" \| "y"`               | No       | `"x"`   | Type of relation visualization (horizontal or vertical) |
 
 ## Events
 
@@ -47,11 +42,11 @@ This component uses v-model, so it directly mutates the `modelValue` array.
 
 ## Exposed Methods
 
-| Method | Parameters | Description |
-|--------|------------|-------------|
-| `addArc()` | None | Adds a new arc to the collection and navigates to it |
-| `prev()` | None | Navigate to the previous arc |
-| `next()` | None | Navigate to the next arc (or add new if at the end) |
+| Method     | Parameters | Description                                          |
+| ---------- | ---------- | ---------------------------------------------------- |
+| `addArc()` | None       | Adds a new arc to the collection and navigates to it |
+| `prev()`   | None       | Navigate to the previous arc                         |
+| `next()`   | None       | Navigate to the next arc (or add new if at the end)  |
 
 ## Features
 
@@ -65,6 +60,7 @@ This component uses v-model, so it directly mutates the `modelValue` array.
 ### Navigation Controls
 
 When more than one arc exists:
+
 - **Counter**: Shows current position (e.g., "2/5")
 - **Previous Button** (←): Navigate to previous arc
 - **Next Button** (→): Navigate to next arc or create new
@@ -72,10 +68,12 @@ When more than one arc exists:
 ### Keyboard Shortcuts
 
 **Arc Navigation**:
+
 - `Alt+Tab`: Navigate to next arc
 - `Alt+Shift+Tab`: Navigate to previous arc
 
 **Arc Deletion**:
+
 - `Shift+Backspace`: Remove current arc and navigate to previous
 - `Shift+Delete`: Remove current arc and maintain position
 
@@ -119,6 +117,7 @@ ArcForm {
 ```
 
 When `addArc()` is called:
+
 - Creates new empty Block
 - Creates ArcForm with empty relation
 - Assigns block to appropriate position based on type
@@ -129,10 +128,12 @@ When `addArc()` is called:
 ### Layout Modes
 
 **Incoming Mode** (`type="incoming"`):
+
 - Flex direction: column-reverse
 - Navigation controls appear at bottom
 
 **Outgoing Mode** (`type="outgoing"`):
+
 - Flex direction: column
 - Navigation controls appear at top
 
@@ -155,11 +156,13 @@ When `addArc()` is called:
 ### Animations
 
 **Shake Animation** (0.5s):
+
 ```
 Oscillates horizontally when trying to navigate before first arc
 ```
 
 **Pressed Animation**:
+
 ```
 Scale down to 0.95 on button press
 ```
@@ -170,10 +173,8 @@ The component listens for keyboard events only when an arc editor is focused:
 
 ```typescript
 function handleKeydown(event: KeyboardEvent) {
-  const isBlockEditorFocused = arcEditors.value.some((editor) =>
-    editor?.isFocusing()
-  );
-  if (!isBlockEditorFocused) return;
+  const isBlockEditorFocused = arcEditors.value.some((editor) => editor?.isFocusing())
+  if (!isBlockEditorFocused) return
 
   // Handle Alt+Tab navigation
   // Handle Shift+Backspace/Delete for arc removal
@@ -185,11 +186,13 @@ This ensures keyboard shortcuts only work when the user is actively editing an a
 ## Navigation Behavior
 
 ### Previous Button
+
 - Navigates to previous arc if not at first
 - Disabled when at first arc (index 0)
 - Shows shake animation if clicked when disabled
 
 ### Next Button
+
 - Navigates to next arc if available
 - Creates new arc if at the last arc
 - Always enabled (creates new when at end)
@@ -197,6 +200,7 @@ This ensures keyboard shortcuts only work when the user is actively editing an a
 ### Automatic Scrolling
 
 When navigating:
+
 1. Updates index
 2. Calls `scrollTo()`
 3. Finds child element at current index
@@ -208,33 +212,26 @@ When navigating:
 The ArcsEditor is used in TakingNote component:
 
 ```vue
-<ArcsEditor
-  ref="incomingEditor"
-  v-model="form.in_relations"
-  type="incoming"
-  relationType="y"
-/>
+<ArcsEditor ref="incomingEditor" v-model="form.in_relations" type="incoming" relationType="y" />
 
 <BlockEditor v-model="form.block" />
 
-<ArcsEditor
-  ref="outgoingEditor"
-  v-model="form.out_relations"
-  type="outgoing"
-  relationType="y"
-/>
+<ArcsEditor ref="outgoingEditor" v-model="form.out_relations" type="outgoing" relationType="y" />
 ```
 
 Keyboard shortcuts in TakingNote:
+
 - `Tab`: Calls `outgoingEditor.addArc()`
 - `Shift+Tab`: Calls `incomingEditor.addArc()`
 
 ## Dependencies
 
 ### Components
+
 - `ArcEditor` - Individual arc editing component
 
 ### Logic Modules
+
 - `~/logic/info-base/root` - ArcForm, StarGraphForm types
 - `~/logic/info-base/block` - Block type
 - Vue's `ref`, `nextTick`, `withDefaults`
@@ -274,60 +271,46 @@ Keyboard shortcuts in TakingNote:
 
 ```vue
 <script setup lang="ts">
-import { ref } from "vue";
-import ArcsEditor from "~/componentsinfo-base//ArcsEditor/ArcsEditor.vue";
-import { ArcForm, StarGraphForm } from "~/logic/info-base/root";
-import { Block } from "~/logic/info-base/block";
+import { ref } from 'vue'
+import ArcsEditor from '~/componentsinfo-base//ArcsEditor/ArcsEditor.vue'
+import { ArcForm, StarGraphForm } from '~/logic/info-base/root'
+import { Block } from '~/logic/info-base/block'
 
-const incomingArcs = ref<ArcForm[]>([]);
-const outgoingArcs = ref<ArcForm[]>([]);
+const incomingArcs = ref<ArcForm[]>([])
+const outgoingArcs = ref<ArcForm[]>([])
 
-const incomingEditor = ref<InstanceType<typeof ArcsEditor>>();
-const outgoingEditor = ref<InstanceType<typeof ArcsEditor>>();
+const incomingEditor = ref<InstanceType<typeof ArcsEditor>>()
+const outgoingEditor = ref<InstanceType<typeof ArcsEditor>>()
 
 // Add some initial arcs
 incomingArcs.value.push(
-  new ArcForm(
-    { content: "is part of" },
-    null,
-    new StarGraphForm(new Block("text", "Category A"))
-  )
-);
+  new ArcForm({ content: 'is part of' }, null, new StarGraphForm(new Block('text', 'Category A')))
+)
 
 // Programmatic arc management
-const addIncoming = () => incomingEditor.value?.addArc();
-const addOutgoing = () => outgoingEditor.value?.addArc();
+const addIncoming = () => incomingEditor.value?.addArc()
+const addOutgoing = () => outgoingEditor.value?.addArc()
 
 const handleKeydown = (event: KeyboardEvent) => {
-  if (event.key === "Tab" && event.shiftKey) {
-    event.preventDefault();
-    addIncoming();
-  } else if (event.key === "Tab") {
-    event.preventDefault();
-    addOutgoing();
+  if (event.key === 'Tab' && event.shiftKey) {
+    event.preventDefault()
+    addIncoming()
+  } else if (event.key === 'Tab') {
+    event.preventDefault()
+    addOutgoing()
   }
-};
+}
 </script>
 
 <template>
   <div @keydown="handleKeydown">
-    <ArcsEditor
-      ref="incomingEditor"
-      v-model="incomingArcs"
-      type="incoming"
-      relationType="y"
-    />
+    <ArcsEditor ref="incomingEditor" v-model="incomingArcs" type="incoming" relationType="y" />
 
     <div class="main-content">
       <!-- Main block editor here -->
     </div>
 
-    <ArcsEditor
-      ref="outgoingEditor"
-      v-model="outgoingArcs"
-      type="outgoing"
-      relationType="y"
-    />
+    <ArcsEditor ref="outgoingEditor" v-model="outgoingArcs" type="outgoing" relationType="y" />
 
     <div class="actions">
       <button @click="addIncoming">Add Incoming</button>
@@ -340,21 +323,25 @@ const handleKeydown = (event: KeyboardEvent) => {
 ## Troubleshooting
 
 ### Arcs not scrolling into view
+
 - Check that container ref is properly bound
 - Verify scroll-behavior CSS is applied
 - Ensure child elements have proper width
 
 ### Keyboard shortcuts not working
+
 - Verify an arc editor is focused
 - Check that events aren't being captured by parent
 - Ensure tabindex is set on container
 
 ### Navigation buttons not appearing
+
 - Check that modelValue has more than one arc
 - Verify v-if condition is evaluating correctly
 - Inspect computed length property
 
 ### Arcs disappearing after deletion
+
 - Check index is properly updated after splice
 - Verify scrollTo is called after deletion
 - Ensure reactive updates are triggering
@@ -362,6 +349,7 @@ const handleKeydown = (event: KeyboardEvent) => {
 ## Future Enhancements
 
 Potential improvements:
+
 - Drag-and-drop reordering
 - Touch gesture support for mobile
 - Vertical scrolling mode option

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import Logo from "@/components/common/logo.vue";
+import Logo from '@/components/common/logo.vue'
 
 function openOptionsPage() {
-  browser.runtime.openOptionsPage();
+  browser.runtime.openOptionsPage()
 }
 </script>
 

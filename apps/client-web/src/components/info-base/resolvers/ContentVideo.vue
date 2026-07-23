@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import type { ContentCompProps } from "@inkcre/core";
-import type { VideoContent } from "@inkcre/core";
+import { ref, computed } from 'vue'
+import type { ContentCompProps } from '@inkcre/core'
+import type { VideoContent } from '@inkcre/core'
 
-type VideoRawContent = string | VideoContent;
+type VideoRawContent = string | VideoContent
 
-const props = defineProps<ContentCompProps<VideoRawContent>>();
+const props = defineProps<ContentCompProps<VideoRawContent>>()
 
-const thumbnailError = ref(false);
+const thumbnailError = ref(false)
 
 const thumbnailUrl = computed(() => {
-  if (typeof props.solvedContent !== "string") {
-    const content = props.solvedContent as VideoContent;
+  if (typeof props.solvedContent !== 'string') {
+    const content = props.solvedContent as VideoContent
     if (content.thumbnailUrl) {
-      return content.thumbnailUrl;
+      return content.thumbnailUrl
     }
   }
-  return null;
-});
+  return null
+})
 
 const onThumbnailError = () => {
-  thumbnailError.value = true;
-};
+  thumbnailError.value = true
+}
 </script>
 
 <template>

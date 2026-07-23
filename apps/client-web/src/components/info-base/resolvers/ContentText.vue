@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import type { ContentCompProps } from "@inkcre/core";
+import { computed } from 'vue'
+import type { ContentCompProps } from '@inkcre/core'
 
-const props = defineProps<ContentCompProps<string>>();
+const props = defineProps<ContentCompProps<string>>()
 
 const displayText = computed(() => {
-  const text = props.solvedContent;
-  const maxLen = 100;
-  return text.length > maxLen ? text.slice(0, maxLen) + "..." : text;
-});
+  const text = props.solvedContent
+  const maxLen = 100
+  return text.length > maxLen ? text.slice(0, maxLen) + '...' : text
+})
 </script>
 
 <template>

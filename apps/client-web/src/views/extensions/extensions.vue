@@ -1,31 +1,31 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { useAsyncState } from "@vueuse/core";
-import extensionCard from "@/components/extension/extensionCard/extensionCard.vue";
-import installExtension from "@/components/extension/installExtension/installExtension.vue";
-import { InkLoading, InkDropdown } from "@inkcre/web-design";
-import { Client } from "@inkcre/core";
-import { Extension, configStore } from "@inkcre/core";
+import { computed, ref } from 'vue'
+import { useAsyncState } from '@vueuse/core'
+import extensionCard from '@/components/extension/extensionCard/extensionCard.vue'
+import installExtension from '@/components/extension/installExtension/installExtension.vue'
+import { InkLoading, InkDropdown } from '@inkcre/web-design'
+import { Client } from '@inkcre/core'
+import { Extension, configStore } from '@inkcre/core'
 
 // --- data ---
-const selectedClientId = ref<string>(configStore.metaConfig.INKCRE_CLIENT_ID);
+const selectedClientId = ref<string>(configStore.metaConfig.INKCRE_CLIENT_ID)
 
 const {
   state: extensions,
   execute: refetchExtensions,
   isLoading: extensionsLoading,
-} = useAsyncState(() => Extension.list(), []);
+} = useAsyncState(() => Extension.list(), [])
 
 // --- methods ---
 const onInstallExtension = () => {
-  refetchExtensions();
-};
+  refetchExtensions()
+}
 
 const updExtension = (updatedExtension: Extension) => {
   extensions.value = extensions.value.map((ext) =>
     ext.id === updatedExtension.id ? updatedExtension : ext
-  );
-};
+  )
+}
 </script>
 
 <template>

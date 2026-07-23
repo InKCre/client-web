@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { useRouter } from "vue-router";
-import { useI18n } from "vue-i18n";
+import { computed, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
   InkField,
   InkButton,
@@ -11,9 +11,9 @@ import {
   InkSwitch,
   InkJsonEditor,
   InkDoubleCheck,
-} from "@inkcre/web-design";
-import collectAtForm from "@/components/source/collectAtForm/collectAtForm.vue";
-import { sourceCardEmits, type SourceCardProps } from "./sourceCard";
+} from '@inkcre/web-design'
+import collectAtForm from '@/components/source/collectAtForm/collectAtForm.vue'
+import { sourceCardEmits, type SourceCardProps } from './sourceCard'
 import {
   CollectAt,
   Source,
@@ -21,99 +21,99 @@ import {
   SourceCollectJobForm,
   SourceCollectJobStatus,
   SourceType,
-} from "@inkcre/core";
-import { useCloned, computedAsync } from "@vueuse/core";
+} from '@inkcre/core'
+import { useCloned, computedAsync } from '@vueuse/core'
 
-const props = defineProps<SourceCardProps>();
-const emit = defineEmits(sourceCardEmits);
-const { t } = useI18n();
-const router = useRouter();
+const props = defineProps<SourceCardProps>()
+const emit = defineEmits(sourceCardEmits)
+const { t } = useI18n()
+const router = useRouter()
 
 // --- data ---
 const sourceData = computedAsync(
   async (): Promise<Source> => {
     if (props.source) {
-      return props.source;
+      return props.source
     } else if (props.sourceId) {
-      return await Source.get(props.sourceId);
+      return await Source.get(props.sourceId)
     }
-    throw new Error("Either 'source' or 'sourceId' must be provided");
+    throw new Error("Either 'source' or 'sourceId' must be provided")
   },
   undefined,
   { shallow: false }
-);
+)
 const sourceType = computedAsync(
   async (): Promise<SourceType | undefined> => {
     if (sourceData.value?.type) {
-      return await SourceType.get(sourceData.value.type);
+      return await SourceType.get(sourceData.value.type)
     }
-    return undefined;
+    return undefined
   },
   undefined,
   { shallow: false }
-);
+)
 const latestOpenJob = computedAsync(
   async (): Promise<SourceCollectJob | null> => {
     if (sourceData.value?.id) {
-      return await SourceCollectJob.getLatestOpenBySource(sourceData.value.id);
+      return await SourceCollectJob.getLatestOpenBySource(sourceData.value.id)
     }
-    return null;
+    return null
   },
   null,
   { shallow: true }
-);
-const collectAtModel = ref<CollectAt | null>(null);
-const configPopupOpen = ref(false);
-const configModel = ref("");
-const nicknameModel = ref("");
+)
+const collectAtModel = ref<CollectAt | null>(null)
+const configPopupOpen = ref(false)
+const configModel = ref('')
+const nicknameModel = ref('')
 
 // --- watchers ---
 watch(
   () => sourceData.value?.collect_at,
   (newVal) => {
-    collectAtModel.value = newVal ? useCloned(newVal).cloned.value : null;
+    collectAtModel.value = newVal ? useCloned(newVal).cloned.value : null
   },
   { immediate: true }
-);
+)
 
 watch(
   () => sourceData.value?.nickname,
   (newVal) => {
-    nicknameModel.value = newVal || "";
+    nicknameModel.value = newVal || ''
   },
   { immediate: true }
-);
+)
 
 // --- computed ---
 const formattedConfig = computed(() => {
-  return JSON.stringify(sourceData.value?.config || {}, null, 2);
-});
+  return JSON.stringify(sourceData.value?.config || {}, null, 2)
+})
 
 const toggleAutoCollect = computed({
   get: () => collectAtModel.value != null,
   set: (value: boolean) => {
     if (value) {
       if (collectAtModel.value == null) {
-        collectAtModel.value = CollectAt.parse({});
+        collectAtModel.value = CollectAt.parse({})
       }
     } else {
-      collectAtModel.value = null;
+      collectAtModel.value = null
     }
   },
-});
+})
 
 // --- methods ---
 const onNicknameSave = (newNickname: string) => {
   if (sourceData.value) {
-    sourceData.value.nickname = newNickname;
-    sourceData.value.save();
+    sourceData.value.nickname = newNickname
+    sourceData.value.save()
   }
-};
+}
 
 const onEditConfig = () => {
-  configModel.value = formattedConfig.value;
-  configPopupOpen.value = true;
-};
+  configModel.value = formattedConfig.value
+  configPopupOpen.value = true
+}
 
 const onRunNow = async () => {
   const form = new SourceCollectJobForm({
@@ -124,43 +124,48 @@ const onRunNow = async () => {
     status: SourceCollectJobStatus.PENDING,
     state: {},
     config: {},
-  });
-  const job = await form.create();
-  router.push(`/sources/collectJob/${job.id}`);
-};
+  })
+  const job = await form.create()
+  router.push(`/sources/collectJob/${job.id}`)
+}
 
 const onDelete = () => {
-  emit("delete", sourceData.value!);
-};
+  emit('delete', sourceData.value!)
+}
 
 const onConfirmCollectAt = () => {
-  sourceData.value!.collect_at = useCloned(collectAtModel.value).cloned.value;
-  sourceData.value!.save();
-};
+  sourceData.value!.collect_at = useCloned(collectAtModel.value).cloned.value
+  sourceData.value!.save()
+}
+
+const onConfirmCollectAtAndClose = (closePopup: () => void) => {
+  onConfirmCollectAt()
+  closePopup()
+}
 
 const onCheckOpenJob = () => {
   if (latestOpenJob.value) {
-    router.push(`/sources/collectJob/${latestOpenJob.value.id}`);
+    router.push(`/sources/collectJob/${latestOpenJob.value.id}`)
   }
-};
+}
 
 const onCardClick = () => {
   if (sourceData.value) {
-    router.push(`/sources/${sourceData.value.id}`);
+    router.push(`/sources/${sourceData.value.id}`)
   }
-};
+}
 
 const onConfirmConfig = () => {
   try {
-    const parsedConfig = JSON.parse(configModel.value);
-    sourceData.value!.config = parsedConfig;
-    sourceData.value!.save();
-    configPopupOpen.value = false;
+    const parsedConfig = JSON.parse(configModel.value)
+    sourceData.value!.config = parsedConfig
+    sourceData.value!.save()
+    configPopupOpen.value = false
   } catch (error) {
     // Handle JSON parse error, maybe show a toast or something
-    console.error("Invalid JSON:", error);
+    console.error('Invalid JSON:', error)
   }
-};
+}
 </script>
 
 <template>
@@ -175,8 +180,8 @@ const onConfirmConfig = () => {
           @click.stop
           @update:modelValue="
             (value: string) => {
-              nicknameModel = value;
-              onNicknameSave(value);
+              nicknameModel = value
+              onNicknameSave(value)
             }
           "
         >
@@ -202,10 +207,7 @@ const onConfirmConfig = () => {
       >
         <template #default="{ closePopup }">
           <div class="collect-at__title">Config source auto collecting</div>
-          <collectAtForm
-            v-if="collectAtModel !== null"
-            v-model="collectAtModel"
-          />
+          <collectAtForm v-if="collectAtModel !== null" v-model="collectAtModel" />
           <div v-else>Auto collect off.</div>
           <div class="collect-at__actions">
             <InkSwitch v-model="toggleAutoCollect" size="md" />
@@ -213,10 +215,7 @@ const onConfirmConfig = () => {
             <InkButton
               text="Confirm"
               theme="primary"
-              @click="
-                onConfirmCollectAt();
-                closePopup();
-              "
+              @click="onConfirmCollectAtAndClose(closePopup)"
             />
           </div>
         </template>
@@ -227,12 +226,8 @@ const onConfirmConfig = () => {
       <pre class="source-card__config-text">{{ formattedConfig }}</pre>
     </div>
 
-    <div
-      v-if="latestOpenJob"
-      class="source-card__open-job"
-      @click.stop="onCheckOpenJob"
-    >
-      {{ t("source.checkOpenJob") }}
+    <div v-if="latestOpenJob" class="source-card__open-job" @click.stop="onCheckOpenJob">
+      {{ t('source.checkOpenJob') }}
     </div>
 
     <div class="source-card__operations" @click.stop>
@@ -248,12 +243,7 @@ const onConfirmConfig = () => {
         </InkDoubleCheck>
       </div>
       <div class="source-card__operations-right">
-        <InkButton
-          text="Edit Config"
-          theme="subtle"
-          size="sm"
-          @click="onEditConfig"
-        />
+        <InkButton text="Edit Config" theme="subtle" size="sm" @click="onEditConfig" />
         <InkButton text="Run Now" theme="subtle" size="sm" @click="onRunNow" />
       </div>
     </div>
@@ -269,11 +259,7 @@ const onConfirmConfig = () => {
         :rows="6"
       />
       <div class="config-editor__actions">
-        <InkButton
-          text="Cancel"
-          theme="subtle"
-          @click="configPopupOpen = false"
-        />
+        <InkButton text="Cancel" theme="subtle" @click="configPopupOpen = false" />
         <InkButton text="Confirm" theme="primary" @click="onConfirmConfig" />
       </div>
     </div>

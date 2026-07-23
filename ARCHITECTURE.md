@@ -39,26 +39,32 @@
 ## Package Responsibilities
 
 ### @inkcre/core
+
 - Domain models (Block, Relation, Source, Client, Extension)
 - API clients (DBAPIClient, CoreAPIClient)
 - Extension lifecycle & Module Federation
 - Storage & Resolver abstractions
 - Configuration management
 - Authentication store
+- ESM-only tsdown output with declarations and declaration maps
 
 ### apps/client-web
+
 - Vue3 SPA with routing
 - Graph visualization (Vue Flow)
 - UI components by domain
-- Cloudflare Workers deployment
+- Static Vite output
+- Currently deployed through a thin Cloudflare Worker wrapper; static cutover is owned by Phase 3
 
 ### apps/client-webext
+
 - Browser extension (Chrome/Firefox)
 - Content scripts & sidepanels
 - AI-powered features (explain, notes)
 - WXT framework
 
 ### extensions/*
+
 - Module Federation remotes
 - Custom resolvers & storages
 - Extend business logic
@@ -66,10 +72,11 @@
 ## Tech Stack
 
 - Framework: Vue 3 (Composition API)
-- Build: Vite, tsup
-- Types: TypeScript, Zod
+- Build: Vite for applications/remotes, WXT for browser extensions, tsdown for `@inkcre/core`
+- Quality: Oxfmt and Oxlint at the repository root
+- Types: TypeScript 5.9 required, native TypeScript 7 shadow, Vue TSC, Zod
 - State: Pinia
 - Styling: SCSS, UnoCSS
 - Graphs: Vue Flow, D3, Graphology
 - Extensions: Module Federation
-- Deploy: Cloudflare Workers
+- Deploy: Cloudflare Workers today; static Cloudflare Pages is the accepted target

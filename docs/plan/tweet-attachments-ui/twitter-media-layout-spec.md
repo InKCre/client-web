@@ -57,12 +57,12 @@ This document specifies Twitter's visual layout patterns for media attachments i
 
 ## 2. Aspect Ratios by Count
 
-| Image Count | Pattern | Individual Aspect Ratios |
-|-------------|---------|-------------------------|
-| 1 | Full width | 16:9, 2:1, 1:1, 4:5 (flexible) |
-| 2 | Side-by-side | 1:1 (both) |
-| 3 | 1 large + 2 small | Large: ~2:1, Small: 1:1 each |
-| 4 | 2x2 grid | 1:1 (all) |
+| Image Count | Pattern           | Individual Aspect Ratios       |
+| ----------- | ----------------- | ------------------------------ |
+| 1           | Full width        | 16:9, 2:1, 1:1, 4:5 (flexible) |
+| 2           | Side-by-side      | 1:1 (both)                     |
+| 3           | 1 large + 2 small | Large: ~2:1, Small: 1:1 each   |
+| 4           | 2x2 grid          | 1:1 (all)                      |
 
 **Key Rule**: For 2, 3, or 4 images, Twitter force-crops images to fit specific aspect ratios using CSS `object-fit: cover` and center positioning.
 
@@ -280,7 +280,7 @@ MediaGrid.vue
 ### Dynamic Class Binding
 
 ```vue
-<div 
+<div
   class="media-grid"
   :class="`media-grid--${mediaCount}`"
 >
@@ -355,12 +355,12 @@ $transition-speed: 200ms;
 
 ## 10. Summary: Quick Reference
 
-| Count | Layout | Grid Template | Aspect Ratios | Gap | Border Radius | Max Height |
-|-------|--------|---------------|---------------|-----|---------------|------------|
-| 1 | Full | `1fr` | Flexible (16:9 rec) | N/A | 16px | 508px |
-| 2 | Side-by-side | `1fr 1fr` | 1:1 both | 2px | 16px | Auto |
-| 3 | 1L + 2S | `2fr 1fr` (2 rows) | L: 2:1, S: 1:1 | 2px | 16px | 508px |
-| 4 | 2x2 Grid | `1fr 1fr` (2 rows) | 1:1 all | 2px | 16px | Auto |
+| Count | Layout       | Grid Template      | Aspect Ratios       | Gap | Border Radius | Max Height |
+| ----- | ------------ | ------------------ | ------------------- | --- | ------------- | ---------- |
+| 1     | Full         | `1fr`              | Flexible (16:9 rec) | N/A | 16px          | 508px      |
+| 2     | Side-by-side | `1fr 1fr`          | 1:1 both            | 2px | 16px          | Auto       |
+| 3     | 1L + 2S      | `2fr 1fr` (2 rows) | L: 2:1, S: 1:1      | 2px | 16px          | 508px      |
+| 4     | 2x2 Grid     | `1fr 1fr` (2 rows) | 1:1 all             | 2px | 16px          | Auto       |
 
 **Key CSS Properties**: `object-fit: cover`, `object-position: center`, `overflow: hidden`, `transition: 200ms`
 

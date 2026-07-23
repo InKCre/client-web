@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import type { ContentCompProps } from "@inkcre/core";
+import { ref } from 'vue'
+import type { ContentCompProps } from '@inkcre/core'
 
 // ImageResolver transforms Blob to Object URL string
-const props = defineProps<ContentCompProps<string>>();
+const props = defineProps<ContentCompProps<string>>()
 
-const imageError = ref(false);
+const imageError = ref(false)
 
 const onError = () => {
-  imageError.value = true;
-};
+  imageError.value = true
+}
 </script>
 
 <template>

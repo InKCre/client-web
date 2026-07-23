@@ -51,7 +51,11 @@ export interface ContentCompProps<SolvedContentT = any> {
 // Resolver Base Class (with DB Integration)
 // ============================================================================
 
-type ResolverClass = new (block: Block, relations?: Relation[]) => Resolver
+export interface ResolverClass {
+  new (block: Block, relations?: Relation[]): Resolver
+  readonly type: string
+  contentComp: Component
+}
 
 /**
  * Base class for resolver implementations with Block, Relation, and Storage integration.

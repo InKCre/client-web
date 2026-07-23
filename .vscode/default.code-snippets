@@ -10,6 +10,6 @@
     "scope": "typescript",
     "prefix": "zod-class",
     "body": ["import { z } from \"zod\";", "import { Z } from \"zod-class\";"],
-    "description": "Use zod-class imports"
-  }
+    "description": "Use zod-class imports",
+  },
 }

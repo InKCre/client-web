@@ -53,8 +53,17 @@ src/
 ## Commands
 
 ```bash
-pnpm build        # Build with tsup
-pnpm type-check   # TypeScript check
-pnpm lint         # ESLint
-pnpm format       # Prettier
+pnpm build        # Build ESM output and declarations with tsdown
+pnpm type-check   # Required TypeScript 5.9 check
 ```
+
+Run `pnpm format`, `pnpm lint`, `pnpm lint:type-aware`, and `pnpm type-check:ts7` from the
+repository root.
+
+## Source and Distribution Contract
+
+- Package consumers resolve `dist/index.js` and `dist/index.d.ts`.
+- Monorepo Vite and WXT applications alias `@inkcre/core` to `src/index.ts` for source-first
+  development.
+- The package is ESM-only. Do not add a CommonJS export without a named consumer and an explicit
+  contract change.

@@ -6,6 +6,7 @@
     "strict": true,
     "declaration": true,
     "declarationMap": true,
+    "rootDir": "./src",
     "outDir": "./dist",
     "skipLibCheck": true,
     "experimentalDecorators": true,
@@ -13,13 +14,8 @@
     "resolveJsonModule": true,
     "jsx": "preserve",
     "jsxImportSource": "vue",
-    "sourceMap": true,
+    "sourceMap": true
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -1,16 +1,16 @@
 ---
-applyTo: "src/components/**/*.vue"
+applyTo: 'src/components/**/*.vue'
 ---
 
 ## Example
 
 ```vue
 <script setup lang="ts">
-import { compNameProps, compNameEmits } from "./<compName>";
+import { compNameProps, compNameEmits } from './<compName>'
 
-const props = defineProps(compNameProps);
+const props = defineProps(compNameProps)
 // const model = defineModel({ type: String }); use defineModel for v-model
-const emit = defineEmits(compNameEmits);
+const emit = defineEmits(compNameEmits)
 
 // --- data ---
 

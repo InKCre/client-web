@@ -19,6 +19,7 @@ Guidelines for writing AGENTS.md, ARCHITECTURE.md, FILESYSTEM.md and similar doc
 ## Content Structure
 
 AGENTS.md should contain:
+
 - One-line description
 - Structure overview (what's where)
 - Quick reference (common commands)
@@ -26,34 +27,40 @@ AGENTS.md should contain:
 - Domain-specific guidelines
 
 ARCHITECTURE.md should contain:
+
 - System layers diagram (if helpful)
 - Key patterns with locations
 - Data flow summary
 - Package responsibilities
 
 FILESYSTEM.md should contain:
+
 - Directory tree with brief annotations
 - File naming conventions
 
 ## Writing Style
 
 Good:
+
 ```
 - `src/api` - API client implementations
 ```
 
 Bad:
+
 ```
 - **src/api**: This directory contains all of the API client implementations
 ```
 
 Good:
+
 ```
 ## Commands
 - `pnpm dev` - Start dev server
 ```
 
 Bad:
+
 ```
 ## Commands
 | Command | Description |
@@ -64,6 +71,7 @@ Bad:
 ## When to Update
 
 Refresh documentation after:
+
 - Adding/removing packages or apps
 - Changing directory structure
 - Adding new business domains

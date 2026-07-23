@@ -149,7 +149,7 @@ This happens after initial render when `fit-view-on-init` is enabled.
    export const DEFAULT_FORCE_CONFIG = {
      centerForce: 0.3,
      chargeForce: -1000, // Increase for larger nodes
-     linkDistance: 300,  // Increase for larger nodes
+     linkDistance: 300, // Increase for larger nodes
      collideRadius: null, // Remove static value, use dynamic
      collideStrength: 1.0,
      collideIterations: 10,
@@ -166,12 +166,12 @@ This happens after initial render when `fit-view-on-init` is enabled.
      return {
        width: node.measured?.width ?? node.width ?? 250,
        height: node.measured?.height ?? node.height ?? 120,
-     };
+     }
    }
 
    export function getNodeCollisionRadius(node: Node): number {
-     const { width, height } = getNodeDimensions(node);
-     return Math.sqrt(width * width + height * height) / 2 + 20;
+     const { width, height } = getNodeDimensions(node)
+     return Math.sqrt(width * width + height * height) / 2 + 20
    }
    ```
 
@@ -185,14 +185,14 @@ This happens after initial render when `fit-view-on-init` is enabled.
 
    ```typescript
    watch(
-     () => allNodes.value.map(n => n.measured?.width + ',' + n.measured?.height).join('|'),
+     () => allNodes.value.map((n) => n.measured?.width + ',' + n.measured?.height).join('|'),
      (newVal, oldVal) => {
        if (newVal !== oldVal && layoutManager.effectiveLayout.value === LayoutType.Force) {
          // Restart force simulation when node sizes change
-         layoutManager.forceLayout.restart();
+         layoutManager.forceLayout.restart()
        }
      }
-   );
+   )
    ```
 
 2. **Delay initial layout** until measurement:
@@ -203,15 +203,15 @@ This happens after initial render when `fit-view-on-init` is enabled.
      if (!loading && wasLoading && allNodes.value.length > 0) {
        // Delay to allow Vue Flow measurement
        setTimeout(() => {
-         if (selectedCommunityId.value === "all") {
-           allCommunitiesLayout.applyLayout();
+         if (selectedCommunityId.value === 'all') {
+           allCommunitiesLayout.applyLayout()
          } else {
-           layoutManager.applyLayout();
+           layoutManager.applyLayout()
          }
-         setTimeout(() => fitView(fitViewOptions), 500);
-       }, 100);
+         setTimeout(() => fitView(fitViewOptions), 500)
+       }, 100)
      }
-   });
+   })
    ```
 
 ### Phase 5: Testing & Refinement
@@ -281,13 +281,13 @@ This happens after initial render when `fit-view-on-init` is enabled.
 
 ### Layout Algorithm Compatibility
 
-| Layout | Dynamic Size Support | Changes Needed |
-|--------|---------------------|----------------|
-| Dagre | ✅ Already supported | Update defaults |
-| Force | ⚠️ Needs work | Dynamic collision |
-| Circular | ⚠️ Needs work | Spacing adjustments |
-| Radial | ⚠️ Needs work | Spacing adjustments |
-| Grid | ⚠️ Needs work | Dynamic cell size |
+| Layout   | Dynamic Size Support | Changes Needed      |
+| -------- | -------------------- | ------------------- |
+| Dagre    | ✅ Already supported | Update defaults     |
+| Force    | ⚠️ Needs work        | Dynamic collision   |
+| Circular | ⚠️ Needs work        | Spacing adjustments |
+| Radial   | ⚠️ Needs work        | Spacing adjustments |
+| Grid     | ⚠️ Needs work        | Dynamic cell size   |
 
 ## Implementation Order
 
@@ -326,12 +326,12 @@ This happens after initial render when `fit-view-on-init` is enabled.
 
 ## Risk Assessment
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Performance degradation | High | Medium | Cache calculations, limit iterations |
-| Layout instability | High | Medium | Careful parameter tuning, testing |
-| Edge routing issues | Medium | Medium | Test thoroughly, adjust Vue Flow configs |
-| Breaking existing graphs | Low | Low | All changes are additive/refinements |
+| Risk                     | Impact | Likelihood | Mitigation                               |
+| ------------------------ | ------ | ---------- | ---------------------------------------- |
+| Performance degradation  | High   | Medium     | Cache calculations, limit iterations     |
+| Layout instability       | High   | Medium     | Careful parameter tuning, testing        |
+| Edge routing issues      | Medium | Medium     | Test thoroughly, adjust Vue Flow configs |
+| Breaking existing graphs | Low    | Low        | All changes are additive/refinements     |
 
 ## Success Criteria
 

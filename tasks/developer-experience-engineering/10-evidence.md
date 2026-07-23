@@ -2,7 +2,7 @@
 
 This file records observed facts only. Decisions and desired state live in adjacent packet files.
 
-## Repository and Tooling
+## Phase 0 Repository and Tooling Baseline
 
 - Root scripts expose only `dev`, partial builds, and recursive `type-check`; there is no root lint, format check, test, check, doctor, or CI contract: `package.json:10`.
 - Root `type-check` silently omits the web extension because it uses `typecheck`; the Twitter extension has no type-check script: `apps/client-webext/package.json:7`, `extensions/twitter/package.json:6`.
@@ -78,12 +78,12 @@ This file records observed facts only. Decisions and desired state live in adjac
 
 Validated on 2026-07-23 with an isolated Python environment containing the published `sustainable-vibe-coding==10.0.1` wheel; commands invoked that environment's exact `svc` binary rather than the dirty sibling SVC source tree or an assumed global executable.
 
-| Repository | Command | Result |
-| --- | --- | --- |
-| client-web | `svc status --json` | healthy; schema v2; adopted 10.0.1; wheel runtime current |
-| client-web | `svc init --agent codex --json` | `noop`; generated surfaces remain current |
-| `InKCre/docs` | `svc status --json` | healthy; schema v2; adopted 10.0.1; wheel runtime current |
-| `InKCre/docs` | `svc init --agent codex --json` | `noop`; generated surfaces remain current |
+| Repository    | Command                         | Result                                                    |
+| ------------- | ------------------------------- | --------------------------------------------------------- |
+| client-web    | `svc status --json`             | healthy; schema v2; adopted 10.0.1; wheel runtime current |
+| client-web    | `svc init --agent codex --json` | `noop`; generated surfaces remain current                 |
+| `InKCre/docs` | `svc status --json`             | healthy; schema v2; adopted 10.0.1; wheel runtime current |
+| `InKCre/docs` | `svc init --agent codex --json` | `noop`; generated surfaces remain current                 |
 
 - SVC v10 has no `_svc_v10.md`, `svc migrate`, or copied consumer corpus. Framework guidance remains in the installed distribution and is queried with `svc lookup`.
 - The Hub retains `00-meta/submodule-profile.md`, `submodule-operations.md`, and `skills/edit-svc-shared-docs/**` because they are InKCre-specific operational owners rather than SVC framework copies.
@@ -106,13 +106,69 @@ Validated on 2026-07-23 with an isolated Python environment containing the publi
 
 Observed command outcomes on Node 22.22.3 and pnpm 10.26.2:
 
-| Command | Exit | Baseline result |
-| --- | ---: | --- |
-| `pnpm install --frozen-lockfile` | 0 | Six workspace projects restored; WXT prepare completed |
-| `pnpm install --frozen-lockfile --offline` | 0 | Idempotent; lock hash unchanged |
-| `pnpm type-check` | 2 | Stops at three core extension/config errors |
-| `pnpm build` | 1 | Core ESM emitted; declaration build hits the same errors |
-| `pnpm --filter @inkcre/client-web build-only` | 0 | Static SPA bundle succeeds with size warnings |
-| `pnpm --filter @inkcre/client-webext build` | 1 | Cannot resolve `wxt/utils/storage` from core |
-| `pnpm --filter @inkcre/client-webext exec vitest run` | 1 | No test files found |
-| `pnpm --filter @inkcre/ext-twitter build` | 1 | Cannot resolve `./Extension` |
+| Command                                               | Exit | Baseline result                                          |
+| ----------------------------------------------------- | ---: | -------------------------------------------------------- |
+| `pnpm install --frozen-lockfile`                      |    0 | Six workspace projects restored; WXT prepare completed   |
+| `pnpm install --frozen-lockfile --offline`            |    0 | Idempotent; lock hash unchanged                          |
+| `pnpm type-check`                                     |    2 | Stops at three core extension/config errors              |
+| `pnpm build`                                          |    1 | Core ESM emitted; declaration build hits the same errors |
+| `pnpm --filter @inkcre/client-web build-only`         |    0 | Static SPA bundle succeeds with size warnings            |
+| `pnpm --filter @inkcre/client-webext build`           |    1 | Cannot resolve `wxt/utils/storage` from core             |
+| `pnpm --filter @inkcre/client-webext exec vitest run` |    1 | No test files found                                      |
+| `pnpm --filter @inkcre/ext-twitter build`             |    1 | Cannot resolve `./Extension`                             |
+
+## Phase 2 Toolchain and Package Results
+
+Validated on 2026-07-23 with Node 22.22.3, pnpm 10.26.2, stable TypeScript 5.9.3, native
+TypeScript 7.0.2, Oxfmt 0.60.0, Oxlint 1.75.0 paired with oxlint-tsgolint 7.0.2001, and
+tsdown 0.22.13.
+
+- One root Oxfmt configuration formats 337 tracked-source candidates and excludes the read-only
+  `docs/_shared` mount plus the two SVC-managed navigation surfaces.
+- One root Oxlint configuration enforces correctness and unused-variable errors without carrying
+  the previous ESLint/Prettier or Biome configs. Type-aware Oxlint is a separate green shadow lane.
+- The pnpm catalog pins stable TypeScript 5.9.3 and Vue TSC 3.3.8 for all workspaces. Native
+  TypeScript 7.0.2 is root-only and checks the framework-independent core lane.
+- The workspace validator accounts for all five declared members, their required scripts/builders,
+  and the documented source-only exemption for `@inkcre/ext-dev-utils`.
+- `@inkcre/core` builds ESM JavaScript, source maps, declarations, and declaration maps through
+  tsdown. Its package manifest exposes only `dist/index.js`/`dist/index.d.ts`; no fictional CommonJS
+  entry remains.
+- Monorepo Vite/WXT consumers alias core source for development. The package validator separately
+  proves the consumer workspace link, direct ESM import, built core dist contract, and required web,
+  webext content-script, and Twitter remote outputs.
+- The webext type/build path now uses declared AI provider dependencies, current core configuration
+  APIs, and namespaced `@wxt-dev/storage` keys. LLM providers, default model, and explain
+  instruction remain extension-local refs rather than an unpersisted remote client-config
+  projection; their deep-write behavior has a focused passing regression test. Its Chromium
+  production build succeeds.
+- The Twitter remote uses the current extension module entry and builds successfully.
+- Type-aware lint found and corrected a real `HeadersInit` array/object spread hazard in the core
+  REST client.
+- A direct client-web Vitest invocation remains outside the Phase 2 gate and is red: 5 tests pass,
+  14 fail because the suite has no DOM test environment and two `useEither` assertions assume
+  synchronous async-computed resolution; loading the application Vite config also triggers a
+  failing ad hoc Twitter build. Phase 4 owns the hermetic test configuration and behavior repair.
+
+Observed Phase 2 command outcomes:
+
+| Command                                                                                          | Exit | Result                                                    |
+| ------------------------------------------------------------------------------------------------ | ---: | --------------------------------------------------------- |
+| `pnpm run doctor`                                                                                |    0 | Required Phase 2 setup healthy; Phase 3 capabilities warn |
+| `pnpm format:check`                                                                              |    0 | 337 files match the Oxfmt contract                        |
+| `pnpm lint`                                                                                      |    0 | Required correctness/unused gate is clean                 |
+| `pnpm lint:type-aware`                                                                           |    0 | Shadow type-aware rules are clean                         |
+| `pnpm type-check`                                                                                |    0 | All five workspace members participate and pass           |
+| `pnpm type-check:ts7`                                                                            |    0 | Native TypeScript 7 core shadow is clean                  |
+| `pnpm build`                                                                                     |    0 | Core, web, webext, and Twitter outputs build              |
+| `pnpm check`                                                                                     |    0 | Required Phase 2 aggregate gate is clean                  |
+| `pnpm --filter @inkcre/client-webext exec vitest run composables/useWebExtensionStorage.spec.ts` |    0 | Nested ref changes write extension-local serialized data  |
+| `node scripts/check-package-contract.mjs`                                                        |    0 | Core ESM dist/declaration contract resolves               |
+
+Builds retain non-fatal upstream/bundle warnings: ineffective dynamic imports in core, large web
+and webext chunks, a Module Federation `eval`, VueUse pure annotations, duplicate UnoCSS import,
+and Module Federation sourcemap notices. These are observable optimization debt, not hidden gate
+failures.
+
+The `run` keyword is required for the repository doctor because `pnpm doctor` is an unrelated pnpm
+built-in command and does not dispatch package scripts.

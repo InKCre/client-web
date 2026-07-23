@@ -1,6 +1,6 @@
 // --- Types ---
 export interface PaginationState {
-  page: number;
-  pageSize: number;
-  total: number;
+  page: number
+  pageSize: number
+  total: number
 }

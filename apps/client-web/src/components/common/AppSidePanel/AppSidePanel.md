@@ -20,14 +20,14 @@ Application-specific sidebar panel component that displays the main navigation m
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| Prop       | Type      | Default | Description                                         |
+| ---------- | --------- | ------- | --------------------------------------------------- |
 | `expanded` | `boolean` | `false` | Controls whether the panel is expanded or collapsed |
 
 ## Emits
 
-| Event | Payload | Description |
-|-------|---------|-------------|
+| Event             | Payload   | Description                                            |
+| ----------------- | --------- | ------------------------------------------------------ |
 | `update:expanded` | `boolean` | Emitted when the expanded state changes based on route |
 
 ## Behavior

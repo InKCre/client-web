@@ -3,7 +3,7 @@
  *
  * Core protocols and utilities for InKCre applications.
  * This package provides environment-agnostic interfaces for:
- * - Extension lifecycle (IExtension)
+ * - Extension lifecycle (ExtensionModule)
  * - Content resolution (Resolver)
  * - Storage abstraction (Storage)
  */
@@ -67,7 +67,9 @@ export { Log, type LogRef } from './obsrv'
 export {
   // Models
   Block,
+  BlockForm,
   Relation,
+  RelationForm,
   type BlockRef,
   type RelationRef,
   makeBlockProp,
@@ -103,22 +105,7 @@ export {
 } from './info-base'
 
 // Sink (Output formatters)
-export {
-  LayoutType,
-  TopologyType,
-  topologyToLayout,
-  DEFAULT_DAGRE_CONFIG,
-  LayoutDirection,
-  DEFAULT_CIRCULAR_CONFIG,
-  DEFAULT_RADIAL_CONFIG,
-  DEFAULT_FORCE_CONFIG,
-  DEFAULT_GRID_CONFIG,
-  classicalMDS,
-  computeIntraCommunityDistances,
-  computeInterCommunityDistances,
-  blockToNode,
-  relationToEdge,
-} from './sink/graph'
+export * from './sink/graph'
 
 // Configuration
 export {
@@ -138,6 +125,7 @@ export {
   type LLMProviderConfig,
   type AdapterType,
   type ConfigAdapterWithWrite,
+  type WebextStorageLike,
 } from './config'
 
 // Authentication

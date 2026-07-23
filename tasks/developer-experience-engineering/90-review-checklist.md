@@ -5,8 +5,8 @@
 - [ ] D1: client-web is a static SPA; remove Hono/Worker and deploy Cloudflare Pages.
 - [ ] D2: JWT signing remains browser-local with a user-supplied secret; Cloudflare and Vite never provide a shared secret.
 - [ ] D2a: hard-cut web config to one browser-local authority instead of preserving localStorage/http/env adapter selection.
-- [ ] D3: hard-cut formatting/linting to Oxfmt/Oxlint; use tsdown only for real libraries.
-- [ ] D3a: stable TypeScript remains required; TS7 native preview is shadow-only.
+- [x] D3: hard-cut formatting/linting to Oxfmt/Oxlint; use tsdown only for real libraries.
+- [x] D3a: stable TypeScript remains required; TS7 native is shadow-only.
 - [ ] D4: core-py remains schema authority; client-web consumes a versioned Docker PostgREST development capability without copying migrations.
 - [x] D5: adopt official SVC `10.0.1`, publish the settled docs Hub, then add the exact published commit as the client-web shared mount.
 - [ ] D6: fast-forward and protect `main`, then retire long-lived `develop`.
@@ -33,6 +33,8 @@ No compatibility shim, duplicate schema, dual formatter, alternate production br
 
 - Step 1 authorization covered the reproducibility contract and its isolated commit.
 - Step 2 authorization covers client-web SVC adoption and shared-reference integration plus the `InKCre/docs` v10 Hub migration. The user separately authorized the isolated Hub commit/push and the two isolated client-web commits; client-web push remains unauthorized.
+- Step 3 authorization covers the client-web toolchain/package-contract hard cut and the code repairs
+  necessary to make that contract truthful. It does not authorize a Step 3 commit or push.
 - Outside those slices, no product source, Cloudflare, Docker, database, branch, submodule, sibling-repository commit/push, or external-resource mutation is authorized.
 - No production credential inspection.
 - No server-issued auth/BFF redesign without separate product intent.
@@ -57,3 +59,9 @@ No compatibility shim, duplicate schema, dual formatter, alternate production br
 - 2026-07-23: user authorized the isolated Hub commit/push; `ad464fd` was pushed to `origin/codex/svc-v10-adoption`.
 - 2026-07-23: client-web added `docs/_shared` at exact published commit `ad464fd` and a thin canonical-skill wrapper, with the shared ref staged separately from Spoke-local SVC changes.
 - 2026-07-23: user authorized two isolated client-web commits; shared-reference introduction was recorded as `e398afe`, followed separately by the Spoke-local SVC/navigation changes.
+- 2026-07-23: user explicitly started Step 3.
+- 2026-07-23: Phase 2 hard-cut formatting/linting to Oxfmt/Oxlint, migrated core from tsup to
+  ESM-only tsdown output, normalized the stable TypeScript/Vue TSC lane, and added native
+  TypeScript 7 plus type-aware Oxlint shadows.
+- 2026-07-23: all five workspaces now pass the explicit stable type/build contract; both shadow
+  lanes are also green. Unit/E2E participation remains Phase 4 rather than a fake Phase 2 pass.

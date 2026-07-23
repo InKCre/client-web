@@ -1,14 +1,8 @@
 <template>
   <div class="flex items-center justify-center space-x-1">
     <div class="w-2 h-2 bg-text animate-pulse"></div>
-    <div
-      class="w-2 h-2 bg-muted animate-pulse"
-      style="animation-delay: 0.1s"
-    ></div>
-    <div
-      class="w-2 h-2 bg-border animate-pulse"
-      style="animation-delay: 0.2s"
-    ></div>
+    <div class="w-2 h-2 bg-muted animate-pulse" style="animation-delay: 0.1s"></div>
+    <div class="w-2 h-2 bg-border animate-pulse" style="animation-delay: 0.2s"></div>
   </div>
 </template>
 

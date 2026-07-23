@@ -12,14 +12,8 @@ import {
   HttpTextStorage,
   HttpHtmlStorage,
   HttpJsonStorage,
-} from "@inkcre/core";
+} from '@inkcre/core'
 
 // Handlers are auto-registered via decorator, no need to do anything else
 // Just ensure they're imported
-export {
-  HttpImageStorage,
-  HttpVideoStorage,
-  HttpTextStorage,
-  HttpHtmlStorage,
-  HttpJsonStorage,
-};
+export { HttpImageStorage, HttpVideoStorage, HttpTextStorage, HttpHtmlStorage, HttpJsonStorage }

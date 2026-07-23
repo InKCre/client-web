@@ -12,8 +12,8 @@
 
 <script setup lang="ts">
 defineProps<{
-  extensionName?: string;
-}>();
+  extensionName?: string
+}>()
 </script>
 
 <style scoped>

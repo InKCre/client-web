@@ -1,5 +1,5 @@
 ---
-applyTo: "**/*.scss, **/*.css, **/*.vue"
+applyTo: '**/*.scss, **/*.css, **/*.vue'
 ---
 
 ## Best Practices

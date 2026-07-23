@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import logo from "~/assets/inkcre.svg";
+import logo from '~/assets/inkcre.svg'
 </script>
 
 <style scoped>

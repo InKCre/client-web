@@ -1,61 +1,52 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from "vue";
-import { useI18n } from "vue-i18n";
-import { InkButton, InkField } from "@inkcre/web-design";
-import type { BlockDetailsPanelProps } from "./BlockDetailsPanel";
-import { blockDetailsPanelEmits } from "./BlockDetailsPanel";
-import BlockContent from "@/components/info-base/block/BlockContent/BlockContent.vue";
-import dayjs from "dayjs";
+import { computed, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { InkButton, InkField } from '@inkcre/web-design'
+import type { BlockDetailsPanelProps } from './BlockDetailsPanel'
+import { blockDetailsPanelEmits } from './BlockDetailsPanel'
+import BlockContent from '@/components/info-base/block/BlockContent/BlockContent.vue'
+import dayjs from 'dayjs'
 
 const props = withDefaults(defineProps<BlockDetailsPanelProps>(), {
   relations: () => [],
-});
-const emit = defineEmits(blockDetailsPanelEmits);
-const { t } = useI18n();
+})
+const emit = defineEmits(blockDetailsPanelEmits)
+const { t } = useI18n()
 
 const formattedCreatedAt = computed(() =>
-  props.block.created_at
-    ? dayjs(props.block.created_at).format("YYYY-MM-DD HH:mm")
-    : "-"
-);
+  props.block.created_at ? dayjs(props.block.created_at).format('YYYY-MM-DD HH:mm') : '-'
+)
 
 const formattedUpdatedAt = computed(() =>
-  props.block.updated_at
-    ? dayjs(props.block.updated_at).format("YYYY-MM-DD HH:mm")
-    : "-"
-);
+  props.block.updated_at ? dayjs(props.block.updated_at).format('YYYY-MM-DD HH:mm') : '-'
+)
 
 const onClose = () => {
-  emit("close");
-};
+  emit('close')
+}
 
 const onKeyDown = (e: KeyboardEvent) => {
-  if (e.key === "Escape") {
-    onClose();
+  if (e.key === 'Escape') {
+    onClose()
   }
-};
+}
 
 onMounted(() => {
-  document.addEventListener("keydown", onKeyDown);
-});
+  document.addEventListener('keydown', onKeyDown)
+})
 
 onUnmounted(() => {
-  document.removeEventListener("keydown", onKeyDown);
-});
+  document.removeEventListener('keydown', onKeyDown)
+})
 </script>
 
 <template>
   <div class="block-details-panel">
     <div class="block-details-panel__header">
       <h3 class="block-details-panel__title">
-        {{ t("infoBase.blockDetails.title") }}
+        {{ t('infoBase.blockDetails.title') }}
       </h3>
-      <InkButton
-        icon="i-mdi-close"
-        theme="subtle"
-        type="square"
-        @click="onClose"
-      />
+      <InkButton icon="i-mdi-close" theme="subtle" type="square" @click="onClose" />
     </div>
 
     <div class="block-details-panel__body">
@@ -64,9 +55,7 @@ onUnmounted(() => {
       </InkField>
 
       <InkField :label="t('infoBase.blockDetails.resolver')" layout="inline">
-        <span
-          class="block-details-panel__value block-details-panel__value--resolver"
-        >
+        <span class="block-details-panel__value block-details-panel__value--resolver">
           {{ block.resolver }}
         </span>
       </InkField>
@@ -79,17 +68,13 @@ onUnmounted(() => {
         <span class="block-details-panel__value">{{ formattedUpdatedAt }}</span>
       </InkField>
 
-      <InkField
-        v-if="block.storage"
-        :label="t('infoBase.blockDetails.storage')"
-        layout="inline"
-      >
+      <InkField v-if="block.storage" :label="t('infoBase.blockDetails.storage')" layout="inline">
         <span class="block-details-panel__value">#{{ block.storage }}</span>
       </InkField>
 
       <div class="block-details-panel__content-section">
         <div class="block-details-panel__content-label">
-          {{ t("infoBase.blockDetails.content") }}
+          {{ t('infoBase.blockDetails.content') }}
         </div>
         <div class="block-details-panel__content">
           <BlockContent :block="block" />

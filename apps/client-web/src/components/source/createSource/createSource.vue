@@ -1,33 +1,33 @@
 <script setup lang="ts">
-import { reactive } from "vue";
-import { InkButton } from "@inkcre/web-design";
-import sourceForm from "../sourceForm/sourceForm.vue";
-import { createSourceEmits } from "./createSource";
-import { CollectAt, SourceForm } from "@inkcre/core";
-import { refManualReset } from "@vueuse/core";
+import { reactive } from 'vue'
+import { InkButton } from '@inkcre/web-design'
+import sourceForm from '../sourceForm/sourceForm.vue'
+import { createSourceEmits } from './createSource'
+import { CollectAt, SourceForm } from '@inkcre/core'
+import { refManualReset } from '@vueuse/core'
 
-const emit = defineEmits(createSourceEmits);
+const emit = defineEmits(createSourceEmits)
 
 // --- data ---
 const form = refManualReset(() =>
   reactive(
     new SourceForm({
-      nickname: "",
-      type: "",
+      nickname: '',
+      type: '',
       config: {},
       collect_at: CollectAt.parse({}),
     })
   )
-);
+)
 
 // --- methods ---
 const onCreate = () => {
   form.value.create().then(() => {
-    emit("create", form.value);
+    emit('create', form.value)
     // Reset form on success
-    form.reset();
-  });
-};
+    form.reset()
+  })
+}
 </script>
 
 <template>

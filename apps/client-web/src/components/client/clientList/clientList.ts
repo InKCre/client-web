@@ -1,5 +1,5 @@
 // Props - none needed for this component (self-contained)
-export const clientListProps = {};
+export const clientListProps = {}
 
 // Emits - none needed (read-only display)
-export const clientListEmits = {};
+export const clientListEmits = {}

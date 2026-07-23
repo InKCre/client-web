@@ -4,8 +4,8 @@
  * Extends @inkcre/core Block with extension-specific features (vector search).
  */
 
-import { Block as CoreBlock } from "@inkcre/core";
-import { inkcreApi } from "~/logic/storage";
+import { Block as CoreBlock } from '@inkcre/core'
+import { inkcreApi } from '~/logic/storage'
 
 /**
  * Extended Block class with vector search capability
@@ -22,45 +22,40 @@ export class Block extends CoreBlock {
    * @returns Array of similar blocks
    */
   static async vectorSearch(params: {
-    blockQuery?: number;
-    query?: string;
-    resolver?: string;
-    distanceThreshold?: number;
-    num?: number;
+    blockQuery?: number
+    query?: string
+    resolver?: string
+    distanceThreshold?: number
+    num?: number
   }): Promise<Block[]> {
-    const url = new URL("/blocks/query/by_embedding", inkcreApi.value);
+    const url = new URL('/blocks/query/by_embedding', inkcreApi.value)
     if (params.query !== undefined) {
-      url.searchParams.set("query", params.query);
+      url.searchParams.set('query', params.query)
     }
     if (params.blockQuery !== undefined) {
-      url.searchParams.set("block_id", params.blockQuery.toString());
+      url.searchParams.set('block_id', params.blockQuery.toString())
     }
     if (params.resolver !== undefined) {
-      url.searchParams.set("resolver", params.resolver);
+      url.searchParams.set('resolver', params.resolver)
     }
     if (params.distanceThreshold !== undefined) {
-      url.searchParams.set(
-        "distance_threshold",
-        params.distanceThreshold.toString(),
-      );
+      url.searchParams.set('distance_threshold', params.distanceThreshold.toString())
     }
     if (params.num !== undefined) {
-      url.searchParams.set("num", params.num.toString());
+      url.searchParams.set('num', params.num.toString())
     }
 
-    const response = await fetch(url.toString());
+    const response = await fetch(url.toString())
     if (!response.ok) {
-      throw new Error(
-        `Failed to fetch blocks by embedding: ${response.statusText}`,
-      );
+      throw new Error(`Failed to fetch blocks by embedding: ${response.statusText}`)
     }
 
-    const data: any[] = await response.json();
-    return data.map((item) => new Block(item));
+    const data: any[] = await response.json()
+    return data.map((item) => new Block(item))
   }
 }
 
 /**
  * Re-export BlockForm from core
  */
-export { BlockForm } from "@inkcre/core";
+export { BlockForm } from '@inkcre/core'

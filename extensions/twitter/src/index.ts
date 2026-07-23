@@ -6,28 +6,28 @@
 /**
  * Twitter Extension Entry Point
  *
- * Module Federation remote entry that implements IExtension interface.
+ * Module Federation remote entry that implements ExtensionModule.
  * This is the main export loaded by the host application.
  */
 
-import { type IExtension } from "@inkcre/core";
-import "./resolver";
+import { type ExtensionModule } from '@inkcre/core'
+import './resolver'
 
-const Extension: IExtension = {
+const Extension: ExtensionModule = {
   async initialize() {},
 
   async activate() {
-    console.log("[Twitter Extension] Activated");
+    console.log('[Twitter Extension] Activated')
   },
 
   async deactivate() {
-    console.log("[Twitter Extension] Deactivated");
+    console.log('[Twitter Extension] Deactivated')
   },
 
   async dispose() {
-    console.log("[Twitter Extension] Disposed");
+    console.log('[Twitter Extension] Disposed')
     // Cleanup resources if needed
   },
-};
+}
 
-export default Extension;
+export default Extension

@@ -1,34 +1,28 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useI18n } from "vue-i18n";
-import { useAsyncState } from "@vueuse/core";
-import { useEAsyncState } from "@/composables/use-async-state";
-import {
-  InkLoading,
-  InkButton,
-  InkDoubleCheck,
-  InkPopup,
-  InkPagination,
-} from "@inkcre/web-design";
-import sourceForm from "@/components/source/sourceForm/sourceForm.vue";
-import collectJobForm from "@/components/source/collectJobForm/collectJobForm.vue";
-import sourceCollectJobCard from "@/components/source/sourceCollectJobCard/sourceCollectJobCard.vue";
+import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { useAsyncState } from '@vueuse/core'
+import { useEAsyncState } from '@/composables/use-async-state'
+import { InkLoading, InkButton, InkDoubleCheck, InkPopup, InkPagination } from '@inkcre/web-design'
+import sourceForm from '@/components/source/sourceForm/sourceForm.vue'
+import collectJobForm from '@/components/source/collectJobForm/collectJobForm.vue'
+import sourceCollectJobCard from '@/components/source/sourceCollectJobCard/sourceCollectJobCard.vue'
 import {
   Source,
   SourceCollectJob,
   SourceCollectJobForm,
   SourceCollectJobStatus,
-} from "@inkcre/core";
-import type { PaginationState } from "@/views/sources/source/source";
+} from '@inkcre/core'
+import type { PaginationState } from '@/views/sources/source/source'
 
-const route = useRoute();
-const router = useRouter();
-const { t } = useI18n();
+const route = useRoute()
+const router = useRouter()
+const { t } = useI18n()
 
 // --- data ---
-const sourceId = computed(() => Number(route.params.id));
-const newJobPopupOpen = ref(false);
+const sourceId = computed(() => Number(route.params.id))
+const newJobPopupOpen = ref(false)
 const jobForm = ref<SourceCollectJobForm>(
   SourceCollectJobForm.parse({
     source: sourceId.value,
@@ -39,19 +33,19 @@ const jobForm = ref<SourceCollectJobForm>(
     state: {},
     config: {},
   })
-);
+)
 
 const pagination = ref<PaginationState>({
   page: 1,
   pageSize: 10,
   total: 0,
-});
+})
 
 const { state: source, execute: refetchSource } = useEAsyncState(
   () => Source.get(sourceId.value),
   null,
   { immediate: true, useLast: true }
-);
+)
 
 const {
   state: collectJobs,
@@ -59,33 +53,31 @@ const {
   isLoading: collectJobsLoading,
 } = useAsyncState(
   async () => {
-    const offset = (pagination.value.page - 1) * pagination.value.pageSize;
+    const offset = (pagination.value.page - 1) * pagination.value.pageSize
     const result = await SourceCollectJob.getBySource(sourceId.value, {
       limit: pagination.value.pageSize,
       offset,
-      order: "desc",
-    });
-    pagination.value.total = result.count;
-    return result.data;
+      order: 'desc',
+    })
+    pagination.value.total = result.count
+    return result.data
   },
   [],
   { shallow: false }
-);
+)
 
 // --- computed ---
-const totalPages = computed(() =>
-  Math.ceil(pagination.value.total / pagination.value.pageSize)
-);
+const totalPages = computed(() => Math.ceil(pagination.value.total / pagination.value.pageSize))
 
 // --- methods ---
 const onSaveSource = async () => {
-  await source.value!.save();
-};
+  await source.value!.save()
+}
 
 const onDelete = async () => {
-  await source.value!.delete();
-  router.push("/sources");
-};
+  await source.value!.delete()
+  router.push('/sources')
+}
 
 const onNewJob = () => {
   // Reset form
@@ -97,36 +89,36 @@ const onNewJob = () => {
     status: SourceCollectJobStatus.PENDING,
     state: {},
     config: {},
-  });
-  newJobPopupOpen.value = true;
-};
+  })
+  newJobPopupOpen.value = true
+}
 
 const onCreateJob = async () => {
   try {
-    const job = await jobForm.value.create();
-    newJobPopupOpen.value = false;
-    router.push(`/sources/collectJob/${job.id}`);
+    const job = await jobForm.value.create()
+    newJobPopupOpen.value = false
+    router.push(`/sources/collectJob/${job.id}`)
   } catch (error) {
-    console.error("Failed to create job:", error);
+    console.error('Failed to create job:', error)
     // TODO: Show error toast to user
   }
-};
+}
 
 const goToJob = (jobId: number) => {
-  router.push(`/sources/collectJob/${jobId}`);
-};
+  router.push(`/sources/collectJob/${jobId}`)
+}
 
 const goToPage = (page: number) => {
-  pagination.value.page = page;
-};
+  pagination.value.page = page
+}
 
 // --- watchers ---
 watch(
   () => pagination.value.page,
   () => {
-    refetchCollectJobs();
+    refetchCollectJobs()
   }
-);
+)
 </script>
 
 <template>
@@ -138,7 +130,7 @@ watch(
       <!-- Left Section: Source Details -->
       <section class="source-view__details">
         <div class="details__header">
-          <h2 class="details__title">{{ t("source.detailTitle") }}</h2>
+          <h2 class="details__title">{{ t('source.detailTitle') }}</h2>
         </div>
 
         <sourceForm v-model="source" class="overflow-y-auto" />
@@ -153,19 +145,14 @@ watch(
           >
             <InkButton :text="t('source.delete')" theme="danger" size="sm" />
           </InkDoubleCheck>
-          <InkButton
-            :text="t('common.save')"
-            theme="primary"
-            size="sm"
-            @click="onSaveSource"
-          />
+          <InkButton :text="t('common.save')" theme="primary" size="sm" @click="onSaveSource" />
         </div>
       </section>
 
       <!-- Right Section: Collect Jobs -->
       <section class="source-view__jobs">
         <div class="jobs__header">
-          <h3 class="jobs__title">{{ t("source.collectJobs") }}</h3>
+          <h3 class="jobs__title">{{ t('source.collectJobs') }}</h3>
           <InkButton
             :text="t('source.newJob')"
             theme="primary"
@@ -179,7 +166,7 @@ watch(
           <InkLoading />
         </div>
         <div v-else-if="collectJobs.length === 0" class="jobs__empty">
-          <span>{{ t("source.noJobs") }}</span>
+          <span>{{ t('source.noJobs') }}</span>
         </div>
         <div class="jobs__list">
           <sourceCollectJobCard
@@ -205,19 +192,11 @@ watch(
   <!-- New Job Popup -->
   <InkPopup v-model:open="newJobPopupOpen" position="center">
     <div class="new-job-popup">
-      <h3 class="new-job-popup__title">{{ t("source.newJobTitle") }}</h3>
+      <h3 class="new-job-popup__title">{{ t('source.newJobTitle') }}</h3>
       <collectJobForm v-model="jobForm" />
       <div class="new-job-popup__actions">
-        <InkButton
-          :text="t('common.cancel')"
-          theme="subtle"
-          @click="newJobPopupOpen = false"
-        />
-        <InkButton
-          :text="t('common.confirm')"
-          theme="primary"
-          @click="onCreateJob"
-        />
+        <InkButton :text="t('common.cancel')" theme="subtle" @click="newJobPopupOpen = false" />
+        <InkButton :text="t('common.confirm')" theme="primary" @click="onCreateJob" />
       </div>
     </div>
   </InkPopup>

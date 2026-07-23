@@ -14,7 +14,7 @@ The WritingAssist component monitors editable elements on web pages (input field
 </template>
 
 <script setup lang="ts">
-import WritingAssist from "~/components/contentScripts/WritingAssist/WritingAssist.vue";
+import WritingAssist from '~/components/contentScripts/WritingAssist/WritingAssist.vue'
 </script>
 ```
 
@@ -80,21 +80,21 @@ This component does not emit events. It operates autonomously within the content
 ### Local State
 
 ```typescript
-const show = ref(false);                    // Show/hide entire component
-const showPanel = ref(false);               // Show/hide suggestions panel
-const showToast = ref(false);               // Show/hide success toast
-const suggestions = ref<Array>([]);         // Current suggestions
-const isLoading = ref(false);               // Loading state
-const currentElement = ref<HTMLElement>();  // Currently focused element
-const debounceTimer = ref<NodeJS.Timeout>(); // Debounce timer
+const show = ref(false) // Show/hide entire component
+const showPanel = ref(false) // Show/hide suggestions panel
+const showToast = ref(false) // Show/hide success toast
+const suggestions = ref<Array>([]) // Current suggestions
+const isLoading = ref(false) // Loading state
+const currentElement = ref<HTMLElement>() // Currently focused element
+const debounceTimer = ref<NodeJS.Timeout>() // Debounce timer
 ```
 
 ### Suggestion Structure
 
 ```typescript
 interface Suggestion {
-  original: string;    // Original word from text
-  replacement: string; // Suggested replacement
+  original: string // Original word from text
+  replacement: string // Suggested replacement
 }
 ```
 
@@ -105,6 +105,7 @@ interface Suggestion {
 **`cleanText(text: string): string`**
 
 Cleans and normalizes text:
+
 - Removes HTML tags
 - Removes extra whitespace
 - Removes URLs
@@ -114,6 +115,7 @@ Cleans and normalizes text:
 **`loadStopwords(): Promise<string[]>`**
 
 Loads stopwords with fallback strategy:
+
 1. Check storage cache
 2. Fetch from GitHub (stopwords-iso)
 3. Use default hardcoded list
@@ -121,6 +123,7 @@ Loads stopwords with fallback strategy:
 **`getReplacableUnits(text: string): Promise<ReplacableUnit[]>`**
 
 Extracts words worth replacing:
+
 - Splits text into sentences
 - Tokenizes by word boundaries
 - Filters stopwords
@@ -132,6 +135,7 @@ Extracts words worth replacing:
 **`fetchSuggestions(): Promise<void>`**
 
 Fetches suggestions for current text:
+
 1. Gets text from focused element
 2. Cleans and processes text
 3. Identifies replaceable units
@@ -165,6 +169,7 @@ Checks if element is editable (input, textarea, or contenteditable).
 **`handleFocusIn(event: FocusEvent): void`**
 
 Activates component when editable element focused:
+
 - Clears existing debounce timer
 - Shows component
 - Stores current element reference
@@ -213,10 +218,12 @@ WritingAssist
 ### Responsive Breakpoints
 
 **Tablet (≤768px)**:
+
 - Width: 50vw
 - Min-width: 150px
 
 **Mobile (≤480px)**:
+
 - Width: 70vw
 - Reduced margins (8px)
 
@@ -236,6 +243,7 @@ WritingAssist
 ### Animations
 
 **Toast Transition** (0.3s ease):
+
 ```
 Enter: opacity 0 → 1, translateX(100% → 0)
 Leave: opacity 1 → 0, translateX(0 → 100%)
@@ -355,24 +363,28 @@ Potential improvements:
 ## Troubleshooting
 
 ### Component not appearing
+
 - Check content script injection
 - Verify z-index isn't overridden
 - Inspect console for errors
 - Check element focus detection
 
 ### Suggestions not loading
+
 - Verify API endpoint is accessible
 - Check network connectivity
 - Inspect stopwords loading
 - Validate text processing logic
 
 ### Text replacement not working
+
 - Check element type detection
 - Verify element is still editable
 - Inspect DOM manipulation code
 - Test with different input types
 
 ### Performance issues
+
 - Increase debounce time
 - Reduce suggestion count
 - Optimize text processing
@@ -395,12 +407,12 @@ Future configuration options could include:
 
 ```typescript
 interface WritingAssistConfig {
-  debounceTime: number;        // Default: 5000ms
-  maxSuggestions: number;      // Default: unlimited
-  stopwordSource: string;      // Custom stopword URL
-  position: Position;          // Default: bottom-right
-  theme: Theme;                // Default: light
-  autoShow: boolean;           // Default: true
-  enableToasts: boolean;       // Default: true
+  debounceTime: number // Default: 5000ms
+  maxSuggestions: number // Default: unlimited
+  stopwordSource: string // Custom stopword URL
+  position: Position // Default: bottom-right
+  theme: Theme // Default: light
+  autoShow: boolean // Default: true
+  enableToasts: boolean // Default: true
 }
 ```

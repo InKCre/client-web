@@ -12,11 +12,11 @@ A component that renders Markdown responses from large language models with prop
 
 ```vue
 <script setup lang="ts">
-import { ref } from 'vue';
-import Response from '~/components/ai/Response.vue';
+import { ref } from 'vue'
+import Response from '~/components/ai/Response.vue'
 
-const content = ref('# Hello\n\nThis is **markdown** content from an LLM.');
-const isLoading = ref(false);
+const content = ref('# Hello\n\nThis is **markdown** content from an LLM.')
+const isLoading = ref(false)
 </script>
 
 <template>
@@ -26,16 +26,16 @@ const isLoading = ref(false);
 
 #### Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `content` | `string` | `""` | The markdown content to render |
+| Prop        | Type      | Default | Description                                         |
+| ----------- | --------- | ------- | --------------------------------------------------- |
+| `content`   | `string`  | `""`    | The markdown content to render                      |
 | `isLoading` | `boolean` | `false` | Whether the response is currently streaming/loading |
-| `className` | `string` | `""` | Custom class name for additional styling |
+| `className` | `string`  | `""`    | Custom class name for additional styling            |
 
 #### Slots
 
-| Slot | Description |
-|------|-------------|
+| Slot    | Description                                            |
+| ------- | ------------------------------------------------------ |
 | `empty` | Custom content to display when there's no response yet |
 
 #### Features
@@ -67,23 +67,23 @@ When `isLoading` is `true` and content is present, a blinking cursor appears at 
 
 ```vue
 <script setup lang="ts">
-import { ref } from 'vue';
-import Response from '~/components/ai/Response.vue';
+import { ref } from 'vue'
+import Response from '~/components/ai/Response.vue'
 
-const content = ref('');
-const isLoading = ref(true);
+const content = ref('')
+const isLoading = ref(true)
 
 // Simulate streaming
 const streamText = async () => {
-  const fullText = 'This is a streamed response...';
+  const fullText = 'This is a streamed response...'
   for (let i = 0; i < fullText.length; i++) {
-    content.value += fullText[i];
-    await new Promise(resolve => setTimeout(resolve, 50));
+    content.value += fullText[i]
+    await new Promise((resolve) => setTimeout(resolve, 50))
   }
-  isLoading.value = false;
-};
+  isLoading.value = false
+}
 
-streamText();
+streamText()
 </script>
 
 <template>
@@ -104,11 +104,7 @@ streamText();
 **With custom styling:**
 
 ```vue
-<Response 
-  :content="content" 
-  :is-loading="isLoading"
-  class-name="my-custom-class"
-/>
+<Response :content="content" :is-loading="isLoading" class-name="my-custom-class" />
 ```
 
 ## Styling
@@ -136,26 +132,26 @@ The Response component works seamlessly with the `useExplainStream` composable f
 
 ```vue
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import Response from '~/components/ai/Response.vue';
-import { useExplainStream } from '~/composables/useExplainStream';
+import { ref, watch } from 'vue'
+import Response from '~/components/ai/Response.vue'
+import { useExplainStream } from '~/composables/useExplainStream'
 
 const stream = useExplainStream({
   modelString: 'openai:gpt-4',
   providers: llmProviders.value,
-});
+})
 
 // Sync refs for display
-const content = ref('');
-const isLoading = ref(false);
+const content = ref('')
+const isLoading = ref(false)
 
-watch(stream.content, (val) => content.value = val);
-watch(stream.isLoading, (val) => isLoading.value = val);
+watch(stream.content, (val) => (content.value = val))
+watch(stream.isLoading, (val) => (isLoading.value = val))
 
 // Start streaming
 const explain = async () => {
-  await stream.explain('Explain quantum computing');
-};
+  await stream.explain('Explain quantum computing')
+}
 </script>
 
 <template>
@@ -172,10 +168,12 @@ See `components/sidepanel/Explain.vue` for a complete production integration exa
 ### Visual Feedback
 
 When `isLoading` is `true`:
+
 - **With content**: A blinking cursor appears inline at the end of the text
 - **Without content**: A standalone blinking cursor indicates waiting for first token
 
 The streaming cursor:
+
 - Blinks with 1-second animation cycle
 - Appears as a thin vertical line (`2px width`)
 - Automatically disappears when `isLoading` becomes `false`
@@ -183,12 +181,12 @@ The streaming cursor:
 
 ### States Overview
 
-| Content | Loading | Display |
-|---------|---------|---------|
-| Empty | `false` | Empty state slot |
-| Empty | `true` | Standalone cursor |
-| Present | `false` | Rendered markdown |
-| Present | `true` | Markdown + inline cursor |
+| Content | Loading | Display                  |
+| ------- | ------- | ------------------------ |
+| Empty   | `false` | Empty state slot         |
+| Empty   | `true`  | Standalone cursor        |
+| Present | `false` | Rendered markdown        |
+| Present | `true`  | Markdown + inline cursor |
 
 ## Future Components
 

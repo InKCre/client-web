@@ -1,18 +1,18 @@
-import { createApp, type Component } from "vue";
-import { createPinia } from "pinia";
-import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
-import type { IExtension } from "@inkcre/core";
+import { createApp, type Component } from 'vue'
+import { createPinia } from 'pinia'
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import type { ExtensionModule } from '@inkcre/core'
 
 /**
  * Options for bootstrapping an extension in development mode.
  */
 export interface BootstrapOptions {
   /** The root Vue component to mount */
-  rootComponent: Component;
+  rootComponent: Component
   /** The extension module (default export from Extension.ts) */
-  extensionModule: IExtension | { default: IExtension };
+  extensionModule: ExtensionModule | { default: ExtensionModule }
   /** Optional routes for the dev playground */
-  routes?: RouteRecordRaw[];
+  routes?: RouteRecordRaw[]
 }
 
 /**
@@ -28,57 +28,57 @@ export interface BootstrapOptions {
  * @returns The Vue app, router, and pinia instances
  */
 export async function bootstrapExtension(options: BootstrapOptions) {
-  const { rootComponent, extensionModule, routes = [] } = options;
+  const { rootComponent, extensionModule, routes = [] } = options
 
   // Create Vue app
-  const app = createApp(rootComponent);
+  const app = createApp(rootComponent)
 
   // Create stores
-  const pinia = createPinia();
-  app.use(pinia);
+  const pinia = createPinia()
+  app.use(pinia)
 
   // Create router with dev routes
   const router = createRouter({
     history: createWebHistory(),
     routes: [
       {
-        path: "/",
+        path: '/',
         children: routes,
       },
     ],
-  });
-  app.use(router);
+  })
+  app.use(router)
 
   // Load extension module
-  const extension: IExtension =
-    "default" in extensionModule ? extensionModule.default : extensionModule;
+  const extension: ExtensionModule =
+    'default' in extensionModule ? extensionModule.default : extensionModule
 
   // Initialize extension
   if (extension.initialize) {
-    console.log("[Extension Dev] Initializing extension...");
-    await extension.initialize();
+    console.log('[Extension Dev] Initializing extension...')
+    await extension.initialize()
   }
 
   // Activate extension
   if (extension.activate) {
-    console.log("[Extension Dev] Activating extension...");
-    await extension.activate();
+    console.log('[Extension Dev] Activating extension...')
+    await extension.activate()
   }
 
   // Mount app
-  app.mount("#app");
-  console.log("[Extension Dev] App mounted");
+  app.mount('#app')
+  console.log('[Extension Dev] App mounted')
 
   // Cleanup on unload
-  window.addEventListener("beforeunload", async () => {
-    console.log("[Extension Dev] Cleaning up...");
+  window.addEventListener('beforeunload', async () => {
+    console.log('[Extension Dev] Cleaning up...')
     if (extension.deactivate) {
-      await extension.deactivate();
+      await extension.deactivate()
     }
     if (extension.dispose) {
-      await extension.dispose();
+      await extension.dispose()
     }
-  });
+  })
 
-  return { app, router, pinia };
+  return { app, router, pinia }
 }

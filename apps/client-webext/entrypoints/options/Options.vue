@@ -1,141 +1,126 @@
 <script setup lang="ts">
-import logo from "@/assets/inkcre.svg";
-import { type LLMProviderConfig, type ProviderType } from "@inkcre/core";
-import { useConfigStore } from "@inkcre/core";
-import { inkcreApi, stopwords } from "@/logic/storage";
-import "uno.css";
-
-// Get config store
-const configStore = useConfigStore();
+import logo from '@/assets/inkcre.svg'
+import { type LLMProviderConfig, type ProviderType } from '@inkcre/core'
+import {
+  defaultModel,
+  explainInstruction,
+  inkcreApi,
+  llmProviders,
+  stopwords,
+} from '@/logic/storage'
+import 'uno.css'
 
 // Computed property to handle stopwords array/string conversion
 const stopwordsText = computed({
-  get: () => (Array.isArray(stopwords.value) ? stopwords.value.join(", ") : ""),
+  get: () => (Array.isArray(stopwords.value) ? stopwords.value.join(', ') : ''),
   set: (value: string) => {
     const words = value
-      .split(",")
+      .split(',')
       .map((word) => word.trim())
-      .filter((word) => word.length > 0);
-    stopwords.value = words;
+      .filter((word) => word.length > 0)
+    stopwords.value = words
   },
-});
+})
 
 const getProviderTypeDisplayName = (type: ProviderType) => {
   const names: Record<ProviderType, string> = {
-    openai: "OpenAI",
-    anthropic: "Anthropic",
-    google: "Google Generative AI",
-    "openai-compatible": "OpenAI Compatible",
-  };
-  return names[type];
-};
+    openai: 'OpenAI',
+    anthropic: 'Anthropic',
+    google: 'Google Generative AI',
+    'openai-compatible': 'OpenAI Compatible',
+  }
+  return names[type]
+}
 
 const getProviderTypeHelpUrl = (type: ProviderType) => {
   const urls: Record<ProviderType, string> = {
-    openai: "https://platform.openai.com/api-keys",
-    anthropic: "https://console.anthropic.com/settings/keys",
-    google: "https://aistudio.google.com/app/apikey",
-    "openai-compatible":
-      "https://ai-sdk.dev/providers/openai-compatible-providers",
-  };
-  return urls[type];
-};
+    openai: 'https://platform.openai.com/api-keys',
+    anthropic: 'https://console.anthropic.com/settings/keys',
+    google: 'https://aistudio.google.com/app/apikey',
+    'openai-compatible': 'https://ai-sdk.dev/providers/openai-compatible-providers',
+  }
+  return urls[type]
+}
 
 // Add a new provider
 const addProvider = () => {
   const newProvider: LLMProviderConfig = {
     id: `provider-${Date.now()}`,
-    name: "New Provider",
-    type: "openai",
-    apiKey: "",
+    name: 'New Provider',
+    type: 'openai',
+    apiKey: '',
     models: [],
-  };
-  configStore.config.llmProviders = [
-    ...configStore.config.llmProviders,
-    newProvider,
-  ];
-};
+  }
+  llmProviders.value = [...llmProviders.value, newProvider]
+}
 
 // Remove a provider
 const removeProvider = (index: number) => {
-  const providers = [...configStore.config.llmProviders];
-  providers.splice(index, 1);
-  configStore.config.llmProviders = providers;
-};
+  const providers = [...llmProviders.value]
+  providers.splice(index, 1)
+  llmProviders.value = providers
+}
 
 // Update provider field
-const updateProvider = (
-  index: number,
-  field: keyof LLMProviderConfig,
-  value: any
-) => {
-  const providers = [...configStore.config.llmProviders];
-  (providers[index] as any)[field] = value;
-  configStore.config.llmProviders = providers;
-};
+const updateProvider = (index: number, field: keyof LLMProviderConfig, value: any) => {
+  const providers = [...llmProviders.value]
+  ;(providers[index] as any)[field] = value
+  llmProviders.value = providers
+}
 
 // Update models (from comma-separated string)
 const getModelsText = (models: string[]) => {
-  return models.join(", ");
-};
+  return models.join(', ')
+}
 
 const setModelsText = (index: number, value: string) => {
   const models = value
-    .split(",")
+    .split(',')
     .map((m) => m.trim())
-    .filter((m) => m.length > 0);
-  updateProvider(index, "models", models);
-};
+    .filter((m) => m.length > 0)
+  updateProvider(index, 'models', models)
+}
 
 // Compute available model options for default selection
 const availableDefaultModels = computed(() => {
-  const models: { value: string; label: string; disabled: boolean }[] = [];
+  const models: { value: string; label: string; disabled: boolean }[] = []
 
-  configStore.config.llmProviders.forEach((provider) => {
-    const hasApiKey = provider.apiKey && provider.apiKey.length > 0;
+  llmProviders.value.forEach((provider) => {
+    const hasApiKey = provider.apiKey && provider.apiKey.length > 0
     provider.models.forEach((model) => {
       models.push({
         value: `${provider.id}:${model}`,
         label: `${provider.name} - ${model}`,
         disabled: !hasApiKey,
-      });
-    });
-  });
+      })
+    })
+  })
 
-  return models;
-});
+  return models
+})
 
 // Auto-set default model if current default is not valid
 onMounted(() => {
   // Check if defaultModel is valid
-  if (
-    !configStore.config.defaultModel ||
-    !configStore.config.defaultModel.includes(":")
-  ) {
+  if (!defaultModel.value || !defaultModel.value.includes(':')) {
     // Try to find first configured provider
-    const firstConfiguredModel = availableDefaultModels.value.find(
-      (m) => !m.disabled
-    );
+    const firstConfiguredModel = availableDefaultModels.value.find((m) => !m.disabled)
     if (firstConfiguredModel) {
-      configStore.config.defaultModel = firstConfiguredModel.value;
+      defaultModel.value = firstConfiguredModel.value
     }
   } else {
     // Check if current default model is still valid
-    const [providerId] = configStore.config.defaultModel.split(":");
-    const provider = configStore.config.llmProviders.find(
-      (p) => p.id === providerId
-    );
+    const [providerId] = defaultModel.value.split(':')
+    const provider = llmProviders.value.find((p) => p.id === providerId)
     if (!provider || !provider.apiKey) {
       // Current default is invalid, try to find a configured one
-      const firstConfiguredModel = availableDefaultModels.value.find(
-        (m) => !m.disabled
-      );
+      const firstConfiguredModel = availableDefaultModels.value.find((m) => !m.disabled)
       if (firstConfiguredModel) {
-        configStore.config.defaultModel = firstConfiguredModel.value;
+        defaultModel.value = firstConfiguredModel.value
       }
     }
   }
-});
+})
 </script>
 
 <template>
@@ -169,17 +154,14 @@ onMounted(() => {
             </button>
           </div>
           <p class="text-xs text-muted mb-2">
-            配置 LLM 提供商的 API Key、Base URL 和可用模型。在 Explain
-            侧边栏可以选择使用哪个模型。
+            配置 LLM 提供商的 API Key、Base URL 和可用模型。在 Explain 侧边栏可以选择使用哪个模型。
           </p>
 
           <div class="space-y-2">
-            <label for="default-model" class="font-medium block"
-              >默认模型:</label
-            >
+            <label for="default-model" class="font-medium block">默认模型:</label>
             <select
               id="default-model"
-              v-model="configStore.config.defaultModel"
+              v-model="defaultModel"
               class="w-full px-2 py-1 border border-border rounded-none bg-surface"
             >
               <option
@@ -189,31 +171,21 @@ onMounted(() => {
                 :disabled="model.disabled"
               >
                 {{ model.label }}
-                {{ model.disabled ? "(未配置 API Key)" : "" }}
+                {{ model.disabled ? '(未配置 API Key)' : '' }}
               </option>
             </select>
-            <p class="text-xs text-muted">
-              在 Explain 侧边栏未手动选择模型时使用此默认模型。
-            </p>
+            <p class="text-xs text-muted">在 Explain 侧边栏未手动选择模型时使用此默认模型。</p>
           </div>
 
           <div
-            v-for="(provider, index) in configStore.config.llmProviders"
+            v-for="(provider, index) in llmProviders"
             :key="provider.id"
             class="border border-border rounded-none p-3 space-y-2 bg-surface"
           >
             <div class="flex items-center justify-between">
               <input
                 :value="provider.name"
-                @input="
-                                    (e) =>
-                                        updateProvider(
-                                            index,
-                                            'name',
-                                            (e.target as HTMLInputElement)
-                                                .value,
-                                        )
-                                "
+                @input="(e) => updateProvider(index, 'name', (e.target as HTMLInputElement).value)"
                 type="text"
                 class="font-medium px-2 py-1 border border-border rounded-none text-sm flex-1 mr-2 bg-surface"
                 placeholder="Provider Name"
@@ -232,27 +204,21 @@ onMounted(() => {
                 <select
                   :value="provider.type"
                   @change="
-                                        (e) =>
-                                            updateProvider(
-                                                index,
-                                                'type',
-                                                (e.target as HTMLSelectElement)
-                                                    .value,
-                                            )
-                                    "
+                    (e) => updateProvider(index, 'type', (e.target as HTMLSelectElement).value)
+                  "
                   class="w-full px-2 py-1 border border-border rounded-none bg-surface text-sm"
                 >
                   <option value="openai">
-                    {{ getProviderTypeDisplayName("openai") }}
+                    {{ getProviderTypeDisplayName('openai') }}
                   </option>
                   <option value="anthropic">
-                    {{ getProviderTypeDisplayName("anthropic") }}
+                    {{ getProviderTypeDisplayName('anthropic') }}
                   </option>
                   <option value="google">
-                    {{ getProviderTypeDisplayName("google") }}
+                    {{ getProviderTypeDisplayName('google') }}
                   </option>
                   <option value="openai-compatible">
-                    {{ getProviderTypeDisplayName("openai-compatible") }}
+                    {{ getProviderTypeDisplayName('openai-compatible') }}
                   </option>
                 </select>
               </div>
@@ -262,14 +228,8 @@ onMounted(() => {
                 <input
                   :value="provider.apiKey"
                   @input="
-                                        (e) =>
-                                            updateProvider(
-                                                index,
-                                                'apiKey',
-                                                (e.target as HTMLInputElement)
-                                                    .value,
-                                            )
-                                    "
+                    (e) => updateProvider(index, 'apiKey', (e.target as HTMLInputElement).value)
+                  "
                   type="password"
                   class="w-full px-2 py-1 border border-border rounded-none bg-surface text-sm"
                   placeholder="sk-..."
@@ -279,24 +239,19 @@ onMounted(() => {
               <div>
                 <label class="text-sm font-medium block">
                   Base URL
-                  <span
-                    v-if="provider.type === 'openai-compatible'"
-                    class="text-danger"
-                    >*</span
-                  >
+                  <span v-if="provider.type === 'openai-compatible'" class="text-danger">*</span>
                   <span v-else class="text-muted">(可选)</span>:
                 </label>
                 <input
                   :value="provider.baseURL || ''"
                   @input="
-                                        (e) =>
-                                            updateProvider(
-                                                index,
-                                                'baseURL',
-                                                (e.target as HTMLInputElement)
-                                                    .value || undefined,
-                                            )
-                                    "
+                    (e) =>
+                      updateProvider(
+                        index,
+                        'baseURL',
+                        (e.target as HTMLInputElement).value || undefined
+                      )
+                  "
                   type="url"
                   class="w-full px-2 py-1 border border-border rounded-none bg-surface text-sm"
                   :class="
@@ -309,33 +264,22 @@ onMounted(() => {
                 />
                 <p class="text-xs text-muted mt-1">
                   <span v-if="provider.type === 'openai-compatible'">
-                    必填：OpenAI Compatible 提供商需要指定 Base
-                    URL。例如：OpenRouter (https://openrouter.ai/api/v1)、Ollama
-                    (http://localhost:11434/v1)、Together AI
+                    必填：OpenAI Compatible 提供商需要指定 Base URL。例如：OpenRouter
+                    (https://openrouter.ai/api/v1)、Ollama (http://localhost:11434/v1)、Together AI
                     (https://api.together.xyz/v1)
                   </span>
                   <span v-else-if="provider.type === 'openai'">
-                    可选：留空使用 OpenAI 官方端点。设置自定义 URL 可使用其他
-                    OpenAI 兼容的服务。
+                    可选：留空使用 OpenAI 官方端点。设置自定义 URL 可使用其他 OpenAI 兼容的服务。
                   </span>
                   <span v-else> 此提供商类型不支持自定义 Base URL。 </span>
                 </p>
               </div>
 
               <div>
-                <label class="text-sm font-medium block"
-                  >可用模型 (逗号分隔):</label
-                >
+                <label class="text-sm font-medium block">可用模型 (逗号分隔):</label>
                 <input
                   :value="getModelsText(provider.models)"
-                  @input="
-                                        (e) =>
-                                            setModelsText(
-                                                index,
-                                                (e.target as HTMLInputElement)
-                                                    .value,
-                                            )
-                                    "
+                  @input="(e) => setModelsText(index, (e.target as HTMLInputElement).value)"
                   type="text"
                   class="w-full px-2 py-1 border border-border rounded-none bg-surface text-sm font-mono"
                   placeholder="gpt-4o, gpt-4o-mini"
@@ -344,11 +288,7 @@ onMounted(() => {
 
               <p class="text-xs text-muted">
                 获取 API key:
-                <a
-                  :href="getProviderTypeHelpUrl(provider.type)"
-                  target="_blank"
-                  class="text-brand"
-                >
+                <a :href="getProviderTypeHelpUrl(provider.type)" target="_blank" class="text-brand">
                   {{ getProviderTypeDisplayName(provider.type) }}
                 </a>
               </p>
@@ -357,26 +297,21 @@ onMounted(() => {
         </div>
 
         <div class="space-y-2">
-          <label for="explain-instruction" class="font-medium block"
-            >Explain Instruction:</label
-          >
+          <label for="explain-instruction" class="font-medium block">Explain Instruction:</label>
           <textarea
             id="explain-instruction"
-            v-model="configStore.config.explainInstruction"
+            v-model="explainInstruction"
             rows="10"
             class="w-full px-2 py-1 border border-border rounded-none bg-surface font-mono text-sm"
             placeholder="Enter the instruction for the explain agent..."
           ></textarea>
           <p class="text-xs text-muted">
-            The system prompt for the explain agent. Changes are saved
-            automatically.
+            The system prompt for the explain agent. Changes are saved automatically.
           </p>
         </div>
 
         <div class="space-y-2">
-          <label for="stopwords" class="font-medium block"
-            >Stopwords (comma-separated):</label
-          >
+          <label for="stopwords" class="font-medium block">Stopwords (comma-separated):</label>
           <textarea
             id="stopwords"
             v-model="stopwordsText"
@@ -385,8 +320,7 @@ onMounted(() => {
             placeholder="Enter stopwords separated by commas..."
           ></textarea>
           <p class="text-xs text-muted">
-            These words will be excluded from writing suggestions. Changes are
-            saved automatically.
+            These words will be excluded from writing suggestions. Changes are saved automatically.
           </p>
         </div>
       </div>

@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "arrowParens": "always",
+  "ignorePatterns": ["/AGENTS.md", "/docs/index.md", "docs/_shared/**"],
+  "printWidth": 100,
+  "proseWrap": "preserve",
+  "semi": false,
+  "singleQuote": true,
+  "sortPackageJson": true,
+  "tabWidth": 2,
+  "trailingComma": "es5",
+  "useTabs": false
+}

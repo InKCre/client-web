@@ -1,5 +1,5 @@
-import type { PropType } from "vue";
-import { Source, SourceForm } from "@inkcre/core";
+import type { PropType } from 'vue'
+import { Source, SourceForm } from '@inkcre/core'
 
 // --- Props ---
 export const sourceFormProps = {
@@ -7,9 +7,9 @@ export const sourceFormProps = {
     type: Object as PropType<Source | SourceForm>,
     required: true,
   },
-} as const;
+} as const
 
 // --- Emits ---
 export const sourceFormEmits = {
-  "update:modelValue": (source: Source | SourceForm) => true,
-} as const;
+  'update:modelValue': (_source: Source | SourceForm) => true,
+} as const

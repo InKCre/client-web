@@ -23,7 +23,10 @@
 ├── packages/
 │   ├── core/             # Shared logic package
 │   └── ext-dev-utils/    # Extension dev utilities
+├── scripts/              # Doctor and workspace/package contract validators
 ├── tasks/                # Active agent-owned task packets
+├── .oxfmtrc.json         # Repository Oxfmt contract
+├── .oxlintrc.json        # Repository Oxlint contract
 ├── AGENTS.md             # This repo's agent guide
 ├── ARCHITECTURE.md       # System architecture
 ├── FILESYSTEM.md         # This file
@@ -44,7 +47,8 @@
 ├── sink/           # Output processing (graph layouts)
 ├── source/         # Source, CollectJob, CollectAt
 ├── utils/          # Vue prop helpers, utilities
-└── index.ts        # Package exports
+├── index.ts        # Package exports
+└── ../tsdown.config.ts # ESM library build and declaration contract
 ```
 
 ## apps/client-web/src/
@@ -102,6 +106,7 @@
 ## Component File Convention
 
 Each component folder follows:
+
 ```
 ComponentName/
 ├── ComponentName.vue   # Component implementation

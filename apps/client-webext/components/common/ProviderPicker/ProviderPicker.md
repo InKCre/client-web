@@ -14,12 +14,12 @@ The ProviderPicker component provides a user interface for selecting from availa
 </template>
 
 <script setup lang="ts">
-import ProviderPicker from "~/components/common/ProviderPicker/ProviderPicker.vue";
+import ProviderPicker from '~/components/common/ProviderPicker/ProviderPicker.vue'
 
 const handleModelChange = () => {
-  console.log("Model selection changed");
+  console.log('Model selection changed')
   // Re-fetch or update based on new model selection
-};
+}
 </script>
 ```
 
@@ -29,9 +29,9 @@ This component does not accept any props. It manages its state through the globa
 
 ## Events
 
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `change` | `[]` | Emitted when the user changes the selected model |
+| Event    | Payload | Description                                      |
+| -------- | ------- | ------------------------------------------------ |
+| `change` | `[]`    | Emitted when the user changes the selected model |
 
 ## Features
 
@@ -46,6 +46,7 @@ This component does not accept any props. It manages its state through the globa
 Models are displayed in the format: `Provider Name - Model Name`
 
 Example:
+
 - OpenAI - gpt-4
 - Anthropic - claude-3-opus
 - Google - gemini-pro
@@ -73,6 +74,7 @@ The component relies on three reactive storage values:
 ## Styling
 
 The component uses a minimalist design with:
+
 - Monospace font (Courier New)
 - Black border on white background
 - Light gray focus state
@@ -110,28 +112,28 @@ If no providers are configured, all options will be disabled.
 
 ```vue
 <script setup lang="ts">
-import { ref, watch } from "vue";
-import ProviderPicker from "~/components/common/ProviderPicker/ProviderPicker.vue";
-import { selectedModel, defaultModel } from "~/logic/storage";
+import { ref, watch } from 'vue'
+import ProviderPicker from '~/components/common/ProviderPicker/ProviderPicker.vue'
+import { selectedModel, defaultModel } from '~/logic/storage'
 
-const currentResponse = ref("");
+const currentResponse = ref('')
 
 const handleModelChange = () => {
   // Clear previous response and fetch with new model
-  currentResponse.value = "";
-  fetchWithNewModel();
-};
+  currentResponse.value = ''
+  fetchWithNewModel()
+}
 
 const fetchWithNewModel = async () => {
-  const modelToUse = selectedModel.value || defaultModel.value;
-  console.log("Using model:", modelToUse);
+  const modelToUse = selectedModel.value || defaultModel.value
+  console.log('Using model:', modelToUse)
   // Perform AI request...
-};
+}
 
 // Watch for external model changes
 watch([selectedModel, defaultModel], () => {
-  console.log("Model configuration changed");
-});
+  console.log('Model configuration changed')
+})
 </script>
 
 <template>
@@ -152,6 +154,7 @@ watch([selectedModel, defaultModel], () => {
 ## Localization
 
 Current labels are in Chinese:
+
 - "模型:" - Model:
 - "默认" - Default
 - "(未配置)" - (Not Configured)
@@ -175,6 +178,7 @@ To localize, update these strings in the template section.
 ## Future Enhancements
 
 Potential improvements:
+
 - Add provider icons/logos
 - Show model capabilities (context length, pricing)
 - Group models by provider with optgroup

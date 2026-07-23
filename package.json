@@ -3,21 +3,32 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.26.2",
+  "scripts": {
+    "doctor": "node scripts/doctor.mjs",
+    "dev": "pnpm --filter @inkcre/client-web dev",
+    "dev:all": "concurrently \"pnpm dev\" \"pnpm -r --filter './extensions/*' dev\"",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint .",
+    "lint:type-aware": "oxlint --type-aware .",
+    "type-check": "pnpm check:workspace && pnpm -r run type-check",
+    "type-check:ts7": "node node_modules/@typescript/native/bin/tsc --project packages/core/tsconfig.json --noEmit",
+    "check:workspace": "node scripts/check-workspace-contract.mjs",
+    "check:package": "node scripts/check-package-contract.mjs",
+    "build": "pnpm check:workspace && pnpm -r run build && pnpm check:package",
+    "check": "pnpm format:check && pnpm lint && pnpm type-check && pnpm build"
+  },
+  "devDependencies": {
+    "@typescript/native": "npm:typescript@7.0.2",
+    "concurrently": "^9.0.0",
+    "oxfmt": "0.60.0",
+    "oxlint": "1.75.0",
+    "oxlint-tsgolint": "7.0.2001",
+    "typescript": "catalog:"
+  },
   "engines": {
     "node": "22.22.3",
     "pnpm": "10.26.2"
   },
-  "scripts": {
-    "dev": "pnpm --filter @inkcre/client-web dev",
-    "dev:all": "concurrently \"pnpm dev\" \"pnpm -r --filter './extensions/*' dev\"",
-    "build": "pnpm --filter @inkcre/core build && pnpm --filter @inkcre/client-web build",
-    "build:ext": "pnpm -r --filter './extensions/*' build",
-    "build:all": "pnpm build && pnpm build:ext",
-    "type-check": "pnpm -r type-check"
-  },
-  "devDependencies": {
-    "concurrently": "^9.0.0",
-    "typescript": "~5.8.0"
-  }
+  "packageManager": "pnpm@10.26.2"
 }

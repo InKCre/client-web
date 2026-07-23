@@ -1,5 +1,5 @@
 import Graph from 'graphology'
-import { singleSourceLength } from 'graphology-shortest-path/unweighted'
+import { singleSourceLength } from 'graphology-shortest-path/unweighted.js'
 import type { Edge } from '@vue-flow/core'
 import type { CommunityMap } from './community-types'
 

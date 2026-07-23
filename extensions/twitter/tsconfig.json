@@ -8,19 +8,10 @@
     "jsxImportSource": "vue",
     "skipLibCheck": true,
     "paths": {
-      "@/*": [
-        "../../apps/client-web/src/*"
-      ],
-      "@inkcre/core": [
-        "../../packages/core/src/index.ts"
-      ],
-      "@inkcre/core/*": [
-        "../../packages/core/src/*"
-      ]
+      "@/*": ["../../apps/client-web/src/*"],
+      "@inkcre/core": ["../../packages/core/src/index.ts"],
+      "@inkcre/core/*": ["../../packages/core/src/*"]
     }
   },
-  "include": [
-    "src/**/*",
-    "src/**/*.vue"
-  ]
+  "include": ["src/**/*", "src/**/*.vue"]
 }

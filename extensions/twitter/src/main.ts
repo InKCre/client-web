@@ -5,20 +5,20 @@
  * It bootstraps the extension in a standalone playground environment.
  */
 
-import { bootstrapExtension } from "@inkcre/ext-dev-utils";
-import Extension from "./Extension";
-import App from "./DevApp.vue";
+import { bootstrapExtension } from '@inkcre/ext-dev-utils'
+import Extension from './index'
+import App from './DevApp.vue'
 
 // Import design system styles
-import "@inkcre/web-design/styles";
+import '@inkcre/web-design/styles'
 
-bootstrapExtension({
+void bootstrapExtension({
   rootComponent: App,
   extensionModule: Extension,
   routes: [
     {
-      path: "/",
-      component: () => import("./views/DevHome.vue"),
+      path: '/',
+      component: () => import('./views/DevHome.vue'),
     },
   ],
-});
+}).catch((error) => console.error('Failed to bootstrap Twitter extension:', error))

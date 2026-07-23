@@ -76,14 +76,14 @@ Star Graph = {Block A, Relations to B/C/D}
 
 Blocks represent information units with the following key fields:
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `id` | number | Unique identifier |
-| `created_at` | Date | Creation timestamp |
-| `updated_at` | Date | Last modification timestamp |
-| `storage` | number \| null | FK to Storage table (null = inline content) |
-| `resolver` | string | Resolver type identifier (e.g., "text", "image", "tweet") |
-| `content` | string | Raw content if `storage` is null, otherwise storage key/URL |
+| Field        | Type           | Purpose                                                     |
+| ------------ | -------------- | ----------------------------------------------------------- |
+| `id`         | number         | Unique identifier                                           |
+| `created_at` | Date           | Creation timestamp                                          |
+| `updated_at` | Date           | Last modification timestamp                                 |
+| `storage`    | number \| null | FK to Storage table (null = inline content)                 |
+| `resolver`   | string         | Resolver type identifier (e.g., "text", "image", "tweet")   |
+| `content`    | string         | Raw content if `storage` is null, otherwise storage key/URL |
 
 ### Content Resolution
 
@@ -116,14 +116,14 @@ Blocks support standard CRUD operations: create, read, update, delete. Relations
 
 Relations connect blocks with the following key fields:
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `id` | number | Unique identifier |
-| `created_at` | Date | Creation timestamp |
-| `source` | BlockRef | Source block (from) |
-| `target` | BlockRef | Target block (to) |
-| `type` | string | Relation type/semantics (optional) |
-| `metadata` | Record | Additional relation data (optional) |
+| Field        | Type     | Purpose                             |
+| ------------ | -------- | ----------------------------------- |
+| `id`         | number   | Unique identifier                   |
+| `created_at` | Date     | Creation timestamp                  |
+| `source`     | BlockRef | Source block (from)                 |
+| `target`     | BlockRef | Target block (to)                   |
+| `type`       | string   | Relation type/semantics (optional)  |
+| `metadata`   | Record   | Additional relation data (optional) |
 
 ### Directionality
 
@@ -299,14 +299,14 @@ The **Layout Manager** auto-detects graph topology and selects appropriate algor
 
 ### Available Layouts
 
-| Layout | Best For | Description |
-|--------|----------|-------------|
-| **Force** | General graphs | Physics simulation, organic feel |
-| **Dagre** | DAGs, Trees | Hierarchical layered layout |
-| **Circular** | Cycles, Small graphs | Nodes arranged in circle |
-| **Radial** | Star, Hierarchies | Concentric circles from root |
-| **Grid** | Large graphs | Uniform grid arrangement |
-| **Auto** | Any | Auto-detect topology and choose |
+| Layout       | Best For             | Description                      |
+| ------------ | -------------------- | -------------------------------- |
+| **Force**    | General graphs       | Physics simulation, organic feel |
+| **Dagre**    | DAGs, Trees          | Hierarchical layered layout      |
+| **Circular** | Cycles, Small graphs | Nodes arranged in circle         |
+| **Radial**   | Star, Hierarchies    | Concentric circles from root     |
+| **Grid**     | Large graphs         | Uniform grid arrangement         |
+| **Auto**     | Any                  | Auto-detect topology and choose  |
 
 ### Key Differences
 
@@ -328,7 +328,7 @@ Layouts update node positions in Vue Flow graphs, supporting manual and automati
 Extensions register resolvers using decorators:
 
 ```typescript
-@BaseResolver.registry("customType")
+@BaseResolver.registry('customType')
 export class CustomResolver extends BaseResolver {
   // Implement content processing
 }
@@ -339,7 +339,7 @@ export class CustomResolver extends BaseResolver {
 Extensions add storage types:
 
 ```typescript
-@Storage.registry("customStorage")
+@Storage.registry('customStorage')
 export class CustomStorage extends Storage {
   // Implement content retrieval
 }

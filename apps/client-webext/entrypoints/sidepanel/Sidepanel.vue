@@ -1,16 +1,13 @@
 <script setup lang="ts">
-import { onNewTask } from "~/logic/task";
-import {
-  routeToExplain,
-  routeToTakingNote,
-} from "~/entrypoints/sidepanel/router";
+import { onNewTask } from '~/logic/task'
+import { routeToExplain, routeToTakingNote } from '~/entrypoints/sidepanel/router'
 
-const openExplain = () => routeToExplain();
-const openTakingNote = () => routeToTakingNote();
+const openExplain = () => routeToExplain()
+const openTakingNote = () => routeToTakingNote()
 
 // Listen to incoming tasks and auto-route to corresponding sidepanel
-onNewTask("taking-note", () => routeToTakingNote(), true, true);
-onNewTask("explain", () => routeToExplain(), true, true);
+onNewTask('taking-note', () => routeToTakingNote(), true, true)
+onNewTask('explain', () => routeToExplain(), true, true)
 </script>
 
 <template>
@@ -22,9 +19,7 @@ onNewTask("explain", () => routeToExplain(), true, true);
     <section class="list">
       <button class="item" @click="openExplain">
         <span class="item-title">Explain</span>
-        <span class="item-desc"
-          >Summarize or explain selected text or page</span
-        >
+        <span class="item-desc">Summarize or explain selected text or page</span>
       </button>
       <button class="item" @click="openTakingNote">
         <span class="item-title">Taking Note</span>

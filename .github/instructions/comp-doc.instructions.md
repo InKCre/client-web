@@ -1,6 +1,6 @@
 ---
-applyTo: "src/components/**/*.md"
-description: "Guide for writing component documentation."
+applyTo: 'src/components/**/*.md'
+description: 'Guide for writing component documentation.'
 ---
 
 ## Best Practices

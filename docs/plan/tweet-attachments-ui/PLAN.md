@@ -105,18 +105,18 @@ Based on research of Twitter's actual UI:
    ```typescript
    // Derive attachment list from solvedContent
    const attachments = computed(() => {
-     return props.solvedContent?.attachments || [];
-   });
+     return props.solvedContent?.attachments || []
+   })
 
    // Limit to max 4 attachments (Twitter-like behavior)
    const displayAttachments = computed(() => {
-     return attachments.value.slice(0, 4);
-   });
+     return attachments.value.slice(0, 4)
+   })
 
    // Count for dynamic grid class
    const attachmentCount = computed(() => {
-     return displayAttachments.value.length;
-   });
+     return displayAttachments.value.length
+   })
    ```
 
 3. **Add error handling:**
@@ -138,81 +138,84 @@ Based on research of Twitter's actual UI:
 ```scss
 .content-tweet__media {
   margin-top: sys-var(space, sm);
-  
+
   &-grid {
     display: grid;
     gap: 2px;
     border-radius: 16px;
     overflow: hidden;
-    
+
     // Single image: full width, flexible height
     &--1 {
       grid-template-columns: 1fr;
       max-height: 508px;
-      
+
       .content-tweet__media-item {
         aspect-ratio: auto;
         max-height: 508px;
       }
     }
-    
+
     // Two images: side-by-side squares
     &--2 {
       grid-template-columns: 1fr 1fr;
-      
+
       .content-tweet__media-item {
         aspect-ratio: 1 / 1;
       }
     }
-    
+
     // Three images: asymmetric layout
     &--3 {
       grid-template-columns: 2fr 1fr;
       grid-template-rows: 1fr 1fr;
-      
+
       .content-tweet__media-item:nth-child(1) {
         grid-row: 1 / 3;
         aspect-ratio: 2 / 1;
       }
-      
+
       .content-tweet__media-item:nth-child(2),
       .content-tweet__media-item:nth-child(3) {
         aspect-ratio: 1 / 1;
       }
     }
-    
+
     // Four images: 2x2 grid
     &--4 {
       grid-template-columns: 1fr 1fr;
       grid-template-rows: 1fr 1fr;
-      
+
       .content-tweet__media-item {
         aspect-ratio: 1 / 1;
       }
     }
   }
-  
+
   &-item {
     position: relative;
     overflow: hidden;
     background: sys-var(color, surface, subtle);
-    
-    img, video {
+
+    img,
+    video {
       width: 100%;
       height: 100%;
       object-fit: cover;
       object-position: center;
       display: block;
-      transition: transform 200ms ease, opacity 200ms ease;
+      transition:
+        transform 200ms ease,
+        opacity 200ms ease;
     }
-    
+
     &:hover img,
     &:hover video {
       transform: scale(1.03);
       opacity: 0.95;
     }
   }
-  
+
   // Video play button overlay
   &-play {
     position: absolute;
@@ -228,17 +231,17 @@ Based on research of Twitter's actual UI:
     justify-content: center;
     pointer-events: none;
     transition: transform 200ms ease;
-    
+
     &-icon {
       color: white;
       font-size: 32px;
     }
   }
-  
+
   .content-tweet__media-item:hover &-play {
     transform: translate(-50%, -50%) scale(1.1);
   }
-  
+
   // VIDEO badge
   &-badge {
     position: absolute;
@@ -325,12 +328,9 @@ For now, videos will display as thumbnails (ObjectURLs from VideoResolver). Full
 
 1. `extensions/twitter/src/components/ContentTweet.vue` - Update script and template
 
-**Files to create:**
-2. `extensions/twitter/src/components/ContentTweet.scss` - New SCSS file with grid layouts
+**Files to create:** 2. `extensions/twitter/src/components/ContentTweet.scss` - New SCSS file with grid layouts
 
-**Files to reference (no changes):**
-3. `extensions/twitter/src/schema.ts` - Already has attachments field
-4. `extensions/twitter/src/resolver.ts` - Already populates attachments
+**Files to reference (no changes):** 3. `extensions/twitter/src/schema.ts` - Already has attachments field 4. `extensions/twitter/src/resolver.ts` - Already populates attachments
 
 ---
 

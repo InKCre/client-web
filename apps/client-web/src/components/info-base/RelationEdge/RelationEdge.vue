@@ -1,16 +1,11 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import {
-  BezierEdge,
-  EdgeLabelRenderer,
-  getBezierPath,
-  MarkerType,
-} from "@vue-flow/core";
-import type { RelationEdgeProps } from "./RelationEdge";
+import { computed } from 'vue'
+import { BezierEdge, EdgeLabelRenderer, getBezierPath, MarkerType } from '@vue-flow/core'
+import type { RelationEdgeProps } from './RelationEdge'
 
-const props = defineProps<RelationEdgeProps>();
+const props = defineProps<RelationEdgeProps>()
 
-const label = computed(() => props.data?.relation?.content ?? "");
+const label = computed(() => props.data?.relation?.content ?? '')
 
 const path = computed(() => {
   return getBezierPath({
@@ -20,12 +15,12 @@ const path = computed(() => {
     targetX: props.targetX,
     targetY: props.targetY,
     targetPosition: props.targetPosition,
-  });
-});
+  })
+})
 
-const edgePath = computed(() => path.value[0]);
-const labelX = computed(() => path.value[1]);
-const labelY = computed(() => path.value[2]);
+const edgePath = computed(() => path.value[0])
+const labelX = computed(() => path.value[1])
+const labelY = computed(() => path.value[2])
 </script>
 
 <template>

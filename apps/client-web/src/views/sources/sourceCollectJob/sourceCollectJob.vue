@@ -1,25 +1,21 @@
 <script setup lang="ts">
-import { computed, ref, watch, onUnmounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useI18n } from "vue-i18n";
-import { useAsyncState } from "@vueuse/core";
-import { useEAsyncState } from "@/composables/use-async-state";
-import { InkLoading, InkButton, InkField } from "@inkcre/web-design";
-import LogsViewer from "@/components/obsrv/LogsViewer/LogsViewer.vue";
-import {
-  SourceCollectJob,
-  SourceCollectJobStatus,
-  Source,
-} from "@inkcre/core";
-import dayjs from "dayjs";
+import { computed, ref, watch, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { useAsyncState } from '@vueuse/core'
+import { useEAsyncState } from '@/composables/use-async-state'
+import { InkLoading, InkButton, InkField } from '@inkcre/web-design'
+import LogsViewer from '@/components/obsrv/LogsViewer/LogsViewer.vue'
+import { SourceCollectJob, SourceCollectJobStatus, Source } from '@inkcre/core'
+import dayjs from 'dayjs'
 
-const route = useRoute();
-const { t } = useI18n();
+const route = useRoute()
+const { t } = useI18n()
 
 // --- data ---
-const jobId = computed(() => Number(route.params.id));
-const pollingInterval = computed(() => (isRunning.value ? 1500 : 5000));
-const jobPollingIntervalId = ref<ReturnType<typeof setInterval> | null>(null);
+const jobId = computed(() => Number(route.params.id))
+const pollingInterval = computed(() => (isRunning.value ? 1500 : 5000))
+const jobPollingIntervalId = ref<ReturnType<typeof setInterval> | null>(null)
 
 const {
   state: job,
@@ -28,7 +24,7 @@ const {
 } = useEAsyncState(() => SourceCollectJob.get(jobId.value), null, {
   immediate: true,
   useLast: true,
-});
+})
 
 const {
   state: source,
@@ -37,70 +33,62 @@ const {
 } = useAsyncState(
   async () => {
     if (job.value?.source) {
-      return await Source.get(job.value.source);
+      return await Source.get(job.value.source)
     }
-    return null;
+    return null
   },
   null,
   { shallow: false }
-);
+)
 
 // --- logs ---
-const enableLogsPolling = computed(() => isRunning.value);
+const enableLogsPolling = computed(() => isRunning.value)
 
 // --- computed ---
-const isRunning = computed(
-  () => job.value?.status === SourceCollectJobStatus.RUNNING
-);
+const isRunning = computed(() => job.value?.status === SourceCollectJobStatus.RUNNING)
 
-const isPending = computed(
-  () => job.value?.status === SourceCollectJobStatus.PENDING
-);
+const isPending = computed(() => job.value?.status === SourceCollectJobStatus.PENDING)
 
-const isFinished = computed(
-  () => job.value?.status === SourceCollectJobStatus.FINISHED
-);
+const isFinished = computed(() => job.value?.status === SourceCollectJobStatus.FINISHED)
 
-const isFailed = computed(
-  () => job.value?.status === SourceCollectJobStatus.FAILED
-);
+const isFailed = computed(() => job.value?.status === SourceCollectJobStatus.FAILED)
 
 const formattedState = computed(() => {
-  return JSON.stringify(job.value?.state || {}, null, 2);
-});
+  return JSON.stringify(job.value?.state || {}, null, 2)
+})
 
 const statusColor = computed(() => {
-  if (!job.value) return "";
+  if (!job.value) return ''
   switch (job.value.status) {
     case SourceCollectJobStatus.PENDING:
-      return "status--pending";
+      return 'status--pending'
     case SourceCollectJobStatus.RUNNING:
-      return "status--running";
+      return 'status--running'
     case SourceCollectJobStatus.FINISHED:
-      return "status--finished";
+      return 'status--finished'
     case SourceCollectJobStatus.FAILED:
-      return "status--failed";
+      return 'status--failed'
     default:
-      return "";
+      return ''
   }
-});
+})
 
 // --- methods ---
 const formatDate = (date: Date | null) => {
-  if (!date) return t("collectJob.notAvailable");
-  return dayjs(date).format("YYYY-MM-DD HH:mm:ss");
-};
+  if (!date) return t('collectJob.notAvailable')
+  return dayjs(date).format('YYYY-MM-DD HH:mm:ss')
+}
 
 // --- watchers ---
 watch(
   () => job.value?.source,
   (newSourceId) => {
     if (newSourceId) {
-      refetchSource();
+      refetchSource()
     }
   },
   { immediate: true }
-);
+)
 
 watch(
   [() => job.value?.status, () => job.value?.isFinal],
@@ -108,41 +96,41 @@ watch(
     if (!newStatus || job.value?.isFinal) {
       // Clear polling when job reaches final state or status becomes null
       if (jobPollingIntervalId.value) {
-        clearInterval(jobPollingIntervalId.value);
-        jobPollingIntervalId.value = null;
+        clearInterval(jobPollingIntervalId.value)
+        jobPollingIntervalId.value = null
       }
-      return;
+      return
     }
 
     // Start polling if not already running
     if (!jobPollingIntervalId.value) {
       jobPollingIntervalId.value = setInterval(() => {
-        refetchJob();
-      }, pollingInterval.value);
+        refetchJob()
+      }, pollingInterval.value)
     }
   },
   { immediate: true }
-);
+)
 
 watch(
   () => pollingInterval.value,
   (newInterval) => {
     // Update interval if polling is active and not in final state
     if (jobPollingIntervalId.value && !job.value?.isFinal) {
-      clearInterval(jobPollingIntervalId.value);
+      clearInterval(jobPollingIntervalId.value)
       jobPollingIntervalId.value = setInterval(() => {
-        refetchJob();
-      }, newInterval);
+        refetchJob()
+      }, newInterval)
     }
   }
-);
+)
 
 // Clean up interval on component unmount
 onUnmounted(() => {
   if (jobPollingIntervalId.value) {
-    clearInterval(jobPollingIntervalId.value);
+    clearInterval(jobPollingIntervalId.value)
   }
-});
+})
 </script>
 
 <template>
@@ -155,7 +143,7 @@ onUnmounted(() => {
       <!-- Left Section: Metadata -->
       <section class="collect-job-view__metadata">
         <div class="metadata__header">
-          <h2 class="metadata__title">{{ t("collectJob.title") }}</h2>
+          <h2 class="metadata__title">{{ t('collectJob.title') }}</h2>
         </div>
 
         <InkField :label="t('collectJob.jobId')">
@@ -167,16 +155,13 @@ onUnmounted(() => {
             <span class="metadata__value" :class="statusColor">
               {{ job.status }}
             </span>
-            <span
-              class="i-mdi-refresh"
-              :class="{ 'animate-spin': jobLoading }"
-            />
+            <span class="i-mdi-refresh" :class="{ 'animate-spin': jobLoading }" />
           </div>
         </InkField>
 
         <InkField :label="t('collectJob.source')">
           <div v-if="sourceLoading" class="metadata__value">
-            {{ t("common.loading") }}
+            {{ t('common.loading') }}
           </div>
           <div v-else-if="source" class="metadata__value">
             <div class="source-info">
@@ -186,7 +171,7 @@ onUnmounted(() => {
             </div>
           </div>
           <span v-else class="metadata__value">
-            {{ t("collectJob.sourceNotFound") }}
+            {{ t('collectJob.sourceNotFound') }}
           </span>
         </InkField>
 
@@ -209,7 +194,7 @@ onUnmounted(() => {
 
       <!-- Right Section: Logs -->
       <section class="collect-job-view__logs">
-        <h3 class="collect-job-view__logs__title">{{ t("logs.title") }}</h3>
+        <h3 class="collect-job-view__logs__title">{{ t('logs.title') }}</h3>
         <LogsViewer
           v-if="job"
           class="flex-1 w-full"
@@ -221,13 +206,8 @@ onUnmounted(() => {
     </template>
     <!-- TODO: use inkPlaceholder -->
     <div v-else class="collect-job-view__error">
-      <span>{{ t("collectJob.notFound") }}</span>
-      <InkButton
-        :text="t('common.back')"
-        theme="subtle"
-        size="sm"
-        @click="$router.back()"
-      />
+      <span>{{ t('collectJob.notFound') }}</span>
+      <InkButton :text="t('common.back')" theme="subtle" size="sm" @click="$router.back()" />
     </div>
   </main>
 </template>

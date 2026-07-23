@@ -27,9 +27,11 @@ Web, browser-extension, shared-core, and Module Federation clients for the InKCr
 
 - Runtime: Node.js 22.22.3 and pnpm 10.26.2.
 - Install: `pnpm install --frozen-lockfile`.
+- Diagnose: `pnpm run doctor` (`pnpm doctor` is pnpm's unrelated built-in command).
 - Develop: `pnpm dev` or `pnpm dev:all`.
-- Static web build: `pnpm --filter @inkcre/client-web build-only`.
-- Current broad checks: `pnpm type-check` and `pnpm build`; known baseline failures are recorded in the active developer-experience packet.
+- Required verification: `pnpm check`.
+- Build the required Phase 2 outputs: `pnpm build`.
+- Shadow verification: `pnpm lint:type-aware` and `pnpm type-check:ts7`.
 
 ## Execution Rules
 

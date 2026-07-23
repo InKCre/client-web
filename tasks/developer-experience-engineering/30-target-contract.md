@@ -4,12 +4,16 @@
 
 Except for the frozen install already proved in Phase 0, this list describes the target command surface; commands are not available until their implementation slice records them as complete.
 
+Phase 2 now delivers `doctor`, `format`, `lint`, stable and shadow type checks, workspace/package
+contract validation, `build`, and `check`. Unit/E2E participation and `ci` remain owned by Phases 4
+and 5; the current `check` command does not claim placeholder test coverage.
+
 - `pnpm install --frozen-lockfile` - the supported dependency bootstrap.
-- `pnpm doctor` - read-only diagnosis of versions, registry access, generated WXT state, Docker, SVC, and capability health; never prints credentials.
+- `pnpm run doctor` - read-only diagnosis of versions, registry access, generated WXT state, Docker, SVC, and capability health; never prints credentials. The `run` keyword avoids pnpm's unrelated built-in `doctor`.
 - `pnpm dev` - ensures the default local profile and reports stable named URLs.
-- `pnpm check` - non-mutating format, lint, stable type-check, unit, package-contract, and build checks for every workspace member.
+- `pnpm check` - currently runs non-mutating format, lint, stable type-check, package-contract, and Phase 2 build checks; Phase 4 adds non-placeholder unit tests to this same required gate.
 - `pnpm test:e2e` - deterministic web and browser-extension E2E against a seeded non-production stack.
-- `pnpm build` - all static web, Module Federation, core library, and browser-extension outputs.
+- `pnpm build` - all static web, Module Federation, core library, and required browser-extension outputs; Phase 4 adds the Firefox artifact to the required gate.
 - `pnpm ci` - the exact clean-environment contract used by GitHub Actions.
 
 Each command:
@@ -82,7 +86,7 @@ flowchart LR
 ## Agent-Friendly Collaboration
 
 - Root instructions point to executable commands and canonical knowledge owners.
-- `pnpm doctor` and SVC JSON output let an agent distinguish missing setup, unhealthy services, and code failures.
+- `pnpm run doctor` and SVC JSON output let an agent distinguish missing setup, unhealthy services, and code failures.
 - Readiness probes replace sleeps and port guessing.
 - Worktree identity prevents one agent from taking over another agent's server or browser profile.
 - Test failure artifacts are bounded, named, and secret-safe.

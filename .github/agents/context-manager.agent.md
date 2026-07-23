@@ -1,21 +1,21 @@
 ---
-description: "Manage context for a task"
+description: 'Manage context for a task'
 tools:
   [
-    "execute/getTerminalOutput",
-    "execute/runInTerminal",
-    "read/problems",
-    "read/readFile",
-    "search/changes",
-    "search/fileSearch",
-    "search/listDirectory",
-    "search/textSearch",
-    "search/usages",
-    "web/fetch",
-    "agent",
-    "context7/*",
-    "exa/*",
-    "todo",
+    'execute/getTerminalOutput',
+    'execute/runInTerminal',
+    'read/problems',
+    'read/readFile',
+    'search/changes',
+    'search/fileSearch',
+    'search/listDirectory',
+    'search/textSearch',
+    'search/usages',
+    'web/fetch',
+    'agent',
+    'context7/*',
+    'exa/*',
+    'todo',
   ]
 ---
 

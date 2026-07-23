@@ -8,25 +8,24 @@
 import {
   configStore,
   envAdapter,
-  localStorageAdapter,
   setMFImplementation,
   TextResolver,
   ImageResolver,
   VideoResolver,
   HtmlResolver,
-} from "@inkcre/core";
-import { createInstance } from "@module-federation/enhanced/runtime";
-import * as InKCreCore from "@inkcre/core";
-import * as Zod from "zod";
-import * as Vue from "vue";
-import * as Pinia from "pinia";
-import * as VueRouter from "vue-router";
-import * as VueUse from "@vueuse/core";
-import packageJson from "../package.json";
-import ContentText from "@/components/info-base/resolvers/ContentText.vue";
-import ContentImage from "@/components/info-base/resolvers/ContentImage.vue";
-import ContentVideo from "@/components/info-base/resolvers/ContentVideo.vue";
-import ContentHtml from "@/components/info-base/resolvers/ContentHtml.vue";
+} from '@inkcre/core'
+import { createInstance } from '@module-federation/enhanced/runtime'
+import * as InKCreCore from '@inkcre/core'
+import * as Zod from 'zod'
+import * as Vue from 'vue'
+import * as Pinia from 'pinia'
+import * as VueRouter from 'vue-router'
+import * as VueUse from '@vueuse/core'
+import packageJson from '../package.json'
+import ContentText from '@/components/info-base/resolvers/ContentText.vue'
+import ContentImage from '@/components/info-base/resolvers/ContentImage.vue'
+import ContentVideo from '@/components/info-base/resolvers/ContentVideo.vue'
+import ContentHtml from '@/components/info-base/resolvers/ContentHtml.vue'
 
 // ============================================================================
 // Resolver Component Registration
@@ -37,12 +36,12 @@ import ContentHtml from "@/components/info-base/resolvers/ContentHtml.vue";
  * Each resolver needs a Vue component to render content.
  */
 export function setupResolvers(): void {
-  TextResolver.contentComp = ContentText;
-  ImageResolver.contentComp = ContentImage;
-  VideoResolver.contentComp = ContentVideo;
-  HtmlResolver.contentComp = ContentHtml;
+  TextResolver.contentComp = ContentText
+  ImageResolver.contentComp = ContentImage
+  VideoResolver.contentComp = ContentVideo
+  HtmlResolver.contentComp = ContentHtml
 
-  console.log("[Core] Resolver components registered");
+  console.log('[Core] Resolver components registered')
 }
 // Configuration
 // ============================================================================
@@ -57,7 +56,7 @@ export function setupResolvers(): void {
  */
 export function initializeModuleFederation(): void {
   const mfInstance = createInstance({
-    name: "host",
+    name: 'host',
     remotes: [],
     shared: {
       zod: {
@@ -84,24 +83,24 @@ export function initializeModuleFederation(): void {
           requiredVersion: false,
         },
       },
-      "vue-router": {
-        version: packageJson.dependencies["vue-router"],
+      'vue-router': {
+        version: packageJson.dependencies['vue-router'],
         lib: () => VueRouter,
         shareConfig: {
           singleton: true,
           requiredVersion: false,
         },
       },
-      "@vueuse/core": {
-        version: packageJson.dependencies["@vueuse/core"],
+      '@vueuse/core': {
+        version: packageJson.dependencies['@vueuse/core'],
         lib: () => VueUse,
         shareConfig: {
           singleton: true,
           requiredVersion: false,
         },
       },
-      "@inkcre/core": {
-        version: "0.0.0",
+      '@inkcre/core': {
+        version: '0.0.0',
         lib: () => InKCreCore,
         shareConfig: {
           singleton: true,
@@ -109,23 +108,21 @@ export function initializeModuleFederation(): void {
         },
       },
     },
-  });
+  })
 
   // Inject MF implementation into core
   const mfImpl = {
-    registerRemotes: (
-      remotes: Array<{ name: string; entry: string; type: string }>
-    ) => {
-      mfInstance.registerRemotes(remotes);
+    registerRemotes: (remotes: Array<{ name: string; entry: string; type: string }>) => {
+      mfInstance.registerRemotes(remotes)
     },
     loadRemote: async <T>(remoteName: string): Promise<T | null> => {
-      return mfInstance.loadRemote<T>(remoteName);
+      return mfInstance.loadRemote<T>(remoteName)
     },
-  };
+  }
 
-  setMFImplementation(mfImpl);
+  setMFImplementation(mfImpl)
 
-  console.log("[Core] Module Federation initialized");
+  console.log('[Core] Module Federation initialized')
 }
 
 // ============================================================================
@@ -137,10 +134,10 @@ export function initializeModuleFederation(): void {
  * Call this in main.ts before creating the Vue app.
  */
 export async function initializeCore(): Promise<void> {
-  setupResolvers();
+  setupResolvers()
   if (import.meta.env.DEV) {
-    configStore.metaAdapter = envAdapter;
+    configStore.metaAdapter = envAdapter
   }
-  initializeModuleFederation();
-  console.log("[Core] Initialization complete");
+  initializeModuleFederation()
+  console.log('[Core] Initialization complete')
 }

@@ -1,26 +1,26 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted, nextTick } from "vue";
-import { useI18n } from "vue-i18n";
-import { useIntervalFn } from "@vueuse/core";
-import { InkLoading } from "@inkcre/web-design";
-import LogEntry from "@/components/obsrv/LogEntry/LogEntry.vue";
-import { Log } from "@inkcre/core";
-import { logsViewerEmits, logsViewerProps } from "./LogsViewer";
+import { computed, ref, watch, onMounted, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useIntervalFn } from '@vueuse/core'
+import { InkLoading } from '@inkcre/web-design'
+import LogEntry from '@/components/obsrv/LogEntry/LogEntry.vue'
+import { Log } from '@inkcre/core'
+import { logsViewerEmits, logsViewerProps } from './LogsViewer'
 
-const props = defineProps(logsViewerProps);
-defineEmits(logsViewerEmits);
-const { t } = useI18n();
+const props = defineProps(logsViewerProps)
+defineEmits(logsViewerEmits)
+const { t } = useI18n()
 
 // --- data ---
-const logs = ref<Log[]>([]);
-const isLoading = ref(false);
-const error = ref<string | null>(null);
-const tailMarker = ref<HTMLDivElement>();
+const logs = ref<Log[]>([])
+const isLoading = ref(false)
+const error = ref<string | null>(null)
+const tailMarker = ref<HTMLDivElement>()
 
 // --- lifecycle ---
 onMounted(async () => {
-  await loadLogs();
-});
+  await loadLogs()
+})
 
 // --- methods ---
 /**
@@ -28,66 +28,62 @@ onMounted(async () => {
  */
 const loadLogs = async () => {
   if (isLoading.value) {
-    return;
+    return
   }
-  isLoading.value = true;
-  error.value = null;
+  isLoading.value = true
+  error.value = null
   try {
-    const fetched = await Log.getByTraceId(props.traceId || "", {
+    const fetched = await Log.getByTraceId(props.traceId || '', {
       cursor: logs.value[logs.value.length - 1]?.id,
-    });
-    logs.value.push(...fetched);
-    logs.value = logs.value.sort((a, b) => a.id - b.id);
+    })
+    logs.value.push(...fetched)
+    logs.value = logs.value.sort((a, b) => a.id - b.id)
     setTimeout(() => {
-      tailMarker.value?.scrollIntoView({ behavior: "smooth" });
-    }, 200);
+      tailMarker.value?.scrollIntoView({ behavior: 'smooth' })
+    }, 200)
   } catch (e) {
-    error.value = e instanceof Error ? e.message : "Failed to load logs";
+    error.value = e instanceof Error ? e.message : 'Failed to load logs'
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
-};
+}
 
 // --- polling ---
 const {
   pause: pausePolling,
   resume: resumePolling,
   isActive,
-} = useIntervalFn(loadLogs, props.pollingInterval, { immediateCallback: true });
+} = useIntervalFn(loadLogs, props.pollingInterval, { immediateCallback: true })
 
 // --- watchers ---
 watch(
   () => props.enablePolling,
   (enabled) => {
     if (enabled && !isActive.value) {
-      resumePolling();
+      resumePolling()
     } else if (!enabled && isActive.value) {
-      pausePolling();
+      pausePolling()
     }
   },
   { immediate: true }
-);
+)
 
 watch(
   () => props.traceId,
   async () => {
-    pausePolling();
-    logs.value = [];
-    await loadLogs();
+    pausePolling()
+    logs.value = []
+    await loadLogs()
     if (props.enablePolling) {
-      resumePolling();
+      resumePolling()
     }
   }
-);
+)
 
 // --- computed ---
 const isEmpty = computed(
-  () =>
-    logs.value.length === 0 &&
-    !isActive.value &&
-    !isLoading.value &&
-    !error.value
-);
+  () => logs.value.length === 0 && !isActive.value && !isLoading.value && !error.value
+)
 </script>
 
 <template>
@@ -103,7 +99,7 @@ const isEmpty = computed(
       </div>
     </template>
     <div v-if="isEmpty" class="logs-viewer__empty">
-      {{ t("logs.empty") || "No logs" }}
+      {{ t('logs.empty') || 'No logs' }}
     </div>
   </div>
 </template>

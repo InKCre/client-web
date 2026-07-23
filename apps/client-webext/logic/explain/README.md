@@ -1,17 +1,20 @@
 ---
-description: "This document provides AI Coding guidelines to `logic/explain`, which is the logic behind the explain feature."
+description: 'This document provides AI Coding guidelines to `logic/explain`, which is the logic behind the explain feature.'
 ---
 
 Tech Stacks:
+
 - [Vercel AI SDK v5](https://ai-sdk.dev/docs/introduction)
 
 Files:
+
 - `tools.ts`: Tools for explain agent, build with [AI SDK Tools](https://ai-sdk.dev/docs/ai-sdk-core/tools-and-tool-calling)
 - `index.ts`: Original single-turn explain agent using `useExplainAgent`
 - `chat.ts`: Multi-turn conversational explain agent using `useExplainChat` (implements AI SDK chatbot pattern)
 - `types.ts`: TypeScript types for agents
 
 Best Practice:
+
 - Errors occured in tool execution will be passed to LLM automatically by Vercel AI SDK.
 - Make naming of tool inputSchema self-explanatory to save token.
 
@@ -23,21 +26,21 @@ Based on the AI SDK chatbot pattern: https://ai-sdk.dev/docs/ai-sdk-ui/chatbot
 ### Usage
 
 ```typescript
-import { useExplainChat } from "~/logic/explain";
+import { useExplainChat } from '~/logic/explain'
 
 const chat = useExplainChat({
-  modelString: "openai:gpt-4",
+  modelString: 'openai:gpt-4',
   providers: llmProviders.value,
   onUpdate: (update) => {
-    if (update.messages) messages.value = update.messages;
+    if (update.messages) messages.value = update.messages
   },
-});
+})
 
 // Send initial message
-await chat.sendMessage("Explain this code", tabId);
+await chat.sendMessage('Explain this code', tabId)
 
 // Send follow-up
-await chat.sendMessage("Can you give an example?");
+await chat.sendMessage('Can you give an example?')
 ```
 
 ### API
@@ -53,8 +56,8 @@ await chat.sendMessage("Can you give an example?");
 
 ```typescript
 interface Message {
-  role: "user" | "assistant";
-  content: string;
-  id: string;
+  role: 'user' | 'assistant'
+  content: string
+  id: string
 }
 ```

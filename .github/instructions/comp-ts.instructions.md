@@ -1,5 +1,5 @@
 ---
-applyTo: "src/components/**/*.ts"
+applyTo: 'src/components/**/*.ts'
 ---
 
 ## Example

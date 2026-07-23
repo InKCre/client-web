@@ -1,5 +1,4 @@
-import type { PropType } from "vue";
-import { SourceForm } from "@inkcre/core";
+import { SourceForm } from '@inkcre/core'
 
 // --- Types ---
 
@@ -8,11 +7,11 @@ import { SourceForm } from "@inkcre/core";
 // --- Props ---
 export const createSourceProps = {
   // No props for now
-};
+}
 
 // --- Emits ---
 export const createSourceEmits = {
-  create: (data: SourceForm) => true,
-};
+  create: (_data: SourceForm) => true,
+}
 
 // --- Utilities ---

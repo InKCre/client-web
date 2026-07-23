@@ -34,7 +34,7 @@ These are proposed decisions, not implementation authorization.
 
 ## D3 - Toolchain
 
-- Status: proposed.
+- Status: accepted and implemented locally in Phase 2.
 - Recommendation:
   - Oxfmt is the single formatter;
   - Oxlint is the primary linter;
@@ -42,7 +42,7 @@ These are proposed decisions, not implementation authorization.
   - tsdown replaces tsup only for real library output, initially `@inkcre/core`;
   - Vite remains the web/remote builder and WXT remains the browser-extension builder;
   - one ecosystem-supported stable TypeScript plus `vue-tsc` remains required;
-  - TypeScript 7 native preview runs only as a non-blocking shadow check.
+  - TypeScript 7 native runs only as a non-blocking shadow check.
 - Revisit trigger: measured missing coverage or a production-ready TS7/Vue toolchain.
 
 ## D4 - Local PostgREST Ownership

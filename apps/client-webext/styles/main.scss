@@ -1,5 +1,5 @@
-@use "./design/_tokens.scss";
-@use "./base/_globals.scss";
+@use './design/_tokens.scss';
+@use './base/_globals.scss';
 
 /* Project-level global additions can be placed here */
 
@@ -16,4 +16,3 @@
     hover:opacity-100 hover:text-brand;
   font-size: 0.9em;
 }
-

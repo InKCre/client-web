@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { store } from '../store'
 import type { ConfigAdapterWithWrite } from './types'
-import { ClientConfigSchema, MetaConfigSchema } from './schema'
+import { ClientConfigSchema, MetaConfigSchema, type ClientConfig, type MetaConfig } from './schema'
 import { loadConfig as zodLoadConfig } from 'zod-config'
 import { computedAsync } from '@vueuse/core'
 import { envAdapter } from './adapters'
@@ -19,7 +19,7 @@ export const useConfigStore = defineStore('inkcre-config', () => {
   const isLoading = ref(false)
   const error = ref<Error | null>(null)
 
-  const metaConfig = computedAsync(async () => {
+  const metaConfig = computedAsync<MetaConfig>(async () => {
     try {
       const loaded = await zodLoadConfig({
         schema: MetaConfigSchema,
@@ -33,12 +33,12 @@ export const useConfigStore = defineStore('inkcre-config', () => {
     }
   }, MetaConfigSchema.parse({}))
 
-  const clientConfig = computedAsync(async () => {
+  const clientConfig = computedAsync<ClientConfig>(async () => {
     const Client = await lazyClient()
     try {
       const loaded = await Client.getSelf()
       console.log('[Config] ClientConfig loaded', loaded)
-      return loaded.config
+      return ClientConfigSchema.parse(loaded.config)
     } catch (error) {
       console.error('[Config] Failed to load client config:', error)
       return ClientConfigSchema.parse({})
@@ -58,13 +58,12 @@ export const useConfigStore = defineStore('inkcre-config', () => {
   }
 
   /**
-   * Reset configuration to defaults.
-   * Note: This only resets in-memory config, not persisted storage.
+   * Reset mutable bootstrap configuration to defaults.
+   * Client config is a database-backed projection and is not reset locally.
    */
   function reset(): void {
     metaConfig.value = MetaConfigSchema.parse({})
-    clientConfig.value = ClientConfigSchema.parse({})
-    console.log('[Config] Config reset to defaults')
+    console.log('[Config] MetaConfig reset to defaults')
   }
 
   return {

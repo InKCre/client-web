@@ -1,5 +1,5 @@
 ---
-applyTo: "**/*.scss, **/*.vue, **/*.css"
+applyTo: '**/*.scss, **/*.vue, **/*.css'
 ---
 
 ## Visual Style

@@ -107,24 +107,30 @@ All implementation steps from the Config Refactor Plan have been successfully co
 ## Usage Pattern
 
 ```typescript
-const configStore = useConfigStore();
+const configStore = useConfigStore()
 
 // Both loaded together
-await configStore.load([localStorageAdapter]);
+await configStore.load([localStorageAdapter])
 
 // Access separately
-const pgUrl = configStore.metaConfig.INKCRE_PGREST_URL;
-const registryUrl = configStore.config.extension_registry_url;
+const pgUrl = configStore.metaConfig.INKCRE_PGREST_URL
+const registryUrl = configStore.config.extension_registry_url
 
 // Watch separately
-watch(() => configStore.metaConfig.INKCRE_JWT_SECRET, (secret) => {});
-watch(() => configStore.config.ai.defaultModel, (model) => {});
+watch(
+  () => configStore.metaConfig.INKCRE_JWT_SECRET,
+  (secret) => {}
+)
+watch(
+  () => configStore.config.ai.defaultModel,
+  (model) => {}
+)
 
 // Modify app config
-configStore.config.ai.defaultModel = "claude-3-opus";
+configStore.config.ai.defaultModel = 'claude-3-opus'
 
 // Save both
-await configStore.save(localStorageAdapter);
+await configStore.save(localStorageAdapter)
 ```
 
 ## Key Benefits Achieved
@@ -144,12 +150,12 @@ await configStore.save(localStorageAdapter);
 
 ## Files Modified Summary
 
-| File | Status | Changes |
-|------|--------|---------|
-| `packages/core/src/config/schema.ts` | ✅ | Separated MetaConfigSchema and ClientConfigSchema, ConfigSchema is ClientConfigSchema only |
-| `packages/core/src/config/store.ts` | ✅ | Added `metaConfig` state item, updated load/save/reset for both configs |
-| `packages/core/src/config/types.ts` | ✅ | Added ClientConfig type export |
-| `packages/core/src/config/index.ts` | ✅ | Updated documentation for separate state items |
+| File                                 | Status | Changes                                                                                    |
+| ------------------------------------ | ------ | ------------------------------------------------------------------------------------------ |
+| `packages/core/src/config/schema.ts` | ✅     | Separated MetaConfigSchema and ClientConfigSchema, ConfigSchema is ClientConfigSchema only |
+| `packages/core/src/config/store.ts`  | ✅     | Added `metaConfig` state item, updated load/save/reset for both configs                    |
+| `packages/core/src/config/types.ts`  | ✅     | Added ClientConfig type export                                                             |
+| `packages/core/src/config/index.ts`  | ✅     | Updated documentation for separate state items                                             |
 
 ## Files Unchanged
 

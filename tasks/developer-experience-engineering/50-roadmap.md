@@ -33,6 +33,8 @@ Exit proof:
 
 ## Phase 2 - Establish One Toolchain and Package Contract
 
+Status: complete locally on 2026-07-23; commit/push remain separately authorized actions.
+
 - Add root Oxfmt/Oxlint and review migration baselines.
 - Normalize stable TypeScript and workspace script names.
 - Add TS7 native preview as a shadow check.
@@ -42,10 +44,12 @@ Exit proof:
 
 Exit proof:
 
-- `pnpm doctor`, `pnpm check`, and `pnpm build` work from a clean checkout;
-- every workspace member is accounted for;
-- no dual toolchain remains without a named exception;
-- TS7 results are separate from required CI.
+- `pnpm run doctor`, `pnpm check`, and `pnpm build` pass;
+- every workspace member is accounted for by `scripts/check-workspace-contract.mjs`;
+- no dual formatter/linter/library builder remains;
+- stable TypeScript 5.9 is required while green native TypeScript 7 and type-aware Oxlint results
+  remain separate shadow lanes;
+- `scripts/check-package-contract.mjs` proves the ESM-only core dist/declaration contract.
 
 ## Phase 3 - Make Static and Local Runtime Deterministic
 

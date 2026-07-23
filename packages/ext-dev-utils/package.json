@@ -16,16 +16,16 @@
     "@inkcre/core": "workspace:*",
     "@inkcre/web-design": "^1.1.6"
   },
-  "peerDependencies": {
-    "vue": "^3.5.0",
-    "vue-router": "^4.5.0",
-    "pinia": "^3.0.0"
-  },
   "devDependencies": {
-    "typescript": "~5.8.0",
+    "pinia": "^3.0.3",
+    "typescript": "catalog:",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1",
-    "pinia": "^3.0.3",
-    "vue-tsc": "^3.0.4"
+    "vue-tsc": "catalog:"
+  },
+  "peerDependencies": {
+    "pinia": "^3.0.0",
+    "vue": "^3.5.0",
+    "vue-router": "^4.5.0"
   }
 }

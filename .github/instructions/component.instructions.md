@@ -1,5 +1,5 @@
 ---
-applyTo: "src/components/**/*"
+applyTo: 'src/components/**/*'
 ---
 
 ## File Structure

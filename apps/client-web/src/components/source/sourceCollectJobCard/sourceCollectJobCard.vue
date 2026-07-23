@@ -1,42 +1,39 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { useI18n } from "vue-i18n";
-import {
-  sourceCollectJobCardProps,
-  sourceCollectJobCardEmits,
-} from "./sourceCollectJobCard";
-import { SourceCollectJobStatus } from "@inkcre/core";
-import dayjs from "dayjs";
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { sourceCollectJobCardProps, sourceCollectJobCardEmits } from './sourceCollectJobCard'
+import { SourceCollectJobStatus } from '@inkcre/core'
+import dayjs from 'dayjs'
 
-const props = defineProps(sourceCollectJobCardProps);
-const emit = defineEmits(sourceCollectJobCardEmits);
-const { t } = useI18n();
+const props = defineProps(sourceCollectJobCardProps)
+const emit = defineEmits(sourceCollectJobCardEmits)
+const { t } = useI18n()
 
 // --- computed ---
 const statusColor = computed(() => {
   switch (props.job.status) {
     case SourceCollectJobStatus.PENDING:
-      return "status--pending";
+      return 'status--pending'
     case SourceCollectJobStatus.RUNNING:
-      return "status--running";
+      return 'status--running'
     case SourceCollectJobStatus.FINISHED:
-      return "status--finished";
+      return 'status--finished'
     case SourceCollectJobStatus.FAILED:
-      return "status--failed";
+      return 'status--failed'
     default:
-      return "";
+      return ''
   }
-});
+})
 
 // --- methods ---
 const formatDate = (date: Date | null) => {
-  if (!date) return t("collectJob.notAvailable");
-  return dayjs(date).format("YYYY-MM-DD HH:mm:ss");
-};
+  if (!date) return t('collectJob.notAvailable')
+  return dayjs(date).format('YYYY-MM-DD HH:mm:ss')
+}
 
 const onClick = () => {
-  emit("click");
-};
+  emit('click')
+}
 </script>
 
 <template>
@@ -49,7 +46,7 @@ const onClick = () => {
     </div>
     <div class="source-collect-job-card__dates">
       <span class="source-collect-job-card__date">
-        {{ t("collectJob.createdAt") }}: {{ formatDate(job.created_at) }}
+        {{ t('collectJob.createdAt') }}: {{ formatDate(job.created_at) }}
       </span>
     </div>
   </div>

@@ -1,4 +1,4 @@
-import type { PropType } from "vue";
+import type { PropType } from 'vue'
 
 // --- Types ---
 
@@ -19,7 +19,7 @@ export const logsViewerProps = {
     type: Boolean,
     default: true,
   },
-};
+}
 
 // --- Emits ---
-export const logsViewerEmits = {} as const;
+export const logsViewerEmits = {} as const

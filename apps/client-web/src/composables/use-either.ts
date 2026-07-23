@@ -1,5 +1,5 @@
-import { computedAsync } from "@vueuse/core";
-import type { ComputedRef } from "vue";
+import { computedAsync } from '@vueuse/core'
+import type { ComputedRef } from 'vue'
 
 /**
  * Composable for handling props that can be either an id or the actual object
@@ -17,13 +17,13 @@ export function useEither<T>(
   return computedAsync(
     async (): Promise<T | undefined> => {
       if (object) {
-        return object;
+        return object
       } else if (id) {
-        return await fetcher(id);
+        return await fetcher(id)
       }
-      return undefined;
+      return undefined
     },
     undefined,
     { shallow: false }
-  );
+  )
 }
