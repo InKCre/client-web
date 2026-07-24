@@ -33,7 +33,7 @@ Exit proof:
 
 ## Phase 2 - Establish One Toolchain and Package Contract
 
-Status: complete locally on 2026-07-23; commit/push remain separately authorized actions.
+Status: complete and committed as `6902293` on 2026-07-23; push remains separately authorized.
 
 - Add root Oxfmt/Oxlint and review migration baselines.
 - Normalize stable TypeScript and workspace script names.
@@ -53,6 +53,9 @@ Exit proof:
 
 ## Phase 3 - Make Static and Local Runtime Deterministic
 
+Status: client-web-owned slice implemented locally on 2026-07-23. The database slice remains
+blocked on separate authorization to modify and publish the authoritative `core-py` repository.
+
 - Remove Hono, Worker config, and `httpAdapter` if D1/D2 are confirmed.
 - Make local/browser config authority explicit and restore it correctly on reload.
 - Add Portless worktree URLs and SVC capabilities.
@@ -67,6 +70,14 @@ Exit proof:
 - unhealthy occupied capabilities are reported rather than taken over;
 - no local path reaches production implicitly;
 - complete local readiness is machine-verifiable.
+
+Current proof:
+
+- static Vite build and public-artifact tripwires pass;
+- browser-local and extension-local config initialization passes type/build checks;
+- SVC reports both started worktree targets healthy after cold start;
+- bounded cleanup removes only the current worktree routes and preserves unrelated Portless routes;
+- Docker/PostgREST readiness and two-real-worktree data isolation remain outstanding.
 
 ## Phase 4 - Build the Test Pyramid
 

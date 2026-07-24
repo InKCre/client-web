@@ -65,7 +65,7 @@ InKCre Client-Web is a web-based application for information collection, organiz
 
 **APIs:**
 
-- Hono (server routes)
+- PostgREST and core-py (external services)
 - JOSE (authentication)
 
 ---
@@ -130,8 +130,8 @@ InKCre Client-Web is a web-based application for information collection, organiz
 │                                                                       │
 │  ┌──────────────────────────────────────────────────────────────┐  │
 │  │              Config System (zod-config)                        │  │
-│  │   - localStorage / HTTP / dev adapters                         │  │
-│  │   - Runtime config switching                                   │  │
+│  │   - Browser-local validated bootstrap config                   │  │
+│  │   - Explicit application-owned initialization                  │  │
 │  └──────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────┘
                                     │
@@ -208,9 +208,12 @@ Decorator-based registration for pluggable content handling. Extensions can add 
 **Storage:** Handles content fetching (HTTP, local, external APIs)
 **Resolver:** Handles content transformation and rendering
 
-### 5. Config Adapter System
+### 5. Config System
 
-Multi-source configuration with runtime switching. Supports localStorage, HTTP, and development adapters with Zod validation.
+The static web application explicitly initializes the shared config store with its localStorage
+adapter before mounting Vue. The browser origin owns the PostgREST URL, client ID, and user-provided
+JWT signing credential. There is no HTTP config endpoint, environment adapter, or runtime adapter
+switching.
 
 ---
 
@@ -219,29 +222,18 @@ Multi-source configuration with runtime switching. Supports localStorage, HTTP, 
 ```
 client-web/
 ├── docs/                 # Domain documentation
-├── extensions/           # Module Federation remotes
-│   └── twitter/          # Example extension
 ├── public/               # Static assets
-├── server/               # Cloudflare Workers server
 ├── src/
-│   ├── business/         # Business logic (BusinessClass pattern)
-│   │   ├── api.ts        # DBAPIClient + CoreAPIClient
-│   │   ├── info-base/    # Graph subsystems
-│   │   │   ├── block.ts
-│   │   │   ├── relation.ts
-│   │   │   ├── storage.ts
-│   │   │   └── resolver.ts
-│   │   └── source.ts     # Source entity
 │   ├── components/       # Vue components by domain
 │   │   ├── source/
 │   │   ├── info-base/
 │   │   ├── extension/
 │   │   └── common/
 │   ├── composables/      # Vue composition functions
-│   ├── views/            # Route views
-│   ├── stores/           # Pinia stores
 │   ├── locales/          # Internationalization
-│   └── config.ts         # Configuration system
+│   ├── views/            # Routed views and settings
+│   ├── core.ts           # Explicit core/config initialization
+│   └── main.ts           # Vue entry
 ├── package.json
 ├── vite.config.ts
 └── tsconfig.json
@@ -294,11 +286,10 @@ Pinia stores for global state:
 
 ### Configuration
 
-Multi-adapter system supporting:
-
-- localStorage for persistence
-- HTTP for server-side config
-- Development environment variables
+- localStorage is the web runtime authority.
+- Zod validates config before persistence and use.
+- Portable export excludes the JWT signing credential.
+- JWTs remain memory-only and are signed from the user-owned browser credential.
 
 ---
 
@@ -322,4 +313,4 @@ Block display → Get resolver → Fetch storage content → Resolve content →
 
 ---
 
-**Last Updated**: January 2, 2026
+**Last Updated**: July 23, 2026

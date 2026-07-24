@@ -23,10 +23,7 @@
   },
   "settings": {
     "title": "设置",
-    "configAdapter": "配置来源",
-    "configAdapterDescription": "选择配置的加载/保存位置",
-    "adapterLocalStorage": "Local Storage",
-    "adapterHttp": "远程服务器",
+    "metaConfig": "运行配置",
     "coreUrl": "核心 API 地址",
     "pgrestUrl": "PostgreSQL REST 地址",
     "extensionRegistryUrl": "扩展注册表地址",
@@ -42,7 +39,10 @@
     "exportConfig": "导出",
     "importConfig": "导入",
     "importError": "导入配置失败，请检查文件格式。",
-    "adapterEnv": "环境变量"
+    "storageNotice": "配置属于当前浏览器来源，并会在重新加载时自动恢复。",
+    "jwtStoredLocally": "仅存储在当前浏览器中，不由构建产物或托管平台提供。",
+    "exportExcludesSecret": "导出文件不包含 JWT 密钥；导入时会保留当前浏览器已存储的密钥。",
+    "language": "语言"
   },
   "source": {
     "deleteConfirmTitle": "删除数据源",

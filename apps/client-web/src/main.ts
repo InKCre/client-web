@@ -14,19 +14,18 @@ const app = createApp(App)
 app.use(i18n)
 app.use(store)
 app.use(router)
-app.mount('#app')
 
 // Initialize core package
 import { initializeCore } from './core'
 await initializeCore()
+app.mount('#app')
 
 // Initialize Extension
-import { Extension, configStore } from '@inkcre/core'
+import { Extension } from '@inkcre/core'
 Extension.startup().catch((error) => {
   console.error('[Extension] Startup failed:', error)
 })
 
 window.addEventListener('beforeunload', () => {
   void Extension.shutdown()
-  void configStore.saveMeta()
 })

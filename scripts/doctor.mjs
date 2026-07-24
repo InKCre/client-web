@@ -71,6 +71,17 @@ record(
   'docs/_shared must be initialized'
 )
 
+const localTargets = svcConfig.dev?.profiles?.local?.targets
+record(
+  'svc-dev-targets',
+  svcConfig.dev?.profile === 'local' &&
+    localTargets?.web?.scope === 'worktree' &&
+    localTargets?.webext?.scope === 'worktree'
+    ? 'ok'
+    : 'error',
+  localTargets ? Object.keys(localTargets).sort().join(', ') : 'missing local targets'
+)
+
 const svcVersion = commandVersion('svc')
 if (svcVersion) {
   try {
@@ -97,12 +108,29 @@ record(
   dockerVersion ?? 'not installed; Docker/PostgREST capability is owned by Phase 3'
 )
 
-record('portless', 'warning', 'worktree-local URL capability is owned by Phase 3')
+const expectedPortless = rootPackage.devDependencies.portless
+const portlessVersion = commandVersion(`${repoRoot}/node_modules/.bin/portless`)
+record(
+  'portless',
+  portlessVersion === expectedPortless ? 'ok' : 'error',
+  `${portlessVersion ?? 'missing'} (expected ${expectedPortless})`
+)
+
+try {
+  execFileSync(process.execPath, ['scripts/check-local-runtime-contract.mjs'], {
+    cwd: repoRoot,
+    stdio: ['ignore', 'pipe', 'ignore'],
+    timeout: 10000,
+  })
+  record('local-runtime-contract', 'ok', 'static config and worktree targets verified')
+} catch {
+  record('local-runtime-contract', 'error', 'run pnpm check:runtime for details')
+}
 
 const fatal = checks.filter((check) => check.status === 'error')
 const result = {
   ok: fatal.length === 0,
-  phase: 2,
+  phase: 3,
   checks,
 }
 

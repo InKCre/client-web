@@ -7,7 +7,7 @@
 
 import {
   configStore,
-  envAdapter,
+  localStorageAdapter,
   setMFImplementation,
   TextResolver,
   ImageResolver,
@@ -134,10 +134,9 @@ export function initializeModuleFederation(): void {
  * Call this in main.ts before creating the Vue app.
  */
 export async function initializeCore(): Promise<void> {
+  await configStore.initializeMeta(localStorageAdapter)
+  await configStore.loadClientConfig()
   setupResolvers()
-  if (import.meta.env.DEV) {
-    configStore.metaAdapter = envAdapter
-  }
   initializeModuleFederation()
   console.log('[Core] Initialization complete')
 }

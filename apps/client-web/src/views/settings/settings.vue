@@ -1,29 +1,15 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import {
-  InkForm,
-  InkInput,
-  InkDropdown,
-  InkButton,
-  InkDoubleCheck,
-  type DropdownOption,
-} from '@inkcre/web-design'
-import {
-  configStore,
-  localStorageAdapter,
-  httpAdapter,
-  envAdapter,
-  type AdapterType,
-  type ConfigAdapterWithWrite,
-} from '@inkcre/core'
+import { InkForm, InkInput, InkButton, InkDoubleCheck } from '@inkcre/web-design'
+import { configStore, MetaConfigSchema, type MetaConfig } from '@inkcre/core'
 import { setLocale, SUPPORT_LOCALES, LOCALE_NAMES, type SupportLocale } from '@/locales'
 import i18n from '@/locales'
 
 const { t } = useI18n()
 
 // Local reactive copy of metaConfig for form editing
-const metaFormConfig = reactive({ ...configStore.metaConfig })
+const metaFormConfig = reactive<MetaConfig>({ ...configStore.metaConfig })
 
 // Synchronize metaFormConfig with configStore.metaConfig
 watch(
@@ -33,37 +19,6 @@ watch(
   },
   { deep: true }
 )
-
-// Adapter options
-const adapterOptions: DropdownOption[] = [
-  { value: 'localStorage', label: t('settings.adapterLocalStorage') },
-  { value: 'http', label: t('settings.adapterHttp') },
-  { value: 'env', label: t('settings.adapterEnv') },
-]
-
-// Map adapter type to actual adapter instance
-const adapterMap: Record<Exclude<AdapterType, 'webext'>, ConfigAdapterWithWrite> = {
-  localStorage: localStorageAdapter,
-  http: httpAdapter,
-  env: envAdapter,
-}
-
-// Current adapter (computed for v-model)
-const currentAdapter = computed({
-  get: () => configStore.metaAdapter.name,
-  set: async (value: string) => {
-    const adapterKey = value as Exclude<AdapterType, 'webext'>
-    localStorage.setItem('inkcre_config_adapter', value)
-    // Reload config from new adapter
-    configStore.metaAdapter = adapterMap[adapterKey]
-  },
-})
-
-// Language options
-const languageOptions: DropdownOption[] = SUPPORT_LOCALES.map((locale) => ({
-  value: locale,
-  label: LOCALE_NAMES[locale],
-}))
 
 // Current locale (computed for v-model)
 const currentLocale = computed({
@@ -76,9 +31,10 @@ const currentLocale = computed({
 // Save config
 const onSave = async () => {
   try {
-    // Update store config
-    Object.assign(configStore.metaConfig, metaFormConfig)
+    const validated = MetaConfigSchema.parse(metaFormConfig)
+    Object.assign(configStore.metaConfig, validated)
     await configStore.saveMeta()
+    await configStore.loadClientConfig()
     alert(t('settings.saveSuccess'))
   } catch (error) {
     console.error('Failed to save config:', error)
@@ -87,18 +43,22 @@ const onSave = async () => {
 }
 
 // Reset config
-const onReset = () => {
-  configStore.reset()
-  // Reload form config after reset
+const onReset = async () => {
+  await configStore.resetMeta()
   Object.assign(metaFormConfig, configStore.metaConfig)
 }
 
 // Export config
 const onExport = () => {
-  const fullConfig = {
-    metaConfig: configStore.metaConfig,
+  const portableConfig = {
+    version: 1,
+    containsCredential: false,
+    metaConfig: {
+      INKCRE_PGREST_URL: configStore.metaConfig.INKCRE_PGREST_URL,
+      INKCRE_CLIENT_ID: configStore.metaConfig.INKCRE_CLIENT_ID,
+    },
   }
-  const configJson = JSON.stringify(fullConfig, null, 2)
+  const configJson = JSON.stringify(portableConfig, null, 2)
   const blob = new Blob([configJson], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -125,13 +85,14 @@ const onFileSelected = async (event: Event) => {
     try {
       const content = e.target?.result as string
       const imported = JSON.parse(content)
-      // Update store config
-      if (imported.metaConfig) {
-        Object.assign(configStore.metaConfig, imported.metaConfig)
-      }
-      // Save
+      const validated = MetaConfigSchema.parse({
+        ...configStore.metaConfig,
+        ...imported.metaConfig,
+      })
+      Object.assign(configStore.metaConfig, validated)
       await configStore.saveMeta()
-      // Reload form config after import
+      await configStore.loadClientConfig()
+      Object.assign(metaFormConfig, configStore.metaConfig)
       alert(t('settings.saveSuccess'))
     } catch (error) {
       console.error('Failed to import config:', error)
@@ -150,28 +111,27 @@ const onFileSelected = async (event: Event) => {
     <h1 class="settings-view__title">{{ t('settings.title') }}</h1>
 
     <InkForm layout="col" class="settings-view__form">
-      <!-- Config Adapter Selection -->
-      <InkDropdown
-        v-model="currentAdapter"
-        :label="t('settings.configAdapter')"
-        :options="adapterOptions"
-      />
-
       <!-- Meta Configuration -->
       <h2 class="settings-view__section-title">
         {{ t('settings.metaConfig') }}
       </h2>
+      <p class="settings-view__notice">{{ t('settings.storageNotice') }}</p>
       <InkInput
         v-model="metaFormConfig.INKCRE_PGREST_URL"
         :label="t('settings.pgrestUrl')"
         placeholder="https://..."
       />
 
-      <InkInput
-        v-model="metaFormConfig.INKCRE_JWT_SECRET"
-        :label="t('settings.jwtSecret')"
-        placeholder="..."
-      />
+      <label class="settings-view__secret">
+        <span>{{ t('settings.jwtSecret') }}</span>
+        <input
+          v-model="metaFormConfig.INKCRE_JWT_SECRET"
+          type="password"
+          autocomplete="off"
+          placeholder="••••••••"
+        />
+        <small>{{ t('settings.jwtStoredLocally') }}</small>
+      </label>
 
       <InkInput
         v-model="metaFormConfig.INKCRE_CLIENT_ID"
@@ -181,11 +141,14 @@ const onFileSelected = async (event: Event) => {
 
       <!-- Language Selection -->
       <h2 class="settings-view__section-title">{{ t('settings.language') }}</h2>
-      <InkDropdown
-        v-model="currentLocale"
-        :label="t('settings.languageLabel')"
-        :options="languageOptions"
-      />
+      <label class="settings-view__locale">
+        <span>{{ t('settings.languageLabel') }}</span>
+        <select v-model="currentLocale">
+          <option v-for="locale in SUPPORT_LOCALES" :key="locale" :value="locale">
+            {{ LOCALE_NAMES[locale] }}
+          </option>
+        </select>
+      </label>
     </InkForm>
 
     <!-- Action Buttons -->
@@ -203,6 +166,7 @@ const onFileSelected = async (event: Event) => {
       <InkButton :text="t('settings.exportConfig')" @click="onExport" />
       <InkButton :text="t('settings.importConfig')" @click="onImport" />
     </div>
+    <p class="settings-view__export-note">{{ t('settings.exportExcludesSecret') }}</p>
 
     <!-- Hidden file input for import -->
     <input

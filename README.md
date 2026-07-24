@@ -30,7 +30,10 @@ Run repository-wide commands from the root:
 
 ```bash
 pnpm run doctor      # Diagnose required versions and generated state
-pnpm dev             # Start the web client
+pnpm dev             # Ensure the worktree-local web capability
+pnpm dev:webext      # Ensure the worktree-local WXT capability
+pnpm dev:status      # Observe capability health without starting anything
+pnpm dev:stop        # Stop only this worktree's Portless routes
 pnpm dev:all         # Start the web client with local remotes
 pnpm format          # Apply the Oxfmt baseline
 pnpm lint            # Run the required Oxlint rules
@@ -48,6 +51,25 @@ pnpm type-check:ts7
 
 The required stable lane uses TypeScript 5.9 and Vue TSC. Unit and E2E participation join
 `pnpm check` in the testing phase; no placeholder test pass is reported today.
+
+## Local runtime
+
+SVC resolves a stable instance for each Git worktree. Portless exposes the web and WXT development
+servers at instance-specific HTTPS `.localhost` URLs, and each server answers an identity probe
+before SVC reports it as healthy. `pnpm dev` and `pnpm dev:webext` return after readiness; use
+`pnpm dev:status` to inspect them and `pnpm dev:stop` for bounded cleanup.
+
+The WXT capability builds and watches the extension without requiring a browser installation. To
+also launch Chrome, set `INKCRE_CHROMIUM_BINARY` to an executable path before starting it; WXT then
+uses `.runtime/dev/<instance>/chromium-profile` rather than a shared user profile.
+
+The web application's PostgREST URL, client ID, and user-supplied JWT signing credential are
+browser-local settings. No `VITE_*`, Cloudflare, or Worker path supplies that credential, and
+portable config export excludes it.
+
+The complete Docker PostgreSQL/PostgREST capability is not yet available in this repository.
+Database migrations, roles, seed, and reset remain owned by `core-py`; `pnpm run doctor` reports
+Docker as a warning until that separately authorized cross-repository slice is delivered.
 
 ## Package contract
 

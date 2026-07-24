@@ -4,5 +4,5 @@ import '~/styles'
 import Options from './Options.vue'
 
 const app = createApp(Options)
-setupApp(app)
+await setupApp(app)
 app.mount('#app')

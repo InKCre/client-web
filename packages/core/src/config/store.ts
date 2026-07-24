@@ -1,55 +1,70 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, shallowRef } from 'vue'
 import { store } from '../store'
 import type { ConfigAdapterWithWrite } from './types'
 import { ClientConfigSchema, MetaConfigSchema, type ClientConfig, type MetaConfig } from './schema'
 import { loadConfig as zodLoadConfig } from 'zod-config'
-import { computedAsync } from '@vueuse/core'
-import { envAdapter } from './adapters'
 
 // Lazy import Client to avoid circular imports
 const lazyClient = async () => (await import('../client/client')).Client
+
+const unconfiguredAdapter: ConfigAdapterWithWrite = {
+  name: 'unconfigured',
+  read: async () => ({}),
+  write: async () => {
+    throw new Error('[Config] Initialize a runtime-owned meta adapter before saving.')
+  },
+}
 
 /**
  * Config store, includes metaConfig and clientConfig, managing their loading and saving.
  */
 export const useConfigStore = defineStore('inkcre-config', () => {
-  // State
-  const metaAdapter = ref<ConfigAdapterWithWrite>(envAdapter)
+  const metaAdapter = shallowRef<ConfigAdapterWithWrite>(unconfiguredAdapter)
+  const metaConfig = ref<MetaConfig>(MetaConfigSchema.parse({}))
+  const clientConfig = ref<ClientConfig>(ClientConfigSchema.parse({}))
   const isLoading = ref(false)
   const error = ref<Error | null>(null)
 
-  const metaConfig = computedAsync<MetaConfig>(async () => {
-    try {
-      const loaded = await zodLoadConfig({
-        schema: MetaConfigSchema,
-        adapters: [metaAdapter.value],
-      })
-      console.log('[Config] MetaConfig loaded', loaded)
-      return loaded
-    } catch (err) {
-      console.error('[Config] Failed to load meta config:', err)
-      return MetaConfigSchema.parse({})
-    }
-  }, MetaConfigSchema.parse({}))
+  async function initializeMeta(adapter: ConfigAdapterWithWrite): Promise<void> {
+    metaAdapter.value = adapter
+    isLoading.value = true
+    error.value = null
 
-  const clientConfig = computedAsync<ClientConfig>(async () => {
+    try {
+      metaConfig.value = await zodLoadConfig({
+        schema: MetaConfigSchema,
+        adapters: [adapter],
+      })
+    } catch (err) {
+      error.value = err as Error
+      metaConfig.value = MetaConfigSchema.parse({})
+      console.error('[Config] Failed to initialize meta config.')
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function loadClientConfig(): Promise<void> {
+    if (!metaConfig.value.INKCRE_CLIENT_ID) {
+      clientConfig.value = ClientConfigSchema.parse({})
+      return
+    }
+
     const Client = await lazyClient()
     try {
       const loaded = await Client.getSelf()
-      console.log('[Config] ClientConfig loaded', loaded)
-      return ClientConfigSchema.parse(loaded.config)
-    } catch (error) {
-      console.error('[Config] Failed to load client config:', error)
-      return ClientConfigSchema.parse({})
+      clientConfig.value = ClientConfigSchema.parse(loaded.config)
+    } catch {
+      clientConfig.value = ClientConfigSchema.parse({})
+      console.error('[Config] Failed to load client config.')
     }
-  }, ClientConfigSchema.parse({}))
+  }
 
   async function saveMeta(): Promise<void> {
     error.value = null
     try {
       await metaAdapter.value.write(metaConfig.value)
-      console.log('[Config] MetaConfig saved')
     } catch (err) {
       error.value = err as Error
       console.error('[Config] Failed to save meta config:', err)
@@ -57,26 +72,22 @@ export const useConfigStore = defineStore('inkcre-config', () => {
     }
   }
 
-  /**
-   * Reset mutable bootstrap configuration to defaults.
-   * Client config is a database-backed projection and is not reset locally.
-   */
-  function reset(): void {
+  async function resetMeta(): Promise<void> {
     metaConfig.value = MetaConfigSchema.parse({})
-    console.log('[Config] MetaConfig reset to defaults')
+    clientConfig.value = ClientConfigSchema.parse({})
+    await saveMeta()
   }
 
   return {
-    // State - Exposed directly for consumer access
     metaConfig,
     clientConfig,
     metaAdapter,
     isLoading,
     error,
-
-    // Actions
+    initializeMeta,
+    loadClientConfig,
     saveMeta,
-    reset,
+    resetMeta,
   }
 })
 

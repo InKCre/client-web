@@ -2,9 +2,9 @@
 
 ## Decisions for Sir
 
-- [ ] D1: client-web is a static SPA; remove Hono/Worker and deploy Cloudflare Pages.
-- [ ] D2: JWT signing remains browser-local with a user-supplied secret; Cloudflare and Vite never provide a shared secret.
-- [ ] D2a: hard-cut web config to one browser-local authority instead of preserving localStorage/http/env adapter selection.
+- [x] D1: client-web is a static SPA; remove Hono/Worker and deploy Cloudflare Pages.
+- [x] D2: JWT signing remains browser-local with a user-supplied secret; Cloudflare and Vite never provide a shared secret.
+- [x] D2a: hard-cut web config to one browser-local authority instead of preserving localStorage/http/env adapter selection.
 - [x] D3: hard-cut formatting/linting to Oxfmt/Oxlint; use tsdown only for real libraries.
 - [x] D3a: stable TypeScript remains required; TS7 native is shadow-only.
 - [ ] D4: core-py remains schema authority; client-web consumes a versioned Docker PostgREST development capability without copying migrations.
@@ -33,9 +33,14 @@ No compatibility shim, duplicate schema, dual formatter, alternate production br
 
 - Step 1 authorization covered the reproducibility contract and its isolated commit.
 - Step 2 authorization covers client-web SVC adoption and shared-reference integration plus the `InKCre/docs` v10 Hub migration. The user separately authorized the isolated Hub commit/push and the two isolated client-web commits; client-web push remains unauthorized.
-- Step 3 authorization covers the client-web toolchain/package-contract hard cut and the code repairs
-  necessary to make that contract truthful. It does not authorize a Step 3 commit or push.
-- Outside those slices, no product source, Cloudflare, Docker, database, branch, submodule, sibling-repository commit/push, or external-resource mutation is authorized.
+- Step 3 authorization covered the client-web toolchain/package-contract hard cut and the code
+  repairs necessary to make that contract truthful. The user later authorized its isolated commit,
+  recorded as `6902293`; no push was authorized.
+- Step 4 authorization covers the client-web static/config/SVC/Portless/WXT implementation. It does
+  not authorize mutating, committing, or publishing the sibling `core-py` repository, so D4's
+  authoritative database capability remains pending.
+- Outside those slices, no Cloudflare, Docker/database, branch, submodule, sibling-repository
+  commit/push, or external-resource mutation is authorized.
 - No production credential inspection.
 - No server-issued auth/BFF redesign without separate product intent.
 - No copied core-py migrations or SVC framework corpus.
@@ -65,3 +70,13 @@ No compatibility shim, duplicate schema, dual formatter, alternate production br
   TypeScript 7 plus type-aware Oxlint shadows.
 - 2026-07-23: all five workspaces now pass the explicit stable type/build contract; both shadow
   lanes are also green. Unit/E2E participation remains Phase 4 rather than a fake Phase 2 pass.
+- 2026-07-23: user authorized the Step 3 commit; the isolated toolchain/package contract was
+  recorded as `6902293`, then the user explicitly started Step 4.
+- 2026-07-23: Step 4 accepted D1/D2/D2a, removed the Worker/Hono/runtime adapter surfaces, made web
+  and webext config ownership explicit, and added worktree-scoped SVC/Portless capabilities.
+- 2026-07-23: a cold-start probe initially exposed Portless's shared-proxy 404 as an SVC
+  occupied-unhealthy conflict. The final executable identity probe treats an unregistered route as
+  absent while Portless still refuses route takeover without `--force`.
+- 2026-07-23: `core-py` is confirmed as the migration/role/seed/reset owner. Its worktree already
+  contains unrelated user-owned untracked files, and no modification or publication was made
+  without separate authorization.

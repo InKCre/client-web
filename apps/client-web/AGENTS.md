@@ -11,7 +11,8 @@ Web client for InKCre - GUI for system management and visualization.
 - State: pinia
 - i18n: vue-i18n
 - Graphs: Vue Flow, D3, dagre
-- Deploy: Cloudflare Workers
+- Runtime: static Vite SPA
+- Deploy target: Cloudflare Pages
 
 ## Business Domains
 
@@ -25,7 +26,6 @@ Web client for InKCre - GUI for system management and visualization.
 ## Directory Structure
 
 ```
-server/                  # Cloudflare Workers
 src/
 ├── components/<domain>/ # Vue components by domain
 ├── composables/         # Composition functions
@@ -38,6 +38,14 @@ src/
 ├── router.ts            # Routes
 └── main.ts              # Entry
 ```
+
+## Runtime Contract
+
+- The application has no Hono/Worker runtime and no `/api/config` endpoint.
+- Bootstrap config is validated and persisted in this origin's localStorage.
+- The user-supplied JWT signing credential is masked, never logged, and excluded from portable
+  config exports.
+- Start through the root `pnpm dev` command so SVC and Portless preserve worktree identity.
 
 ## Coding Guidelines
 

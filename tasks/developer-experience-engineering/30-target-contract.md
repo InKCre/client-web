@@ -6,11 +6,16 @@ Except for the frozen install already proved in Phase 0, this list describes the
 
 Phase 2 now delivers `doctor`, `format`, `lint`, stable and shadow type checks, workspace/package
 contract validation, `build`, and `check`. Unit/E2E participation and `ci` remain owned by Phases 4
-and 5; the current `check` command does not claim placeholder test coverage.
+and 5; the current `check` command does not claim placeholder test coverage. Phase 3 now delivers
+the static/browser-local runtime contract plus worktree-scoped `web` and `webext` capabilities;
+the repository-scoped database capability remains gated on its `core-py` owner.
 
 - `pnpm install --frozen-lockfile` - the supported dependency bootstrap.
 - `pnpm run doctor` - read-only diagnosis of versions, registry access, generated WXT state, Docker, SVC, and capability health; never prints credentials. The `run` keyword avoids pnpm's unrelated built-in `doctor`.
 - `pnpm dev` - ensures the default local profile and reports stable named URLs.
+- `pnpm dev:webext` - ensures the worktree-local WXT watcher and optional isolated browser.
+- `pnpm dev:status` - observes SVC capability health without starting or taking over anything.
+- `pnpm dev:stop` - stops only the current worktree's two Portless routes.
 - `pnpm check` - currently runs non-mutating format, lint, stable type-check, package-contract, and Phase 2 build checks; Phase 4 adds non-placeholder unit tests to this same required gate.
 - `pnpm test:e2e` - deterministic web and browser-extension E2E against a seeded non-production stack.
 - `pnpm build` - all static web, Module Federation, core library, and required browser-extension outputs; Phase 4 adds the Firefox artifact to the required gate.

@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import { access, readFile, realpath } from 'node:fs/promises'
+import { access, readFile, readdir, realpath } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url))
@@ -34,6 +34,47 @@ try {
   errors.push('unexpected CommonJS output: packages/core/dist/index.cjs')
 } catch {
   // ESM-only is the intended package contract.
+}
+
+async function builtFiles(directory) {
+  const entries = await readdir(directory, { withFileTypes: true })
+  const files = []
+
+  for (const entry of entries) {
+    const path = `${directory}/${entry.name}`
+    if (entry.isDirectory()) {
+      files.push(...(await builtFiles(path)))
+    } else {
+      files.push(path)
+    }
+  }
+
+  return files
+}
+
+const webDist = `${repoRoot}/apps/client-web/dist`
+try {
+  await access(`${webDist}/_worker.js`)
+  errors.push('unexpected Worker output: apps/client-web/dist/_worker.js')
+} catch {
+  // The web application is a static Pages artifact.
+}
+
+try {
+  const files = await builtFiles(webDist)
+  for (const file of files) {
+    const output = await readFile(file)
+    const content = output.toString('utf8')
+    for (const forbiddenTerm of ['/api/config', 'VITE_INKCRE_JWT_SECRET']) {
+      if (content.includes(forbiddenTerm)) {
+        errors.push(
+          `static web output contains forbidden runtime-config channel "${forbiddenTerm}": ${file.slice(repoRoot.length + 1)}`
+        )
+      }
+    }
+  }
+} catch (error) {
+  errors.push(`static web artifact inspection failed: ${error.message}`)
 }
 
 const packageJson = JSON.parse(await readFile(`${coreRoot}/package.json`, 'utf8'))
@@ -87,7 +128,9 @@ const result = {
 if (jsonOutput) {
   console.log(JSON.stringify(result, null, 2))
 } else if (result.ok) {
-  console.log('[OK] build outputs exist and @inkcre/core resolves through its ESM dist contract')
+  console.log(
+    '[OK] static web outputs exist and @inkcre/core resolves through its ESM dist contract'
+  )
 } else {
   for (const error of errors) {
     console.error(`[ERROR] ${error}`)

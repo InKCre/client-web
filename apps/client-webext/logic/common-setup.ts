@@ -1,6 +1,7 @@
 import type { App } from 'vue'
+import { initializeExtensionConfig } from './storage'
 
-export function setupApp(app: App) {
+export function configureApp(app: App): void {
   // Inject a globally available `$app` object in template
   app.config.globalProperties.$app = {
     context: '',
@@ -12,4 +13,9 @@ export function setupApp(app: App) {
   // Here you can install additional plugins for all contexts: popup, options page and content-script.
   // example: app.use(i18n)
   // example excluding content-script context: if (context !== 'content-script') app.use(i18n)
+}
+
+export async function setupApp(app: App): Promise<void> {
+  await initializeExtensionConfig()
+  configureApp(app)
 }

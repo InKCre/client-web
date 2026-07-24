@@ -172,3 +172,67 @@ failures.
 
 The `run` keyword is required for the repository doctor because `pnpm doctor` is an unrelated pnpm
 built-in command and does not dispatch package scripts.
+
+## Phase 3 Static and Worktree Runtime Results
+
+Validated on 2026-07-23 with official SVC 10.0.1, Portless 0.12.0, Node 22.22.3, and pnpm
+10.26.2.
+
+- Portless 0.15.4 requires Node 24 or newer. The repository therefore pins 0.12.0 exactly; that
+  release supports Node 20 or newer and matches the already-running host proxy.
+- Client-web no longer contains the Hono server, Wrangler manifest, Cloudflare environment files,
+  Worker types, Hono dependency, or Wrangler dependency. Vite continues to produce only the static
+  `dist` artifact.
+- `packages/core` no longer exposes HTTP or Vite-environment config adapters. Web initializes the
+  store from localStorage before mounting; webext initializes it from namespaced extension storage
+  before mounting each entrypoint.
+- The settings UI validates before save/import, masks the JWT credential, labels its local
+  provenance, and exports only PostgREST URL plus client ID. Existing local credential state is
+  retained during portable import.
+- The local runtime contract fails on reintroduced Worker files/dependencies, `/api/config`,
+  `VITE_INKCRE_JWT_SECRET`, public legacy adapter exports, fixed Chromium port 9222, missing
+  worktree probes, or an unpinned Portless dependency.
+- Initial SVC HTTP probes correctly rejected the shared Portless proxy's generic 404 as
+  `occupied-unhealthy`. The final worktree-scoped exec probes include `${dev.instance}` in their
+  endpoint identity and accept only an exact target/instance JSON response. Portless is invoked
+  without `--force`, so an existing route is never silently taken over.
+- Cold starts returned `started` for `web` and `webext`. A subsequent all-target status reported
+  `healthy`; Portless listed independent routes for instance `4ac9df364b54706e`.
+- The host has no discoverable Chrome installation. WXT now remains a healthy build/HMR capability
+  with automatic browser launch disabled by default; an explicit `INKCRE_CHROMIUM_BINARY` enables
+  launch with `.runtime/dev/<instance>/chromium-profile`.
+- Bounded cleanup terminated only the two routes for the current SVC instance. The pre-existing
+  `xiaoland` and `api.xiaoland` routes remained registered.
+- With core, web, webext, and Twitter build-output directories temporarily moved aside and restored
+  through a bounded trap, `pnpm type-check` still passed. The source/runtime check has no hidden
+  dependency on a prior build; public artifact inspection remains correctly owned by the
+  post-build package contract.
+- `core-py` HEAD and GitHub main both resolve to `f8780239d9a4bab7ac80fd992cab459950ab34e5`. Its
+  migrations are the schema authority, but its Compose stack has no PostgREST, portable
+  authenticator/anonymous roles, deterministic seed, or reset capability. The worktree also has
+  unrelated user-owned untracked state; no sibling-repository mutation was made.
+
+Observed client-owned Phase 3 command outcomes:
+
+| Command                 | Exit | Result                                                               |
+| ----------------------- | ---: | -------------------------------------------------------------------- |
+| `pnpm check:runtime`    |    0 | Static/browser-local and worktree target tripwires pass              |
+| `svc status --json`     |    0 | Schema-v2 config is valid; adoption and generated surfaces current   |
+| `pnpm dev`              |    0 | Worktree `web` capability cold-started and proved identity           |
+| `pnpm dev:webext`       |    0 | Worktree WXT watcher cold-started without requiring local Chrome     |
+| `svc dev status --json` |    0 | Both running targets were healthy                                    |
+| `pnpm run doctor`       |    0 | Client runtime healthy; SVC PATH and Docker remain explicit warnings |
+| `pnpm lint`             |    0 | Required lint lane is clean                                          |
+| `pnpm lint:type-aware`  |    0 | Shadow type-aware lint lane is clean                                 |
+| `pnpm type-check`       |    0 | Runtime contract and all five workspace type checks pass             |
+| `pnpm type-check:ts7`   |    0 | Native TypeScript 7 core shadow is clean                             |
+| `pnpm build`            |    0 | Static web, core, Chromium extension, and remote artifacts pass      |
+
+Complete Phase 3 readiness remains unclaimed: no Docker engine is installed on this host, and the
+authoritative PostgreSQL/PostgREST capability requires a separately authorized `core-py` change
+before client-web can consume and verify it.
+
+An independent read-only final review accepted the client-owned Step 4 diff after correcting an
+initial mix-up between source-level `check:runtime` and post-build `check:package`. Remaining
+non-blocking debt is the Unix-oriented `ps` ownership check in `dev:stop` and the absence of
+Phase-4-owned lifecycle-script regression tests.

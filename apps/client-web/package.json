@@ -4,12 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node ../../scripts/dev.mjs web",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
-    "type-check": "vue-tsc --build",
-    "deploy:cf": "npm run build -- --mode cloudflare && wrangler deploy"
+    "type-check": "vue-tsc --build"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.0",
@@ -34,7 +33,6 @@
     "graphology-communities-louvain": "^2.0.2",
     "graphology-dag": "^0.4.1",
     "graphology-shortest-path": "^2.1.0",
-    "hono": "^4.10.6",
     "jose": "^6.1.2",
     "ml-matrix": "^6.12.1",
     "pinia": "^3.0.3",
@@ -47,7 +45,6 @@
     "zod-config": "^1.4.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20251119.0",
     "@iconify-json/mdi": "^1.2.3",
     "@module-federation/enhanced": "^0.22.0",
     "@module-federation/vite": "^1.1.0",
@@ -69,7 +66,6 @@
     "vite": "^7.2.4",
     "vite-plugin-vue-devtools": "^8.0.0",
     "vitest": "^4.0.16",
-    "vue-tsc": "catalog:",
-    "wrangler": "^4.49.0"
+    "vue-tsc": "catalog:"
   }
 }

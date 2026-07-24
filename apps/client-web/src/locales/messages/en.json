@@ -24,10 +24,6 @@
   "settings": {
     "title": "Settings",
     "metaConfig": "Meta Configuration",
-    "configAdapter": "Config Source",
-    "configAdapterDescription": "Choose where to load/save configuration",
-    "adapterLocalStorage": "local storage",
-    "adapterHttp": "Remote Server",
     "coreUrl": "Core API URL",
     "pgrestUrl": "PostgreSQL REST URL",
     "extensionRegistryUrl": "Extension Registry URL",
@@ -43,7 +39,9 @@
     "exportConfig": "Export",
     "importConfig": "Import",
     "importError": "Failed to import configuration. Please check the file format.",
-    "adapterEnv": "Environment Variables",
+    "storageNotice": "This configuration belongs to this browser origin and is restored automatically.",
+    "jwtStoredLocally": "Stored in this browser only. It is never supplied by the build or hosting platform.",
+    "exportExcludesSecret": "Exports exclude the JWT secret. Importing an export preserves the secret already stored in this browser.",
     "language": "Language"
   },
   "source": {

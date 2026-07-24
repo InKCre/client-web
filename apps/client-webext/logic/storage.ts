@@ -2,12 +2,23 @@
  * Browser-extension-owned configuration and storage.
  */
 
-import { AIConfigSchema } from '@inkcre/core'
+import { AIConfigSchema, configStore, createWebextAdapter } from '@inkcre/core'
+import { storage } from '@wxt-dev/storage'
 import { useWebExtensionStorage } from '~/composables/useWebExtensionStorage'
 
 const defaultAIConfig = AIConfigSchema.parse({})
 export const DEFAULT_LLM_PROVIDERS = defaultAIConfig.llmProviders
 export const DEFAULT_EXPLAIN_INSTRUCTION = defaultAIConfig.explainInstruction
+
+const metaAdapter = createWebextAdapter({
+  getItem: (key) => storage.getItem(`local:${key}`),
+  setItem: (key, value) => storage.setItem(`local:${key}`, value),
+})
+
+export async function initializeExtensionConfig(): Promise<void> {
+  await configStore.initializeMeta(metaAdapter)
+  await configStore.loadClientConfig()
+}
 
 // Re-export the schema-owned types while keeping persistence extension-local.
 export type { ProviderType, LLMProviderConfig } from '@inkcre/core'

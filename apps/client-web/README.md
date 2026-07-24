@@ -2,18 +2,22 @@
 
 ## Deployment
 
-### Cloudflare Worker
-
-```bash
-pnpm run deploy:cf
-```
-
-执行该命令时：
-
-- Vite 将载入 `.env.cloudflare` 文件定义的环境变量
-- 编译和打包到 `dist/`
-- 部署到 Cloudflare Worker
+`pnpm build` produces a static Vite artifact under `dist/`. Cloudflare Pages preview and production
+automation is owned by the later CD slice; there is no application Worker or runtime config
+endpoint.
 
 ## Development
+
+Run from the monorepo root:
+
+```bash
+pnpm dev
+pnpm dev:status
+pnpm dev:stop
+```
+
+SVC and Portless allocate a stable URL for the current worktree. PostgREST URL, client ID, and the
+user-owned JWT signing secret are configured in the browser. Config export deliberately excludes
+the secret.
 
 本项目依赖 GitHub Packages 中的 `@inkcre/web-design`。按照仓库根 `README.md` 配置只读 package token，并始终从 monorepo 根目录执行 frozen install；不要用 `pnpm link` 替代可复现依赖。

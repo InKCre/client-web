@@ -4,5 +4,5 @@ import App from './TakingNote.vue'
 import '~/styles'
 
 const app = createApp(App)
-setupApp(app)
+await setupApp(app)
 app.mount('#app')

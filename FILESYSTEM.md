@@ -23,7 +23,7 @@
 ├── packages/
 │   ├── core/             # Shared logic package
 │   └── ext-dev-utils/    # Extension dev utilities
-├── scripts/              # Doctor and workspace/package contract validators
+├── scripts/              # Doctor, contracts, SVC/Portless launchers, and bounded cleanup
 ├── tasks/                # Active agent-owned task packets
 ├── .oxfmtrc.json         # Repository Oxfmt contract
 ├── .oxlintrc.json        # Repository Oxlint contract
@@ -32,6 +32,9 @@
 ├── FILESYSTEM.md         # This file
 └── svc.json              # Committed SVC adoption and dev-capability contract
 ```
+
+`.runtime/dev/<instance>/` is ignored worktree-local state. WXT may place an isolated Chromium
+profile there when an explicit browser binary is configured.
 
 ## packages/core/src/
 

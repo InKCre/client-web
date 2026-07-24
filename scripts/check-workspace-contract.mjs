@@ -91,8 +91,11 @@ const rootScripts = [
   'build',
   'check',
   'check:package',
+  'check:runtime',
   'check:workspace',
   'doctor',
+  'dev:status',
+  'dev:stop',
   'format',
   'format:check',
   'lint',
@@ -112,6 +115,7 @@ const expectedRootTools = {
   oxfmt: '0.60.0',
   oxlint: '1.75.0',
   'oxlint-tsgolint': '7.0.2001',
+  portless: '0.12.0',
   typescript: 'catalog:',
 }
 

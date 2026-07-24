@@ -18,6 +18,31 @@
     gap: sys-var('space', 'md');
   }
 
+  &__notice,
+  &__export-note {
+    margin: 0;
+    color: sys-var('color', 'text', 'muted');
+  }
+
+  &__secret,
+  &__locale {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var('space', 'xs');
+
+    input,
+    select {
+      padding: sys-var('space', 'sm');
+      color: sys-var('color', 'text', 'base');
+      background: sys-var('color', 'surface', 'base');
+      border: 1px solid sys-var('color', 'border', 'base');
+    }
+
+    small {
+      color: sys-var('color', 'text', 'muted');
+    }
+  }
+
   &__actions {
     display: flex;
     gap: sys-var('space', 'md');

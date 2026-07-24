@@ -1,17 +1,20 @@
 import { createApp } from 'vue'
-import { setupApp } from '@/logic/common-setup'
+import { configureApp } from '@/logic/common-setup'
+import { initializeExtensionConfig } from '@/logic/storage'
 import App from './ContentScripts.vue'
 
 export default defineContentScript({
   matches: ['<all_urls>'],
-  main(ctx) {
+  async main(ctx) {
+    await initializeExtensionConfig()
+
     const ui = createIntegratedUi(ctx, {
       position: 'inline',
       anchor: 'body',
       onMount: (container: HTMLElement) => {
         // Create the app and mount it to the UI container
         const app = createApp(App)
-        setupApp(app)
+        configureApp(app)
         app.mount(container)
         return app
       },

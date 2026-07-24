@@ -27,7 +27,7 @@
 - Dual API (`core/src/base`, `core/src/client`) - DBAPIClient (PostgREST) + CoreAPIClient (REST)
 - Module Federation (`core/src/extension`) - Dynamic plugin loading
 - Registry (`core/src/info-base/`) - Pluggable Storage & Resolver
-- Config Adapters (`core/src/config`) - Multi-source configuration
+- Config (`core/src/config`) - validated runtime-owned browser or extension storage
 
 ## Data Flow
 
@@ -54,7 +54,8 @@
 - Graph visualization (Vue Flow)
 - UI components by domain
 - Static Vite output
-- Currently deployed through a thin Cloudflare Worker wrapper; static cutover is owned by Phase 3
+- Browser-local bootstrap configuration and JWT signing
+- No application Worker or runtime config endpoint
 
 ### apps/client-webext
 
@@ -79,4 +80,16 @@
 - Styling: SCSS, UnoCSS
 - Graphs: Vue Flow, D3, Graphology
 - Extensions: Module Federation
-- Deploy: Cloudflare Workers today; static Cloudflare Pages is the accepted target
+- Deploy target: the static Vite artifact on Cloudflare Pages
+
+## Local Development Topology
+
+- Official SVC 10.0.1 resolves the current worktree identity and coordinates the declared `web`
+  and `webext` capabilities.
+- Portless maps each capability to an instance-specific HTTPS `.localhost` name while Vite and WXT
+  bind their assigned application ports to loopback.
+- Both servers expose an identity endpoint; an executable SVC probe treats Portless's generic 404
+  as absent and accepts only the exact target/instance payload.
+- WXT keeps optional Chromium state under `.runtime/dev/<instance>` and never claims a fixed
+  debugging port or shared browser profile.
+- PostgreSQL/PostgREST schema and lifecycle remain a `core-py`-owned capability boundary.

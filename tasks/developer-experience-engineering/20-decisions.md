@@ -4,7 +4,7 @@ These are proposed decisions, not implementation authorization.
 
 ## D1 - Static Hosting and Hono
 
-- Status: proposed, revised after user challenge.
+- Status: accepted; implemented locally in Step 4.
 - Recommendation:
   - treat client-web as a static SPA;
   - remove the Hono/Worker wrapper and `httpAdapter` unless a real runtime server responsibility is admitted;
@@ -17,7 +17,7 @@ These are proposed decisions, not implementation authorization.
 
 ## D2 - Client Configuration and JWT Credential
 
-- Status: proposed, requires confirmation of the local-first trust model.
+- Status: accepted; implemented for web and webext in Step 4.
 - Recommendation:
   - web owns one browser-local config authority, preferably localStorage;
   - webext owns its equivalent through extension storage;
@@ -47,7 +47,7 @@ These are proposed decisions, not implementation authorization.
 
 ## D4 - Local PostgREST Ownership
 
-- Status: proposed.
+- Status: recommended and ownership-confirmed; implementation awaits separate `core-py` authorization.
 - Recommendation:
   - `core-py` remains the only schema and migration authority;
   - client-web gets a pinned Docker PostgREST capability backed by that authority;
