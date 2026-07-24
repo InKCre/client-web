@@ -17,7 +17,9 @@ concurrency:
 jobs:
   cleanup:
     name: Delete exact Pages preview
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      vars.CLOUDFLARE_PAGES_PROJECT != ''
     runs-on: ubuntu-latest
     environment: preview
     steps:
