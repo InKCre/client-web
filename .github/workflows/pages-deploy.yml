@@ -96,6 +96,7 @@ jobs:
   deploy:
     name: Deploy secret-free static artifact
     needs: identity
+    if: vars.CLOUDFLARE_PAGES_PROJECT != ''
     runs-on: ubuntu-latest
     environment: ${{ needs.identity.outputs.environment }}
     steps:
