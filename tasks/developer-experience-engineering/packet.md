@@ -54,8 +54,9 @@
 - The client contract snapshot, generated relation types, `inkcre` PostgREST client, canonical
   production profile, JWT contract, local Compose lifecycle, doctor diagnostics, and browser
   E2E are implemented. Frozen install, `pnpm check`, and the high-severity dependency gate are
-  green locally; Docker-backed proof is intentionally delegated to GitHub-hosted CI because
-  this workstation has no Docker engine.
+  green locally. GitHub-hosted CI pulled the exact private GHCR digest with repository-scoped
+  Read access and proved the full PostgreSQL → init → core/PostgREST → built browser read/write/
+  deny → deterministic reset → bounded cleanup chain.
 - Pages delivery consumes only the exact successful `Client checks` artifact, revalidates
   current main or the exact eligible internal PR head before delivery, and gives every preview
   the collision-safe branch `preview/client-web/pr-N`.
