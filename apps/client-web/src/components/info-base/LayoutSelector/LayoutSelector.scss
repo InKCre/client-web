@@ -1,0 +1,16 @@
+.layout-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &__dropdown {
+    min-width: 140px;
+  }
+
+  &__hint {
+    @include apply-font(label-sm);
+    font-weight: 400;
+    color: sys-var(color, text, subtle);
+    padding: 0 sys-var(space, xs);
+  }
+}

@@ -1,0 +1,162 @@
+{
+  "common": {
+    "settings": "Settings",
+    "language": "Language",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "confirmAction": "Confirm Action",
+    "back": "Back",
+    "loading": "Loading...",
+    "loadMore": "Load More"
+  },
+  "header": {
+    "brand": "InKCre"
+  },
+  "sidePanel": {
+    "managing": "Managing",
+    "sources": "Sources",
+    "extensions": "Extensions",
+    "settings": "Settings",
+    "explore": "Explore",
+    "infoBase": "Info Base"
+  },
+  "settings": {
+    "title": "Settings",
+    "metaConfig": "Meta Configuration",
+    "coreUrl": "Core API URL",
+    "pgrestUrl": "PostgreSQL REST URL",
+    "extensionRegistryUrl": "Extension Registry URL",
+    "jwtSecret": "JWT Secret",
+    "clientId": "Client ID",
+    "languageLabel": "Language",
+    "languageDescription": "Select your preferred language",
+    "saveConfig": "Save",
+    "saveSuccess": "Configuration saved successfully",
+    "resetConfig": "Reset",
+    "resetConfirmTitle": "Reset Configuration",
+    "resetConfirmMessage": "Are you sure you want to reset all settings to default? This action cannot be undone.",
+    "exportConfig": "Export",
+    "importConfig": "Import",
+    "importError": "Failed to import configuration. Please check the file format.",
+    "storageNotice": "This configuration belongs to this browser origin and is restored automatically.",
+    "jwtStoredLocally": "Stored in this browser only. It is never supplied by the build or hosting platform.",
+    "exportExcludesSecret": "Exports exclude the JWT secret. Importing an export preserves the secret already stored in this browser.",
+    "legacyEndpoint": "This browser still addresses the retired staging PostgREST service.",
+    "useCanonicalProduction": "Use canonical production",
+    "language": "Language"
+  },
+  "source": {
+    "deleteConfirmTitle": "Delete Source",
+    "deleteConfirmMessage": "Are you sure you want to delete this source? This action cannot be undone.",
+    "detailTitle": "Source Details",
+    "type": "Type",
+    "nickname": "Nickname",
+    "id": "ID",
+    "collectAt": "Collect At",
+    "config": "Config",
+    "collectJobs": "Collect Jobs",
+    "newJob": "New Job",
+    "newJobTitle": "Create New Collect Job",
+    "newJobDescription": "Create a new collect job for this source. The job will be queued and executed as soon as possible.",
+    "createJob": "Create Job",
+    "editConfig": "Edit Config",
+    "delete": "Delete",
+    "noJobs": "No collect jobs found",
+    "nicknamePlaceholder": "Click to edit nickname",
+    "collectAtNotSet": "click to set",
+    "collectAtConfig": "Config source auto collecting",
+    "collectAtOff": "Auto collect off.",
+    "configPlaceholder": "Enter JSON config...",
+    "prevPage": "Previous",
+    "nextPage": "Next",
+    "pageInfo": "Page {page} of {total}",
+    "checkOpenJob": "Check open collect job"
+  },
+  "extension": {
+    "installNew": "Install Extension",
+    "installExtensionTitle": "Install New Extension",
+    "extensionId": "Extension ID",
+    "version": "Version",
+    "editConfig": "Edit Config",
+    "editConfigTitle": "Edit Extension Configuration",
+    "versionPlaceholder": "like 0.1.0 or optional for latest"
+  },
+  "collectJob": {
+    "title": "Collect Job Details",
+    "jobId": "Job ID",
+    "status": "Status",
+    "source": "Source",
+    "createdAt": "Created At",
+    "startedAt": "Started At",
+    "closedAt": "Closed At",
+    "state": "State",
+    "config": "Config",
+    "logs": "Logs",
+    "noLogs": "No logs available",
+    "stop": "Stop",
+    "retry": "Retry",
+    "notAvailable": "N/A",
+    "notFound": "Collect job not found",
+    "sourceNotFound": "Source not found"
+  },
+  "logs": {
+    "title": "Logs",
+    "empty": "No logs"
+  },
+  "client": {
+    "listTitle": "Clients",
+    "refresh": "Refresh",
+    "checkHealth": "Check Health",
+    "name": "Name",
+    "id": "ID",
+    "restUrl": "REST API URL",
+    "createdAt": "Created At",
+    "statusOnline": "Online",
+    "statusOffline": "Offline",
+    "statusUnknown": "Unknown",
+    "noClients": "No clients registered",
+    "editConfig": "Edit Config"
+  },
+  "infoBase": {
+    "blockDetails": {
+      "title": "Block Details",
+      "id": "ID",
+      "resolver": "Resolver",
+      "created": "Created At",
+      "updated": "Updated At",
+      "storage": "Storage",
+      "content": "Content",
+      "noContent": "No content"
+    },
+    "graph": {
+      "empty": "No blocks to display",
+      "community": {
+        "all": "All Communities",
+        "searchPlaceholder": "Search communities...",
+        "noResults": "No communities found",
+        "nodeCount": "{count} nodes",
+        "previous": "Previous Community",
+        "next": "Next Community"
+      },
+      "layout": {
+        "auto": "Auto Layout",
+        "force": "Force Directed",
+        "dagre": "Hierarchical",
+        "circular": "Circular",
+        "radial": "Radial",
+        "grid": "Grid",
+        "detected": "Detected"
+      },
+      "topology": {
+        "tree": "Tree",
+        "dag": "DAG",
+        "star": "Star",
+        "linear": "Linear",
+        "cyclic": "Cyclic",
+        "disconnected": "Disconnected",
+        "unknown": "Unknown"
+      }
+    }
+  }
+}

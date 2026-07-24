@@ -1,0 +1,142 @@
+{
+  "common": {
+    "settings": "设置",
+    "language": "语言",
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确认",
+    "confirmAction": "确认操作",
+    "back": "返回",
+    "loading": "加载中...",
+    "loadMore": "加载更多"
+  },
+  "header": {
+    "brand": "第三尺寸"
+  },
+  "sidePanel": {
+    "managing": "管理",
+    "sources": "数据源",
+    "extensions": "扩展",
+    "settings": "设置",
+    "explore": "探索",
+    "infoBase": "信息库"
+  },
+  "settings": {
+    "title": "设置",
+    "metaConfig": "运行配置",
+    "coreUrl": "核心 API 地址",
+    "pgrestUrl": "PostgreSQL REST 地址",
+    "extensionRegistryUrl": "扩展注册表地址",
+    "jwtSecret": "JWT 密钥",
+    "clientId": "客户端 ID",
+    "languageLabel": "语言",
+    "languageDescription": "选择您的首选语言",
+    "saveConfig": "保存",
+    "saveSuccess": "配置保存成功",
+    "resetConfig": "重置",
+    "resetConfirmTitle": "重置配置",
+    "resetConfirmMessage": "确定要重置所有设置为默认值吗？此操作无法撤销。",
+    "exportConfig": "导出",
+    "importConfig": "导入",
+    "importError": "导入配置失败，请检查文件格式。",
+    "storageNotice": "配置属于当前浏览器来源，并会在重新加载时自动恢复。",
+    "jwtStoredLocally": "仅存储在当前浏览器中，不由构建产物或托管平台提供。",
+    "exportExcludesSecret": "导出文件不包含 JWT 密钥；导入时会保留当前浏览器已存储的密钥。",
+    "legacyEndpoint": "当前浏览器仍在访问已退役的 staging PostgREST 服务。",
+    "useCanonicalProduction": "切换到 canonical production",
+    "language": "语言"
+  },
+  "source": {
+    "deleteConfirmTitle": "删除数据源",
+    "deleteConfirmMessage": "您确定要删除此数据源吗？此操作无法撤销。",
+    "detailTitle": "数据源详情",
+    "type": "类型",
+    "nickname": "昵称",
+    "id": "ID",
+    "collectAt": "采集时间",
+    "config": "配置",
+    "collectJobs": "采集任务",
+    "newJob": "新建任务",
+    "newJobTitle": "创建新采集任务",
+    "newJobDescription": "为此数据源创建新的采集任务。该任务将被加入队列并尽快执行。",
+    "createJob": "创建任务",
+    "editConfig": "编辑配置",
+    "delete": "删除",
+    "noJobs": "未找到采集任务",
+    "nicknamePlaceholder": "点击编辑昵称",
+    "collectAtNotSet": "点击设置",
+    "collectAtConfig": "配置数据源自动采集",
+    "collectAtOff": "自动采集已关闭。",
+    "configPlaceholder": "输入 JSON 配置...",
+    "prevPage": "上一页",
+    "nextPage": "下一页",
+    "pageInfo": "第 {page} 页，共 {total} 页",
+    "checkRunningJob": "查看运行中的采集任务"
+  },
+  "extension": {
+    "installNew": "安装扩展",
+    "installExtensionTitle": "安装新扩展",
+    "extensionId": "扩展 ID",
+    "version": "版本",
+    "editConfig": "编辑配置",
+    "editConfigTitle": "编辑扩展配置"
+  },
+  "collectJob": {
+    "title": "采集任务详情",
+    "jobId": "任务 ID",
+    "status": "状态",
+    "source": "数据源",
+    "createdAt": "创建时间",
+    "startedAt": "开始时间",
+    "closedAt": "结束时间",
+    "state": "状态信息",
+    "config": "配置",
+    "logs": "日志",
+    "noLogs": "暂无日志",
+    "stop": "停止",
+    "retry": "重试",
+    "notAvailable": "不可用",
+    "notFound": "未找到采集任务",
+    "sourceNotFound": "未找到数据源"
+  },
+  "logs": {
+    "title": "日志",
+    "empty": "暂无日志"
+  },
+  "client": {
+    "listTitle": "客户端",
+    "refresh": "刷新",
+    "checkHealth": "检查状态",
+    "name": "名称",
+    "id": "ID",
+    "restUrl": "REST API 地址",
+    "createdAt": "创建时间",
+    "statusOnline": "在线",
+    "statusOffline": "离线",
+    "statusUnknown": "未知",
+    "noClients": "暂无注册客户端"
+  },
+  "infoBase": {
+    "blockDetails": {
+      "title": "区块详情",
+      "id": "ID",
+      "resolver": "解析器",
+      "created": "创建时间",
+      "updated": "更新时间",
+      "storage": "存储",
+      "content": "内容",
+      "noContent": "暂无内容"
+    },
+    "graph": {
+      "empty": "没有找到块",
+      "community": {
+        "all": "所有社区",
+        "searchPlaceholder": "搜索社区...",
+        "noResults": "没有找到社区",
+        "nodeCount": "{count} 个节点",
+        "previous": "上一个社区",
+        "next": "下一个社区"
+      }
+    }
+  }
+}

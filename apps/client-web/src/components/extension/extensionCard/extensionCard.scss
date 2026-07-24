@@ -1,0 +1,50 @@
+.extension-card {
+  display: flex;
+  flex-direction: column;
+  gap: sys-var(space, md);
+  padding: sys-var(space, md);
+  border: 1px solid sys-var(color, border, base);
+  background-color: sys-var(color, surface, base);
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 280px;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__id {
+    @include apply-font(label-lg);
+  }
+
+  &__version {
+    @include apply-font(label-lg, mono);
+    color: sys-var(color, text, subtle);
+  }
+
+  &__nickname {
+    @include apply-font(body-lg);
+    color: sys-var(color, text, base);
+  }
+
+  &__actions {
+    display: flex;
+    gap: sys-var(space, sm);
+  }
+}
+
+.config-popup {
+  &__title {
+    @include apply-font(title-sm);
+    margin-bottom: sys-var(space, md);
+  }
+
+  &__actions {
+    display: flex;
+    gap: sys-var(space, sm);
+    justify-content: flex-end;
+    margin-top: sys-var(space, md);
+  }
+}

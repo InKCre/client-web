@@ -1,0 +1,30 @@
+.relation-edge {
+  stroke: sys-var(color, border, subtle);
+  stroke-width: 2px;
+
+  &:hover {
+    stroke: sys-var(color, border, primary);
+  }
+
+  &__label {
+    @include apply-font(label-md);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    cursor: default;
+
+    background: sys-var(color, surface, subtle);
+    color: sys-var(color, text, subtle);
+
+    border: 1px solid sys-var(color, border, subtle);
+    border-radius: sys-var(radius, xs);
+
+    padding: sys-var(space, xs) sys-var(space, sm);
+    max-width: 120px;
+    overflow: hidden;
+
+    &:hover {
+      background: sys-var(color, surface, base);
+      color: sys-var(color, text, base);
+    }
+  }
+}

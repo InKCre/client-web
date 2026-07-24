@@ -1,0 +1,45 @@
+.create-source {
+  display: flex;
+  flex-direction: column;
+  gap: sys-var(space, md);
+  padding: sys-var(space, md);
+  box-sizing: border-box;
+  min-width: 420px;
+  max-width: 580px;
+  width: 42vw;
+  flex-shrink: 0;
+
+  .title {
+    @include apply-font(title-sm);
+    color: sys-var(color, text, base);
+    margin: 0;
+    width: 100%;
+  }
+
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, sm);
+    padding: sys-var(space, sm);
+    padding-top: 0;
+    padding-bottom: 0;
+    box-sizing: border-box;
+    width: 100%;
+
+    &__collect-at {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+  }
+
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: sys-var(space, sm);
+    padding-top: 0;
+    box-sizing: border-box;
+    width: 100%;
+  }
+}

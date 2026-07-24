@@ -1,37 +1,30 @@
 ---
-applyTo: '**/*.scss'
+applyTo: '**/*.scss, **/*.css, **/*.vue'
 ---
 
-## 风格
+## Best Practices
 
-类似Dieter Rams，极简单色（Monochrome Minimalism）+ 复古未来主义（Retro-Futuristic）。
+- Use UnoCSS when style is simple (e.g. layout, animation)
 
-### 设计哲学
+### Use Design Tokens
 
-- 极简主义：移除一切非必要元素，优先保持信息和功能的纯净
-- 功能优先：先满足功能逻辑，再进行视觉修饰
-- 模块化布局：信息和功能以独立模块呈现，方便扩展和替换
-- 视觉一致性：颜色、字体、控件风格统一
-- 复古未来感：结合单色简洁与点阵、等宽元素，兼顾科技感与人文温度
-- 诚实信息：不伪装功能，不夸张描述
+Use design tokens by (auto injected, no import needed):
 
-### 配色方案
+- using function `sys-var($path...)` for simple tokens (e.g. `background-color: sys-var(color, surface, base)`).
+- using mixins `apply-font($size)`, `apply-icon($size, $centered: false)`, `apply-elevation($level)` for composite tokens.
 
-- 主色：黑，白，灰
-- 强调色：红色或青绿色用于关键提示与状态
+Read token list [here](docs/tokens.md)
 
-###
+Never use reference tokens directly.
 
-## 样式代码
+### Naming
 
-### 使用 BEM
+- Name selectors with BEM.
+  - Make use of SCSS features like nesting, `&` and etc.
+  - When there's more than 2 layer of elements, start a new block.
 
-其中，
+## Use icons
 
-- B是Block，一般是一个根节点、容器
-- E是Element，是Block中的子节点
-- M是Element的不同状态、类型，被称为Modifier
-
-### 使用 SCSS
-
-- 适度使用嵌套（配合BEM风格），一般而言不要超过三层，且嵌套应当反映HTML结构关系
+- You can use icon by adding class `i-mdi-<icon-name>`.
+- Use `div` if not in a paragraph or text context, use `span` with `inline-block` if in a text context.
+- Configure icon size and layout using `@include pu-icon($size, $centered: false)` mixin.

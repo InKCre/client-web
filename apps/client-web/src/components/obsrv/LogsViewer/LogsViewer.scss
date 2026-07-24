@@ -1,0 +1,38 @@
+.logs-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: sys-var(space, sm);
+  padding: sys-var(space, md);
+  border: 1px solid sys-var(color, border, muted);
+  box-sizing: border-box;
+  overflow-y: scroll;
+  width: 100%;
+
+  &__loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__empty {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    @include apply-font(body-md);
+    color: sys-var(color, text, subtle);
+  }
+
+  &__error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    padding: sys-var(space, md);
+    background: sys-var(color, danger, light);
+    border: 1px solid sys-var(color, danger, base);
+    border-radius: 4px;
+    @include apply-font(body-md);
+    color: sys-var(color, danger, base);
+  }
+}

@@ -7,8 +7,11 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependency directories
 node_modules
-.DS_Store
+package-lock.json
+
+# Build output
 dist
 dist-ssr
 coverage
@@ -20,6 +23,9 @@ coverage
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/*.example.jsonc
+!.vscode/*.example.json
+!.vscode/*.code-snippets
 .idea
 *.suo
 *.ntvs*
@@ -27,6 +33,27 @@ coverage
 *.sln
 *.sw?
 
+# others
+.DS_Store
 *.tsbuildinfo
-pnpm-lock.yaml
 .__mf__temp
+
+# env files
+.env 
+
+# Dev Browser
+.browser-profile/*
+.dev-browser-extension/*
+
+# Agent files
+.claude
+.github/skills/vercel-ai-sdk-integration
+
+# Temp files
+tmp
+temp
+.runtime/
+
+# svc:begin local-config sha256=1c799ae619bf818114d80699d514f5e62f20f4082367cf70b8d0bb2936fdf0d3
+svc.local.json
+# svc:end local-config

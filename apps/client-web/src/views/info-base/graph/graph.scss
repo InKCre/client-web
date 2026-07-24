@@ -1,0 +1,78 @@
+@import '@vue-flow/core/dist/style.css';
+@import '@vue-flow/core/dist/theme-default.css';
+@import '@vue-flow/minimap/dist/style.css';
+
+.graph-view {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  background: var(--ink-bg-primary, #ffffff);
+
+  &__flow {
+    width: 100%;
+    height: 100%;
+  }
+
+  &__empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: var(--ink-text-tertiary, #9ca3af);
+    font-size: 16px;
+    font-style: italic;
+  }
+
+  &__top-controls {
+    position: absolute;
+    left: sys-var(space, md);
+    top: sys-var(space, md);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: sys-var(space, sm);
+    z-index: 6; // Above controls (z-index: 5)
+  }
+
+  &__controls {
+    position: absolute;
+    left: sys-var(space, md);
+    bottom: sys-var(space, md);
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, xs);
+    z-index: 5;
+  }
+}
+
+// Vue Flow customizations
+.vue-flow {
+  .vue-flow__minimap {
+    background: var(--ink-bg-secondary, #f9fafb);
+    border: 1px solid var(--ink-border-primary, #e5e7eb);
+    border-radius: 8px;
+  }
+
+  .vue-flow__background {
+    background: var(--ink-bg-primary, #ffffff);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .graph-view {
+    &__top-controls {
+      left: 8px;
+      top: 8px;
+      right: 8px;
+      flex-direction: column;
+    }
+
+    &__controls {
+      left: 8px;
+      bottom: 8px;
+    }
+  }
+}

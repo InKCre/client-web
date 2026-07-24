@@ -1,0 +1,61 @@
+.client-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: sys-var(space, md);
+  border: 1px solid sys-var(color, border, base);
+  background-color: sys-var(color, surface, base);
+
+  &__item-info {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, xs);
+  }
+
+  &__item-name {
+    @include apply-font(body-lg);
+    color: sys-var(color, text, base);
+  }
+
+  &__item-id {
+    @include apply-font(label-sm, mono);
+    color: sys-var(color, text, subtle);
+  }
+
+  &__item-url {
+    @include apply-font(label-sm);
+    color: sys-var(color, text, subtle);
+  }
+
+  &__item-status {
+    @include apply-font(label-md);
+    padding: sys-var(space, xs) sys-var(space, sm);
+    border-radius: sys-var(radius, sm);
+
+    &--online {
+      background-color: sys-var(color, success, surface);
+      color: sys-var(color, success, base);
+    }
+
+    &--offline {
+      background-color: sys-var(color, danger, surface);
+      color: sys-var(color, danger, base);
+    }
+
+    &--unknown {
+      background-color: sys-var(color, surface, subtle);
+      color: sys-var(color, text, subtle);
+    }
+  }
+
+  &__edit {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, xs);
+  }
+
+  &__edit-actions {
+    display: flex;
+    gap: sys-var(space, sm);
+  }
+}

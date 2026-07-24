@@ -1,0 +1,52 @@
+// Hide default Vue Flow handles - they are only used for edge routing
+.block-node__handle {
+  opacity: 0;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+}
+
+.block-node {
+  background: sys-var(color, surface, base);
+  border: 1px solid sys-var(color, border, subtle);
+  border-radius: sys-var(radius, none);
+  padding: sys-var(space, md) sys-var(space, md);
+  min-width: 120px;
+  max-width: 200px;
+  max-height: 150px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  @include apply-elevation(sm);
+
+  &:hover {
+    border-color: sys-var(color, border, primary);
+    transform: translateY(-1px);
+    @include apply-elevation(md);
+  }
+
+  &--selected {
+    border-color: sys-var(color, border, primary);
+    @include apply-elevation(md);
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__resolver {
+    @include apply-font(label-sm, true);
+    text-transform: uppercase;
+    color: sys-var(color, text, subtle);
+    letter-spacing: 0.5px;
+  }
+
+  &__preview {
+    @include apply-font(label-lg);
+    color: sys-var(color, text, base);
+    word-break: break-word;
+    overflow: hidden;
+  }
+}

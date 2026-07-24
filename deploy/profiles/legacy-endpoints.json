@@ -1,0 +1,5 @@
+{
+  "format": 1,
+  "postgrest_hosts": ["inkcre-pgrst-dea0f3778176.herokuapp.com"],
+  "core_hosts": ["inkcre-core-staging-3cbb0175b92c.herokuapp.com"]
+}

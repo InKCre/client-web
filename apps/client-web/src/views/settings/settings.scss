@@ -1,0 +1,68 @@
+.settings-view {
+  flex: 1;
+  padding: sys-var('space', 'lg');
+  display: flex;
+  flex-direction: column;
+  gap: sys-var('space', 'lg');
+  overflow-y: auto;
+
+  &__title {
+    @include apply-font('title', 'lg');
+    margin: 0;
+    color: sys-var('color', 'text', 'base');
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var('space', 'md');
+  }
+
+  &__notice,
+  &__export-note {
+    margin: 0;
+    color: sys-var('color', 'text', 'muted');
+  }
+
+  &__migration {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: sys-var('space', 'md');
+    padding: sys-var('space', 'md');
+    color: sys-var('color', 'text', 'base');
+    background: sys-var('color', 'surface', 'base');
+    border: 1px solid sys-var('color', 'border', 'base');
+
+    p {
+      margin: 0;
+    }
+  }
+
+  &__secret,
+  &__locale {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var('space', 'xs');
+
+    input,
+    select {
+      padding: sys-var('space', 'sm');
+      color: sys-var('color', 'text', 'base');
+      background: sys-var('color', 'surface', 'base');
+      border: 1px solid sys-var('color', 'border', 'base');
+    }
+
+    small {
+      color: sys-var('color', 'text', 'muted');
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: sys-var('space', 'md');
+    flex-wrap: wrap;
+    padding-top: sys-var('space', 'md');
+    border-top: 1px solid sys-var('color', 'border', 'base');
+  }
+}

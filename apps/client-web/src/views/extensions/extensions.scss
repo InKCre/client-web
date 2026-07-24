@@ -1,0 +1,30 @@
+.extensions-view {
+  display: flex;
+  gap: sys-var(space, lg);
+  flex: 1;
+  align-self: stretch;
+  box-sizing: border-box;
+  padding: sys-var(space, lg) sys-var(space, xl);
+  background: sys-var(color, surface, base);
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, md);
+    flex: 1;
+    min-height: 120px;
+    min-width: 120px;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  &__header {
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: sys-var(space, md);
+    padding: sys-var(space, sm) 0;
+  }
+}

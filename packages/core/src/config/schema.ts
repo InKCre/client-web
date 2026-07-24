@@ -1,0 +1,58 @@
+import { z } from 'zod'
+import { canonicalMetaConfig } from '../database'
+
+/**
+ * LLM Provider types
+ */
+export type ProviderType = 'openai' | 'anthropic' | 'google' | 'openai-compatible'
+
+/**
+ * LLM Provider configuration schema
+ */
+export const LLMProviderConfigSchema = z.object({
+  id: z.string(), // Unique identifier for the provider
+  name: z.string(), // Display name (e.g., "My OpenAI")
+  type: z.enum(['openai', 'anthropic', 'google', 'openai-compatible']),
+  apiKey: z.string(),
+  baseURL: z.string().optional(), // Optional base URL for OpenAI-compatible providers
+  models: z.array(z.string()), // List of available models
+})
+
+export type LLMProviderConfig = z.infer<typeof LLMProviderConfigSchema>
+
+/**
+ * AI configuration schema (from client-webext)
+ */
+export const AIConfigSchema = z.object({
+  llmProviders: z.array(LLMProviderConfigSchema).default([]),
+  defaultModel: z.string().default('openai-default:gpt-4o-mini'),
+  explainInstruction: z
+    .string()
+    .default('Explain user given text based on page content in a concise, clear, simple way.'),
+})
+
+/**
+ * Meta configuration schema (bootstrap/runtime)
+ * Contains URLs and secrets needed to fetch and initialize app config
+ */
+export const MetaConfigSchema = z.object({
+  INKCRE_PGREST_URL: z.url().default(canonicalMetaConfig.INKCRE_PGREST_URL),
+  INKCRE_JWT_SECRET: z.string().default(''),
+  INKCRE_CLIENT_ID: z.uuid().default(canonicalMetaConfig.INKCRE_CLIENT_ID),
+})
+
+export type MetaConfig = z.infer<typeof MetaConfigSchema>
+
+/**
+ * App configuration schema (runtime)
+ * Contains extension registry URL, AI settings, and runtime app configuration
+ */
+export const ClientConfigSchema = z.object({
+  extension_registry_url: z.url().default(''),
+  ai: AIConfigSchema.default(() => AIConfigSchema.parse({})),
+})
+
+/**
+ * Config type
+ */
+export type ClientConfig = z.infer<typeof ClientConfigSchema>

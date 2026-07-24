@@ -1,38 +1,50 @@
 {
-  "name": "inkcre-web",
-  "version": "0.0.0",
+  "name": "@inkcre/web-monorepo",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": {
-    "node": "^20.19.0 || >=22.12.0"
-  },
   "scripts": {
-    "dev": "vite",
-    "build": "run-p type-check \"build-only {@}\" --",
-    "preview": "vite preview",
-    "build-only": "vite build",
-    "type-check": "vue-tsc --build",
-    "format": "prettier --write src/"
-  },
-  "dependencies": {
-    "@module-federation/vite": "^1.7.1",
-    "@vueuse/core": "^13.7.0",
-    "konva": "^9.3.22",
-    "pinia": "^3.0.3",
-    "vue": "^3.5.18",
-    "vue-konva": "^3.2.2",
-    "vue-router": "^4.5.1"
+    "doctor": "node scripts/doctor.mjs",
+    "dev": "node scripts/dev.mjs web",
+    "dev:webext": "node scripts/dev.mjs webext",
+    "dev:status": "svc dev status --repo . --json",
+    "dev:stop": "node scripts/dev-stop.mjs",
+    "db:ready": "node scripts/database-runtime.mjs ready",
+    "db:reset": "node scripts/database-runtime.mjs reset --yes",
+    "contract:sync": "node scripts/sync-database-contract.mjs",
+    "dev:all": "concurrently \"pnpm dev\" \"pnpm -r --filter './extensions/*' dev\"",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint .",
+    "lint:type-aware": "oxlint --type-aware .",
+    "audit:dependencies": "pnpm audit --audit-level high",
+    "type-check": "pnpm check:workspace && pnpm check:runtime && pnpm check:database && pnpm -r run type-check",
+    "type-check:ts7": "node node_modules/@typescript/native/bin/tsc --project packages/core/tsconfig.json --noEmit",
+    "check:runtime": "node scripts/check-local-runtime-contract.mjs",
+    "check:database": "node scripts/check-database-contract.mjs",
+    "check:workspace": "node scripts/check-workspace-contract.mjs",
+    "check:package": "node scripts/check-package-contract.mjs",
+    "test:unit": "vitest run packages/core/src/**/*.test.ts",
+    "test:e2e": "node scripts/test-e2e.mjs",
+    "build": "pnpm check:workspace && pnpm -r run build && pnpm check:package",
+    "check": "pnpm format:check && pnpm lint && pnpm type-check && pnpm test:unit && pnpm build",
+    "ci": "pnpm check && pnpm test:e2e"
   },
   "devDependencies": {
-    "@tsconfig/node22": "^22.0.2",
-    "@types/node": "^22.16.5",
-    "@vitejs/plugin-vue": "^6.0.1",
-    "@vue/tsconfig": "^0.7.0",
-    "npm-run-all2": "^8.0.4",
-    "sass-embedded": "^1.90.0",
-    "typescript": "~5.8.0",
-    "vite": "^7.0.6",
-    "vite-plugin-vue-devtools": "^8.0.0",
-    "vue-tsc": "^3.0.4"
-  }
+    "@playwright/test": "1.61.1",
+    "@typescript/native": "npm:typescript@7.0.2",
+    "concurrently": "^9.0.0",
+    "jose": "6.1.2",
+    "oxfmt": "0.60.0",
+    "oxlint": "1.75.0",
+    "oxlint-tsgolint": "7.0.2001",
+    "portless": "0.12.0",
+    "typescript": "catalog:",
+    "vitest": "4.1.10"
+  },
+  "engines": {
+    "node": "22.22.3",
+    "pnpm": "10.26.2"
+  },
+  "packageManager": "pnpm@10.26.2"
 }

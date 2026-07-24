@@ -1,0 +1,150 @@
+.source-card {
+  display: flex;
+  flex-direction: column;
+  gap: sys-var(space, md);
+  padding: sys-var(space, md);
+  border: 1px solid sys-var(color, border, base);
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 280px;
+  max-width: 380px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
+
+  &:hover {
+    border-color: sys-var(color, border, subtle);
+  }
+
+  &__metadata {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  &__left {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  &__type {
+    @include apply-font(label-lg);
+    color: sys-var(color, text, subtle);
+    width: 100%;
+  }
+
+  &__nickname {
+    @include apply-font(body-lg);
+    color: sys-var(color, text, base);
+    width: 100%;
+  }
+
+  &__right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  &__id-label,
+  &__id {
+    @include apply-font(label-lg, mono);
+    color: sys-var(color, text, subtle);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  &__collect-at {
+    white-space: nowrap;
+  }
+
+  &__config {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, sm);
+    padding: sys-var(space, sm);
+    border: 1px solid sys-var(color, border, muted);
+    box-sizing: border-box;
+    height: 96px;
+    overflow: auto;
+    width: 100%;
+  }
+
+  &__config-text {
+    @include apply-font(label-lg, mono);
+    color: sys-var(color, text, subtle);
+    margin: 0;
+    white-space: pre-wrap;
+    width: 100%;
+  }
+
+  &__open-job {
+    @include apply-font(label-md);
+    color: sys-var(color, text, base);
+    text-decoration: underline;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  &__operations {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  &__operations-left {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  &__operations-right {
+    display: flex;
+    gap: sys-var(space, sm);
+    align-items: center;
+  }
+}
+
+.collect-at {
+  &__title {
+    @include apply-font(title-sm);
+    color: sys-var(color, text, base);
+    margin-bottom: sys-var(space, md);
+  }
+
+  &__actions {
+    display: flex;
+    gap: sys-var(space, sm);
+    justify-content: flex-end;
+    align-self: stretch;
+    margin-top: sys-var(space, md);
+  }
+}
+
+.config-editor {
+  display: flex;
+  flex-direction: column;
+  gap: sys-var(space, md);
+  padding: sys-var(space, lg);
+  background: sys-var(color, surface, base);
+  border-radius: sys-var(radius, md);
+  box-shadow: sys-var(shadow, lg);
+  min-width: 400px;
+  max-width: 600px;
+
+  &__title {
+    @include apply-font(title-sm);
+    color: sys-var(color, text, base);
+    margin: 0;
+  }
+
+  &__actions {
+    display: flex;
+    gap: sys-var(space, sm);
+    justify-content: flex-end;
+    align-self: stretch;
+  }
+}

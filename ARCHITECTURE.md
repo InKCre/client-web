@@ -1,0 +1,95 @@
+# Architecture Overview
+
+## System Layers
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    Applications                      │
+│  ┌──────────────────┐  ┌─────────────────────────┐  │
+│  │  client-web      │  │  client-webext          │  │
+│  │  (Vue3 + Vite)   │  │  (WXT browser ext)      │  │
+│  └──────────────────┘  └─────────────────────────┘  │
+├─────────────────────────────────────────────────────┤
+│                   @inkcre/core                       │
+│  Models, APIs, Storage, Resolvers, Extensions       │
+├─────────────────────────────────────────────────────┤
+│                    Extensions                        │
+│  Module Federation remotes (e.g., twitter)          │
+├─────────────────────────────────────────────────────┤
+│                    Backend                           │
+│  PostgreSQL (PostgREST) + core-py API               │
+└─────────────────────────────────────────────────────┘
+```
+
+## Core Patterns
+
+- BusinessClass (`core/src/`) - Zod schema + TS class + static API
+- Dual API (`core/src/base`, `core/src/client`) - DBAPIClient (PostgREST) + CoreAPIClient (REST)
+- Module Federation (`core/src/extension`) - Dynamic plugin loading
+- Registry (`core/src/info-base/`) - Pluggable Storage & Resolver
+- Config (`core/src/config`) - validated runtime-owned browser or extension storage
+
+## Data Flow
+
+1. Read: Component → BusinessClass.list() → DBAPIClient → PostgREST → DB
+2. Write: Component → BusinessClass → CoreAPIClient → core-py → DB
+3. Extension: Activate → Load remote → Register handlers → Features ready
+4. Content: Block → Resolver → Storage.fetch() → Render
+
+## Package Responsibilities
+
+### @inkcre/core
+
+- Domain models (Block, Relation, Source, Client, Extension)
+- API clients (DBAPIClient, CoreAPIClient)
+- Extension lifecycle & Module Federation
+- Storage & Resolver abstractions
+- Configuration management
+- Authentication store
+- ESM-only tsdown output with declarations and declaration maps
+
+### apps/client-web
+
+- Vue3 SPA with routing
+- Graph visualization (Vue Flow)
+- UI components by domain
+- Static Vite output
+- Browser-local bootstrap configuration and JWT signing
+- No application Worker or runtime config endpoint
+
+### apps/client-webext
+
+- Browser extension (Chrome/Firefox)
+- Content scripts & sidepanels
+- AI-powered features (explain, notes)
+- WXT framework
+
+### extensions/*
+
+- Module Federation remotes
+- Custom resolvers & storages
+- Extend business logic
+
+## Tech Stack
+
+- Framework: Vue 3 (Composition API)
+- Build: Vite for applications/remotes, WXT for browser extensions, tsdown for `@inkcre/core`
+- Quality: Oxfmt and Oxlint at the repository root
+- Types: TypeScript 5.9 required, native TypeScript 7 shadow, Vue TSC, Zod
+- State: Pinia
+- Styling: SCSS, UnoCSS
+- Graphs: Vue Flow, D3, Graphology
+- Extensions: Module Federation
+- Deploy target: the static Vite artifact on Cloudflare Pages
+
+## Local Development Topology
+
+- Official SVC 10.0.1 resolves the current worktree identity and coordinates the declared `web`
+  and `webext` capabilities.
+- Portless maps each capability to an instance-specific HTTPS `.localhost` name while Vite and WXT
+  bind their assigned application ports to loopback.
+- Both servers expose an identity endpoint; an executable SVC probe treats Portless's generic 404
+  as absent and accepts only the exact target/instance payload.
+- WXT keeps optional Chromium state under `.runtime/dev/<instance>` and never claims a fixed
+  debugging port or shared browser profile.
+- PostgreSQL/PostgREST schema and lifecycle remain a `core-py`-owned capability boundary.

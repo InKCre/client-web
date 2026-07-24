@@ -1,0 +1,76 @@
+# Candidate Decisions
+
+These are proposed decisions, not implementation authorization.
+
+## D1 - Static Hosting and Hono
+
+- Status: accepted; implemented locally in Step 4.
+- Recommendation:
+  - treat client-web as a static SPA;
+  - remove the Hono/Worker wrapper and `httpAdapter` unless a real runtime server responsibility is admitted;
+  - deploy the static artifact to Cloudflare Pages.
+- Rationale:
+  - Hono currently adds only runtime config indirection and redundant asset fallback;
+  - browser-local configuration removes the need for `/api/config`;
+  - Pages directly supplies production and per-PR static deployments.
+- Revisit trigger: a server-only binding, authenticated BFF, dynamic response, or other durable runtime responsibility is intentionally added.
+
+## D2 - Client Configuration and JWT Credential
+
+- Status: accepted; implemented for web and webext in Step 4.
+- Recommendation:
+  - web owns one browser-local config authority, preferably localStorage;
+  - webext owns its equivalent through extension storage;
+  - persist and restore the selected authority, or hard-cut adapter selection entirely if only one remains;
+  - permit the user to provide their own PostgREST JWT secret;
+  - never configure that user credential as a shared Cloudflare Pages, Worker, or `VITE_*` secret.
+- Credential handling requirements:
+  - mask it in UI;
+  - never log it;
+  - make config export explicitly sensitive or exclude the credential by default;
+  - keep generated JWTs memory-only;
+  - document that browser-local storage trusts the origin, installed extensions, and local browser profile.
+- Rejected default: server-issued tokens or a Worker BFF. Those change the current local-first authority model and require separate product intent.
+
+## D3 - Toolchain
+
+- Status: accepted and implemented locally in Phase 2.
+- Recommendation:
+  - Oxfmt is the single formatter;
+  - Oxlint is the primary linter;
+  - a second linter survives only for a named Vue template rule Oxlint cannot cover;
+  - tsdown replaces tsup only for real library output, initially `@inkcre/core`;
+  - Vite remains the web/remote builder and WXT remains the browser-extension builder;
+  - one ecosystem-supported stable TypeScript plus `vue-tsc` remains required;
+  - TypeScript 7 native runs only as a non-blocking shadow check.
+- Revisit trigger: measured missing coverage or a production-ready TS7/Vue toolchain.
+
+## D4 - Local PostgREST Ownership
+
+- Status: recommended and ownership-confirmed; implementation awaits separate `core-py` authorization.
+- Recommendation:
+  - `core-py` remains the only schema and migration authority;
+  - client-web gets a pinned Docker PostgREST capability backed by that authority;
+  - implement it by extending the core-py dev stack or by consuming a versioned shared dev-runtime artifact;
+  - do not copy SQL migrations into client-web.
+- Revisit trigger: schema authority deliberately moves to another unit.
+
+## D5 - SVC and Shared Product Docs
+
+- Status: proposed.
+- Recommendation:
+  - adopt official SVC `10.0.1` in client-web and the Hub;
+  - query the packaged SVC corpus rather than copying v9 framework docs;
+  - keep `InKCre/docs` as the authoritative PRD/Product TDD Hub;
+  - mount it read-only under client-web only after Hub v10/main is settled;
+  - mechanically verify shared-reference freshness.
+
+## D6 - Branch and Release Policy
+
+- Status: proposed.
+- Recommendation:
+  - establish checks and preview deployment on the current integration history first;
+  - verify and fast-forward `main` from `develop`;
+  - protect `main` and use it as the sole integration and production branch;
+  - retire the long-lived branch split.
+- Revisit trigger: a documented release-train requirement justifies a distinct integration branch.
