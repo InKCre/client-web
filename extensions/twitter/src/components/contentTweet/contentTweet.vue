@@ -73,4 +73,4 @@ const isAttachmentFailed = (index: number) => {
   </div>
 </template>
 
-<style lang="scss" scoped src="./ContentTweet.scss" />
+<style lang="scss" scoped src="./contentTweet.scss" />
