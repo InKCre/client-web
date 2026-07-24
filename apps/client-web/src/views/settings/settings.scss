@@ -24,6 +24,21 @@
     color: sys-var('color', 'text', 'muted');
   }
 
+  &__migration {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: sys-var('space', 'md');
+    padding: sys-var('space', 'md');
+    color: sys-var('color', 'text', 'base');
+    background: sys-var('color', 'surface', 'base');
+    border: 1px solid sys-var('color', 'border', 'base');
+
+    p {
+      margin: 0;
+    }
+  }
+
   &__secret,
   &__locale {
     display: flex;

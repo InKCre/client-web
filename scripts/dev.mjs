@@ -61,6 +61,17 @@ async function runDeclaredTarget() {
 
 const exitCode = process.env.SVC_DEV_TARGET
   ? await runDeclaredTarget()
-  : await run('svc', ['dev', 'ensure', target, '--repo', repoRoot, '--json'])
+  : await (async () => {
+      const databaseExit = await run('svc', [
+        'dev',
+        'ensure',
+        'database',
+        '--repo',
+        repoRoot,
+        '--json',
+      ])
+      if (databaseExit !== 0) return databaseExit
+      return run('svc', ['dev', 'ensure', target, '--repo', repoRoot, '--json'])
+    })()
 
 process.exitCode = exitCode

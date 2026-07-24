@@ -2,7 +2,13 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { InkForm, InkInput, InkButton, InkDoubleCheck } from '@inkcre/web-design'
-import { configStore, MetaConfigSchema, type MetaConfig } from '@inkcre/core'
+import {
+  canonicalProductionProfile,
+  classifyPostgrestEndpoint,
+  configStore,
+  MetaConfigSchema,
+  type MetaConfig,
+} from '@inkcre/core'
 import { setLocale, SUPPORT_LOCALES, LOCALE_NAMES, type SupportLocale } from '@/locales'
 import i18n from '@/locales'
 
@@ -27,6 +33,13 @@ const currentLocale = computed({
     setLocale(value as SupportLocale)
   },
 })
+
+const endpointStatus = computed(() => classifyPostgrestEndpoint(metaFormConfig.INKCRE_PGREST_URL))
+
+const migrateToCanonicalProduction = () => {
+  metaFormConfig.INKCRE_PGREST_URL = canonicalProductionProfile.postgrest.url
+  metaFormConfig.INKCRE_CLIENT_ID = canonicalProductionProfile.core.client_id
+}
 
 // Save config
 const onSave = async () => {
@@ -121,6 +134,14 @@ const onFileSelected = async (event: Event) => {
         :label="t('settings.pgrestUrl')"
         placeholder="https://..."
       />
+      <aside v-if="endpointStatus.status === 'legacy'" class="settings-view__migration">
+        <p>{{ t('settings.legacyEndpoint') }}</p>
+        <InkButton
+          :text="t('settings.useCanonicalProduction')"
+          theme="primary"
+          @click="migrateToCanonicalProduction"
+        />
+      </aside>
 
       <label class="settings-view__secret">
         <span>{{ t('settings.jwtSecret') }}</span>

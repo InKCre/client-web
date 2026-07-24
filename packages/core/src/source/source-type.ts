@@ -10,13 +10,16 @@ export class SourceType extends Z.class({
   description: z.string(),
   config_schema: z.looseObject({}).default(() => ({})),
 }) {
-  static dbApi: DBAPIClient = new DBAPIClient('sources_types', SourceType)
+  static dbApi: DBAPIClient<'sources_types', SourceType> = new DBAPIClient<
+    'sources_types',
+    SourceType
+  >('sources_types', SourceType)
 
   static async get(id: SourceTypeRef): Promise<SourceType> {
-    return new SourceType((await this.dbApi.from().select().eq('id', id).single()).data!)
+    return SourceType.parse((await this.dbApi.from().select().eq('id', id).single()).data)
   }
 
   static async getAll(): Promise<SourceType[]> {
-    return (await this.dbApi.from().select()).data!.map((d) => new SourceType(d))
+    return ((await this.dbApi.from().select()).data ?? []).map((item) => SourceType.parse(item))
   }
 }

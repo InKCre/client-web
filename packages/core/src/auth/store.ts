@@ -1,6 +1,7 @@
 import { ref, watch } from 'vue'
 import { SignJWT } from 'jose'
 import { configStore } from '../config'
+import { canonicalProductionProfile } from '../database'
 
 /**
  * Create an auth store instance.
@@ -16,14 +17,15 @@ export function createAuthStore(configStoreIns = configStore) {
 
     try {
       const secret = new TextEncoder().encode(configStoreIns.metaConfig.INKCRE_JWT_SECRET)
+      const issuedAt = Math.floor(Date.now() / 1000)
       const signedToken = await new SignJWT({
-        role: 'authenticated',
+        role: canonicalProductionProfile.jwt.role,
       })
-        .setProtectedHeader({ alg: 'HS256' })
-        .setIssuedAt()
-        .setExpirationTime('24h')
-        .setIssuer('inkcre-client')
-        .setAudience('inkcre-client')
+        .setProtectedHeader({ alg: canonicalProductionProfile.jwt.algorithm })
+        .setIssuedAt(issuedAt)
+        .setExpirationTime(issuedAt + canonicalProductionProfile.jwt.maximum_lifetime_seconds)
+        .setIssuer(canonicalProductionProfile.jwt.issuer)
+        .setAudience(canonicalProductionProfile.jwt.audience)
         .sign(secret)
 
       token.value = signedToken

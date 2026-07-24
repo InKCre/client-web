@@ -1,0 +1,115 @@
+name: Client checks
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: client-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-review:
+    name: Dependency security review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Reject new high-severity vulnerabilities
+        uses: actions/dependency-review-action@v5.0.0
+        with:
+          fail-on-severity: high
+          fail-on-scopes: development, runtime
+
+  workspace:
+    name: Workspace contract
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install the pinned pnpm release
+        uses: pnpm/action-setup@8912a9102ac27614460f54aedde9e1e7f9aec20d # v6.0.5
+        with:
+          version: 10.26.2
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+          registry-url: https://npm.pkg.github.com
+          scope: '@inkcre'
+
+      - name: Install the frozen workspace
+        run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify static, typed, and package contracts
+        run: pnpm check
+
+      - name: Reject high-severity dependency vulnerabilities
+        run: pnpm audit:dependencies
+
+      - name: Upload the exact static artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-web-dist
+          path: apps/client-web/dist
+          if-no-files-found: error
+          retention-days: 7
+
+  peer-database:
+    name: Peer database browser E2E
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install the pinned pnpm release
+        uses: pnpm/action-setup@8912a9102ac27614460f54aedde9e1e7f9aec20d # v6.0.5
+        with:
+          version: 10.26.2
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+          registry-url: https://npm.pkg.github.com
+          scope: '@inkcre'
+
+      - name: Install the frozen workspace
+        run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install the exact browser engine
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Authenticate to the pinned core runtime
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify the pinned core image contract
+        run: node scripts/verify-core-image-contract.mjs
+
+      - name: Run the isolated browser/database chain
+        run: pnpm test:e2e

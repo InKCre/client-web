@@ -26,15 +26,19 @@ export class Client extends Z.class({
   labels: z.array(z.string()).default([]),
   rest_api_url: z.url().nullable().default(null),
   config: z.looseObject({}).default({}),
+  config_schema: z.looseObject({}).default({}),
   created_at: z.coerce.date().default(() => new Date()),
 }) {
-  static dbApi: DBAPIClient = new DBAPIClient<Client>('clients', Client)
+  static dbApi: DBAPIClient<'clients', Client> = new DBAPIClient<'clients', Client>(
+    'clients',
+    Client
+  )
 
   /**
    * Get a single client by ID
    */
   static async get(id: ClientRef): Promise<Client> {
-    return new Client((await Client.dbApi.from().select().eq('id', id).single()).data!)
+    return Client.parse((await Client.dbApi.from().select().eq('id', id).single()).data)
   }
 
   /**
@@ -42,7 +46,7 @@ export class Client extends Z.class({
    */
   static async list(): Promise<Client[]> {
     const results = await Client.dbApi.from().select().order('name', { ascending: true })
-    return results.data!.map((item) => new Client(item))
+    return (results.data ?? []).map((item) => Client.parse(item))
   }
 
   /**
@@ -259,7 +263,7 @@ export class Client extends Z.class({
    * Save only the config field to the database
    */
   async saveConfig(): Promise<void> {
-    await Client.dbApi.from().upsert({ id: this.id, config: this.config }).select().single()
+    await Client.dbApi.upsert({ id: this.id, config: this.config }).select().single()
   }
 }
 
@@ -270,6 +274,6 @@ export class CreateClientForm extends Z.class({
   ...Client.shape,
 }) {
   async upsert(): Promise<Client> {
-    return new Client((await Client.dbApi.from().upsert(this).select().single()).data!)
+    return Client.parse((await Client.dbApi.upsert(this).select().single()).data)
   }
 }

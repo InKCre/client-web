@@ -107,7 +107,10 @@ export class Extension extends Z.class({
   // Static API Clients
   // ============================================================================
 
-  static dbApi: DBAPIClient = new DBAPIClient<Extension>('extensions', Extension)
+  static dbApi: DBAPIClient<'extensions', Extension> = new DBAPIClient<'extensions', Extension>(
+    'extensions',
+    Extension
+  )
 
   // ============================================================================
   // Static Registry
@@ -153,12 +156,12 @@ export class Extension extends Z.class({
   // ============================================================================
 
   static async get(id: ExtensionRef): Promise<Extension> {
-    return new Extension((await Extension.dbApi.from().select().eq('id', id).single()).data!)
+    return Extension.parse((await Extension.dbApi.from().select().eq('id', id).single()).data)
   }
 
   static async list(): Promise<Extension[]> {
     const query = Extension.dbApi.from().select().order('id', { ascending: true })
-    return (await query).data!.map((item) => new Extension(item))
+    return ((await query).data ?? []).map((item) => Extension.parse(item))
   }
 
   // ============================================================================
@@ -395,7 +398,7 @@ export class Extension extends Z.class({
       // Update local database after successful enable
       if (this.runtimeState.value.status === ExtensionState.ACTIVE) {
         this.enabled.push(clientId)
-        await Extension.dbApi.from().update({ enabled: this.enabled }).eq('id', this.id)
+        await Extension.dbApi.update({ enabled: this.enabled }).eq('id', this.id)
       } else {
         throw new Error(`Failed to enable extension ${this.id} for local client`)
       }
@@ -431,7 +434,7 @@ export class Extension extends Z.class({
         if (index !== -1) {
           this.enabled.splice(index, 1)
         }
-        await Extension.dbApi.from().update({ enabled: this.enabled }).eq('id', this.id)
+        await Extension.dbApi.update({ enabled: this.enabled }).eq('id', this.id)
       } else {
         throw new Error(`Failed to disable extension ${this.id} for local client`)
       }
@@ -574,8 +577,8 @@ export class InstallExtensionForm extends Z.class({
   async install(): Promise<Extension> {
     const existing = await Extension.dbApi.from().select().eq('id', this.id).single()
     if (!existing.data) {
-      return new Extension((await Extension.dbApi.from().insert(this).select().single()).data!)
+      return Extension.parse((await Extension.dbApi.insert(this).select().single()).data)
     }
-    return new Extension(existing.data)
+    return Extension.parse(existing.data)
   }
 }

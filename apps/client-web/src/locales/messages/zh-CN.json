@@ -42,6 +42,8 @@
     "storageNotice": "配置属于当前浏览器来源，并会在重新加载时自动恢复。",
     "jwtStoredLocally": "仅存储在当前浏览器中，不由构建产物或托管平台提供。",
     "exportExcludesSecret": "导出文件不包含 JWT 密钥；导入时会保留当前浏览器已存储的密钥。",
+    "legacyEndpoint": "当前浏览器仍在访问已退役的 staging PostgREST 服务。",
+    "useCanonicalProduction": "切换到 canonical production",
     "language": "语言"
   },
   "source": {

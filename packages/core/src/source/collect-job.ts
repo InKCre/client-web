@@ -31,10 +31,13 @@ export class SourceCollectJob extends Z.class({
   state: z.looseObject({}).default(() => ({})),
   config: z.looseObject({}).default(() => ({})),
 }) {
-  static dbApi: DBAPIClient = new DBAPIClient('sources_collect_jobs', SourceCollectJob)
+  static dbApi: DBAPIClient<'sources_collect_jobs', SourceCollectJob> = new DBAPIClient<
+    'sources_collect_jobs',
+    SourceCollectJob
+  >('sources_collect_jobs', SourceCollectJob)
 
   static async get(id: SourceCollectJobRef): Promise<SourceCollectJob> {
-    return new SourceCollectJob((await this.dbApi.from().select().eq('id', id).single()).data!)
+    return SourceCollectJob.parse((await this.dbApi.from().select().eq('id', id).single()).data)
   }
 
   static async getBySource(
@@ -55,7 +58,7 @@ export class SourceCollectJob extends Z.class({
 
     const result = await query
     return {
-      data: (result.data || []).map((d) => new SourceCollectJob(d)),
+      data: (result.data || []).map((item) => SourceCollectJob.parse(item)),
       count: result.count || 0,
     }
   }
@@ -70,7 +73,7 @@ export class SourceCollectJob extends Z.class({
       .limit(1)
 
     if (result.data && result.data.length > 0) {
-      return new SourceCollectJob(result.data[0])
+      return SourceCollectJob.parse(result.data[0])
     }
     return null
   }
@@ -93,8 +96,8 @@ export class SourceCollectJobForm extends Z.class({
   id: z.undefined(),
 }) {
   public async create() {
-    return new SourceCollectJob(
-      (await SourceCollectJob.dbApi.from().insert(this).select().single()).data!
+    return SourceCollectJob.parse(
+      (await SourceCollectJob.dbApi.insert(this).select().single()).data
     )
   }
 }

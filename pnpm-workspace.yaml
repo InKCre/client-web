@@ -10,3 +10,19 @@ catalog:
 onlyBuiltDependencies:
   - spawn-sync
   - vue-demi
+
+overrides:
+  '@babel/core@<=7.29.0': 7.29.7
+  adm-zip@<0.6.0: 0.6.0
+  defu@<=6.1.4: 6.1.7
+  esbuild@>=0.27.3 <0.28.1: 0.28.1
+  immutable@>=5.0.0-beta.1 <5.1.8: 5.1.8
+  koa@>=3.0.0 <3.1.2: 3.1.2
+  picomatch@<2.3.2: 2.3.2
+  picomatch@>=4.0.0 <4.0.4: 4.0.5
+  postcss@<=8.5.11: 8.5.12
+  rollup@>=4.0.0 <4.59.0: 4.59.0
+  shell-quote@<=1.8.4: 1.9.0
+  tmp@<0.2.7: 0.2.7
+  uuid@<11.1.1: 11.1.1
+  ws@>=8.0.0 <8.21.0: 8.21.0

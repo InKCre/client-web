@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { canonicalMetaConfig } from '../database'
 
 /**
  * LLM Provider types
@@ -35,9 +36,9 @@ export const AIConfigSchema = z.object({
  * Contains URLs and secrets needed to fetch and initialize app config
  */
 export const MetaConfigSchema = z.object({
-  INKCRE_PGREST_URL: z.url().default(''),
+  INKCRE_PGREST_URL: z.url().default(canonicalMetaConfig.INKCRE_PGREST_URL),
   INKCRE_JWT_SECRET: z.string().default(''),
-  INKCRE_CLIENT_ID: z.uuid().default(''),
+  INKCRE_CLIENT_ID: z.uuid().default(canonicalMetaConfig.INKCRE_CLIENT_ID),
 })
 
 export type MetaConfig = z.infer<typeof MetaConfigSchema>

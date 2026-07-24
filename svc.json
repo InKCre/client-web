@@ -6,6 +6,24 @@
     "profiles": {
       "local": {
         "targets": {
+          "database": {
+            "scope": "worktree",
+            "probe": {
+              "kind": "exec",
+              "argv": ["node", "scripts/probe-database.mjs", "${dev.instance}"],
+              "cwd": ".",
+              "timeout": 5,
+              "output_limit": 2048
+            },
+            "provision": {
+              "kind": "exec",
+              "mode": "run",
+              "argv": ["node", "scripts/database-runtime.mjs", "ensure", "${dev.instance}"],
+              "cwd": "."
+            },
+            "readiness_timeout": 180,
+            "poll_interval": 1
+          },
           "web": {
             "scope": "worktree",
             "probe": {

@@ -95,6 +95,10 @@ if (svcConfig.dev?.profile !== 'local' || !localTargets) {
   errors.push('svc.json must declare the local development profile')
 } else {
   const expectedTargets = {
+    database: {
+      probe: ['node', 'scripts/probe-database.mjs', '${dev.instance}'],
+      command: ['node', 'scripts/database-runtime.mjs', 'ensure', '${dev.instance}'],
+    },
     web: {
       probe: ['node', 'scripts/probe-dev.mjs', 'web', '${dev.instance}'],
       command: ['node', 'scripts/dev.mjs', 'web'],
@@ -124,6 +128,28 @@ if (svcConfig.dev?.profile !== 'local' || !localTargets) {
       errors.push(`SVC target "${name}" must provision through scripts/dev.mjs`)
     }
   }
+}
+
+const databaseCompose = await readFile(`${repoRoot}/runtime/database.compose.yml`, 'utf8')
+for (const required of [
+  "command: ['db', 'init', '--profile', 'development']",
+  '${INKCRE_CORE_IMAGE:?INKCRE_CORE_IMAGE is required}',
+  '${POSTGRES_PORT:?POSTGRES_PORT is required}',
+  '${POSTGREST_PORT:?POSTGREST_PORT is required}',
+]) {
+  if (!databaseCompose.includes(required)) {
+    errors.push(`database Compose is missing runtime contract fragment "${required}"`)
+  }
+}
+for (const forbidden of ['5432:5432', '3000:3000', 'sleep ']) {
+  if (databaseCompose.includes(forbidden)) {
+    errors.push(`database Compose contains forbidden fixed-order fragment "${forbidden}"`)
+  }
+}
+
+const devScript = await readFile(`${repoRoot}/scripts/dev.mjs`, 'utf8')
+if (!devScript.includes("'database'")) {
+  errors.push('pnpm dev must ensure the worktree-scoped database capability')
 }
 
 const wxtConfig = await readFile(`${repoRoot}/apps/client-webext/wxt.config.ts`, 'utf8')

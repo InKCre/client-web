@@ -18,18 +18,21 @@ export class Source extends Z.class({
   config: z.looseObject({}).default(() => ({})),
   collect_at: zinstance<CollectAt>(CollectAt).nullable(),
 }) {
-  static dbApi: DBAPIClient = new DBAPIClient('sources', Source)
+  static dbApi: DBAPIClient<'sources', Source> = new DBAPIClient<'sources', Source>(
+    'sources',
+    Source
+  )
 
   static async get(id: SourceRef): Promise<Source> {
-    return new Source((await this.dbApi.from().select().eq('id', id).single()).data!)
+    return Source.parse((await this.dbApi.from().select().eq('id', id).single()).data)
   }
 
   static async getAll(): Promise<Source[]> {
-    return (await this.dbApi.from().select()).data!.map((d) => new Source(d))
+    return ((await this.dbApi.from().select()).data ?? []).map((item) => Source.parse(item))
   }
 
   public async save(): Promise<Source> {
-    return Source.dbApi.first(await Source.dbApi.from().upsert(this).select())
+    return Source.dbApi.first(await Source.dbApi.upsert(this).select())
   }
 
   async delete(): Promise<void> {
@@ -42,6 +45,6 @@ export class SourceForm extends Z.class({
   id: z.undefined(),
 }) {
   public async create() {
-    return new Source((await Source.dbApi.from().insert(this).select().single()).data!)
+    return Source.parse((await Source.dbApi.insert(this).select().single()).data)
   }
 }

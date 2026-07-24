@@ -125,6 +125,19 @@ export {
   type WebextStorageLike,
 } from './config'
 
+// Database protocol
+export {
+  canonicalMetaConfig,
+  canonicalProductionProfile,
+  classifyPostgrestEndpoint,
+  type Database,
+  type EndpointStatus,
+  type InkcreSchema,
+  type Json,
+  type RelationName,
+  type RelationRow,
+} from './database'
+
 // Authentication
 export { authStore } from './auth'
 

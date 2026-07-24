@@ -19,10 +19,10 @@ export class Log extends Z.class({
   span_id: z.string().nullable(),
   attributes: z.looseObject({}).default(() => ({})),
 }) {
-  static dbApi: DBAPIClient = new DBAPIClient('logs', Log)
+  static dbApi: DBAPIClient<'logs', Log> = new DBAPIClient<'logs', Log>('logs', Log)
 
   static async get(id: LogRef): Promise<Log> {
-    return new Log((await this.dbApi.from().select().eq('id', id).single()).data!)
+    return Log.parse((await this.dbApi.from().select().eq('id', id).single()).data)
   }
 
   static async getByTraceId(
@@ -36,6 +36,6 @@ export class Log extends Z.class({
     if (options?.limit) {
       query = query.limit(options.limit)
     }
-    return (await query).data?.map((item) => new Log(item)) ?? []
+    return (await query).data?.map((item) => Log.parse(item)) ?? []
   }
 }

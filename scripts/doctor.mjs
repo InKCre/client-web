@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url'
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url))
 const jsonOutput = process.argv.includes('--json')
+const configArgument = process.argv.indexOf('--config')
+const portableConfigPath = configArgument >= 0 ? process.argv[configArgument + 1] : null
 const checks = []
 
 function record(name, status, detail) {
@@ -105,8 +107,68 @@ const dockerVersion = commandVersion('docker')
 record(
   'docker',
   dockerVersion ? 'ok' : 'warning',
-  dockerVersion ?? 'not installed; Docker/PostgREST capability is owned by Phase 3'
+  dockerVersion ?? 'not installed; required for the local database capability'
 )
+
+const corePin = JSON.parse(await readFile(`${repoRoot}/contracts/core-py.json`, 'utf8'))
+const coreContract = JSON.parse(
+  await readFile(`${repoRoot}/contracts/core-py-contract.json`, 'utf8')
+)
+const productionProfile = JSON.parse(
+  await readFile(`${repoRoot}/deploy/profiles/production.json`, 'utf8')
+)
+const legacyEndpoints = JSON.parse(
+  await readFile(`${repoRoot}/deploy/profiles/legacy-endpoints.json`, 'utf8')
+)
+record(
+  'core-runtime-image',
+  corePin.image?.includes('@sha256:') ? 'ok' : 'error',
+  `${corePin.image} (${corePin.source_revision})`
+)
+record(
+  'database-contract',
+  coreContract.revision === corePin.contract_revision ? 'ok' : 'error',
+  `${coreContract.revision}; schema ${coreContract.protocol?.schema}; ${Object.keys(coreContract.protocol?.relations ?? {}).length} relations`
+)
+record(
+  'database-readiness-profile',
+  coreContract.profiles?.includes('development') ? 'ok' : 'error',
+  'development'
+)
+record(
+  'config-provenance',
+  'ok',
+  `browser-local; canonical ${productionProfile.environment} profile`
+)
+
+if (portableConfigPath) {
+  try {
+    const portableConfig = JSON.parse(await readFile(portableConfigPath, 'utf8'))
+    const endpoint = new URL(portableConfig.metaConfig?.INKCRE_PGREST_URL)
+    const isLegacy =
+      legacyEndpoints.postgrest_hosts.includes(endpoint.hostname) ||
+      endpoint.hostname.startsWith('inkcre-pgrst-')
+    record(
+      'legacy-endpoint',
+      isLegacy ? 'error' : 'ok',
+      isLegacy
+        ? `retired host ${endpoint.hostname}; import the canonical production profile`
+        : `portable config uses ${endpoint.hostname}`
+    )
+  } catch {
+    record(
+      'legacy-endpoint',
+      'error',
+      'the --config file is absent, invalid, or lacks a PostgREST URL'
+    )
+  }
+} else {
+  record(
+    'legacy-endpoint',
+    'warning',
+    'browser storage is not CLI-readable; pass --config <portable-export.json> to inspect'
+  )
+}
 
 const expectedPortless = rootPackage.devDependencies.portless
 const portlessVersion = commandVersion(`${repoRoot}/node_modules/.bin/portless`)
@@ -127,10 +189,21 @@ try {
   record('local-runtime-contract', 'error', 'run pnpm check:runtime for details')
 }
 
+try {
+  execFileSync(process.execPath, ['scripts/check-database-contract.mjs'], {
+    cwd: repoRoot,
+    stdio: ['ignore', 'pipe', 'ignore'],
+    timeout: 10000,
+  })
+  record('database-contract-gate', 'ok', 'pin, profile, generated types, and Compose agree')
+} catch {
+  record('database-contract-gate', 'error', 'run pnpm check:database for details')
+}
+
 const fatal = checks.filter((check) => check.status === 'error')
 const result = {
   ok: fatal.length === 0,
-  phase: 3,
+  phase: 4,
   checks,
 }
 

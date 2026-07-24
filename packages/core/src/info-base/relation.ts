@@ -23,14 +23,17 @@ export class Relation extends Z.class({
   to_: BlockRefZ,
   content: z.string(),
 }) {
-  static dbApi: DBAPIClient = new DBAPIClient('relations', Relation)
+  static dbApi: DBAPIClient<'relations', Relation> = new DBAPIClient<'relations', Relation>(
+    'relations',
+    Relation
+  )
 
   static async get(id: RelationRef): Promise<Relation> {
-    return new Relation((await this.dbApi.from().select().eq('id', id)).data![0])
+    return Relation.parse((await this.dbApi.from().select().eq('id', id)).data?.[0])
   }
 
   static async getAll(): Promise<Relation[]> {
-    return (await this.dbApi.from().select()).data!.map((d) => new Relation(d))
+    return ((await this.dbApi.from().select()).data ?? []).map((item) => Relation.parse(item))
   }
 
   /**
@@ -39,7 +42,7 @@ export class Relation extends Z.class({
    */
   static async getByBlock(blockId: BlockRef): Promise<Relation[]> {
     const result = await this.dbApi.from().select().or(`from_.eq.${blockId},to_.eq.${blockId}`)
-    return result.data!.map((d) => new Relation(d))
+    return (result.data ?? []).map((item) => Relation.parse(item))
   }
 
   /**
@@ -53,11 +56,11 @@ export class Relation extends Z.class({
       .select()
       .or(`from_.eq.${blockId},to_.eq.${blockId}`)
       .like('content', `${pattern}%`)
-    return result.data!.map((d) => new Relation(d))
+    return (result.data ?? []).map((item) => Relation.parse(item))
   }
 
   public async update(): Promise<Relation> {
-    return Relation.dbApi.first(await Relation.dbApi.from().upsert(this).select())
+    return Relation.dbApi.first(await Relation.dbApi.upsert(this).select())
   }
 }
 
@@ -66,6 +69,6 @@ export class RelationForm extends Z.class({
   id: z.undefined(),
 }) {
   public async create() {
-    return new Relation((await Relation.dbApi.from().insert(this).select()).data![0])
+    return Relation.parse((await Relation.dbApi.insert(this).select()).data?.[0])
   }
 }

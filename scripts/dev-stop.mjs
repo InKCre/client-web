@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process'
+import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url))
@@ -47,10 +48,20 @@ for (const line of routes.split('\n')) {
 
 if (processes.length === 0) {
   console.log(`[dev:stop] No Portless routes are running for worktree ${instance}.`)
-  process.exit(0)
+} else {
+  for (const processInfo of processes) {
+    process.kill(processInfo.pid, 'SIGTERM')
+    console.log(`[dev:stop] Stopped ${processInfo.name} (PID ${processInfo.pid}).`)
+  }
 }
 
-for (const processInfo of processes) {
-  process.kill(processInfo.pid, 'SIGTERM')
-  console.log(`[dev:stop] Stopped ${processInfo.name} (PID ${processInfo.pid}).`)
+const runtimeState = `${repoRoot}/.runtime/database/${instance}/runtime.json`
+if (existsSync(runtimeState)) {
+  execFileSync(process.execPath, ['scripts/database-runtime.mjs', 'stop', instance], {
+    cwd: repoRoot,
+    stdio: 'inherit',
+    timeout: 120_000,
+  })
+} else {
+  console.log(`[dev:stop] No database runtime exists for worktree ${instance}.`)
 }

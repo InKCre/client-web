@@ -10,6 +10,7 @@
 import { z } from 'zod'
 import { Z } from 'zod-class'
 import { DBAPIClient } from '../../base/db-api'
+import type { RelationRow } from '../../database'
 
 // ============================================================================
 // Storage Type References
@@ -43,14 +44,17 @@ export class StorageType extends Z.class({
   description: z.string().optional(),
   config_schema: z.record(z.string(), z.unknown()).optional().default({}),
 }) {
-  static dbApi: DBAPIClient = new DBAPIClient('storage_types', StorageType)
+  static dbApi: DBAPIClient<'storage_types', StorageType> = new DBAPIClient<
+    'storage_types',
+    StorageType
+  >('storage_types', StorageType)
 
   static async get(id: StorageTypeRef): Promise<StorageType> {
-    return new StorageType((await this.dbApi.from().select().eq('id', id).single()).data!)
+    return StorageType.parse((await this.dbApi.from().select().eq('id', id).single()).data)
   }
 
   static async getAll(): Promise<StorageType[]> {
-    return (await this.dbApi.from().select()).data!.map((d) => new StorageType(d))
+    return ((await this.dbApi.from().select()).data ?? []).map((item) => StorageType.parse(item))
   }
 }
 
@@ -77,7 +81,7 @@ export class Storage<RawContentT = unknown> {
   // ============================================================================
 
   private static storageClasses: Map<StorageTypeRef, new (data: any) => Storage<any>> = new Map()
-  private static dbApi: DBAPIClient = new DBAPIClient('storages')
+  private static dbApi: DBAPIClient<'storages'> = new DBAPIClient<'storages'>('storages')
 
   /**
    * Register a storage handler for a specific type.
@@ -113,8 +117,8 @@ export class Storage<RawContentT = unknown> {
    * Returns an instance of the registered handler class.
    */
   static async get<RawContentT = unknown>(id: StorageRef): Promise<Storage<RawContentT>> {
-    const storageRecord = new Storage(
-      (await this.dbApi.from().select().eq('id', id).single()).data!
+    const storageRecord = Storage.fromRow(
+      (await this.dbApi.from().select().eq('id', id).single()).data
     )
     const Handler = Storage.getHandler(storageRecord.type)
     if (!Handler) {
@@ -127,7 +131,15 @@ export class Storage<RawContentT = unknown> {
    * Get all storage records from the database.
    */
   static async getAll(): Promise<Storage[]> {
-    return (await this.dbApi.from().select()).data!.map((d) => new Storage(d))
+    return ((await this.dbApi.from().select()).data ?? []).map(Storage.fromRow)
+  }
+
+  private static fromRow(row: RelationRow<'storages'> | null): Storage {
+    if (!row) throw new Error('Storage relation returned no row.')
+    return new Storage({
+      ...row,
+      config: z.record(z.string(), z.unknown()).parse(row.config),
+    })
   }
 
   /**
