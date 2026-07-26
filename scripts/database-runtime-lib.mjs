@@ -1,13 +1,20 @@
-import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { access, mkdir, writeFile } from 'node:fs/promises'
+import { readFileSync } from 'node:fs'
+import { access, mkdir, rm, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:net'
 import { fileURLToPath } from 'node:url'
 
 import { readJson, stableJson } from './database-contract-lib.mjs'
+import {
+  closeDatabaseAccess,
+  databaseAccessReady,
+  openDatabaseAccess,
+  resolveDatabaseProviderConfig,
+  runDatabaseCompose,
+  sameDatabaseProvider,
+} from './database-provider.mjs'
 
 export const repoRoot = fileURLToPath(new URL('..', import.meta.url))
-export const composeFile = `${repoRoot}/runtime/database.compose.yml`
 
 export function validateInstance(instance) {
   if (!/^[a-z0-9][a-z0-9-]{2,48}$/.test(instance)) {
@@ -45,48 +52,21 @@ export async function availablePort() {
   })
 }
 
-export async function runtimeState(instance, { create = false } = {}) {
-  const directory = runtimeDirectory(instance)
-  const statePath = `${directory}/runtime.json`
-  try {
-    return await readJson(statePath)
-  } catch (error) {
-    if (!create) throw error
+function quotedEnvironmentValue(value) {
+  if (value.includes('\0') || /[\r\n]/.test(value)) {
+    throw new Error('Compose environment values must be newline-free')
   }
+  return `'${value.replaceAll("'", "'\\''")}'`
+}
 
-  const pin = await readJson(`${repoRoot}/contracts/core-py.json`)
-  const ports = {
-    postgres: await availablePort(),
-    core: await availablePort(),
-    postgrest: await availablePort(),
-  }
-  const state = {
-    format: 1,
-    identity: validateInstance(instance),
-    project: projectName(instance),
-    contract_revision: pin.contract_revision,
-    core_source_revision: pin.source_revision,
-    core_image: pin.image,
-    profile: 'development',
-    ports,
-    urls: {
-      core: `http://127.0.0.1:${ports.core}/`,
-      postgrest: `http://127.0.0.1:${ports.postgrest}/`,
-    },
-  }
-  const credentials = {
-    format: 1,
-    JWT_SECRET: localSecret(instance, 'jwt'),
-    POSTGRES_PASSWORD: localSecret(instance, 'postgres'),
-    CORE_DATABASE_PASSWORD: localSecret(instance, 'core-role'),
-    POSTGREST_DATABASE_PASSWORD: localSecret(instance, 'postgrest-role'),
-  }
+async function writeRuntimeFiles(state, credentials) {
+  const directory = runtimeDirectory(state.identity)
   const profile = {
     format: 1,
     environment: 'development',
     database_contract: {
-      revision: pin.contract_revision,
-      migration_head: pin.migration_head,
+      revision: state.contract_revision,
+      migration_head: state.migration_head,
       protocol_schema: 'inkcre',
     },
     core: {
@@ -99,28 +79,94 @@ export async function runtimeState(instance, { create = false } = {}) {
       url: state.urls.postgrest,
     },
   }
+  const publishedPorts =
+    state.provider.kind === 'local' ? state.local_ports : { postgres: 0, core: 0, postgrest: 0 }
+  const environment = {
+    INKCRE_COMPOSE_PROJECT_NAME: state.project,
+    INKCRE_CORE_IMAGE: state.core_image,
+    POSTGRES_PORT: String(publishedPorts.postgres),
+    CORE_PORT: String(publishedPorts.core),
+    POSTGREST_PORT: String(publishedPorts.postgrest),
+    CORE_PUBLIC_URL: state.urls.core,
+    INKCRE_REMOTE_DOCKER_BIN: state.provider.docker_bin ?? 'docker',
+    ...Object.fromEntries(Object.entries(credentials).filter(([name]) => name !== 'format')),
+  }
 
-  await mkdir(directory, { recursive: true })
-  await writeFile(statePath, stableJson(state), { mode: 0o600 })
+  await mkdir(directory, { recursive: true, mode: 0o700 })
+  await writeFile(`${directory}/runtime.json`, stableJson(state), { mode: 0o600 })
   await writeFile(`${directory}/profile.json`, stableJson(profile), { mode: 0o600 })
   await writeFile(`${directory}/credential.json`, stableJson(credentials), {
     mode: 0o600,
   })
   await writeFile(
     `${directory}/compose.env`,
-    [
-      `INKCRE_COMPOSE_PROJECT_NAME=${state.project}`,
-      `INKCRE_CORE_IMAGE=${state.core_image}`,
-      `POSTGRES_PORT=${state.ports.postgres}`,
-      `CORE_PORT=${state.ports.core}`,
-      `POSTGREST_PORT=${state.ports.postgrest}`,
-      ...Object.entries(credentials).flatMap(([name, value]) =>
-        name === 'format' ? [] : `${name}=${value}`
-      ),
-      '',
-    ].join('\n'),
+    `${Object.entries(environment)
+      .map(([name, value]) => `${name}=${quotedEnvironmentValue(value)}`)
+      .join('\n')}\n`,
     { mode: 0o600 }
   )
+}
+
+function validateRuntimeState(state, instance) {
+  if (state.format !== 2 || state.identity !== validateInstance(instance)) {
+    throw new Error(
+      `database runtime ${instance} uses an obsolete or invalid state; stop it before continuing`
+    )
+  }
+  return state
+}
+
+export async function runtimeState(instance, { create = false } = {}) {
+  const directory = runtimeDirectory(instance)
+  const statePath = `${directory}/runtime.json`
+  try {
+    const state = validateRuntimeState(await readJson(statePath), instance)
+    if (create) {
+      const configuredProvider = resolveDatabaseProviderConfig()
+      if (!sameDatabaseProvider(state.provider, configuredProvider)) {
+        throw new Error(
+          `database runtime ${instance} belongs to a different provider; stop it explicitly first`
+        )
+      }
+    }
+    return state
+  } catch (error) {
+    if (!create || error.code !== 'ENOENT') throw error
+  }
+
+  const pin = await readJson(`${repoRoot}/contracts/core-py.json`)
+  const provider = resolveDatabaseProviderConfig()
+  const localPorts = {
+    postgres: await availablePort(),
+    core: await availablePort(),
+    postgrest: await availablePort(),
+  }
+  const state = {
+    format: 2,
+    identity: validateInstance(instance),
+    project: projectName(instance),
+    provider,
+    contract_revision: pin.contract_revision,
+    migration_head: pin.migration_head,
+    core_source_revision: pin.source_revision,
+    core_image: pin.image,
+    profile: 'development',
+    local_ports: localPorts,
+    remote_ports: null,
+    urls: {
+      core: `http://127.0.0.1:${localPorts.core}/`,
+      postgrest: `http://127.0.0.1:${localPorts.postgrest}/`,
+    },
+    tunnel: null,
+  }
+  const credentials = {
+    format: 1,
+    JWT_SECRET: localSecret(instance, 'jwt'),
+    POSTGRES_PASSWORD: localSecret(instance, 'postgres'),
+    CORE_DATABASE_PASSWORD: localSecret(instance, 'core-role'),
+    POSTGREST_DATABASE_PASSWORD: localSecret(instance, 'postgrest-role'),
+  }
+  await writeRuntimeFiles(state, credentials)
   return state
 }
 
@@ -130,25 +176,66 @@ export async function runtimeCredentials(instance) {
 
 export function compose(instance, args, options = {}) {
   const directory = runtimeDirectory(instance)
-  return execFileSync(
-    'docker',
-    [
-      'compose',
-      '--file',
-      composeFile,
-      '--env-file',
-      `${directory}/compose.env`,
-      '--project-name',
-      projectName(instance),
-      ...args,
-    ],
+  const state = validateRuntimeState(
+    JSON.parse(readFileSync(`${directory}/runtime.json`, 'utf8')),
+    instance
+  )
+  return runDatabaseCompose(state, `${directory}/compose.env`, args, options)
+}
+
+function publishedPort(instance, service, target) {
+  const output = compose(instance, ['port', service, String(target)], {
+    timeout: 15_000,
+  }).trim()
+  const match = output.match(/:([0-9]+)$/)
+  if (!match) throw new Error(`could not resolve published port for ${service}:${target}`)
+  return Number.parseInt(match[1], 10)
+}
+
+async function exposeRuntime(state) {
+  const remotePorts = {
+    postgres: publishedPort(state.identity, 'postgres', 5432),
+    core: publishedPort(state.identity, 'core', 8000),
+    postgrest: publishedPort(state.identity, 'postgrest', 3000),
+  }
+  const localPorts = state.provider.kind === 'local' ? remotePorts : state.local_ports
+  const exposed = {
+    ...state,
+    local_ports: localPorts,
+    remote_ports: remotePorts,
+    urls: {
+      core: `http://127.0.0.1:${localPorts.core}/`,
+      postgrest: `http://127.0.0.1:${localPorts.postgrest}/`,
+    },
+  }
+  const connected = openDatabaseAccess(exposed)
+  await writeRuntimeFiles(connected, await runtimeCredentials(state.identity))
+  return connected
+}
+
+export async function ensureDatabaseRuntime(instance, options = {}) {
+  const state = await runtimeState(instance, { create: true })
+  compose(
+    instance,
+    ['up', '--detach', '--remove-orphans', 'postgres', 'init', 'core', 'postgrest'],
     {
-      cwd: repoRoot,
-      encoding: 'utf8',
-      stdio: options.stdio ?? ['ignore', 'pipe', 'pipe'],
-      timeout: options.timeout ?? 180_000,
+      stdio: options.stdio ?? 'inherit',
     }
   )
+  return exposeRuntime(state)
+}
+
+export async function stopDatabaseRuntime(instance, options = {}) {
+  const state = await runtimeState(instance)
+  try {
+    compose(instance, ['down', '--volumes', '--remove-orphans'], {
+      stdio: options.stdio ?? 'inherit',
+      timeout: options.timeout ?? 120_000,
+    })
+  } finally {
+    closeDatabaseAccess(state)
+  }
+  await rm(runtimeDirectory(instance), { recursive: true, force: true })
 }
 
 export async function exists(path) {
@@ -172,12 +259,19 @@ export async function fetchStatus(url, expectedStatuses, timeout = 3000) {
   }
 }
 
+export async function runtimeIsReady(state, timeout = 3000) {
+  if (!databaseAccessReady(state)) return false
+  const [coreReady, postgrestReady] = await Promise.all([
+    fetchStatus(`${state.urls.core}readyz`, [200], timeout),
+    fetchStatus(state.urls.postgrest, [401], timeout),
+  ])
+  return coreReady && postgrestReady
+}
+
 export async function waitForRuntime(state, timeout = 120_000) {
   const deadline = Date.now() + timeout
   while (Date.now() < deadline) {
-    const coreReady = await fetchStatus(`${state.urls.core}readyz`, [200])
-    const postgrestReady = await fetchStatus(state.urls.postgrest, [401])
-    if (coreReady && postgrestReady) return
+    if (await runtimeIsReady(state)) return
     await new Promise((resolve) => setTimeout(resolve, 750))
   }
   throw new Error(`database runtime ${state.identity} did not become ready`)
@@ -191,4 +285,8 @@ export function readiness(instance) {
       { timeout: 30_000 }
     )
   )
+}
+
+export function databaseContractIsReady(result) {
+  return result?.status === 'ok'
 }

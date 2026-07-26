@@ -85,11 +85,20 @@
 ## Local Development Topology
 
 - Official SVC 10.0.1 resolves the current worktree identity and coordinates the declared `web`
-  and `webext` capabilities.
+  `webext`, and `database` capabilities.
 - Portless maps each capability to an instance-specific HTTPS `.localhost` name while Vite and WXT
   bind their assigned application ports to loopback.
-- Both servers expose an identity endpoint; an executable SVC probe treats Portless's generic 404
-  as absent and accepts only the exact target/instance payload.
+- Both servers expose an identity endpoint. The executable SVC probe discovers the registered
+  Portless route, connects through loopback, and accepts only the exact target/instance payload.
 - WXT keeps optional Chromium state under `.runtime/dev/<instance>` and never claims a fixed
   debugging port or shared browser profile.
-- PostgreSQL/PostgREST schema and lifecycle remain a `core-py`-owned capability boundary.
+- The database target uses one tracked Compose/runtime contract with two transports:
+  - `local` invokes the host Docker CLI and publishes collision-safe loopback ports;
+  - `ssh` sends a bounded Compose payload to one user-configured SSH alias, lets the remote engine
+    allocate loopback ports, and exposes them through an instance-owned OpenSSH control tunnel.
+- Provider selection and all SSH machine facts live in ignored `svc.local.json`; the committed
+  default remains portable local Docker.
+- PostgreSQL/PostgREST schema, migration, roles, seed, and reset semantics remain a
+  `core-py`-owned capability boundary.
+- Stopping a worktree removes only its Portless routes, Compose project and volume, runtime
+  credentials, and SSH control tunnel.

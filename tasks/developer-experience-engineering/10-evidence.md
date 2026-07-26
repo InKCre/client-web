@@ -236,3 +236,38 @@ An independent read-only final review accepted the client-owned Step 4 diff afte
 initial mix-up between source-level `check:runtime` and post-build `check:package`. Remaining
 non-blocking debt is the Unix-oriented `ps` ownership check in `dev:stop` and the absence of
 Phase-4-owned lifecycle-script regression tests.
+
+## 2026-07-26 Database Provider and SVC Follow-up
+
+- PDM 2.27.0 owns the host's global project. Adding
+  `sustainable-vibe-coding==10.0.1` with `pdm add -g --save-exact` made `svc` available on the
+  existing PATH without installing the dirty sibling `../../svc` worktree.
+- `svc --version` and `svc status . --json` report 10.0.1, wheel resource mode, a valid committed
+  base, a valid ignored local overlay, and a healthy effective configuration.
+- The tracked SVC declaration selects the portable `local` database provider. The ignored
+  `svc.local.json` selects `ssh` on this host and owns its SSH alias, remote executable, and
+  optional Portless port. No tracked file contains those machine facts.
+- Local and SSH providers execute the same tracked Compose topology. SSH Compose commands are
+  transported as a bounded tar payload to one validated SSH-config alias; neither shell
+  interpolation nor `eval` reconstructs caller arguments.
+- Remote services publish only remote-loopback dynamic ports. A worktree-owned OpenSSH control
+  tunnel maps three independently allocated local-loopback ports to them. Runtime state records
+  provider and port identity so a provider change is refused until explicit cleanup.
+- Provider diagnostics proved the remote Docker engine at 28.5.2 and Compose
+  2.40.3-desktop.1. The selected engine authenticated to the private GHCR package through
+  stdin-based Docker login; no token entered repository state or command output.
+- `pnpm db:ready`, guarded `pnpm db:reset`, and `pnpm dev:stop` passed against the SSH provider.
+  Cleanup removed the exact Compose project, volume, local runtime credentials, and control
+  tunnel.
+- A concurrent isolation proof started two SSH-backed database identities. Their Compose projects,
+  remote ports, local ports, volumes, and tunnels were distinct; stopping the first left the
+  second healthy.
+- `pnpm test:e2e` passed two built-browser/PostgREST cases after installing the lock-compatible
+  Playwright Chromium: authenticated read/write and absent/wrong credential denial. The harness
+  restored the deterministic baseline and removed its ephemeral remote project.
+- `pnpm dev` passed with a non-privileged machine-local Portless port. The run exposed and repaired
+  a pre-existing Module Federation development bug: static remotes now check and serve
+  `dist/client-web`, and a missing remote builds in a separate process instead of nesting a second
+  Module Federation build inside the host Vite process.
+- Provider regression tests cover portable local defaulting, local Docker diagnosis, SSH option
+  injection rejection, and proof that SSH diagnosis never invokes the local Docker CLI.

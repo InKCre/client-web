@@ -19,7 +19,10 @@
               "kind": "exec",
               "mode": "run",
               "argv": ["node", "scripts/database-runtime.mjs", "ensure", "${dev.instance}"],
-              "cwd": "."
+              "cwd": ".",
+              "env": {
+                "INKCRE_DATABASE_PROVIDER": "local"
+              }
             },
             "readiness_timeout": 180,
             "poll_interval": 1

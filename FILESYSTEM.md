@@ -23,7 +23,9 @@
 ├── packages/
 │   ├── core/             # Shared logic package
 │   └── ext-dev-utils/    # Extension dev utilities
-├── scripts/              # Doctor, contracts, SVC/Portless launchers, and bounded cleanup
+├── runtime/
+│   └── database.compose.yml # Portable local/SSH database topology
+├── scripts/              # Doctor, contracts, provider transports, launchers, and cleanup
 ├── tasks/                # Active agent-owned task packets
 ├── .oxfmtrc.json         # Repository Oxfmt contract
 ├── .oxlintrc.json        # Repository Oxlint contract
@@ -33,8 +35,17 @@
 └── svc.json              # Committed SVC adoption and dev-capability contract
 ```
 
-`.runtime/dev/<instance>/` is ignored worktree-local state. WXT may place an isolated Chromium
-profile there when an explicit browser binary is configured.
+Ignored worktree-local state is partitioned by responsibility:
+
+```
+.runtime/
+├── database/<instance>/  # Runtime identity, Compose env, profile, and credentials
+├── dev/<instance>/       # Optional isolated Chromium profile
+└── ssh/<instance>        # OpenSSH control socket for the remote Docker provider
+```
+
+The database files and SSH socket are mode-restricted and removed by the bounded stop path. WXT
+uses its isolated profile only when an explicit browser binary is configured.
 
 ## packages/core/src/
 

@@ -90,7 +90,7 @@ export class DBAPIClient<
     return super.from(this.relation)
   }
 
-  public insert(value: unknown | unknown[]) {
+  public insert(value: unknown) {
     type Insert = RelationInsert<Relation>
     const query = super.from(this.relation)
     const insert = query.insert.bind(query) as unknown as (
@@ -108,7 +108,7 @@ export class DBAPIClient<
     return update(encodeTransportValue<Update>(value))
   }
 
-  public upsert(value: unknown | unknown[]) {
+  public upsert(value: unknown) {
     type Insert = RelationInsert<Relation>
     const query = super.from(this.relation)
     const upsert = query.upsert.bind(query) as unknown as (

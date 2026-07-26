@@ -5,10 +5,12 @@ import { rm } from 'node:fs/promises'
 import {
   availablePort,
   compose,
+  ensureDatabaseRuntime,
+  exists,
   repoRoot,
   runtimeCredentials,
   runtimeDirectory,
-  runtimeState,
+  stopDatabaseRuntime,
   waitForRuntime,
 } from './database-runtime-lib.mjs'
 
@@ -56,12 +58,7 @@ const instance = `e2e-${identityHash}`
 let preview
 
 try {
-  const state = await runtimeState(instance, { create: true })
-  compose(
-    instance,
-    ['up', '--detach', '--remove-orphans', 'postgres', 'init', 'core', 'postgrest'],
-    { stdio: 'inherit' }
-  )
+  const state = await ensureDatabaseRuntime(instance)
   await waitForRuntime(state)
   const baseline = fingerprint(instance)
 
@@ -118,10 +115,9 @@ try {
 } finally {
   preview?.kill('SIGTERM')
   try {
-    compose(instance, ['down', '--volumes', '--remove-orphans'], {
-      stdio: 'inherit',
-      timeout: 120_000,
-    })
+    if (await exists(`${runtimeDirectory(instance)}/runtime.json`)) {
+      await stopDatabaseRuntime(instance)
+    }
   } finally {
     await rm(runtimeDirectory(instance), { recursive: true, force: true })
   }

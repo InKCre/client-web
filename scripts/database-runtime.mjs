@@ -2,11 +2,14 @@ import { execFileSync } from 'node:child_process'
 
 import {
   compose,
-  fetchStatus,
+  databaseContractIsReady,
+  ensureDatabaseRuntime,
   readiness,
   repoRoot,
   runtimeDirectory,
+  runtimeIsReady,
   runtimeState,
+  stopDatabaseRuntime,
   waitForRuntime,
 } from './database-runtime-lib.mjs'
 
@@ -39,17 +42,12 @@ if (!['ensure', 'ready', 'reset', 'status', 'stop'].includes(command) || !instan
 }
 
 if (command === 'ensure') {
-  const state = await runtimeState(instance, { create: true })
-  compose(
-    instance,
-    ['up', '--detach', '--remove-orphans', 'postgres', 'init', 'core', 'postgrest'],
-    {
-      stdio: 'inherit',
-    }
-  )
+  const state = await ensureDatabaseRuntime(instance)
   await waitForRuntime(state)
   const result = readiness(instance)
-  if (!result.ready) throw new Error(result.reason)
+  if (!databaseContractIsReady(result)) {
+    throw new Error('database contract readiness failed after startup')
+  }
   console.log(
     JSON.stringify({
       ready: true,
@@ -72,7 +70,7 @@ if (command === 'ensure') {
     throw new Error(`refusing reset for non-development runtime ${state.identity}`)
   }
   const current = readiness(instance)
-  if (!current.ready) {
+  if (!databaseContractIsReady(current)) {
     throw new Error(`refusing reset for unready runtime ${state.identity}`)
   }
   compose(instance, [
@@ -88,22 +86,20 @@ if (command === 'ensure') {
   console.log(JSON.stringify(readiness(instance)))
 } else if (command === 'status') {
   const state = await runtimeState(instance)
-  const coreReady = await fetchStatus(`${state.urls.core}readyz`, [200])
-  const postgrestReady = await fetchStatus(state.urls.postgrest, [401])
+  const ready = await runtimeIsReady(state)
   console.log(
     JSON.stringify({
-      ready: coreReady && postgrestReady,
+      ready,
       identity: state.identity,
       contract_revision: state.contract_revision,
       core_image: state.core_image,
+      provider: state.provider.kind,
       profile: state.profile,
       urls: state.urls,
     })
   )
-  process.exitCode = coreReady && postgrestReady ? 0 : 1
+  process.exitCode = ready ? 0 : 1
 } else {
-  compose(instance, ['down', '--volumes', '--remove-orphans'], {
-    stdio: 'inherit',
-  })
+  await stopDatabaseRuntime(instance)
   console.log(`[database] removed runtime ${instance}`)
 }

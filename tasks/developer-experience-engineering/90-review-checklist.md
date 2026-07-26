@@ -7,7 +7,7 @@
 - [x] D2a: hard-cut web config to one browser-local authority instead of preserving localStorage/http/env adapter selection.
 - [x] D3: hard-cut formatting/linting to Oxfmt/Oxlint; use tsdown only for real libraries.
 - [x] D3a: stable TypeScript remains required; TS7 native is shadow-only.
-- [ ] D4: core-py remains schema authority; client-web consumes a versioned Docker PostgREST development capability without copying migrations.
+- [x] D4: core-py remains schema authority; client-web consumes a versioned Docker PostgREST development capability without copying migrations.
 - [x] D5: adopt official SVC `10.0.1`, publish the settled docs Hub, then add the exact published commit as the client-web shared mount.
 - [ ] D6: fast-forward and protect `main`, then retire long-lived `develop`.
 
@@ -36,11 +36,13 @@ No compatibility shim, duplicate schema, dual formatter, alternate production br
 - Step 3 authorization covered the client-web toolchain/package-contract hard cut and the code
   repairs necessary to make that contract truthful. The user later authorized its isolated commit,
   recorded as `6902293`; no push was authorized.
-- Step 4 authorization covers the client-web static/config/SVC/Portless/WXT implementation. It does
-  not authorize mutating, committing, or publishing the sibling `core-py` repository, so D4's
-  authoritative database capability remains pending.
-- Outside those slices, no Cloudflare, Docker/database, branch, submodule, sibling-repository
-  commit/push, or external-resource mutation is authorized.
+- Step 4 authorization covers the client-web static/config/SVC/Portless/WXT/database
+  implementation. The user separately arranged the authoritative `core-py` work and instructed
+  client-web to consume and verify its result without modifying that sibling.
+- On 2026-07-26 the user explicitly started the generic SSH Docker Provider and PDM-global SVC
+  repair. This authorizes local provider implementation and verification, not commit or push.
+- Outside those slices, no Cloudflare, branch, submodule, sibling-repository commit/push, or
+  external publication is authorized.
 - No production credential inspection.
 - No server-issued auth/BFF redesign without separate product intent.
 - No copied core-py migrations or SVC framework corpus.
@@ -80,3 +82,11 @@ No compatibility shim, duplicate schema, dual formatter, alternate production br
 - 2026-07-23: `core-py` is confirmed as the migration/role/seed/reset owner. Its worktree already
   contains unrelated user-owned untracked files, and no modification or publication was made
   without separate authorization.
+- 2026-07-26: the committed database default remains local Docker; ignored machine-local SVC
+  configuration selects one SSH-config alias and remote Docker executable without leaking host
+  facts into Git.
+- 2026-07-26: PDM global now pins the published SVC 10.0.1 wheel, and both base and effective
+  project configuration report healthy.
+- 2026-07-26: real SSH-backed readiness, reset, built-browser E2E, two-instance isolation, and
+  bounded cleanup passed. The same run repaired the static remote cold-build boundary exposed by
+  `pnpm dev`.

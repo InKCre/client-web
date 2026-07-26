@@ -6,8 +6,8 @@ This is a monorepo of InKCre that includes client-web, client-webext and infrast
 
 - Node.js `22.22.3` from `.node-version`
 - pnpm `10.26.2` from the root `packageManager` field
-- Python `3.11+` with `sustainable-vibe-coding==10.0.1`
-- Docker with Compose v2
+- Python `3.11+`, PDM, and `sustainable-vibe-coding==10.0.1`
+- Docker with Compose v2, either local or reachable through an SSH config alias
 - A GitHub token with `read:packages` access to `@inkcre/web-design`
 
 pnpm ignores authentication credentials declared by repository-controlled npm configuration. Store the environment-variable placeholder in the trusted user configuration:
@@ -21,17 +21,48 @@ The single quotes are intentional: they keep the token itself out of the command
 Install every workspace package from the repository root:
 
 ```bash
+pdm add -g --save-exact sustainable-vibe-coding==10.0.1
 git submodule update --init --recursive
 pnpm install --frozen-lockfile
+svc status .
 ```
 
-The local database capability pulls core-py's private digest-pinned runtime from GHCR. Authenticate
-Docker once with a GitHub token that has `read:packages`:
+The database capability pulls core-py's private digest-pinned runtime from GHCR. Authenticate the
+selected Docker engine once with a GitHub token that has `read:packages`:
 
 ```bash
 gh auth refresh -h github.com -s read:packages
 gh auth token | docker login ghcr.io --username YOUR_GITHUB_USERNAME --password-stdin
 ```
+
+The committed configuration uses local Docker. A machine that delegates Docker through SSH can
+select the `ssh` provider in ignored `svc.local.json`:
+
+```json
+{
+  "dev": {
+    "profiles": {
+      "local": {
+        "targets": {
+          "database": {
+            "provision": {
+              "env": {
+                "INKCRE_DATABASE_PROVIDER": "ssh",
+                "INKCRE_DATABASE_SSH_TARGET": "docker-host",
+                "INKCRE_DATABASE_SSH_DOCKER_BIN": "docker"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+`INKCRE_DATABASE_SSH_TARGET` is one alias from the user's SSH config; repository files never own a
+hostname, username, key path, or remote Docker path. The optional
+`INKCRE_DATABASE_SSH_FORWARD_HOST` defaults to remote loopback.
 
 ## Canonical commands
 
@@ -72,6 +103,11 @@ servers at instance-specific HTTPS `.localhost` URLs, and each server answers an
 before SVC reports it as healthy. `pnpm dev` and `pnpm dev:webext` return after readiness; use
 `pnpm dev:status` to inspect them and `pnpm dev:stop` for bounded cleanup.
 
+Portless normally uses HTTPS port 443. On a host where an unattended agent cannot perform the
+first-time sudo setup, machine-local SVC overrides may set `PORTLESS_PORT` in the `web` and
+`webext` provision environments and replace their `access` URLs with the same unprivileged port.
+The identity probe discovers the registered route instead of assuming port 443.
+
 The WXT capability builds and watches the extension without requiring a browser installation. To
 also launch Chrome, set `INKCRE_CHROMIUM_BINARY` to an executable path before starting it; WXT then
 uses `.runtime/dev/<instance>/chromium-profile` rather than a shared user profile.
@@ -81,9 +117,11 @@ browser-local settings. No `VITE_*`, Cloudflare, or Worker path supplies that cr
 portable config export excludes it.
 
 The database capability starts digest-pinned pgvector, core-py, and PostgREST images under the
-worktree's SVC identity, with collision-safe ports and volumes. It consumes the checked-in
-core-py contract pin, runs core-py's ordered initialization, and waits for protocol readiness;
-client-web owns no copied migration SQL, role bootstrap, seed ordering, or startup sleep.
+worktree's SVC identity, with collision-safe ports and volumes. Local Docker publishes directly to
+loopback. The SSH provider allocates ports on the remote engine and exposes them through an
+instance-owned OpenSSH control tunnel, while callers still consume loopback URLs. Both providers
+run the same tracked Compose definition and core-py initialization contract. Client-web owns no
+copied migration SQL, role bootstrap, seed ordering, or startup sleep.
 
 `pnpm run doctor -- --json` reports the image digest, source revision, contract version, generated
 type drift, config provenance, Docker availability, and legacy endpoint status without reading or
@@ -95,12 +133,5 @@ printing the browser-owned JWT credential.
 `dist/index.js` plus declarations and declaration maps. Vite and WXT applications alias
 `@inkcre/core` to source during monorepo development, while package consumers resolve the built
 `dist` entry.
-
-Install the adopted SVC CLI in an isolated Python environment, then verify the repository integration:
-
-```bash
-python -m pip install sustainable-vibe-coding==10.0.1
-svc status --json
-```
 
 Shared product truth is mounted read-only from `InKCre/docs` at `docs/_shared/`. Update the Hub first and publish its commit before changing this repository's submodule reference.

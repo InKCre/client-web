@@ -131,7 +131,7 @@ export class Storage<RawContentT = unknown> {
    * Get all storage records from the database.
    */
   static async getAll(): Promise<Storage[]> {
-    return ((await this.dbApi.from().select()).data ?? []).map(Storage.fromRow)
+    return ((await this.dbApi.from().select()).data ?? []).map((row) => Storage.fromRow(row))
   }
 
   private static fromRow(row: RelationRow<'storages'> | null): Storage {

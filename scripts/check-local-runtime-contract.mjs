@@ -98,6 +98,9 @@ if (svcConfig.dev?.profile !== 'local' || !localTargets) {
     database: {
       probe: ['node', 'scripts/probe-database.mjs', '${dev.instance}'],
       command: ['node', 'scripts/database-runtime.mjs', 'ensure', '${dev.instance}'],
+      environment: {
+        INKCRE_DATABASE_PROVIDER: 'local',
+      },
     },
     web: {
       probe: ['node', 'scripts/probe-dev.mjs', 'web', '${dev.instance}'],
@@ -127,6 +130,12 @@ if (svcConfig.dev?.profile !== 'local' || !localTargets) {
     if (JSON.stringify(target.provision?.argv) !== JSON.stringify(expected.command)) {
       errors.push(`SVC target "${name}" must provision through scripts/dev.mjs`)
     }
+    if (
+      expected.environment &&
+      JSON.stringify(target.provision?.env) !== JSON.stringify(expected.environment)
+    ) {
+      errors.push(`SVC target "${name}" must commit only the portable local provider default`)
+    }
   }
 }
 
@@ -134,8 +143,9 @@ const databaseCompose = await readFile(`${repoRoot}/runtime/database.compose.yml
 for (const required of [
   "command: ['db', 'init', '--profile', 'development']",
   '${INKCRE_CORE_IMAGE:?INKCRE_CORE_IMAGE is required}',
-  '${POSTGRES_PORT:?POSTGRES_PORT is required}',
-  '${POSTGREST_PORT:?POSTGREST_PORT is required}',
+  '${POSTGRES_PORT:-0}',
+  '${POSTGREST_PORT:-0}',
+  '${CORE_PUBLIC_URL:?CORE_PUBLIC_URL is required}',
 ]) {
   if (!databaseCompose.includes(required)) {
     errors.push(`database Compose is missing runtime contract fragment "${required}"`)
@@ -145,6 +155,30 @@ for (const forbidden of ['5432:5432', '3000:3000', 'sleep ']) {
   if (databaseCompose.includes(forbidden)) {
     errors.push(`database Compose contains forbidden fixed-order fragment "${forbidden}"`)
   }
+}
+
+const databaseProvider = await readFile(`${repoRoot}/scripts/database-provider.mjs`, 'utf8')
+const remoteCompose = await readFile(`${repoRoot}/scripts/remote-compose.sh`, 'utf8')
+for (const required of [
+  "kind === 'local'",
+  "kind !== 'ssh'",
+  "'BatchMode=yes'",
+  'ExitOnForwardFailure=yes',
+  'svc.local.json',
+]) {
+  if (!databaseProvider.includes(required)) {
+    errors.push(`database provider is missing safety contract "${required}"`)
+  }
+}
+if (remoteCompose.includes('eval ') || !remoteCompose.includes('"$docker_bin" compose')) {
+  errors.push('remote Compose runner must preserve argv without eval or shell command construction')
+}
+const committedDatabaseEnvironment = svcConfig.dev.profiles.local.targets.database.provision.env
+if (
+  committedDatabaseEnvironment?.INKCRE_DATABASE_SSH_TARGET ||
+  committedDatabaseEnvironment?.INKCRE_DATABASE_SSH_DOCKER_BIN
+) {
+  errors.push('committed SVC config must not contain machine-specific SSH provider values')
 }
 
 const devScript = await readFile(`${repoRoot}/scripts/dev.mjs`, 'utf8')

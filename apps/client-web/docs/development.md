@@ -16,7 +16,14 @@ by the root Oxfmt/Oxlint configuration.
 
 ## Joint dev with extensions
 
-TODO
+Static Module Federation remotes are served from their declared `dist/client-web` output. When an
+output is absent, the host starts the remote package's normal build in a separate process before
+mounting it. The process boundary matters because Module Federation generates virtual modules
+under package-local `node_modules`; nesting the build inside the running host Vite process can
+cross-contaminate plugin state.
+
+Use `pnpm dev:all` when actively editing remotes and the normal `pnpm dev` path when the built
+remote is sufficient.
 
 ## Browser-local configuration
 

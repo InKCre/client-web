@@ -10,7 +10,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - '127.0.0.1:${POSTGRES_PORT:?POSTGRES_PORT is required}:5432'
+      - '127.0.0.1:${POSTGRES_PORT:-0}:5432'
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres -d inkcre']
       interval: 2s
@@ -35,7 +35,7 @@ services:
       init:
         condition: service_completed_successfully
     environment:
-      CLIENT_BASE_URL: http://127.0.0.1:${CORE_PORT:?CORE_PORT is required}
+      CLIENT_BASE_URL: ${CORE_PUBLIC_URL:?CORE_PUBLIC_URL is required}
       CLIENT_ID: 00000000-0000-4000-8000-000000000002
       CLIENT_NAME: core-py-development
       DATABASE_URL: postgresql+psycopg://inkcre_core:${CORE_DATABASE_PASSWORD}@postgres:5432/inkcre
@@ -44,7 +44,7 @@ services:
       OBSRV__LOGGING_BACKEND: none
       PORT: 8000
     ports:
-      - '127.0.0.1:${CORE_PORT}:8000'
+      - '127.0.0.1:${CORE_PORT:-0}:8000'
     healthcheck:
       test:
         [
@@ -71,7 +71,7 @@ services:
       PGRST_JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       PGRST_SERVER_PORT: 3000
     ports:
-      - '127.0.0.1:${POSTGREST_PORT:?POSTGREST_PORT is required}:3000'
+      - '127.0.0.1:${POSTGREST_PORT:-0}:3000'
 
 volumes:
   postgres_data:

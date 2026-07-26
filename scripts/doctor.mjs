@@ -2,6 +2,8 @@ import { execFileSync } from 'node:child_process'
 import { access, readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 
+import { diagnoseDatabaseProvider, resolveDatabaseProviderConfig } from './database-provider.mjs'
+
 const repoRoot = fileURLToPath(new URL('..', import.meta.url))
 const jsonOutput = process.argv.includes('--json')
 const configArgument = process.argv.indexOf('--config')
@@ -103,12 +105,22 @@ if (svcVersion) {
   record('svc-runtime', 'warning', 'not on PATH; install sustainable-vibe-coding==10.0.1')
 }
 
-const dockerVersion = commandVersion('docker')
-record(
-  'docker',
-  dockerVersion ? 'ok' : 'warning',
-  dockerVersion ?? 'not installed; required for the local database capability'
-)
+try {
+  const provider = resolveDatabaseProviderConfig()
+  const diagnostic = diagnoseDatabaseProvider(provider)
+  const endpoint = provider.kind === 'ssh' ? ` via ${provider.target}` : ''
+  record(
+    'database-provider',
+    'ok',
+    `${provider.kind}${endpoint}; engine ${diagnostic.engine}; compose ${diagnostic.compose}`
+  )
+} catch {
+  record(
+    'database-provider',
+    'error',
+    'selected local or SSH Docker provider is unavailable; inspect svc.local.json and SSH/Docker state'
+  )
+}
 
 const corePin = JSON.parse(await readFile(`${repoRoot}/contracts/core-py.json`, 'utf8'))
 const coreContract = JSON.parse(

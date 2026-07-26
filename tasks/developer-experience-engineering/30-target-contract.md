@@ -4,19 +4,20 @@
 
 Except for the frozen install already proved in Phase 0, this list describes the target command surface; commands are not available until their implementation slice records them as complete.
 
-Phase 2 now delivers `doctor`, `format`, `lint`, stable and shadow type checks, workspace/package
-contract validation, `build`, and `check`. Unit/E2E participation and `ci` remain owned by Phases 4
-and 5; the current `check` command does not claim placeholder test coverage. Phase 3 now delivers
-the static/browser-local runtime contract plus worktree-scoped `web` and `webext` capabilities;
-the repository-scoped database capability remains gated on its `core-py` owner.
+The repository now delivers `doctor`, `format`, `lint`, stable and shadow type checks,
+workspace/package contract validation, unit tests, deterministic browser/database E2E, `build`,
+`check`, and `ci`. Phase 3 delivers the static/browser-local runtime contract plus worktree-scoped
+`web`, `webext`, and `database` capabilities.
 
 - `pnpm install --frozen-lockfile` - the supported dependency bootstrap.
 - `pnpm run doctor` - read-only diagnosis of versions, registry access, generated WXT state, Docker, SVC, and capability health; never prints credentials. The `run` keyword avoids pnpm's unrelated built-in `doctor`.
 - `pnpm dev` - ensures the default local profile and reports stable named URLs.
 - `pnpm dev:webext` - ensures the worktree-local WXT watcher and optional isolated browser.
 - `pnpm dev:status` - observes SVC capability health without starting or taking over anything.
-- `pnpm dev:stop` - stops only the current worktree's two Portless routes.
-- `pnpm check` - currently runs non-mutating format, lint, stable type-check, package-contract, and Phase 2 build checks; Phase 4 adds non-placeholder unit tests to this same required gate.
+- `pnpm dev:stop` - stops only the current worktree's Portless routes, database project, volume,
+  runtime state, and optional SSH tunnel.
+- `pnpm check` - runs non-mutating format, lint, stable type-check, package/runtime contracts,
+  unit tests, and all required builds.
 - `pnpm test:e2e` - deterministic web and browser-extension E2E against a seeded non-production stack.
 - `pnpm build` - all static web, Module Federation, core library, and required browser-extension outputs; Phase 4 adds the Firefox artifact to the required gate.
 - `pnpm ci` - the exact clean-environment contract used by GitHub Actions.
@@ -64,7 +65,13 @@ flowchart LR
   Portless --> Vite["Static Vue SPA via Vite"]
   Vite --> Browser["Browser-local config and JWT signing"]
   WebExt["WXT browser extension"] --> Browser
-  Browser --> PGRST["Docker PostgREST"]
+  SVC --> Database["Worktree database runtime"]
+  Database --> Provider{"Docker provider"}
+  Provider --> Local["Local Docker"]
+  Provider --> SSH["SSH transport and tunnel"]
+  Local --> PGRST["PostgREST"]
+  SSH --> PGRST
+  Browser --> PGRST
   PGRST --> PG["PostgreSQL with core-py-owned schema"]
   Docs["InKCre/docs Hub"] --> Shared["Read-only docs/_shared"]
   Shared --> Actor
@@ -73,7 +80,13 @@ flowchart LR
 - `web` is a worktree-scoped SVC executable capability behind Portless.
 - Its health surface proves the resolved worktree instance without requiring an application Worker.
 - `webext` is worktree-scoped and uses a collision-free browser profile/debug endpoint.
-- `postgres` and `postgrest` are repository-scoped capabilities with pinned images and readiness probes.
+- The database is worktree-scoped and uses one pinned Compose/runtime contract through either a
+  local or SSH Docker provider.
+- Committed configuration defaults to local Docker. Ignored `svc.local.json` owns provider
+  overrides such as SSH alias, remote executable, forwarding host, and an optional non-privileged
+  Portless port.
+- The SSH provider allocates remote-loopback published ports and local-loopback tunnel ports
+  independently; an OpenSSH control socket gives cleanup exact process ownership.
 - PostgREST bootstrap includes authoritative migrations, roles, deterministic test data, and explicit reset.
 - Vite binds to loopback behind Portless by default; LAN access is a separate explicit profile.
 - No local command can silently connect to production.

@@ -1,7 +1,8 @@
 // joint-dev-extension.ts
-import { Plugin, ViteDevServer, createServer, build, InlineConfig } from 'vite'
+import { spawn } from 'node:child_process'
 import path from 'path'
 import fs from 'fs'
+import { Plugin, ViteDevServer, createServer } from 'vite'
 import getPort from 'get-port'
 import colors from 'picocolors'
 import sirv from 'sirv'
@@ -17,6 +18,32 @@ interface ExtensionInfo {
   dir: string
   mode: 'dev' | 'static'
   port?: number // 仅 dev 模式有
+}
+
+function buildExtension(extension: ExtensionInfo) {
+  return new Promise<void>((resolve, reject) => {
+    const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm'
+    const child = spawn(pnpm, ['run', 'build'], {
+      cwd: extension.dir,
+      env: process.env,
+      stdio: 'inherit',
+    })
+
+    child.once('error', reject)
+    child.once('close', (code, signal) => {
+      if (code === 0) {
+        resolve()
+        return
+      }
+      reject(
+        new Error(
+          signal
+            ? `extension build stopped by ${signal}`
+            : `extension build exited with code ${code ?? 'unknown'}`
+        )
+      )
+    })
+  })
 }
 
 export async function useExtensionDevServer(options: ExtensionDevOptions) {
@@ -106,24 +133,16 @@ export async function useExtensionDevServer(options: ExtensionDevOptions) {
         }
 
         for (const ext of staticExts) {
-          const outDir = path.join(ext.dir, 'dist') // 假设输出目录是 dist
-          const entryFile = path.join(outDir, 'index.html') // 简单判断构建是否存在的依据
+          const outDir = path.join(ext.dir, 'dist/client-web')
+          const entryFile = path.join(outDir, 'index.html')
 
           // 1. 如果没有构建产物，自动执行构建
           if (!fs.existsSync(entryFile)) {
             console.log(colors.yellow(`  ⚡ [${ext.id}] Build missing, building now...`))
             try {
-              // 使用 Vite Build API
-              await build({
-                root: ext.dir,
-                configFile: path.resolve(ext.dir, 'vite.config.ts'),
-                logLevel: 'warn', // 减少日志噪音
-                build: {
-                  // 确保构建产物不带 hash 或者符合你的引用习惯（可选）
-                  outDir: 'dist',
-                  emptyOutDir: true,
-                },
-              } as InlineConfig)
+              // Module Federation generates virtual modules in process-global paths.
+              // Isolate its build from the already-running host Vite process.
+              await buildExtension(ext)
               console.log(colors.green(`  ✅ [${ext.id}] Built successfully.`))
             } catch (e) {
               console.error(colors.red(`  ❌ [${ext.id}] Build failed.`), e)

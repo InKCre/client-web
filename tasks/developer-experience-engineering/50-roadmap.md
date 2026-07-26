@@ -53,8 +53,8 @@ Exit proof:
 
 ## Phase 3 - Make Static and Local Runtime Deterministic
 
-Status: client-web-owned slice implemented locally on 2026-07-23. The database slice remains
-blocked on separate authorization to modify and publish the authoritative `core-py` repository.
+Status: complete locally. The client static/runtime slice was implemented on 2026-07-23; the
+published core-py contract and provider-neutral database integration were verified on 2026-07-26.
 
 - Remove Hono, Worker config, and `httpAdapter` if D1/D2 are confirmed.
 - Make local/browser config authority explicit and restore it correctly on reload.
@@ -75,9 +75,13 @@ Current proof:
 
 - static Vite build and public-artifact tripwires pass;
 - browser-local and extension-local config initialization passes type/build checks;
-- SVC reports both started worktree targets healthy after cold start;
+- SVC reports the started worktree target healthy after cold start;
 - bounded cleanup removes only the current worktree routes and preserves unrelated Portless routes;
-- Docker/PostgREST readiness and two-real-worktree data isolation remain outstanding.
+- local and SSH transports share one tracked Compose/runtime contract, while machine facts remain
+  ignored;
+- real remote Docker/PostgREST readiness, reset, browser E2E, and cleanup pass;
+- two simultaneous SSH-backed instances have distinct projects, local/remote ports, volumes, and
+  tunnels; stopping one preserves the other.
 
 ## Phase 4 - Build the Test Pyramid
 

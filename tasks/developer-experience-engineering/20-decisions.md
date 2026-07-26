@@ -47,17 +47,20 @@ These are proposed decisions, not implementation authorization.
 
 ## D4 - Local PostgREST Ownership
 
-- Status: recommended and ownership-confirmed; implementation awaits separate `core-py` authorization.
+- Status: accepted and implemented through the published core-py runtime contract.
 - Recommendation:
   - `core-py` remains the only schema and migration authority;
   - client-web gets a pinned Docker PostgREST capability backed by that authority;
-  - implement it by extending the core-py dev stack or by consuming a versioned shared dev-runtime artifact;
+  - client-web owns only Compose orchestration, provider transport, worktree isolation, readiness,
+    and bounded cleanup;
+  - commit portable local Docker as the default and keep SSH target/executable facts in ignored
+    `svc.local.json`;
   - do not copy SQL migrations into client-web.
 - Revisit trigger: schema authority deliberately moves to another unit.
 
 ## D5 - SVC and Shared Product Docs
 
-- Status: proposed.
+- Status: accepted and implemented.
 - Recommendation:
   - adopt official SVC `10.0.1` in client-web and the Hub;
   - query the packaged SVC corpus rather than copying v9 framework docs;
