@@ -42,8 +42,6 @@
     "storageNotice": "This configuration belongs to this browser origin and is restored automatically.",
     "jwtStoredLocally": "Stored in this browser only. It is never supplied by the build or hosting platform.",
     "exportExcludesSecret": "Exports exclude the JWT secret. Importing an export preserves the secret already stored in this browser.",
-    "legacyEndpoint": "This browser still addresses the retired staging PostgREST service.",
-    "useCanonicalProduction": "Use canonical production",
     "language": "Language"
   },
   "source": {

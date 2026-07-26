@@ -38,7 +38,7 @@ jobs:
     steps:
       - name: Resolve exact main or internal PR
         id: identity
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const runId = context.eventName === 'workflow_dispatch'
@@ -101,7 +101,7 @@ jobs:
     environment: ${{ needs.identity.outputs.environment }}
     steps:
       - name: Checkout the trusted delivery controller
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
           path: controller
@@ -121,7 +121,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Reverify release authority before delivery
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           RELEASE_BRANCH: ${{ needs.identity.outputs.branch }}
           RELEASE_HEAD_SHA: ${{ needs.identity.outputs.head_sha }}
@@ -161,7 +161,7 @@ jobs:
 
       - name: Deploy to Cloudflare Pages
         id: pages
-        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -172,7 +172,6 @@ jobs:
             pages deploy dist
             --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT }}
             --branch=${{ needs.identity.outputs.branch }}
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Smoke-test the exact Pages deployment
         run: node controller/scripts/verify-pages-deployment.mjs

@@ -10,6 +10,15 @@
 - [x] D4: core-py remains schema authority; client-web consumes a versioned Docker PostgREST development capability without copying migrations.
 - [x] D5: adopt official SVC `10.0.1`, publish the settled docs Hub, then add the exact published commit as the client-web shared mount.
 - [ ] D6: fast-forward and protect `main`, then retire long-lived `develop`.
+- [x] D7: browser artifacts and source maps contain no environment URL or client identity.
+- [x] D8a design decision: top-level configuration will be `ready | invalid`;
+      missing/empty/malformed remain validation issue kinds rather than lifecycle states.
+- [x] D8b design decision: effectful subsystems will subscribe independently and own
+      lifecycle/concurrency; the app layer will not coordinate them.
+- [ ] D8 implementation: publisher, subscribers, navigation policy, and extension single-flight
+      remain unstarted until a separate explicit start.
+- [x] D9: consolidate Dependabot action updates and group future action PRs; use a dedicated
+      least-privilege package-read secret.
 
 ## Hard Cut-Off Boundary
 
@@ -26,6 +35,9 @@
 - copied SVC v9 framework docs -> packaged SVC v10 plus Consumer-owned knowledge;
 - stale `main` plus effective `develop` -> protected `main` as sole integration/production branch;
 - documentation claims without executable evidence -> commands, tests, CI, and current Deployment docs.
+- public production/legacy/loopback defaults -> empty browser-local state plus explicit bootstrap;
+- app-layer effect sequencing -> reactive desired-state publication plus autonomous subscribers;
+- five independent action update PRs -> one grouped, fully verified update.
 
 No compatibility shim, duplicate schema, dual formatter, alternate production branch, shared JWT deployment secret, or silent script exemption survives without a named consumer and removal criterion.
 
@@ -46,6 +58,9 @@ No compatibility shim, duplicate schema, dual formatter, alternate production br
   GitHub/Cloudflare configuration are authorized.
 - On 2026-07-26 the user explicitly authorized committing and pushing the complete current
   workspace and continuing through GitHub Actions repair until Pages production CD passes.
+- On 2026-07-26 the user authorized environment-neutral artifact and Dependabot implementation.
+  Bootstrap/subscription work remains design-only and requires another explicit start. The current
+  authorization does not include commit, push, PR mutation, or secret creation.
 - Cloudflare token creation remained a manual prerequisite; the user installed the dedicated
   organization secret. Wrangler OAuth is now healthy through the pinned `pnpm dlx` invocation.
   No credential extraction or browser-session workaround is authorized or needed.
@@ -121,3 +136,25 @@ No compatibility shim, duplicate schema, dual formatter, alternate production br
   shell.
 - 2026-07-26: protected `main` now requires the proven browser-extension contract in addition to
   workspace, dependency review, and peer-database checks.
+- 2026-07-26: the accepted Pages artifact was found to contain production and legacy service
+  origins plus client identities through core's generated production profile and auth import graph.
+  The user rejected all environment identity in static artifacts and authorized a hard cut.
+- 2026-07-26: the user rejected `incomplete` as a top-level bootstrap state. Configuration is
+  `ready | invalid`; missing, empty, malformed, and unsupported remain structured issue kinds.
+- 2026-07-26: the user rejected app-layer side-effect lifecycle composition. The target publishes
+  reactive desired state and gives database, auth, extension, and navigation subscribers complete
+  ownership of their lifecycle and concurrency. Implementation remains unstarted.
+- 2026-07-26: the user accepted a consolidated Dependabot update with grouped future action PRs
+  and a dedicated least-privilege GitHub Packages secret. No remote PR mutation is authorized in
+  the current slice.
+- 2026-07-26: the local hard cut deletes production/legacy profiles, produces only
+  environment-neutral runtime/JWT metadata, empties browser defaults, removes webext's loopback and
+  stopword-network fallbacks, and ratchets both browser artifacts. The complete local gate is
+  green.
+- 2026-07-26: the five Action updates are consolidated locally and Wrangler's GitHub deployment
+  integration is removed. Dependabot config names `INKCRE_PACKAGES_READ_TOKEN`; Sir must create
+  that least-privilege Dependabot secret before any publication. No secret, commit, push, PR close,
+  or deployment was performed.
+- 2026-07-26: fresh-origin browser QA proved zero external requests and empty localStorage, while
+  also reproducing the known unconditional extension-startup `Invalid URL` console error. It is
+  evidence for D8, not authorization to add an app-layer guard.

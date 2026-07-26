@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 
 import {
   generateDatabaseTypes,
+  generateRuntimeContract,
   readJson,
   stableJson,
   validateContractDocument,
@@ -43,6 +44,12 @@ const generated = await import('node:fs/promises').then(({ readFile }) =>
 )
 if (generated !== generateDatabaseTypes(actual)) {
   throw new Error('generated database types do not match the core image contract')
+}
+const generatedRuntimeContract = await import('node:fs/promises').then(({ readFile }) =>
+  readFile(`${repoRoot}/packages/core/src/database/runtime-contract.ts`, 'utf8')
+)
+if (generatedRuntimeContract !== generateRuntimeContract(actual)) {
+  throw new Error('generated runtime contract does not match the core image contract')
 }
 
 console.log(`[OK] ${pin.image} publishes ${actual.revision} from ${actual.source_revision}`)

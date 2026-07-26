@@ -127,9 +127,9 @@ onMounted(() => {
   <main class="px-4 py-10 text-center text-text">
     <img :src="logo" class="icon-btn mx-2 text-2xl" alt="InKCre Logo" />
 
-    <!-- Environment Variables Display -->
+    <!-- Extension-owned runtime configuration -->
     <div class="mt-6 p-4 bg-surface-2 rounded-none border border-border">
-      <h3 class="text-lg font-semibold mb-2">Environment Variables</h3>
+      <h3 class="text-lg font-semibold mb-2">Runtime configuration</h3>
       <div class="text-left space-y-4">
         <div class="flex items-center space-x-2">
           <label for="inkcre-api" class="font-medium">INKCRE_API:</label>
@@ -138,7 +138,7 @@ onMounted(() => {
             v-model="inkcreApi"
             type="url"
             class="flex-1 px-2 py-1 border border-border rounded-none bg-surface"
-            placeholder="https://api.inkcre.com"
+            placeholder="https://..."
           />
         </div>
 

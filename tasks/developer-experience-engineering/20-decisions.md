@@ -77,3 +77,71 @@ These are proposed decisions, not implementation authorization.
   - protect `main` and use it as the sole integration and production branch;
   - retire the long-lived branch split.
 - Revisit trigger: a documented release-train requirement justifies a distinct integration branch.
+
+## D7 - Environment-Neutral Browser Artifacts
+
+- Status: accepted; implementation authorized in Phase 6.
+- Recommendation:
+  - compile no environment-specific service origin, client identity, or fallback endpoint into web
+    or extension artifacts, including source maps;
+  - keep browser-local configuration empty until the user or an explicit local/E2E bootstrap
+    supplies it;
+  - consume only environment-neutral protocol and JWT-claim facts from the core-py contract;
+  - remove production/legacy profile snapshots from client-web instead of maintaining a second
+    environment authority.
+- Rationale:
+  - a static artifact should be promotable unchanged across preview and production;
+  - service origins and client identities are public rather than secret, but compiling them still
+    couples release identity to one environment and makes accidental production access possible;
+  - core-py owns environment instances while client-web owns only the environment-neutral client
+    contract.
+- Rejected alternative: classify origins and client IDs as harmless public defaults and allow them
+  in the bundle.
+
+## D8 - Reactive Configuration and Effect Ownership
+
+- Status: design constraints accepted; implementation remains unstarted and requires a separate
+  explicit start.
+- Recommendation:
+  - expose one top-level configuration result: `ready` with validated immutable config, or
+    `invalid` with structured validation issues;
+  - represent missing, empty, malformed, and unsupported values as issue kinds inside `invalid`,
+    not as competing lifecycle states;
+  - publish desired state through Vue reactivity;
+  - let each effectful subsystem subscribe independently and own its complete lifecycle:
+    start/update/stop, latest-only cancellation, idempotence, error reporting, and disposal;
+  - keep extension startup overlap prevention inside the extension runtime rather than in the app
+    layer.
+- Rationale:
+  - `incomplete` has no distinct control-flow meaning once every non-ready state must suspend
+    dependent behavior and direct the user to configuration;
+  - a central app coordinator accumulates cross-subsystem ordering and cancellation knowledge and
+    becomes fragile as subscribers grow;
+  - observer topology removes central orchestration, while local ownership preserves enforceable
+    concurrency semantics.
+- Constraint: subscription does not itself solve races. Every subscriber must define what happens
+  when desired state changes during an in-flight effect.
+- Rejected alternative: app-layer sequencing of database, authentication, extension, and routing
+  side effects.
+
+## D9 - Dependabot Convergence
+
+- Status: accepted; local implementation authorized in Phase 6.
+- Recommendation:
+  - consolidate the five currently open GitHub Actions updates into one reviewed immutable-SHA
+    change;
+  - group future GitHub Actions updates and allow only one version-update PR at a time;
+  - keep npm production and development updates grouped;
+  - authenticate Dependabot to `@inkcre` GitHub Packages through a dedicated
+    `INKCRE_PACKAGES_READ_TOKEN` Dependabot secret with only package-read authority;
+  - remove Wrangler's GitHub token integration so the workflow's protected GitHub environment is
+    the single deployment-record authority.
+- Rationale:
+  - the current five PRs are independently green but behind main and do not verify the current
+    delivery controller;
+  - a consolidated update reduces queue noise and gives Pages production/preview one coherent
+    validation target;
+  - copying the operator's broadly scoped GitHub CLI token into Dependabot would violate
+    least-privilege.
+- Manual prerequisite: Sir creates the dedicated Dependabot secret; repository configuration may
+  reference it only when the failure mode is explicit and reviewable.

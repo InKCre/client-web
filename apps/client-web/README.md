@@ -17,7 +17,8 @@ pnpm dev:stop
 ```
 
 SVC and Portless allocate a stable URL for the current worktree. PostgREST URL, client ID, and the
-user-owned JWT signing secret are configured in the browser. Config export deliberately excludes
-the secret.
+user-owned JWT signing secret are configured in the browser; a fresh origin has no environment
+default. The same environment-neutral static artifact is promotable through preview and
+production. Config export deliberately excludes the secret.
 
 本项目依赖 GitHub Packages 中的 `@inkcre/web-design`。按照仓库根 `README.md` 配置只读 package token，并始终从 monorepo 根目录执行 frozen install；不要用 `pnpm link` 替代可复现依赖。

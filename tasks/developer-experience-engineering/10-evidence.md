@@ -361,6 +361,76 @@ wrangler@4.114.0` invocation has a healthy OAuth session with Pages write access
   Workspace contract, Peer database browser E2E, Dependency security review, and Browser extension
   contract.
 
+## 2026-07-26 Environment-Neutrality and Dependabot Audit
+
+- The accepted `client-web-dist` artifact from `Client checks` run `30194484367` contains the
+  canonical production core/PostgREST Heroku origins, the retired PostgREST host, and two client
+  UUIDs in its JavaScript and source map.
+- The import chain is not a Vite or Cloudflare injection:
+  - `packages/core/src/database/production-profile.ts` contains the environment instance;
+  - `database/profile.ts` turns it into schema defaults and legacy migration behavior;
+  - `auth/store.ts` imports the complete production profile only for environment-neutral JWT claim
+    facts, retaining the instance values in browser output.
+- `deploy/profiles/production.json` and `legacy-endpoints.json` duplicate environment ownership in
+  the client repository even though `contracts/core-py-contract.json` already contains the
+  environment-neutral protocol and JWT contract.
+- Webext has two additional hidden environment/network defaults:
+  - `logic/storage.ts` initializes its API origin to `http://127.0.0.1:8000`;
+  - WritingAssist fetches a mutable GitHub raw stopword list before falling back to the bundled
+    list.
+- Provider documentation URLs, help links, and input placeholders are not runtime configuration
+  and do not choose an environment.
+- Dependabot PRs 20 through 24 are mergeable but behind current main. Their required checks pass,
+  but each validates a stale controller independently.
+- The five updates cover `docker/login-action`, `actions/github-script`, `actions/checkout`,
+  `cloudflare/wrangler-action`, and `pnpm/action-setup`; the repository pins Actions by immutable
+  commit SHA.
+- The npm Dependabot updater run `30194493321` failed with
+  `private_source_authentication_failure` for `@inkcre/web-design` because its requests to GitHub
+  Packages had no authorization header.
+- No repository or organization Dependabot secret currently provides package-read access. The
+  active operator GitHub CLI token has broader organization, repository, project, workflow, and
+  package scopes and is not an acceptable Dependabot credential.
+- The dependency audit retains one low-severity AI SDK provider-utils advisory without a patched
+  release in the current major. It is separate from updater authentication and is not dismissed by
+  this slice.
+
+## 2026-07-26 Local Environment-Neutral and Updater Result
+
+- Client-owned production and legacy profile snapshots are deleted. Core auth imports a generated
+  `peerJwtContract` containing only JWT claims; the adjacent runtime contract contains only
+  contract/protocol format, revision, schema, and those JWT claims.
+- Meta-config URL and client identity defaults are empty. Non-empty values remain URL/UUID
+  validated; this raw persisted shape deliberately does not implement the future `ready | invalid`
+  publisher.
+- Web settings no longer offer a compiled canonical-production migration. Webext API storage also
+  defaults to empty, and WritingAssist uses its bundled stopwords instead of a hidden network
+  fallback.
+- Runtime checks reject any first-party fixed browser URL outside an explicit reviewed
+  documentation/provider-example allowlist and any first-party UUID literal. Package checks also
+  inspect web plus Chromium-extension JavaScript, JSON, HTML, CSS, and source maps for the
+  retired/config endpoints, known historical client identities, loopback API default, and mutable
+  stopword fallback.
+- All five pending Action updates are applied to the local workflows by immutable SHA.
+  GitHub-Action updates are grouped with a one-version-PR limit, and Wrangler no longer receives
+  `gitHubToken`, leaving the protected job environment as deployment-record owner.
+- Dependabot npm config now references a dedicated `@inkcre` GitHub Packages registry and
+  `INKCRE_PACKAGES_READ_TOKEN`. The secret does not exist remotely and must be created manually
+  before publication; the operator's broader GitHub CLI token was not copied.
+- Local `pnpm check` passes 10 Vitest files and 35 tests plus every required build. The rebuilt web
+  and Chromium-extension artifacts pass environment-neutral scanning. Type-aware Oxlint, native
+  TypeScript 7, `pnpm audit:dependencies`, YAML parsing, actionlint 1.7.12, doctor, and
+  `git diff --check` also pass. The dependency audit reports only the previously recorded low
+  advisory.
+- `pnpm contract:sync` cannot exercise the pinned image path on this macOS host because it has no
+  local Docker CLI. The byte-for-byte generated-contract gate and current pin pass; local
+  `core-py` HEAD was intentionally not substituted for the pinned image.
+- A headless fresh-origin load of the rebuilt static artifact returns HTTP 200, leaves localStorage
+  empty, and makes no request outside the local preview origin. The existing unconditional
+  `Extension.startup()` nevertheless logs two `Invalid URL` errors while attempting discovery.
+  This proves the hard cut prevents implicit environment access but does not yet provide the
+  designed invalid-state suspension/navigation experience.
+
 ## 2026-07-26 Core-Owned Development Runtime Attachment
 
 - The canonical Hub `main` commit `a0ba0d4` restores SVC 10.0.1 plus the reviewed peer database

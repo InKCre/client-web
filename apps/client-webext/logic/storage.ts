@@ -43,7 +43,7 @@ export const { data: stopwords, dataReady: stopwordsReady } = useWebExtensionSto
  */
 export const { data: inkcreApi, dataReady: inkcreApiReady } = useWebExtensionStorage(
   'inkcreApi',
-  'http://127.0.0.1:8000'
+  ''
 )
 
 /**

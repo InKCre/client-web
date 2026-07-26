@@ -127,11 +127,10 @@ export {
 
 // Database protocol
 export {
-  canonicalMetaConfig,
-  canonicalProductionProfile,
-  classifyPostgrestEndpoint,
+  databaseRuntimeContract,
+  peerJwtContract,
+  type DatabaseRuntimeContract,
   type Database,
-  type EndpointStatus,
   type InkcreSchema,
   type Json,
   type RelationName,

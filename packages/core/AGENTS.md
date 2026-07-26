@@ -8,6 +8,7 @@ Shared logic package for InKCre applications and extensions.
 - `base` - DBAPIClient, APIError
 - `client` - Client model & API
 - `config` - Configuration adapters & schema
+- `database` - generated relation types and environment-neutral peer protocol/JWT contract
 - `extension` - Extension lifecycle, Module Federation
 - `info-base` - Block, Relation, Storage, Resolvers
 - `obsrv` - Observability (Log)
@@ -67,3 +68,6 @@ repository root.
   development.
 - The package is ESM-only. Do not add a CommonJS export without a named consumer and an explicit
   contract change.
+- Shipped core runtime source and output must not contain an environment profile, service origin,
+  or client identity. `runtime-contract.ts` is generated from the peer contract and contains only
+  protocol and JWT claim metadata; tests may use explicit non-production fixtures.

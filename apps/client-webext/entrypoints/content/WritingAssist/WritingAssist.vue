@@ -74,26 +74,9 @@ const loadStopwords = async (): Promise<string[]> => {
     return stopwords.value.map((w: string) => w.toLowerCase())
   }
 
-  // Fallback: try to load from network
-  try {
-    const response = await fetch(
-      'https://raw.githubusercontent.com/stopwords-iso/stopwords-en/master/stopwords-en.json'
-    )
-    if (!response.ok) throw new Error('Failed to load stopwords')
-    const data = await response.json()
-
-    // Normalize to lowercase
-    const normalizedData = data.map((w: string) => w.toLowerCase())
-
-    // Save downloaded stopwords to storage for future use
-    stopwords.value = normalizedData
-
-    return normalizedData
-  } catch (error) {
-    console.warn('Failed to load stopwords from network, using default list:', error)
-    // Default stopwords list as final fallback, ensure lowercase
-    return DEFAULT_STOPWORDS.map((w: string) => w.toLowerCase())
-  }
+  // The bundled list is the deterministic fallback. Runtime bootstrap must not depend on a
+  // mutable third-party URL.
+  return DEFAULT_STOPWORDS.map((word: string) => word.toLowerCase())
 }
 
 const getReplacableUnits = async (text: string): Promise<ReplacableUnit[]> => {

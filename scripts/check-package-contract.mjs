@@ -53,6 +53,7 @@ async function builtFiles(directory) {
 }
 
 const webDist = `${repoRoot}/apps/client-web/dist`
+const webextDist = `${repoRoot}/apps/client-webext/.output/chrome-mv3`
 try {
   await access(`${webDist}/_worker.js`)
   errors.push('unexpected Worker output: apps/client-web/dist/_worker.js')
@@ -60,21 +61,39 @@ try {
   // The web application is a static Pages artifact.
 }
 
-try {
-  const files = await builtFiles(webDist)
-  for (const file of files) {
-    const output = await readFile(file)
-    const content = output.toString('utf8')
-    for (const forbiddenTerm of ['/api/config', 'VITE_INKCRE_JWT_SECRET']) {
-      if (content.includes(forbiddenTerm)) {
-        errors.push(
-          `static web output contains forbidden runtime-config channel "${forbiddenTerm}": ${file.slice(repoRoot.length + 1)}`
-        )
+const forbiddenBrowserArtifactTerms = new Map([
+  ['/api/config', 'legacy runtime-config channel'],
+  ['VITE_INKCRE_JWT_SECRET', 'build-supplied JWT credential channel'],
+  ['herokuapp.com', 'environment-specific Heroku service origin'],
+  ['http://127.0.0.1:8000', 'loopback API default'],
+  ['raw.githubusercontent.com/stopwords-iso', 'mutable third-party runtime bootstrap fallback'],
+  ['063cd1df-c495-5006-a119-67aa633b26be', 'environment-specific client identity'],
+  ['1eaaadc6-2c1d-4515-ad06-22905dc890a9', 'legacy environment client identity'],
+])
+
+for (const [label, directory] of [
+  ['static web', webDist],
+  ['browser extension', webextDist],
+]) {
+  try {
+    const files = await builtFiles(directory)
+    for (const file of files) {
+      if (!/\.(?:css|html|js|json|map)$/.test(file)) {
+        continue
+      }
+
+      const content = await readFile(file, 'utf8')
+      for (const [term, reason] of forbiddenBrowserArtifactTerms) {
+        if (content.includes(term)) {
+          errors.push(
+            `${label} output contains ${reason} "${term}": ${file.slice(repoRoot.length + 1)}`
+          )
+        }
       }
     }
+  } catch (error) {
+    errors.push(`${label} artifact inspection failed: ${error.message}`)
   }
-} catch (error) {
-  errors.push(`static web artifact inspection failed: ${error.message}`)
 }
 
 const packageJson = JSON.parse(await readFile(`${coreRoot}/package.json`, 'utf8'))
@@ -129,7 +148,7 @@ if (jsonOutput) {
   console.log(JSON.stringify(result, null, 2))
 } else if (result.ok) {
   console.log(
-    '[OK] static web outputs exist and @inkcre/core resolves through its ESM dist contract'
+    '[OK] browser artifacts are environment-neutral and @inkcre/core resolves through its ESM dist contract'
   )
 } else {
   for (const error of errors) {

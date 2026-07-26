@@ -1,11 +1,11 @@
 import { execFileSync } from 'node:child_process'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import {
   generateDatabaseTypes,
-  generateProductionProfile,
+  generateRuntimeContract,
   readJson,
   stableJson,
   validateContractDocument,
@@ -32,7 +32,6 @@ const existingPin = await readJson(`${repoRoot}/contracts/core-py.json`)
 const image = requestedImage ?? existingPin.image
 let contract
 let sourceRevision
-let productionProfile
 
 if (localCore) {
   sourceRevision = output('git', ['rev-parse', 'HEAD'], { cwd: localCore })
@@ -45,14 +44,10 @@ if (localCore) {
       },
     })
   )
-  productionProfile = JSON.parse(
-    await readFile(`${localCore}/deploy/profiles/production.json`, 'utf8')
-  )
 } else {
   output('docker', ['pull', image])
   contract = JSON.parse(output('docker', ['run', '--rm', image, 'db', 'contract', '--json']))
   sourceRevision = contract.source_revision
-  productionProfile = await readJson(`${repoRoot}/deploy/profiles/production.json`)
 }
 
 validateContractDocument(contract)
@@ -73,14 +68,13 @@ const pin = {
 await mkdir(`${repoRoot}/packages/core/src/database`, { recursive: true })
 await writeFile(`${repoRoot}/contracts/core-py.json`, stableJson(pin))
 await writeFile(`${repoRoot}/contracts/core-py-contract.json`, stableJson(contract))
-await writeFile(`${repoRoot}/deploy/profiles/production.json`, stableJson(productionProfile))
 await writeFile(
   `${repoRoot}/packages/core/src/database/generated.ts`,
   generateDatabaseTypes(contract)
 )
 await writeFile(
-  `${repoRoot}/packages/core/src/database/production-profile.ts`,
-  generateProductionProfile(productionProfile)
+  `${repoRoot}/packages/core/src/database/runtime-contract.ts`,
+  generateRuntimeContract(contract)
 )
 
 console.log(`[contract] synced ${contract.revision} from ${sourceRevision} using ${image}`)

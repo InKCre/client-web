@@ -126,7 +126,41 @@ Exit proof:
 
 ## Phase 6 - Hard-Cut Legacy Surfaces and Ratchet
 
+Status: locally implemented and green. Remote publication/proof is gated by the dedicated
+Dependabot secret and explicit commit/push authorization; reactive-bootstrap implementation
+remains design-only.
+
 - Delete obsolete Worker/Hono, adapter, formatter, linter, build, environment, port, branch, and documentation surfaces.
-- Add permanent tripwires for workspace participation, public build values, SVC/shared-doc freshness, and production-origin use in tests.
+- Remove production/legacy client profile snapshots and generate only environment-neutral protocol
+  and JWT facts from the core-py contract.
+- Default browser-local environment fields to empty values; never compile service origins or client
+  identities into web or extension output.
+- Add permanent tripwires for workspace participation, environment-neutral web and extension
+  artifacts/source maps, SVC/shared-doc freshness, and production-origin use in tests.
+- Consolidate current GitHub Actions dependency updates, group future action PRs, and connect
+  Dependabot to private GitHub Packages through a least-privilege secret.
 - Refresh admitted AGENTS, Unit TDD, Deployment, PRD, and Product TDD owners with verified truth only.
 - Delete this packet under the v10 retention rule after work and durable updates are complete.
+
+Exit proof:
+
+- the accepted web and extension artifacts contain no environment URL or client identity;
+- production and preview deploy the same environment-neutral artifact;
+- package-contract checks fail on reintroduced production, legacy, loopback, or hidden network
+  bootstrap defaults;
+- one grouped GitHub Actions update path replaces the five-PR queue;
+- Dependabot resolves `@inkcre/web-design` without a broadly scoped operator token;
+- bootstrap remains unmodified until the autonomous-subscriber contract receives a separate start.
+
+Current proof:
+
+- production/legacy profiles and their public core exports are absent;
+- generated runtime/JWT metadata is environment-neutral and byte-for-byte checked against the
+  core-py contract snapshot;
+- fresh web and webext builds pass the expanded artifact scan;
+- `pnpm check`, both shadow lanes, dependency audit, doctor, YAML/actionlint, and diff checks pass;
+- consolidated Action SHAs, grouping, private-registry reference, and single GitHub deployment
+  record are present locally;
+- a fresh-origin QA makes no external request but exposes the known unconditional extension-startup
+  console error; D8 owns its future suspension/navigation behavior;
+- remote Dependabot, production, preview, cleanup, and superseded-PR behavior remain unclaimed.

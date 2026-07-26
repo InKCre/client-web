@@ -1,11 +1,20 @@
 version: 2
 
+registries:
+  inkcre-github-packages:
+    type: npm-registry
+    url: https://npm.pkg.github.com
+    scope: '@inkcre'
+    token: ${{ secrets.INKCRE_PACKAGES_READ_TOKEN }}
+
 updates:
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
     target-branch: main
+    registries:
+      - inkcre-github-packages
     groups:
       production-dependencies:
         dependency-type: production
@@ -17,3 +26,8 @@ updates:
     schedule:
       interval: weekly
     target-branch: main
+    open-pull-requests-limit: 1
+    groups:
+      github-actions:
+        patterns:
+          - '*'

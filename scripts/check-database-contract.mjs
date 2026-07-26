@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 
 import {
   generateDatabaseTypes,
-  generateProductionProfile,
+  generateRuntimeContract,
   readJson,
   validateContractDocument,
 } from './database-contract-lib.mjs'
@@ -13,19 +13,7 @@ const pin = await readJson(`${repoRoot}/contracts/core-py.json`)
 const contract = validateContractDocument(
   await readJson(`${repoRoot}/contracts/core-py-contract.json`)
 )
-const profile = await readJson(`${repoRoot}/deploy/profiles/production.json`)
-const legacyEndpoints = await readJson(`${repoRoot}/deploy/profiles/legacy-endpoints.json`)
 const errors = []
-
-function comparable(value) {
-  if (Array.isArray(value)) return value.map(comparable)
-  if (!value || typeof value !== 'object') return value
-  return Object.fromEntries(
-    Object.entries(value)
-      .sort(([left], [right]) => left.localeCompare(right))
-      .map(([key, item]) => [key, comparable(item)])
-  )
-}
 
 if (!/^[a-f0-9]{40}$/.test(pin.source_revision)) {
   errors.push('core source revision must be a full commit SHA')
@@ -39,35 +27,17 @@ if (pin.contract_revision !== contract.revision) {
 if (contract.source_revision !== pin.source_revision) {
   errors.push('core contract snapshot was not emitted by the pinned source revision')
 }
-if (pin.migration_head !== profile.database_contract?.migration_head) {
-  errors.push('core pin and production migration head differ')
-}
-if (
-  profile.database_contract?.revision !== contract.revision ||
-  profile.database_contract?.protocol_schema !== contract.protocol.schema
-) {
-  errors.push('production profile and executable database contract differ')
-}
-if (JSON.stringify(comparable(profile.jwt)) !== JSON.stringify(comparable(contract.jwt))) {
-  errors.push('production profile and executable JWT contract differ')
-}
-if (profile.postgrest?.anonymous_access !== 'deny') {
-  errors.push('canonical production profile must deny anonymous access')
-}
-if (legacyEndpoints.postgrest_hosts?.length === 0) {
-  errors.push('legacy PostgREST migration detector must retain at least one retired host')
-}
 
 const generatedTypes = await readFile(`${repoRoot}/packages/core/src/database/generated.ts`, 'utf8')
 if (generatedTypes !== generateDatabaseTypes(contract)) {
   errors.push('generated PostgREST relation types are stale')
 }
-const generatedProfile = await readFile(
-  `${repoRoot}/packages/core/src/database/production-profile.ts`,
+const generatedRuntimeContract = await readFile(
+  `${repoRoot}/packages/core/src/database/runtime-contract.ts`,
   'utf8'
 )
-if (generatedProfile !== generateProductionProfile(profile)) {
-  errors.push('generated canonical production profile is stale')
+if (generatedRuntimeContract !== generateRuntimeContract(contract)) {
+  errors.push('generated environment-neutral runtime contract is stale')
 }
 
 const compose = await readFile(`${repoRoot}/runtime/database.compose.yml`, 'utf8')

@@ -212,8 +212,9 @@ Decorator-based registration for pluggable content handling. Extensions can add 
 
 The static web application explicitly initializes the shared config store with its localStorage
 adapter before mounting Vue. The browser origin owns the PostgREST URL, client ID, and user-provided
-JWT signing credential. There is no HTTP config endpoint, environment adapter, or runtime adapter
-switching.
+JWT signing credential; an empty origin does not inherit a production or development environment.
+There is no HTTP config endpoint, environment adapter, runtime adapter switching, or compiled
+environment profile.
 
 ---
 
@@ -288,6 +289,7 @@ Pinia stores for global state:
 
 - localStorage is the web runtime authority.
 - Zod validates config before persistence and use.
+- Static artifacts and source maps contain no InKCre environment origin or client identity.
 - Portable export excludes the JWT signing credential.
 - JWTs remain memory-only and are signed from the user-owned browser credential.
 

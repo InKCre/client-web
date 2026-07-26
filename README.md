@@ -113,8 +113,10 @@ also launch Chrome, set `INKCRE_CHROMIUM_BINARY` to an executable path before st
 uses `.runtime/dev/<instance>/chromium-profile` rather than a shared user profile.
 
 The web application's PostgREST URL, client ID, and user-supplied JWT signing credential are
-browser-local settings. No `VITE_*`, Cloudflare, or Worker path supplies that credential, and
-portable config export excludes it.
+browser-local settings. A fresh origin starts without an environment selection. No InKCre
+environment origin, client identity, or JWT credential is compiled into the web/extension
+artifacts or their source maps; no `VITE_*`, Cloudflare, or Worker path supplies one. Portable
+config export excludes the credential.
 
 The database capability starts digest-pinned pgvector, core-py, and PostgREST images under the
 worktree's SVC identity, with collision-safe ports and volumes. Local Docker publishes directly to
@@ -131,8 +133,8 @@ readiness agree. Client-web does not stop or reset that shared runtime. Browser 
 and removes its own isolated database instance.
 
 `pnpm run doctor -- --json` reports the image digest, source revision, contract version, generated
-type drift, config provenance, Docker availability, and legacy endpoint status without reading or
-printing the browser-owned JWT credential.
+type drift, config provenance, and Docker availability without reading or printing the
+browser-owned JWT credential.
 
 ## Package contract
 
@@ -142,3 +144,7 @@ printing the browser-owned JWT credential.
 `dist` entry.
 
 Shared product truth is mounted read-only from `InKCre/docs` at `docs/_shared/`. Update the Hub first and publish its commit before changing this repository's submodule reference.
+
+The generated core peer-runtime contract contains only protocol format/schema and JWT claim rules.
+Environment profiles and instance URLs remain owned by core-py and runtime configuration, not this
+repository.

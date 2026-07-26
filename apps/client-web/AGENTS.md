@@ -43,6 +43,8 @@ src/
 
 - The application has no Hono/Worker runtime and no `/api/config` endpoint.
 - Bootstrap config is validated and persisted in this origin's localStorage.
+- A fresh origin has no environment default. Static output and source maps contain no InKCre
+  environment origin or client identity.
 - The user-supplied JWT signing credential is masked, never logged, and excluded from portable
   config exports.
 - Start through the root `pnpm dev` command so SVC and Portless preserve worktree identity.

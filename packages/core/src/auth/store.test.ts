@@ -2,7 +2,7 @@ import { jwtVerify } from 'jose'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { configStore } from '../config'
-import { canonicalProductionProfile } from '../database'
+import { peerJwtContract } from '../database'
 import { createAuthStore } from './store'
 
 const originalMetaConfig = { ...configStore.metaConfig }
@@ -20,14 +20,14 @@ describe('peer JWT contract', () => {
     const auth = createAuthStore()
     const token = await auth.newToken()
     const verified = await jwtVerify(token, new TextEncoder().encode(secret), {
-      algorithms: [canonicalProductionProfile.jwt.algorithm],
-      issuer: canonicalProductionProfile.jwt.issuer,
-      audience: canonicalProductionProfile.jwt.audience,
+      algorithms: [peerJwtContract.algorithm],
+      issuer: peerJwtContract.issuer,
+      audience: peerJwtContract.audience,
     })
 
-    expect(verified.payload.role).toBe(canonicalProductionProfile.jwt.role)
+    expect(verified.payload.role).toBe(peerJwtContract.role)
     expect(verified.payload.exp! - verified.payload.iat!).toBe(
-      canonicalProductionProfile.jwt.maximum_lifetime_seconds
+      peerJwtContract.maximum_lifetime_seconds
     )
   })
 })

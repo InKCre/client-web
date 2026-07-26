@@ -8,7 +8,7 @@
 - Contract:
   - required workspace scripts;
   - `@inkcre/core` exports and declarations;
-  - public environment allowlist;
+  - environment-neutral browser artifacts, including source maps;
   - client-config provenance and persistence;
   - Module Federation remote manifests;
   - SVC adoption and shared-doc freshness.
@@ -19,6 +19,10 @@
   - Firefox build and manifest smoke until a reliable Firefox extension driver is deliberately chosen.
 
 E2E setup writes a test-only browser-local config for an isolated Docker stack. No JWT credential is embedded in the Pages artifact or repository.
+
+The artifact contract rejects environment-specific service origins, client identities, loopback
+service defaults, and hidden network fallbacks in both web and extension outputs. Documentation and
+help links may remain only when they are not runtime configuration or bootstrap fallbacks.
 
 Failures retain traces, screenshots, browser logs, and service logs with credentials redacted. Tests own deterministic seed/reset and cannot address production origins.
 

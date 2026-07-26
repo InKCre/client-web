@@ -98,12 +98,41 @@ flowchart LR
 ## Client Configuration Contract
 
 - The web app's runtime authority is browser-local config.
-- Public build defaults may include non-sensitive service origins, never the JWT credential.
+- Browser artifacts and source maps contain no environment-specific service origin, client
+  identity, or JWT credential. Preview and production consume the same environment-neutral
+  artifact.
+- Empty browser-local state is invalid until an explicit user, local-development, or test bootstrap
+  supplies a complete configuration.
 - The JWT secret is a user-authored credential for a user-selected InKCre/PostgREST environment.
 - The application validates config before use and reports its active provenance.
 - A preview origin has independent browser storage; importing config is an explicit user action.
 - Config export excludes the credential by default or marks the artifact as sensitive with deliberate confirmation.
 - Webext storage semantics mirror the same model without pretending the currently stale adapter path works.
+
+## Reactive Bootstrap Contract
+
+This is an agreed design boundary, not an implemented architecture.
+
+```mermaid
+flowchart LR
+  Storage["Browser or extension storage"] --> Validator["Pure config validation"]
+  Validator --> Desired["Reactive desired state: ready | invalid"]
+  Desired --> DB["Database subscriber"]
+  Desired --> Auth["Auth subscriber"]
+  Desired --> Extension["Extension runtime subscriber"]
+  Desired --> Router["Navigation-policy subscriber"]
+  DB --> DBState["Owned status and errors"]
+  Auth --> AuthState["Owned status and errors"]
+  Extension --> ExtensionState["Owned status and errors"]
+  Router --> RouterState["Owned status and errors"]
+```
+
+- `invalid` carries structured issues such as `missing`, `empty`, `malformed`, or `unsupported`;
+  those distinctions improve UI and diagnostics but do not create distinct orchestration states.
+- `ready` carries a fully validated, immutable configuration snapshot.
+- The app layer publishes or exposes desired state; it does not order subscriber side effects.
+- Each subscriber owns its own latest-only behavior, idempotence, teardown, and observable status.
+- A subscriber that cannot prove safe transition behavior is not ready to subscribe.
 
 ## Agent-Friendly Collaboration
 

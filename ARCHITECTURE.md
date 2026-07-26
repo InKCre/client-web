@@ -27,7 +27,10 @@
 - Dual API (`core/src/base`, `core/src/client`) - DBAPIClient (PostgREST) + CoreAPIClient (REST)
 - Module Federation (`core/src/extension`) - Dynamic plugin loading
 - Registry (`core/src/info-base/`) - Pluggable Storage & Resolver
-- Config (`core/src/config`) - validated runtime-owned browser or extension storage
+- Config (`core/src/config`) - environment-neutral schema plus runtime-owned browser or extension
+  storage
+- Peer runtime contract (`core/src/database/runtime-contract.ts`) - generated protocol and JWT
+  claim metadata without environment instances
 
 ## Data Flow
 
@@ -55,6 +58,8 @@
 - UI components by domain
 - Static Vite output
 - Browser-local bootstrap configuration and JWT signing
+- Environment-neutral static artifact; no InKCre environment origin or client identity is compiled
+  in
 - No application Worker or runtime config endpoint
 
 ### apps/client-webext
@@ -102,6 +107,8 @@
   Client-web remains a consumer and cannot reset, stop, or delete the core-py-owned volume/tunnel.
 - Provider selection and all SSH machine facts live in ignored `svc.local.json`; the committed
   default remains portable local Docker.
+- Local/E2E launchers inject their isolated runtime into browser-owned state. The production and
+  preview artifacts remain byte-for-byte independent of any PostgREST/core-py instance.
 - PostgreSQL/PostgREST schema, migration, roles, seed, and reset semantics remain a
   `core-py`-owned capability boundary.
 - Stopping a worktree removes only its Portless routes and client-owned database resources. An

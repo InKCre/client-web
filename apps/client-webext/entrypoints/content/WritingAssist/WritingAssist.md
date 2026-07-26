@@ -114,11 +114,10 @@ Cleans and normalizes text:
 
 **`loadStopwords(): Promise<string[]>`**
 
-Loads stopwords with fallback strategy:
+Loads stopwords with a deterministic fallback strategy:
 
-1. Check storage cache
-2. Fetch from GitHub (stopwords-iso)
-3. Use default hardcoded list
+1. Check extension storage
+2. Use the bundled default list
 
 **`getReplacableUnits(text: string): Promise<ReplacableUnit[]>`**
 
@@ -280,7 +279,6 @@ Leave: opacity 1 → 0, translateX(0 → 100%)
 
 ### External APIs
 
-- GitHub stopwords-iso - Stopword list
 - Embedding API - Vocabulary suggestions
 
 ## Performance Considerations
@@ -295,7 +293,7 @@ Leave: opacity 1 → 0, translateX(0 → 100%)
 ## Best Practices
 
 1. **Clean up resources** - Remove event listeners on unmount
-2. **Cache stopwords** - Save to storage for future use
+2. **Customize stopwords** - Save user changes to extension storage
 3. **Debounce aggressively** - Prevent API spam
 4. **Validate element types** - Check before accessing properties
 5. **Handle errors gracefully** - Catch and log API failures
@@ -394,7 +392,7 @@ Potential improvements:
 ## Known Limitations
 
 - Only works with Latin alphabet
-- Requires internet for first-time stopwords load
+- Does not require a network request to initialize stopwords
 - May not detect all editable elements
 - Limited to single-word replacements
 - No context awareness across sentences

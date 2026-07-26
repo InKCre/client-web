@@ -32,6 +32,8 @@ Web, browser-extension, shared-core, and Module Federation clients for the InKCr
 - Required verification: `pnpm check`.
 - Build the required Phase 2 outputs: `pnpm build`.
 - Shadow verification: `pnpm lint:type-aware` and `pnpm type-check:ts7`.
+- Browser artifacts are environment-neutral: InKCre environment origins, client identities, and
+  JWT credentials come only from browser/extension-owned storage or explicit local/E2E bootstrap.
 
 ## Execution Rules
 

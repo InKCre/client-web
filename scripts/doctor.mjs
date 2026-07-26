@@ -131,12 +131,6 @@ const corePin = JSON.parse(await readFile(`${repoRoot}/contracts/core-py.json`, 
 const coreContract = JSON.parse(
   await readFile(`${repoRoot}/contracts/core-py-contract.json`, 'utf8')
 )
-const productionProfile = JSON.parse(
-  await readFile(`${repoRoot}/deploy/profiles/production.json`, 'utf8')
-)
-const legacyEndpoints = JSON.parse(
-  await readFile(`${repoRoot}/deploy/profiles/legacy-endpoints.json`, 'utf8')
-)
 record(
   'core-runtime-image',
   corePin.image?.includes('@sha256:') ? 'ok' : 'error',
@@ -152,36 +146,27 @@ record(
   coreContract.profiles?.includes('development') ? 'ok' : 'error',
   'development'
 )
-record(
-  'config-provenance',
-  'ok',
-  `browser-local; canonical ${productionProfile.environment} profile`
-)
+record('config-provenance', 'ok', 'browser-local; no checked-in environment profile')
 
 if (portableConfigPath) {
   try {
     const portableConfig = JSON.parse(await readFile(portableConfigPath, 'utf8'))
     const endpoint = new URL(portableConfig.metaConfig?.INKCRE_PGREST_URL)
-    const isLegacy =
-      legacyEndpoints.postgrest_hosts.includes(endpoint.hostname) ||
-      endpoint.hostname.startsWith('inkcre-pgrst-')
     record(
-      'legacy-endpoint',
-      isLegacy ? 'error' : 'ok',
-      isLegacy
-        ? `retired host ${endpoint.hostname}; import the canonical production profile`
-        : `portable config uses ${endpoint.hostname}`
+      'portable-config',
+      endpoint.protocol === 'https:' || endpoint.protocol === 'http:' ? 'ok' : 'error',
+      `explicit PostgREST endpoint ${endpoint.hostname}`
     )
   } catch {
     record(
-      'legacy-endpoint',
+      'portable-config',
       'error',
       'the --config file is absent, invalid, or lacks a PostgREST URL'
     )
   }
 } else {
   record(
-    'legacy-endpoint',
+    'portable-config',
     'warning',
     'browser storage is not CLI-readable; pass --config <portable-export.json> to inspect'
   )
@@ -212,7 +197,7 @@ try {
     stdio: ['ignore', 'pipe', 'ignore'],
     timeout: 10000,
   })
-  record('database-contract-gate', 'ok', 'pin, profile, generated types, and Compose agree')
+  record('database-contract-gate', 'ok', 'pin, generated runtime/types, and Compose agree')
 } catch {
   record('database-contract-gate', 'error', 'run pnpm check:database for details')
 }

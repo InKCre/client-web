@@ -54,6 +54,7 @@ uses its isolated profile only when an explicit browser binary is configured.
 ├── base/           # DBAPIClient, base utilities
 ├── client/         # Client model & API
 ├── config/         # Configuration adapters & schema
+├── database/       # Generated environment-neutral peer protocol/JWT contract and relation types
 ├── extension/      # Extension lifecycle, Module Federation
 ├── info-base/      # Block, Relation, Storage, Resolvers
 ├── libs/           # Third-party integrations (AI)
