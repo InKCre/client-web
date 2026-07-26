@@ -126,9 +126,9 @@ Exit proof:
 
 ## Phase 6 - Hard-Cut Legacy Surfaces and Ratchet
 
-Status: locally implemented and green. Remote publication/proof is gated by the dedicated
-Dependabot secret and explicit commit/push authorization; reactive-bootstrap implementation
-remains design-only.
+Status: published and green for required CI, production Pages, custom-domain smoke, GitHub Actions
+updater convergence, and superseded-PR cleanup. The npm updater's first private-registry run remains
+in progress; reactive-bootstrap implementation remains design-only.
 
 - Delete obsolete Worker/Hono, adapter, formatter, linter, build, environment, port, branch, and documentation surfaces.
 - Remove production/legacy client profile snapshots and generate only environment-neutral protocol
@@ -163,4 +163,7 @@ Current proof:
   record are present locally;
 - a fresh-origin QA makes no external request but exposes the known unconditional extension-startup
   console error; D8 owns its future suspension/navigation behavior;
-- remote Dependabot, production, preview, cleanup, and superseded-PR behavior remain unclaimed.
+- required CI, production, custom-domain smoke, grouped Actions updater, and superseded-PR closure
+  are proven remotely;
+- npm private-registry updater success and a new PR preview/cleanup using the upgraded controller
+  remain unclaimed.

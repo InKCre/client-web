@@ -431,6 +431,27 @@ wrangler@4.114.0` invocation has a healthy OAuth session with Pages write access
   This proves the hard cut prevents implicit environment access but does not yet provide the
   designed invalid-state suspension/navigation experience.
 
+## 2026-07-26 Published Environment-Neutral Delivery
+
+- Sir created repository-level Dependabot secret `INKCRE_PACKAGES_READ_TOKEN`; GitHub exposes only
+  its name and update timestamp. No secret value was read.
+- Commit `2636d05` was pushed directly to protected `main` under explicit authorization. GitHub
+  recorded administrator bypass of the PR and expected-check rules.
+- Client checks run `30199974298` passed Workspace contract, Peer database browser E2E, Browser
+  extension contract, and both shadow lanes. Dependency review was correctly skipped for the push
+  event.
+- Pages deployment run `30200032387` passed trusted release resolution, Wrangler 4 delivery, and
+  exact deployment smoke. Deployment `9f1c25ee-9dea-49a3-951c-209b02dc230d` is available at
+  `https://9f1c25ee.inkcre-client-web.pages.dev`.
+- Exact deployment root/fallback and `https://app.inkcre.dev` root/fallback all returned HTTP 200
+  and identical SHA-256 HTML digest
+  `e47b4bc952a28db5e7d77c50c6dbc9a953d50181fc62f849c1a4fafc32d0fc33`.
+- The grouped GitHub Actions updater and its five dependency reconciliation jobs passed.
+  Dependabot automatically closed superseded PRs 20 through 24 without merging them.
+- npm updater run `30199976094` entered the full Dependabot dependency-resolution step using the
+  configured registry. It remains in progress at this snapshot; package authentication is not
+  claimed proven until the run reaches a successful terminal state.
+
 ## 2026-07-26 Core-Owned Development Runtime Attachment
 
 - The canonical Hub `main` commit `a0ba0d4` restores SVC 10.0.1 plus the reviewed peer database

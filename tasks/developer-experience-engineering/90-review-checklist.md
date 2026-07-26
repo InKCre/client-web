@@ -158,3 +158,8 @@ No compatibility shim, duplicate schema, dual formatter, alternate production br
 - 2026-07-26: fresh-origin browser QA proved zero external requests and empty localStorage, while
   also reproducing the known unconditional extension-startup `Invalid URL` console error. It is
   evidence for D8, not authorization to add an app-layer guard.
+- 2026-07-26: Sir created `INKCRE_PACKAGES_READ_TOKEN` and explicitly authorized commit/push.
+  Commit `2636d05` was pushed to protected `main`; required checks and production Pages passed,
+  deployment/custom-domain root plus fallback returned identical static content, and Dependabot
+  automatically closed PRs 20 through 24. The npm updater remained in progress when this durable
+  snapshot was written.
