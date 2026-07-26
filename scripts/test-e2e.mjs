@@ -13,6 +13,7 @@ import {
   stopDatabaseRuntime,
   waitForRuntime,
 } from './database-runtime-lib.mjs'
+import { resolveDatabaseProviderConfig } from './database-provider.mjs'
 
 function run(command, args, options = {}) {
   return execFileSync(command, args, {
@@ -57,6 +58,10 @@ const identityHash = createHash('sha256')
 const instance = `e2e-${identityHash}`
 let preview
 let credentials
+
+if (resolveDatabaseProviderConfig().kind === 'external') {
+  process.env.INKCRE_DATABASE_PROVIDER = process.env.INKCRE_E2E_DATABASE_PROVIDER ?? 'ssh'
+}
 
 function redact(value) {
   if (!credentials) return value

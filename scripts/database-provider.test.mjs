@@ -37,6 +37,53 @@ test('SSH provider requires one SSH config alias', () => {
   assert.throws(resolveDatabaseProviderConfig, /one host alias/)
 })
 
+test('external provider requires one absolute machine-local descriptor', () => {
+  process.env.INKCRE_DATABASE_PROVIDER = 'external'
+  process.env.INKCRE_DATABASE_RUNTIME_DESCRIPTOR = 'relative/runtime.json'
+  assert.throws(resolveDatabaseProviderConfig, /one absolute/)
+
+  process.env.INKCRE_DATABASE_RUNTIME_DESCRIPTOR = '/tmp/core-runtime/runtime.json'
+  assert.deepEqual(resolveDatabaseProviderConfig(), {
+    kind: 'external',
+    descriptor: '/tmp/core-runtime/runtime.json',
+  })
+})
+
+test('external diagnostics prove core owner, runtime instance, and daemon', async () => {
+  const directory = await mkdtemp(`${tmpdir()}/inkcre-provider-test-`)
+  temporaryDirectories.push(directory)
+  const descriptor = join(directory, 'runtime.json')
+  await writeFile(
+    descriptor,
+    JSON.stringify({
+      format: 1,
+      identity: '0123456789abcdef',
+      owner_repository: 'InKCre/core-py',
+      contract_revision: 'peer-database-runtime-v1',
+      docker: {
+        daemon_id: 'daemon-id',
+        engine: '28.5.2',
+        compose: '2.40.3',
+      },
+    })
+  )
+
+  assert.deepEqual(
+    diagnoseDatabaseProvider({
+      kind: 'external',
+      descriptor,
+    }),
+    {
+      kind: 'external',
+      owner_repository: 'InKCre/core-py',
+      runtime_instance: '0123456789abcdef',
+      daemon_id: 'daemon-id',
+      engine: '28.5.2',
+      compose: '2.40.3',
+    }
+  )
+})
+
 test('local diagnostics use the local Docker CLI', async () => {
   const directory = await mkdtemp(`${tmpdir()}/inkcre-provider-test-`)
   temporaryDirectories.push(directory)

@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { access, mkdir, rm, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:net'
+import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { readJson, stableJson } from './database-contract-lib.mjs'
@@ -78,6 +79,12 @@ async function writeRuntimeFiles(state, credentials) {
       database_role: 'authenticator',
       url: state.urls.postgrest,
     },
+    runtime: {
+      instance: state.runtime_instance ?? state.identity,
+      owner_repository: state.owner_repository ?? 'InKCre/client-web',
+      compose_project: state.project,
+      docker_daemon_id: state.docker?.daemon_id ?? null,
+    },
   }
   const publishedPorts =
     state.provider.kind === 'local' ? state.local_ports : { postgres: 0, core: 0, postgrest: 0 }
@@ -116,13 +123,84 @@ function validateRuntimeState(state, instance) {
   return state
 }
 
+function validateLoopbackUrl(value, label) {
+  const url = new URL(value)
+  if (url.protocol !== 'http:' || url.hostname !== '127.0.0.1') {
+    throw new Error(`external database ${label} must use an HTTP loopback URL`)
+  }
+  return url.href
+}
+
+async function externalRuntimeState(instance, provider) {
+  const [descriptor, pin] = await Promise.all([
+    readJson(provider.descriptor),
+    readJson(`${repoRoot}/contracts/core-py.json`),
+  ])
+  if (
+    descriptor.format !== 1 ||
+    descriptor.owner_repository !== 'InKCre/core-py' ||
+    !/^[a-f0-9]{16}$/.test(descriptor.identity) ||
+    descriptor.profile !== 'development'
+  ) {
+    throw new Error('external database runtime descriptor has invalid owner or identity')
+  }
+  if (
+    descriptor.contract_revision !== pin.contract_revision ||
+    descriptor.migration_head !== pin.migration_head
+  ) {
+    throw new Error('external database runtime contract differs from the client pin')
+  }
+  if (
+    descriptor.project !== `inkcre-core-py-${descriptor.identity}` ||
+    !descriptor.docker?.daemon_id ||
+    !/^[a-f0-9]{64}$/.test(descriptor.source_fingerprint) ||
+    descriptor.converging
+  ) {
+    throw new Error('external database runtime provenance is incomplete')
+  }
+
+  const directory = dirname(provider.descriptor)
+  return {
+    format: 2,
+    identity: validateInstance(instance),
+    runtime_instance: descriptor.identity,
+    owner_repository: descriptor.owner_repository,
+    project: descriptor.project,
+    provider,
+    docker: descriptor.docker,
+    contract_revision: descriptor.contract_revision,
+    migration_head: descriptor.migration_head,
+    core_source_revision: descriptor.source_revision,
+    core_image: descriptor.core_image,
+    source_fingerprint: descriptor.source_fingerprint,
+    profile: descriptor.profile,
+    local_ports: descriptor.local_ports,
+    remote_ports: descriptor.remote_ports,
+    urls: {
+      core: validateLoopbackUrl(descriptor.urls?.core, 'core endpoint'),
+      postgrest: validateLoopbackUrl(descriptor.urls?.postgrest, 'PostgREST endpoint'),
+    },
+    tunnel: null,
+    binding: {
+      descriptor: provider.descriptor,
+      profile: `${directory}/profile.json`,
+      credential: `${directory}/credential.json`,
+      readiness: `${directory}/readiness.json`,
+    },
+  }
+}
+
 export async function runtimeState(instance, { create = false } = {}) {
+  const configuredProvider = resolveDatabaseProviderConfig()
+  if (configuredProvider.kind === 'external') {
+    return externalRuntimeState(instance, configuredProvider)
+  }
+
   const directory = runtimeDirectory(instance)
   const statePath = `${directory}/runtime.json`
   try {
     const state = validateRuntimeState(await readJson(statePath), instance)
     if (create) {
-      const configuredProvider = resolveDatabaseProviderConfig()
       if (!sameDatabaseProvider(state.provider, configuredProvider)) {
         throw new Error(
           `database runtime ${instance} belongs to a different provider; stop it explicitly first`
@@ -135,7 +213,7 @@ export async function runtimeState(instance, { create = false } = {}) {
   }
 
   const pin = await readJson(`${repoRoot}/contracts/core-py.json`)
-  const provider = resolveDatabaseProviderConfig()
+  const provider = configuredProvider
   const localPorts = {
     postgres: await availablePort(),
     core: await availablePort(),
@@ -144,6 +222,8 @@ export async function runtimeState(instance, { create = false } = {}) {
   const state = {
     format: 2,
     identity: validateInstance(instance),
+    runtime_instance: validateInstance(instance),
+    owner_repository: 'InKCre/client-web',
     project: projectName(instance),
     provider,
     contract_revision: pin.contract_revision,
@@ -171,6 +251,11 @@ export async function runtimeState(instance, { create = false } = {}) {
 }
 
 export async function runtimeCredentials(instance) {
+  const provider = resolveDatabaseProviderConfig()
+  if (provider.kind === 'external') {
+    const state = await externalRuntimeState(instance, provider)
+    return readJson(state.binding.credential)
+  }
   return readJson(`${runtimeDirectory(instance)}/credential.json`)
 }
 
@@ -215,6 +300,7 @@ async function exposeRuntime(state) {
 
 export async function ensureDatabaseRuntime(instance, options = {}) {
   const state = await runtimeState(instance, { create: true })
+  if (state.provider.kind === 'external') return state
   compose(
     instance,
     ['up', '--detach', '--remove-orphans', 'postgres', 'init', 'core', 'postgrest'],
@@ -227,6 +313,11 @@ export async function ensureDatabaseRuntime(instance, options = {}) {
 
 export async function stopDatabaseRuntime(instance, options = {}) {
   const state = await runtimeState(instance)
+  if (state.provider.kind === 'external') {
+    throw new Error(
+      `runtime ${state.runtime_instance} is owned by core-py; client-web cannot stop it`
+    )
+  }
   try {
     compose(instance, ['down', '--volumes', '--remove-orphans'], {
       stdio: options.stdio ?? 'inherit',
@@ -278,6 +369,26 @@ export async function waitForRuntime(state, timeout = 120_000) {
 }
 
 export function readiness(instance) {
+  const provider = resolveDatabaseProviderConfig()
+  if (provider.kind === 'external') {
+    const directory = dirname(provider.descriptor)
+    const result = JSON.parse(readFileSync(`${directory}/readiness.json`, 'utf8'))
+    const descriptor = JSON.parse(readFileSync(provider.descriptor, 'utf8'))
+    if (
+      result.status !== 'ok' ||
+      result.runtime?.instance !== descriptor.identity ||
+      result.runtime?.owner_repository !== 'InKCre/core-py' ||
+      result.runtime?.compose_project !== descriptor.project ||
+      result.runtime?.docker_daemon_id !== descriptor.docker?.daemon_id ||
+      result.runtime?.source_revision !== descriptor.source_revision ||
+      result.runtime?.source_fingerprint !== descriptor.source_fingerprint ||
+      result.contract?.revision !== descriptor.contract_revision ||
+      !result.migration?.current?.includes(descriptor.migration_head)
+    ) {
+      throw new Error('external database readiness and runtime descriptor differ')
+    }
+    return result
+  }
   return JSON.parse(
     compose(
       instance,

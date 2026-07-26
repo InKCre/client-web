@@ -360,3 +360,35 @@ wrangler@4.114.0` invocation has a healthy OAuth session with Pages write access
 - Protected `main` now additionally requires `Browser extension contract`; the full required set is
   Workspace contract, Peer database browser E2E, Dependency security review, and Browser extension
   contract.
+
+## 2026-07-26 Core-Owned Development Runtime Attachment
+
+- The canonical Hub `main` commit `a0ba0d4` restores SVC 10.0.1 plus the reviewed peer database
+  runtime contract. client-web PR 25 moved its shared reference to that exact commit without
+  mixing application changes.
+- core-py now owns the active SSH-backed development runtime. Its descriptor reports runtime
+  instance `b0a97f7ca6abfdf7`, Compose project
+  `inkcre-core-py-b0a97f7ca6abfdf7`, Docker daemon
+  `0e5fa4b3-f25e-4af9-bdcb-b4387a42281e`, contract
+  `peer-database-runtime-v1`, and migration head `d9f4e2a1b7c3`.
+- This client worktree retains its distinct SVC attachment identity `4ac9df364b54706e`. Its
+  machine-local provider selects the absolute core descriptor and reports the core runtime
+  instance separately; no alias, port, or repository identity is treated as database identity.
+- `svc dev ensure database`, `database-runtime status`, and `pnpm db:ready` reused the exact
+  core-owned instance and returned matching owner, project, daemon, contract, head, and live
+  endpoints.
+- `pnpm db:reset` was refused because core-py owns the runtime. `pnpm dev:stop` removed no
+  database resource, and core readiness remained healthy afterward.
+- External-provider tests cover absolute-path validation, descriptor provenance, dual
+  attachment/runtime identities, readiness mismatch rejection, and teardown refusal.
+- Browser/database E2E remains isolated: when the development provider is external, the E2E
+  harness deliberately selects local or SSH ownership for its unique ephemeral instance.
+- The full `pnpm check` contract passed: formatting, lint, type checks, runtime/package
+  contracts, unit tests, required builds, and static artifact validation are green.
+- `pnpm test:e2e:web` passed authenticated peer-protocol read/write plus absent/wrong
+  credential denial through an independently owned SSH runtime. Remote Compose inspection
+  afterward found no client-web E2E project; the core-owned three-service project remained
+  running and `pdm run dev:database ready` remained green.
+- The current shell emits a non-blocking engine warning because it runs Node 26.3.0 while the
+  repository pins Node 22.22.3. The complete gate and E2E nevertheless exit successfully; a
+  supported Node 22 toolchain remains the documented contributor contract.

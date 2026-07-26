@@ -108,7 +108,12 @@ if (svcVersion) {
 try {
   const provider = resolveDatabaseProviderConfig()
   const diagnostic = diagnoseDatabaseProvider(provider)
-  const endpoint = provider.kind === 'ssh' ? ` via ${provider.target}` : ''
+  const endpoint =
+    provider.kind === 'ssh'
+      ? ` via ${provider.target}`
+      : provider.kind === 'external'
+        ? ` ${diagnostic.owner_repository}/${diagnostic.runtime_instance} on ${diagnostic.daemon_id}`
+        : ''
   record(
     'database-provider',
     'ok',
@@ -118,7 +123,7 @@ try {
   record(
     'database-provider',
     'error',
-    'selected local or SSH Docker provider is unavailable; inspect svc.local.json and SSH/Docker state'
+    'selected local, SSH, or external core-py database provider is unavailable; inspect svc.local.json and runtime state'
   )
 }
 
