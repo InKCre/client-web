@@ -36,7 +36,7 @@
     "graphology-shortest-path": "^2.1.0",
     "jose": "^6.1.2",
     "ml-matrix": "^6.12.1",
-    "pinia": "^3.0.3",
+    "pinia": "^3.0.4",
     "vscode-json-languageservice": "^5.6.4",
     "vue": "^3.5.18",
     "vue-i18n": "^11.2.8",
