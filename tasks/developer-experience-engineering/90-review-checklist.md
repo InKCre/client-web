@@ -17,8 +17,8 @@
       lifecycle/concurrency; the app layer will not coordinate them.
 - [ ] D8 implementation: publisher, subscribers, navigation policy, and extension single-flight
       remain unstarted until a separate explicit start.
-- [x] D9: consolidate Dependabot action updates and group future action PRs; use a dedicated
-      least-privilege package-read secret.
+- [x] D9: consolidate Dependabot action updates; group only npm minor/patch updates, isolate majors,
+      apply explicit release cooldowns, and use a dedicated least-privilege package-read secret.
 
 ## Hard Cut-Off Boundary
 
@@ -163,3 +163,7 @@ No compatibility shim, duplicate schema, dual formatter, alternate production br
   deployment/custom-domain root plus fallback returned identical static content, and Dependabot
   automatically closed PRs 20 through 24. The npm updater remained in progress when this durable
   snapshot was written.
+- 2026-07-26: PR 27 proved that unrestricted production grouping collapses unrelated major
+  migrations and lets same-day releases reach pnpm's 24-hour safety gate. Sir authorized an
+  explicit 30/7/3-day major/minor/patch cooldown, minor/patch-only production and development
+  groups, isolated major PRs, and a three-PR npm limit. No AI-specific group was requested.

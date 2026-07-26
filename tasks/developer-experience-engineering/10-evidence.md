@@ -483,3 +483,20 @@ wrangler@4.114.0` invocation has a healthy OAuth session with Pages write access
 - The current shell emits a non-blocking engine warning because it runs Node 26.3.0 while the
   repository pins Node 22.22.3. The complete gate and E2E nevertheless exit successfully; a
   supported Node 22 toolchain remains the documented contributor contract.
+
+## 2026-07-26 Dependabot Release-Age Audit
+
+- Dependabot PR 27 grouped ten unrelated major upgrades with two patch upgrades because the npm
+  production group did not constrain semantic update types.
+- Client checks run `30200283969` failed Workspace contract, Type-aware and TypeScript 7 shadow,
+  Peer database browser E2E, and Browser extension contract at their shared frozen-install step.
+  No downstream command ran in those jobs.
+- pnpm 11's built-in 24-hour release-age policy rejected seven same-day lockfile entries:
+  `@ai-sdk/anthropic`, `@iconify/json`, `vue-i18n`, and four transitive `@intlify` packages.
+  Dependency security review passed independently.
+- An isolated checkout of merge commit `d7fb974` disabled release age only for diagnosis.
+  `pnpm check`, type-aware Oxlint, native TypeScript 7, Chromium extension E2E, and the
+  high-severity dependency audit passed. No repository policy was relaxed.
+- The npm updater now makes release timing and review isolation explicit: major/minor/patch
+  cooldowns are 30/7/3 days, production and development groups accept only minor/patch updates,
+  unrelated majors remain individual PRs, and at most three npm version-update PRs may be open.

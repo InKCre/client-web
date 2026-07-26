@@ -131,7 +131,10 @@ These are proposed decisions, not implementation authorization.
   - consolidate the five currently open GitHub Actions updates into one reviewed immutable-SHA
     change;
   - group future GitHub Actions updates and allow only one version-update PR at a time;
-  - keep npm production and development updates grouped;
+  - group npm production and development minor/patch updates, but keep major updates isolated;
+  - delay npm version updates for 30 days after a major release, 7 days after a minor release, and
+    3 days after a patch release;
+  - allow at most three open npm version-update PRs;
   - authenticate Dependabot to `@inkcre` GitHub Packages through a dedicated
     `INKCRE_PACKAGES_READ_TOKEN` Dependabot secret with only package-read authority;
   - remove Wrangler's GitHub token integration so the workflow's protected GitHub environment is
@@ -141,6 +144,8 @@ These are proposed decisions, not implementation authorization.
     delivery controller;
   - a consolidated update reduces queue noise and gives Pages production/preview one coherent
     validation target;
+  - grouping unrelated major upgrades destroys failure isolation, while explicit cooldowns keep
+    newly published versions behind pnpm's supply-chain age gate;
   - copying the operator's broadly scoped GitHub CLI token into Dependabot would violate
     least-privilege.
 - Manual prerequisite: Sir creates the dedicated Dependabot secret; repository configuration may
