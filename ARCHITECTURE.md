@@ -96,9 +96,13 @@
   - `local` invokes the host Docker CLI and publishes collision-safe loopback ports;
   - `ssh` sends a bounded Compose payload to one user-configured SSH alias, lets the remote engine
     allocate loopback ports, and exposes them through an instance-owned OpenSSH control tunnel.
+- An optional `external` development attachment consumes one absolute, ignored core-py runtime
+  descriptor. It proves owner repository, database runtime instance, Compose project, Docker
+  daemon, contract revision, migration head, source fingerprint, and live endpoints before reuse.
+  Client-web remains a consumer and cannot reset, stop, or delete the core-py-owned volume/tunnel.
 - Provider selection and all SSH machine facts live in ignored `svc.local.json`; the committed
   default remains portable local Docker.
 - PostgreSQL/PostgREST schema, migration, roles, seed, and reset semantics remain a
   `core-py`-owned capability boundary.
-- Stopping a worktree removes only its Portless routes, Compose project and volume, runtime
-  credentials, and SSH control tunnel.
+- Stopping a worktree removes only its Portless routes and client-owned database resources. An
+  external core-py runtime remains owned and reachable until core-py stops it.

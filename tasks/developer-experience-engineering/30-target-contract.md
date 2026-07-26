@@ -87,6 +87,10 @@ flowchart LR
   Portless port.
 - The SSH provider allocates remote-loopback published ports and local-loopback tunnel ports
   independently; an OpenSSH control socket gives cleanup exact process ownership.
+- An optional external development attachment names one absolute core-py descriptor and verifies
+  the complete runtime identity tuple before reuse. The client attachment identity remains
+  distinct from the database runtime identity, and only core-py owns reset, Compose teardown,
+  volume deletion, credentials, and the SSH control tunnel.
 - PostgREST bootstrap includes authoritative migrations, roles, deterministic test data, and explicit reset.
 - Vite binds to loopback behind Portless by default; LAN access is a separate explicit profile.
 - No local command can silently connect to production.

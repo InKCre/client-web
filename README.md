@@ -123,6 +123,13 @@ instance-owned OpenSSH control tunnel, while callers still consume loopback URLs
 run the same tracked Compose definition and core-py initialization contract. Client-web owns no
 copied migration SQL, role bootstrap, seed ordering, or startup sleep.
 
+On a machine where core-py owns the active development stack, ignored `svc.local.json` may select
+`INKCRE_DATABASE_PROVIDER=external` plus the absolute core-py `runtime.json` descriptor. The
+attachment accepts only a development descriptor owned by `InKCre/core-py` whose runtime instance,
+Compose project, Docker daemon ID, contract revision, migration head, source fingerprint, and live
+readiness agree. Client-web does not stop or reset that shared runtime. Browser E2E still creates
+and removes its own isolated database instance.
+
 `pnpm run doctor -- --json` reports the image digest, source revision, contract version, generated
 type drift, config provenance, Docker availability, and legacy endpoint status without reading or
 printing the browser-owned JWT credential.

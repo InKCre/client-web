@@ -52,10 +52,12 @@ if (command === 'ensure') {
     JSON.stringify({
       ready: true,
       identity: state.identity,
+      runtime_instance: state.runtime_instance ?? state.identity,
+      owner_repository: state.owner_repository ?? 'InKCre/client-web',
       contract_revision: state.contract_revision,
       core_image: state.core_image,
-      profile: `${runtimeDirectory(instance)}/profile.json`,
-      credential: `${runtimeDirectory(instance)}/credential.json`,
+      profile: state.binding?.profile ?? `${runtimeDirectory(instance)}/profile.json`,
+      credential: state.binding?.credential ?? `${runtimeDirectory(instance)}/credential.json`,
       urls: state.urls,
     })
   )
@@ -66,6 +68,11 @@ if (command === 'ensure') {
     throw new Error('refusing reset without explicit --yes confirmation')
   }
   const state = await runtimeState(instance)
+  if (state.provider.kind === 'external') {
+    throw new Error(
+      `runtime ${state.runtime_instance} is owned by core-py; reset it through the owner`
+    )
+  }
   if (state.profile !== 'development') {
     throw new Error(`refusing reset for non-development runtime ${state.identity}`)
   }
@@ -86,11 +93,15 @@ if (command === 'ensure') {
   console.log(JSON.stringify(readiness(instance)))
 } else if (command === 'status') {
   const state = await runtimeState(instance)
-  const ready = await runtimeIsReady(state)
+  const ready =
+    (await runtimeIsReady(state)) &&
+    (state.provider.kind !== 'external' || databaseContractIsReady(readiness(instance)))
   console.log(
     JSON.stringify({
       ready,
       identity: state.identity,
+      runtime_instance: state.runtime_instance ?? state.identity,
+      owner_repository: state.owner_repository ?? 'InKCre/client-web',
       contract_revision: state.contract_revision,
       core_image: state.core_image,
       provider: state.provider.kind,

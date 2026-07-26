@@ -161,7 +161,9 @@ const databaseProvider = await readFile(`${repoRoot}/scripts/database-provider.m
 const remoteCompose = await readFile(`${repoRoot}/scripts/remote-compose.sh`, 'utf8')
 for (const required of [
   "kind === 'local'",
+  "kind === 'external'",
   "kind !== 'ssh'",
+  'INKCRE_DATABASE_RUNTIME_DESCRIPTOR',
   "'BatchMode=yes'",
   'ExitOnForwardFailure=yes',
   'svc.local.json',
@@ -173,12 +175,25 @@ for (const required of [
 if (remoteCompose.includes('eval ') || !remoteCompose.includes('"$docker_bin" compose')) {
   errors.push('remote Compose runner must preserve argv without eval or shell command construction')
 }
+const databaseRuntime = await readFile(`${repoRoot}/scripts/database-runtime-lib.mjs`, 'utf8')
+for (const required of [
+  "owner_repository !== 'InKCre/core-py'",
+  'runtime_instance: descriptor.identity',
+  'external database runtime contract differs from the client pin',
+  'external database readiness and runtime descriptor differ',
+  'client-web cannot stop it',
+]) {
+  if (!databaseRuntime.includes(required)) {
+    errors.push(`external database attachment is missing safety contract "${required}"`)
+  }
+}
 const committedDatabaseEnvironment = svcConfig.dev.profiles.local.targets.database.provision.env
 if (
   committedDatabaseEnvironment?.INKCRE_DATABASE_SSH_TARGET ||
-  committedDatabaseEnvironment?.INKCRE_DATABASE_SSH_DOCKER_BIN
+  committedDatabaseEnvironment?.INKCRE_DATABASE_SSH_DOCKER_BIN ||
+  committedDatabaseEnvironment?.INKCRE_DATABASE_RUNTIME_DESCRIPTOR
 ) {
-  errors.push('committed SVC config must not contain machine-specific SSH provider values')
+  errors.push('committed SVC config must not contain machine-specific database provider values')
 }
 
 const devScript = await readFile(`${repoRoot}/scripts/dev.mjs`, 'utf8')

@@ -11,6 +11,7 @@ import {
   writeFileSync,
 } from 'node:fs'
 import { tmpdir } from 'node:os'
+import { isAbsolute, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url))
@@ -24,6 +25,7 @@ const providerEnvironmentKeys = {
   target: 'INKCRE_DATABASE_SSH_TARGET',
   dockerBin: 'INKCRE_DATABASE_SSH_DOCKER_BIN',
   forwardHost: 'INKCRE_DATABASE_SSH_FORWARD_HOST',
+  descriptor: 'INKCRE_DATABASE_RUNTIME_DESCRIPTOR',
 }
 
 function optionalJson(path) {
@@ -67,6 +69,23 @@ export function resolveDatabaseProviderConfig() {
   const declared = declaredProviderEnvironment()
   const kind = configuredValue(providerEnvironmentKeys.kind, declared) ?? 'local'
   if (kind === 'local') return { kind }
+  if (kind === 'external') {
+    const descriptor = configuredValue(providerEnvironmentKeys.descriptor, declared)
+    if (
+      !descriptor ||
+      !isAbsolute(descriptor) ||
+      descriptor.includes('\0') ||
+      /[\r\n]/.test(descriptor)
+    ) {
+      throw new Error(
+        'external database provider requires one absolute INKCRE_DATABASE_RUNTIME_DESCRIPTOR'
+      )
+    }
+    return {
+      kind,
+      descriptor: resolve(descriptor),
+    }
+  }
   if (kind !== 'ssh') {
     throw new Error(`unsupported database provider: ${kind}`)
   }
@@ -180,6 +199,9 @@ function localCompose(composeEnvironmentPath, project, args, options) {
 }
 
 export function runDatabaseCompose(state, composeEnvironmentPath, args, options = {}) {
+  if (state.provider.kind === 'external') {
+    throw new Error('external database runtime is owned by core-py; Compose is unavailable')
+  }
   if (state.provider.kind === 'local') {
     return localCompose(composeEnvironmentPath, state.project, args, options)
   }
@@ -205,7 +227,7 @@ function checkControlSocket(state) {
 }
 
 export function openDatabaseAccess(state) {
-  if (state.provider.kind === 'local') return state
+  if (state.provider.kind !== 'ssh') return state
   if (checkControlSocket(state)) return state
 
   const socket = controlSocket(state)
@@ -245,7 +267,7 @@ export function openDatabaseAccess(state) {
 }
 
 export function databaseAccessReady(state) {
-  return state.provider.kind === 'local' || checkControlSocket(state)
+  return state.provider.kind !== 'ssh' || checkControlSocket(state)
 }
 
 export function closeDatabaseAccess(state) {
@@ -277,6 +299,26 @@ function temporaryProviderEnvironment(provider) {
 }
 
 export function diagnoseDatabaseProvider(provider) {
+  if (provider.kind === 'external') {
+    const descriptor = JSON.parse(readFileSync(provider.descriptor, 'utf8'))
+    if (
+      descriptor.format !== 1 ||
+      descriptor.owner_repository !== 'InKCre/core-py' ||
+      !/^[a-f0-9]{16}$/.test(descriptor.identity) ||
+      descriptor.contract_revision !== 'peer-database-runtime-v1' ||
+      !descriptor.docker?.daemon_id
+    ) {
+      throw new Error('external database runtime descriptor is invalid')
+    }
+    return {
+      kind: provider.kind,
+      owner_repository: descriptor.owner_repository,
+      runtime_instance: descriptor.identity,
+      daemon_id: descriptor.docker.daemon_id,
+      engine: descriptor.docker.engine,
+      compose: descriptor.docker.compose,
+    }
+  }
   if (provider.kind === 'local') {
     const engine = execFileSync('docker', ['info', '--format', '{{.ServerVersion}}'], {
       cwd: repoRoot,
