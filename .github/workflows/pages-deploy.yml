@@ -38,7 +38,7 @@ jobs:
     steps:
       - name: Resolve exact main or internal PR
         id: identity
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const runId = context.eventName === 'workflow_dispatch'
@@ -121,7 +121,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Reverify release authority before delivery
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           RELEASE_BRANCH: ${{ needs.identity.outputs.branch }}
           RELEASE_HEAD_SHA: ${{ needs.identity.outputs.head_sha }}
