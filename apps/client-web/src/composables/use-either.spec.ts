@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { useEither } from './use-either'
 
 describe('useEither composable', () => {
@@ -11,8 +11,7 @@ describe('useEither composable', () => {
 
     const result = useEither(undefined, testObject, fetcher)
 
-    // computedAsync returns the value synchronously if already provided
-    expect(result.value).toEqual(testObject)
+    await vi.waitFor(() => expect(result.value).toEqual(testObject))
   })
 
   it('fetches object when only id is provided', async () => {
@@ -21,10 +20,7 @@ describe('useEither composable', () => {
 
     const result = useEither(1, undefined, fetcher)
 
-    // Wait for async computation
-    await new Promise((resolve) => setTimeout(resolve, 50))
-
-    expect(result.value).toEqual(expectedObject)
+    await vi.waitFor(() => expect(result.value).toEqual(expectedObject))
   })
 
   it('returns undefined when neither id nor object is provided', async () => {
@@ -44,10 +40,7 @@ describe('useEither composable', () => {
 
     useEither(42, undefined, fetcher)
 
-    // Wait for async computation
-    await new Promise((resolve) => setTimeout(resolve, 50))
-
-    expect(fetchedId).toBe(42)
+    await vi.waitFor(() => expect(fetchedId).toBe(42))
   })
 
   it('prefers object over id when both are provided', async () => {
@@ -59,7 +52,7 @@ describe('useEither composable', () => {
 
     const result = useEither(999, testObject, fetcher)
 
-    expect(result.value).toEqual(testObject)
+    await vi.waitFor(() => expect(result.value).toEqual(testObject))
   })
 
   it('handles different types', async () => {
@@ -79,10 +72,7 @@ describe('useEither composable', () => {
 
     const result = useEither<User>(1, undefined, fetcher)
 
-    // Wait for async computation
-    await new Promise((resolve) => setTimeout(resolve, 50))
-
-    expect(result.value).toEqual(user)
+    await vi.waitFor(() => expect(result.value).toEqual(user))
   })
 
   it('handles async fetcher errors gracefully', async () => {
@@ -92,11 +82,6 @@ describe('useEither composable', () => {
 
     const result = useEither(1, undefined, fetcher)
 
-    // Wait for async computation
-    await new Promise((resolve) => setTimeout(resolve, 50))
-
-    // The composable should handle the error and return undefined
-    // (computedAsync behavior with no onError handler)
-    expect(result.value).toBeUndefined()
+    await vi.waitFor(() => expect(result.value).toBeUndefined())
   })
 })

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import LogsViewer from './LogsViewer.vue'
 import { Log } from '@inkcre/core'
@@ -72,10 +72,9 @@ describe('LogsViewer.vue', () => {
       },
     })
 
-    await nextTick()
-    await new Promise((resolve) => setTimeout(resolve, 100))
-
-    expect(getLogs).toHaveBeenCalledWith('trace-123')
+    await vi.waitFor(() => {
+      expect(getLogs).toHaveBeenCalledWith('trace-123', { cursor: undefined })
+    })
   })
 
   it('displays error message when loading fails', async () => {
@@ -94,10 +93,9 @@ describe('LogsViewer.vue', () => {
       },
     })
 
-    await nextTick()
-    await new Promise((resolve) => setTimeout(resolve, 100))
-
-    expect(wrapper.find('.logs__error').text()).toContain(errorMessage)
+    await vi.waitFor(() => {
+      expect(wrapper.find('.logs-viewer__error').text()).toContain(errorMessage)
+    })
   })
 
   it('shows empty state when no logs are found', async () => {
@@ -115,14 +113,14 @@ describe('LogsViewer.vue', () => {
       },
     })
 
-    await nextTick()
-    await new Promise((resolve) => setTimeout(resolve, 100))
-
-    expect(wrapper.find('.logs__empty').exists()).toBe(true)
-    expect(wrapper.find('.logs__empty').text()).toContain('No logs')
+    await vi.waitFor(() => {
+      expect(wrapper.find('.logs-viewer__empty').exists()).toBe(true)
+      expect(wrapper.find('.logs-viewer__empty').text()).toContain('No logs')
+    })
   })
 
   it('toggles polling based on enablePolling prop', async () => {
+    vi.useFakeTimers()
     const wrapper = mount(LogsViewer, {
       props: {
         traceId: 'trace-123',
@@ -136,22 +134,18 @@ describe('LogsViewer.vue', () => {
       },
     })
 
-    await nextTick()
-    await new Promise((resolve) => setTimeout(resolve, 100))
+    await flushPromises()
 
-    // Initial state - should have called getByTraceId once for initial load
-    const initialCallCount = getLogs.mock.calls.length
-
-    // Disable polling
     await wrapper.setProps({ enablePolling: false })
-    await nextTick()
+    await vi.advanceTimersByTimeAsync(2000)
+    const pausedCallCount = getLogs.mock.calls.length
 
-    // Re-enable polling
     await wrapper.setProps({ enablePolling: true })
-    await nextTick()
+    await vi.advanceTimersByTimeAsync(1000)
 
-    // Should still be the same since polling happens after intervals
-    expect(getLogs.mock.calls.length).toBeGreaterThanOrEqual(initialCallCount)
+    expect(getLogs.mock.calls.length).toBeGreaterThan(pausedCallCount)
+    wrapper.unmount()
+    vi.useRealTimers()
   })
 
   it('reloads logs when traceId changes', async () => {
@@ -167,22 +161,20 @@ describe('LogsViewer.vue', () => {
       },
     })
 
-    await nextTick()
-    await new Promise((resolve) => setTimeout(resolve, 100))
-
+    await vi.waitFor(() => {
+      expect(getLogs).toHaveBeenCalledWith('trace-123', { cursor: undefined })
+    })
     const firstCallCount = getLogs.mock.calls.length
 
-    // Change traceId
     await wrapper.setProps({ traceId: 'trace-456' })
-    await nextTick()
-    await new Promise((resolve) => setTimeout(resolve, 100))
-
-    expect(getLogs.mock.calls.length).toBeGreaterThan(firstCallCount)
-    expect(getLogs).toHaveBeenCalledWith('trace-456')
+    await vi.waitFor(() => {
+      expect(getLogs.mock.calls.length).toBeGreaterThan(firstCallCount)
+      expect(getLogs).toHaveBeenCalledWith('trace-456', { cursor: undefined })
+    })
   })
 
   it('appends new logs on polling', async () => {
-    getLogs.mockResolvedValueOnce(mockLogs)
+    vi.useFakeTimers()
 
     const newLog = new Log({
       id: 3,
@@ -194,6 +186,7 @@ describe('LogsViewer.vue', () => {
       span_id: 'span-3',
       attributes: {},
     })
+    getLogs.mockResolvedValueOnce(mockLogs).mockResolvedValueOnce([newLog])
 
     const wrapper = mount(LogsViewer, {
       props: {
@@ -203,22 +196,25 @@ describe('LogsViewer.vue', () => {
       },
       global: {
         stubs: {
-          LogEntry: { name: 'LogEntry', template: '<div />' },
+          LogEntry: {
+            name: 'LogEntry',
+            props: ['log'],
+            template: '<div class="log-entry-stub"></div>',
+          },
         },
       },
     })
 
+    await flushPromises()
     await nextTick()
-    await new Promise((resolve) => setTimeout(resolve, 150))
+    await vi.advanceTimersByTimeAsync(100)
+    await flushPromises()
+    await nextTick()
 
-    // Mock next poll response with new log
-    getLogs.mockResolvedValueOnce([newLog])
-
-    // Wait for polling
-    await new Promise((resolve) => setTimeout(resolve, 200))
-
-    // Stop polling to avoid interference
+    expect(wrapper.findAll('.log-entry-stub')).toHaveLength(3)
     await wrapper.setProps({ enablePolling: false })
+    wrapper.unmount()
+    vi.useRealTimers()
   })
 
   it('respects custom polling interval', async () => {

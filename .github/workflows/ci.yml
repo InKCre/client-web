@@ -24,10 +24,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Reject new high-severity vulnerabilities
-        uses: actions/dependency-review-action@v5.0.0
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
         with:
           fail-on-severity: high
           fail-on-scopes: development, runtime
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 0
 
@@ -47,7 +47,7 @@ jobs:
           version: 10.26.2
 
       - name: Set up Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version-file: .node-version
           cache: pnpm
@@ -73,12 +73,21 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  peer-database:
-    name: Peer database browser E2E
+      - name: Upload unit-test evidence on failure
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: workspace-failure-evidence
+          path: test-results/vitest
+          if-no-files-found: ignore
+          retention-days: 7
+
+  toolchain-shadow:
+    name: Type-aware and TypeScript 7 shadow
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Install the pinned pnpm release
         uses: pnpm/action-setup@8912a9102ac27614460f54aedde9e1e7f9aec20d # v6.0.5
@@ -86,7 +95,40 @@ jobs:
           version: 10.26.2
 
       - name: Set up Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+          registry-url: https://npm.pkg.github.com
+          scope: '@inkcre'
+
+      - name: Install the frozen workspace
+        run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run type-aware Oxlint
+        continue-on-error: true
+        run: pnpm lint:type-aware
+
+      - name: Run the native TypeScript 7 preview
+        continue-on-error: true
+        run: pnpm type-check:ts7
+
+  peer-database:
+    name: Peer database browser E2E
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Install the pinned pnpm release
+        uses: pnpm/action-setup@8912a9102ac27614460f54aedde9e1e7f9aec20d # v6.0.5
+        with:
+          version: 10.26.2
+
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version-file: .node-version
           cache: pnpm
@@ -112,4 +154,68 @@ jobs:
         run: node scripts/verify-core-image-contract.mjs
 
       - name: Run the isolated browser/database chain
-        run: pnpm test:e2e
+        run: pnpm test:e2e:web
+
+      - name: Upload browser and database evidence on failure
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: peer-database-failure-evidence
+          path: |
+            test-results/playwright
+            test-results/database
+          if-no-files-found: ignore
+          retention-days: 7
+
+  browser-extension:
+    name: Browser extension contract
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Install the pinned pnpm release
+        uses: pnpm/action-setup@8912a9102ac27614460f54aedde9e1e7f9aec20d # v6.0.5
+        with:
+          version: 10.26.2
+
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+          registry-url: https://npm.pkg.github.com
+          scope: '@inkcre'
+
+      - name: Install the frozen workspace
+        run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install the exact browser engine
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Load the exact Chromium extension build
+        run: pnpm test:e2e:webext
+
+      - name: Build the Firefox extension
+        run: pnpm --filter @inkcre/client-webext build:firefox
+
+      - name: Retain the exact browser-extension artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: client-webext-builds
+          path: |
+            apps/client-webext/.output/chrome-mv3
+            apps/client-webext/.output/firefox-mv2
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload browser evidence on failure
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: browser-extension-failure-evidence
+          path: test-results/playwright
+          if-no-files-found: ignore
+          retention-days: 7

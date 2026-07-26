@@ -1,6 +1,6 @@
 import { execFileSync, spawn } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { rm } from 'node:fs/promises'
+import { mkdir, rm, writeFile } from 'node:fs/promises'
 
 import {
   availablePort,
@@ -56,6 +56,16 @@ const identityHash = createHash('sha256')
   .slice(0, 16)
 const instance = `e2e-${identityHash}`
 let preview
+let credentials
+
+function redact(value) {
+  if (!credentials) return value
+  return Object.entries(credentials).reduce(
+    (redacted, [name, secret]) =>
+      name === 'format' ? redacted : redacted.replaceAll(secret, `[REDACTED:${name}]`),
+    value
+  )
+}
 
 try {
   const state = await ensureDatabaseRuntime(instance)
@@ -87,8 +97,8 @@ try {
   )
   await waitForWeb(webUrl)
 
-  const credentials = await runtimeCredentials(instance)
-  run('pnpm', ['exec', 'playwright', 'test'], {
+  credentials = await runtimeCredentials(instance)
+  run('pnpm', ['exec', 'playwright', 'test', '--project', 'web-database'], {
     env: {
       ...process.env,
       INKCRE_E2E_CORE_URL: state.urls.core,
@@ -112,6 +122,24 @@ try {
   if (resetBaseline !== baseline) {
     throw new Error('reset-dev did not restore the deterministic E2E baseline')
   }
+} catch (error) {
+  const evidenceDirectory = `${repoRoot}/test-results/database`
+  await mkdir(evidenceDirectory, { recursive: true })
+
+  const failure = error instanceof Error ? (error.stack ?? error.message) : String(error)
+  await writeFile(`${evidenceDirectory}/orchestration-error.txt`, `${redact(failure)}\n`)
+
+  try {
+    if (await exists(`${runtimeDirectory(instance)}/runtime.json`)) {
+      const logs = compose(instance, ['logs', '--no-color'], { timeout: 30_000 })
+      await writeFile(`${evidenceDirectory}/compose.log`, redact(logs))
+    }
+  } catch (logError) {
+    const message = logError instanceof Error ? logError.message : String(logError)
+    await writeFile(`${evidenceDirectory}/compose-log-error.txt`, `${redact(message)}\n`)
+  }
+
+  throw error
 } finally {
   preview?.kill('SIGTERM')
   try {

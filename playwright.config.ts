@@ -6,9 +6,23 @@ export default defineConfig({
   workers: 1,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['github'], ['list']] : 'list',
+  outputDir: 'test-results/playwright',
   use: {
-    baseURL: process.env.INKCRE_E2E_WEB_URL,
     trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
     ...devices['Desktop Chrome'],
   },
+  projects: [
+    {
+      name: 'web-database',
+      testMatch: 'peer-database.spec.ts',
+      use: {
+        baseURL: process.env.INKCRE_E2E_WEB_URL,
+      },
+    },
+    {
+      name: 'browser-extension',
+      testMatch: 'browser-extension.spec.ts',
+    },
+  ],
 })

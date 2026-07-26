@@ -41,8 +41,14 @@ No compatibility shim, duplicate schema, dual formatter, alternate production br
   client-web to consume and verify its result without modifying that sibling.
 - On 2026-07-26 the user explicitly started the generic SSH Docker Provider and PDM-global SVC
   repair. This authorizes local provider implementation and verification, not commit or push.
-- Outside those slices, no Cloudflare, branch, submodule, sibling-repository commit/push, or
-  external publication is authorized.
+- On 2026-07-26 the user explicitly authorized the Vitest unification and CI ratchet repairs and
+  requested organization-level Cloudflare Pages configuration. Local implementation and bounded
+  GitHub/Cloudflare configuration are authorized.
+- On 2026-07-26 the user explicitly authorized committing and pushing the complete current
+  workspace and continuing through GitHub Actions repair until Pages production CD passes.
+- Cloudflare token creation remained a manual prerequisite; the user installed the dedicated
+  organization secret. Wrangler OAuth is now healthy through the pinned `pnpm dlx` invocation.
+  No credential extraction or browser-session workaround is authorized or needed.
 - No production credential inspection.
 - No server-issued auth/BFF redesign without separate product intent.
 - No copied core-py migrations or SVC framework corpus.
@@ -90,3 +96,17 @@ No compatibility shim, duplicate schema, dual formatter, alternate production br
 - 2026-07-26: real SSH-backed readiness, reset, built-browser E2E, two-instance isolation, and
   bounded cleanup passed. The same run repaired the static remote cold-build boundary exposed by
   `pnpm dev`.
+- 2026-07-26: the user selected one root Vitest contract and explicitly authorized missing CI
+  ratchets. Core, web, webext, and runtime tests now run as named Vitest projects; real browser
+  behavior remains in named Playwright projects.
+- 2026-07-26: Chromium E2E loads the exact MV3 build and proves its popup with extension-local,
+  non-production bootstrap data. Firefox build remains a separate required artifact/smoke lane.
+- 2026-07-26: all floating GitHub Action references were resolved to immutable SHAs; CI gained an
+  extension check, visible non-blocking shadow checks, bounded failure evidence, dependency
+  updates, ownership/PR templates, and post-deploy Pages smoke.
+- 2026-07-26: local Wrangler discovery found no global executable. An initially expired OAuth
+  session was repaired by the user, and the dedicated API token was created manually rather than
+  extracted or worked around.
+- 2026-07-26: Wrangler OAuth created the Direct Upload project. The authenticated Cloudflare
+  dashboard added the proxied CNAME for `app.inkcre.dev`; Pages reports the custom domain, DNS
+  verification, and TLS validation as active.

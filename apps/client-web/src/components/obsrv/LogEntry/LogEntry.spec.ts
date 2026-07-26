@@ -21,44 +21,42 @@ describe('LogEntry.vue', () => {
     getLog.mockReset()
   })
 
-  it('renders log entry with log object prop', () => {
+  it('renders log entry with log object prop', async () => {
     const wrapper = mount(LogEntry, {
       props: {
         log: mockLog,
       },
     })
 
-    expect(wrapper.find('.log-time').text()).toContain('10:30:45')
-    expect(wrapper.find('.log-severity').text()).toBe('INFO')
-    expect(wrapper.find('.log-body').text()).toBe('Test log message')
+    await vi.waitFor(() => {
+      expect(wrapper.find('.log-time').text()).toMatch(/\d{2}:\d{2}:\d{2}\.123/)
+      expect(wrapper.find('.log-severity').text()).toBe('INFO')
+      expect(wrapper.find('.log-body').text()).toBe('Test log message')
+    })
   })
 
   it('fetches and renders log entry with logId prop', async () => {
     getLog.mockResolvedValue(mockLog)
 
-    const wrapper = mount(LogEntry, {
+    mount(LogEntry, {
       props: {
         logId: 1,
       },
     })
 
-    await wrapper.vm.$nextTick()
-    // Wait for async resolution
-    await new Promise((resolve) => setTimeout(resolve, 100))
-
-    expect(getLog).toHaveBeenCalledWith(1)
+    await vi.waitFor(() => expect(getLog).toHaveBeenCalledWith(1))
   })
 
-  it('formats timestamp correctly', () => {
+  it('formats timestamp correctly', async () => {
     const wrapper = mount(LogEntry, {
       props: {
         log: mockLog,
       },
     })
 
-    const timeText = wrapper.find('.log-time').text()
-    // Should be in format HH:MM:SS.mmm
-    expect(timeText).toMatch(/\d{2}:\d{2}:\d{2}\.\d{3}/)
+    await vi.waitFor(() => {
+      expect(wrapper.find('.log-time').text()).toMatch(/\d{2}:\d{2}:\d{2}\.\d{3}/)
+    })
   })
 
   it('does not render when neither log nor logId is provided', () => {
@@ -69,7 +67,7 @@ describe('LogEntry.vue', () => {
     expect(wrapper.find('.log-entry').exists()).toBe(false)
   })
 
-  it('renders with different severity levels', () => {
+  it('renders with different severity levels', async () => {
     const logWithWarning = new Log({
       id: mockLog.id,
       timestamp: mockLog.timestamp,
@@ -87,6 +85,6 @@ describe('LogEntry.vue', () => {
       },
     })
 
-    expect(wrapper.find('.log-severity').text()).toBe('WARN')
+    await vi.waitFor(() => expect(wrapper.find('.log-severity').text()).toBe('WARN'))
   })
 })

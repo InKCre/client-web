@@ -85,6 +85,9 @@ Current proof:
 
 ## Phase 4 - Build the Test Pyramid
 
+Status: implemented and locally green on 2026-07-26; publication and GitHub-hosted proof remain
+separately gated.
+
 - Make existing web tests executable and hermetic.
 - Repair WXT unit-test integration.
 - Add core/package/config contract tests.
@@ -100,6 +103,12 @@ Exit proof:
 - tests cannot use production origins or shared credentials.
 
 ## Phase 5 - Add CI and Cloudflare Pages CD
+
+Status: CI/CD controllers and ratchets are implemented locally. Existing GitHub-hosted database
+CI is green, but the new Vitest/extension checks are unproven until publication. The Direct Upload
+project, active custom domain, repository-scoped organization secrets, and project variable now
+exist. Pages delivery remains unpublished and the dedicated CI token remains unproven until the
+workflow runs successfully.
 
 - Add required PR checks, concurrency, and lock-keyed caches.
 - Deploy eligible PRs to Pages and publish deployment status.

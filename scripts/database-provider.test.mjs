@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { chmod, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, test } from 'node:test'
+import { afterEach, test } from 'vitest'
 
 import { diagnoseDatabaseProvider, resolveDatabaseProviderConfig } from './database-provider.mjs'
 
@@ -26,18 +26,18 @@ async function executable(directory, name, source) {
   return path
 }
 
-void test('local provider is the portable committed default', () => {
+test('local provider is the portable committed default', () => {
   process.env.INKCRE_DATABASE_PROVIDER = 'local'
   assert.deepEqual(resolveDatabaseProviderConfig(), { kind: 'local' })
 })
 
-void test('SSH provider requires one SSH config alias', () => {
+test('SSH provider requires one SSH config alias', () => {
   process.env.INKCRE_DATABASE_PROVIDER = 'ssh'
   process.env.INKCRE_DATABASE_SSH_TARGET = '-oProxyCommand=unsafe'
   assert.throws(resolveDatabaseProviderConfig, /one host alias/)
 })
 
-void test('local diagnostics use the local Docker CLI', async () => {
+test('local diagnostics use the local Docker CLI', async () => {
   const directory = await mkdtemp(`${tmpdir()}/inkcre-provider-test-`)
   temporaryDirectories.push(directory)
 
@@ -65,7 +65,7 @@ void test('local diagnostics use the local Docker CLI', async () => {
   })
 })
 
-void test('SSH diagnostics never invoke the local Docker CLI', async () => {
+test('SSH diagnostics never invoke the local Docker CLI', async () => {
   const directory = await mkdtemp(`${tmpdir()}/inkcre-provider-test-`)
   temporaryDirectories.push(directory)
   const marker = join(directory, 'local-docker-called')

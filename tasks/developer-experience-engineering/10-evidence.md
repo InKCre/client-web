@@ -271,3 +271,45 @@ Phase-4-owned lifecycle-script regression tests.
   Module Federation build inside the host Vite process.
 - Provider regression tests cover portable local defaulting, local Docker diagnosis, SSH option
   injection rejection, and proof that SSH diagnosis never invokes the local Docker CLI.
+
+## 2026-07-26 Vitest, Browser E2E, CI, and Pages Follow-up
+
+- A root Vitest 4 project graph now discovers four explicit projects: core, client-web,
+  client-webext, and runtime scripts. The historical Node test uses Vitest instead of `node:test`;
+  leaf packages delegate to the root runner rather than carrying independent Vitest versions.
+- The client-web project owns its Vue transform, happy-dom environment, setup file, source aliases,
+  and a bounded workaround for the published `@inkcre/web-design` package's invalid mixed exports
+  map. Historical async assumptions, stale selectors, real-timer sleeps, and one hollow polling
+  assertion were corrected.
+- `pnpm test:unit` passes 27 tests across seven files: three core, nineteen client-web, one
+  client-webext, and four provider/runtime tests.
+- Playwright now has separate `web-database` and `browser-extension` projects. The extension
+  project launches persistent Chromium with only the exact `.output/chrome-mv3` build enabled,
+  obtains its runtime ID from the MV3 service worker, seeds extension-local non-production config,
+  and proves the real popup UI.
+- `pnpm test:e2e:web` passes the two authenticated/denied peer database browser cases through the
+  SSH Docker provider. `pnpm test:e2e:webext` builds and loads the Chromium artifact and passes its
+  popup case. The Firefox MV2 production build passes with upstream warnings for the future
+  Mozilla data-collection declaration and a stable extension ID.
+- Required CI now has independent workspace, peer-database, and browser-extension checks plus a
+  non-blocking type-aware/TypeScript 7 shadow job. It retains Vitest/Playwright/database failure
+  evidence and exact Chrome/Firefox artifacts. Every third-party Action reference is pinned to an
+  immutable commit SHA.
+- Dependabot, CODEOWNERS, and a PR evidence/risk template are present locally. Pages deployment now
+  checks Wrangler's deployment ID/URL and smoke-tests both the root and SPA fallback.
+- `pnpm check`, `pnpm lint:type-aware`, `pnpm type-check:ts7`, both E2E projects, the Firefox build,
+  YAML parsing, frozen lock verification, and `git diff --check` pass locally.
+- The host has no global `wrangler` executable on PATH, but the pinned `pnpm dlx
+wrangler@4.114.0` invocation has a healthy OAuth session with Pages write access.
+- GitHub CLI is authenticated as `xiaoland`, whose active `InKCre` organization membership role is
+  `admin`. Organization secrets `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`, plus the
+  `CLOUDFLARE_PAGES_PROJECT=inkcre-client-web` variable, are selected only for
+  `InKCre/client-web`. Secret values remain unreadable and their deployment capability is unproven
+  until the workflow runs.
+- Cloudflare Pages Direct Upload project `inkcre-client-web` exists with production branch `main`.
+  Its default domain is `inkcre-client-web.pages.dev`; custom domain `app.inkcre.dev`, its proxied
+  CNAME, DNS ownership verification, and TLS/HTTP validation are active. The project has no
+  canonical deployment yet.
+- The local `pnpm audit --audit-level high` call still receives gzip bytes where pnpm expects JSON.
+  This is a host/network response issue; the same unchanged audit gate passed in the latest GitHub
+  Actions run and remains required.

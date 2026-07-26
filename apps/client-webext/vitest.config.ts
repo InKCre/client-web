@@ -1,28 +1,19 @@
-import { resolve } from 'path'
-import { defineConfig } from 'vitest/config'
+import { fileURLToPath } from 'node:url'
+import { defineProject } from 'vitest/config'
 
-export default defineConfig({
+export default defineProject({
+  root: fileURLToPath(new URL('.', import.meta.url)),
   test: {
+    name: 'client-webext',
     globals: true,
     environment: 'happy-dom',
+    include: ['**/*.spec.ts'],
     setupFiles: ['./tests/setup.ts'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'tests/',
-        '**/*.d.ts',
-        '**/*.config.*',
-        '**/dist/**',
-        '**/.output/**',
-      ],
-    },
   },
   resolve: {
     alias: {
-      '~': resolve(__dirname, './'),
-      '@': resolve(__dirname, './'),
+      '~': fileURLToPath(new URL('.', import.meta.url)),
+      '@': fileURLToPath(new URL('.', import.meta.url)),
     },
   },
 })
