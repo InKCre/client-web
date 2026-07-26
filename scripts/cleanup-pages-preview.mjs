@@ -15,14 +15,18 @@ const headers = {
   Authorization: `Bearer ${token}`,
   'Content-Type': 'application/json',
 }
+const pageSize = 25
 const deployments = []
 let page = 1
 let totalPages = 1
 
 do {
-  const response = await fetch(`${endpoint}?env=preview&page=${page}&per_page=100`, { headers })
+  const response = await fetch(`${endpoint}?env=preview&page=${page}&per_page=${pageSize}`, {
+    headers,
+  })
   if (!response.ok) {
-    throw new Error(`Cloudflare deployment listing failed with HTTP ${response.status}`)
+    const details = await readCloudflareErrorDetails(response)
+    throw new Error(`Cloudflare deployment listing failed with HTTP ${response.status}${details}`)
   }
   const payload = await response.json()
   if (payload.success !== true || !Array.isArray(payload.result)) {
@@ -43,8 +47,9 @@ for (const deployment of deployments) {
     headers,
   })
   if (!deletion.ok && deletion.status !== 404) {
+    const details = await readCloudflareErrorDetails(deletion)
     throw new Error(
-      `Cloudflare deployment ${deployment.id} deletion failed with HTTP ${deletion.status}`
+      `Cloudflare deployment ${deployment.id} deletion failed with HTTP ${deletion.status}${details}`
     )
   }
 }
@@ -56,3 +61,25 @@ console.log(
     deleted: deployments.map((deployment) => deployment.id),
   })
 )
+
+async function readCloudflareErrorDetails(response) {
+  const payload = await response.json().catch(() => undefined)
+  if (!Array.isArray(payload?.errors)) {
+    return ''
+  }
+
+  const errors = payload.errors.flatMap((error) => {
+    if (typeof error !== 'object' || error === null) {
+      return []
+    }
+    if (
+      (typeof error.code !== 'string' && !Number.isFinite(error.code)) ||
+      typeof error.message !== 'string'
+    ) {
+      return []
+    }
+    return [{ code: error.code, message: error.message }]
+  })
+
+  return errors.length === 0 ? '' : `: ${JSON.stringify({ errors })}`
+}
