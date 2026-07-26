@@ -115,3 +115,9 @@ No compatibility shim, duplicate schema, dual formatter, alternate production br
   hard-cuts the repository to pnpm 11.11.0, keeps pnpm's advisory logic behind a loopback transport
   correction, and upgrades the two high-severity transitive dependencies that the working audit
   exposed.
+- 2026-07-26: hosted Pages repair kept both the trusted controller and accepted artifact isolated
+  from Wrangler's installation root. Production and an internal-PR preview deployed exact checked
+  artifacts and passed root plus SPA fallback smoke; the custom domain returned the same static
+  shell.
+- 2026-07-26: protected `main` now requires the proven browser-extension contract in addition to
+  workspace, dependency review, and peer-database checks.

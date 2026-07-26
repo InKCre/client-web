@@ -335,3 +335,28 @@ wrangler@4.114.0` invocation has a healthy OAuth session with Pages write access
   remaining low advisory and exits successfully.
 - pnpm 11.11.0 frozen/offline install, `pnpm check`, type-aware Oxlint, native TypeScript 7, the
   repaired audit, peer-database browser E2E, and Chromium extension E2E pass locally.
+
+## 2026-07-26 Pages CD Proof
+
+- GitHub Actions `Client checks` run `30194300886` passed on exact main commit `9ef75d4`. Workspace,
+  high-severity audit, shadow toolchains, peer-database browser E2E, Chromium extension E2E,
+  Firefox build, accepted static artifact, and retained artifacts were green.
+- The delivery job required two isolation corrections discovered only under the hosted runner:
+  Wrangler must not restore the private pnpm workspace, and its npm install must not parse pnpm
+  `catalog:` manifests. The final controller checks out trusted code under `controller/`, downloads
+  the accepted artifact under `.pages-delivery/dist`, and installs exact Wrangler 4.114.0 from the
+  manifest-free job root.
+- Production Pages run `30194355522` passed. Deployment
+  `58c10276-ccf3-41a8-9fb6-9f6f2e944fcd` published branch `main` at
+  `https://58c10276.inkcre-client-web.pages.dev`; the workflow smoke passed both `/` and the SPA
+  fallback path.
+- Internal Dependabot PR 24 independently proved the preview path in run `30194308954`. Deployment
+  `d2518512-9c95-46e0-bfdf-64345f3b7e8c` used collision-safe branch
+  `preview/client-web/pr-24`, passed both smoke paths, and exposed alias
+  `https://preview-client-web-pr-24.inkcre-client-web.pages.dev`.
+- Direct checks against `https://app.inkcre.dev/` and
+  `https://app.inkcre.dev/__inkcre_pages_spa_smoke` returned HTTP 200 with HTML after production
+  deployment. Wrangler lists the production and preview deployments as active.
+- Protected `main` now additionally requires `Browser extension contract`; the full required set is
+  Workspace contract, Peer database browser E2E, Dependency security review, and Browser extension
+  contract.
