@@ -5,7 +5,7 @@ This is a monorepo of InKCre that includes client-web, client-webext and infrast
 ## Development prerequisites
 
 - Node.js `22.22.3` from `.node-version`
-- pnpm `10.26.2` from the root `packageManager` field
+- pnpm `11.11.0` from the root `packageManager` field
 - Python `3.11+`, PDM, and `sustainable-vibe-coding==10.0.1`
 - Docker with Compose v2, either local or reachable through an SSH config alias
 - A GitHub token with `read:packages` access to `@inkcre/web-design`

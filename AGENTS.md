@@ -25,7 +25,7 @@ Web, browser-extension, shared-core, and Module Federation clients for the InKCr
 
 ## Development Workflow
 
-- Runtime: Node.js 22.22.3 and pnpm 10.26.2.
+- Runtime: Node.js 22.22.3 and pnpm 11.11.0.
 - Install: `pnpm install --frozen-lockfile`.
 - Diagnose: `pnpm run doctor` (`pnpm doctor` is pnpm's unrelated built-in command).
 - Develop: `pnpm dev` or `pnpm dev:all`.

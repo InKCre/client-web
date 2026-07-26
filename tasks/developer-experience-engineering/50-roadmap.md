@@ -104,11 +104,12 @@ Exit proof:
 
 ## Phase 5 - Add CI and Cloudflare Pages CD
 
-Status: CI/CD controllers and ratchets are implemented locally. Existing GitHub-hosted database
-CI is green, but the new Vitest/extension checks are unproven until publication. The Direct Upload
-project, active custom domain, repository-scoped organization secrets, and project variable now
-exist. Pages delivery remains unpublished and the dedicated CI token remains unproven until the
-workflow runs successfully.
+Status: CI/CD controllers and ratchets are published. The GitHub-hosted shadow, database, and
+browser-extension jobs are green. The workspace job exposed npm's malformed compressed audit
+response; a pnpm 11 hard cut, bounded transport repair, and two high-advisory overrides are locally
+green and await publication. The Direct Upload project, active custom domain, repository-scoped
+organization secrets, and project variable exist. Pages delivery and the dedicated CI token remain
+unproven until the repaired workflow succeeds.
 
 - Add required PR checks, concurrency, and lock-keyed caches.
 - Deploy eligible PRs to Pages and publish deployment status.

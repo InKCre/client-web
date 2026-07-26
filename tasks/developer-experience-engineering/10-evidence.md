@@ -310,6 +310,28 @@ wrangler@4.114.0` invocation has a healthy OAuth session with Pages write access
   Its default domain is `inkcre-client-web.pages.dev`; custom domain `app.inkcre.dev`, its proxied
   CNAME, DNS ownership verification, and TLS/HTTP validation are active. The project has no
   canonical deployment yet.
-- The local `pnpm audit --audit-level high` call still receives gzip bytes where pnpm expects JSON.
-  This is a host/network response issue; the same unchanged audit gate passed in the latest GitHub
-  Actions run and remains required.
+- Before publication, the local `pnpm audit --audit-level high` failure was provisionally
+  attributed to the host/network path. The published run below falsified that diagnosis by
+  reproducing the same malformed response on GitHub's runner.
+
+## 2026-07-26 Published CI Audit Repair
+
+- Commit `74c1f72` and the preceding provider commit were pushed directly to `main` under the
+  user's explicit authorization. GitHub Actions run `30193342585` proved the new shadow,
+  peer-database, and browser-extension jobs; only the workspace audit step failed.
+- The failure reproduced the local response exactly: npm returned gzip bytes without
+  `Content-Encoding`, so pnpm attempted to parse compressed bytes as JSON. Direct response-header
+  inspection confirmed that this defect is at the registry boundary rather than in the repository.
+- npm has retired the legacy quick-audit endpoint used by pnpm 10. The repository therefore
+  hard-cuts to pnpm 11.11.0 and its bulk-advisories analyzer instead of carrying two package-manager
+  versions. pnpm 11's `allowBuilds` map explicitly permits `spawn-sync` and `vue-demi` while
+  explicitly denying the previously ignored Parcel watcher, esbuild, Sharp, and Workerd scripts.
+- `scripts/audit-dependencies.mjs` exposes only the bulk-advisories path on an ephemeral loopback
+  server, forwards the request to npm with a 15-second bound, and restores the missing gzip header
+  only when the response has gzip magic. pnpm still owns advisory interpretation and the
+  high-severity exit code.
+- The repaired audit exposed real new high advisories in PostCSS and brace-expansion. Exact
+  workspace overrides now resolve PostCSS 8.5.18 and brace-expansion 5.0.8; the audit reports one
+  remaining low advisory and exits successfully.
+- pnpm 11.11.0 frozen/offline install, `pnpm check`, type-aware Oxlint, native TypeScript 7, the
+  repaired audit, peer-database browser E2E, and Chromium extension E2E pass locally.

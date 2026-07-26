@@ -17,7 +17,7 @@
     "format:check": "oxfmt --check .",
     "lint": "oxlint .",
     "lint:type-aware": "oxlint --type-aware .",
-    "audit:dependencies": "pnpm audit --audit-level high",
+    "audit:dependencies": "node scripts/audit-dependencies.mjs",
     "type-check": "pnpm check:workspace && pnpm check:runtime && pnpm check:database && pnpm -r run type-check",
     "type-check:ts7": "node node_modules/@typescript/native/bin/tsc --project packages/core/tsconfig.json --noEmit",
     "check:runtime": "node scripts/check-local-runtime-contract.mjs",
@@ -51,7 +51,7 @@
   },
   "engines": {
     "node": "22.22.3",
-    "pnpm": "10.26.2"
+    "pnpm": "11.11.0"
   },
-  "packageManager": "pnpm@10.26.2"
+  "packageManager": "pnpm@11.11.0"
 }

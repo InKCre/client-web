@@ -110,3 +110,8 @@ No compatibility shim, duplicate schema, dual formatter, alternate production br
 - 2026-07-26: Wrangler OAuth created the Direct Upload project. The authenticated Cloudflare
   dashboard added the proxied CNAME for `app.inkcre.dev`; Pages reports the custom domain, DNS
   verification, and TLS validation as active.
+- 2026-07-26: the first published ratchet run proved every new job except the dependency audit.
+  npm's bulk endpoint returned gzip bytes without the required response header. The repair
+  hard-cuts the repository to pnpm 11.11.0, keeps pnpm's advisory logic behind a loopback transport
+  correction, and upgrades the two high-severity transitive dependencies that the working audit
+  exposed.
