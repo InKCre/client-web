@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { InkForm, InkInput, InkButton, InkDoubleCheck } from '@inkcre/web-design'
+import { InkForm, InkInput, InkButton, InkDoubleCheck } from '@inkcre/ui-web'
 import { configStore, MetaConfigSchema, type MetaConfig } from '@inkcre/core'
 import { setLocale, SUPPORT_LOCALES, LOCALE_NAMES, type SupportLocale } from '@/locales'
 import i18n from '@/locales'

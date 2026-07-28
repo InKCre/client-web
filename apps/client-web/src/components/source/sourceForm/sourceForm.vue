@@ -8,7 +8,7 @@ import {
   InkDropdown,
   type DropdownOption,
   InkForm,
-} from '@inkcre/web-design'
+} from '@inkcre/ui-web'
 import collectAtForm from '@/components/source/collectAtForm/collectAtForm.vue'
 import { sourceFormProps, sourceFormEmits } from './sourceForm'
 import { CollectAt, SourceType } from '@inkcre/core'

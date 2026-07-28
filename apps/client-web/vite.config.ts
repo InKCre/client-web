@@ -81,7 +81,7 @@ export default defineConfig(({ mode }) => {
                 file.includes('src/views/') ||
                 file.includes('src/extensions/')
               ) {
-                return `@use "@inkcre/web-design/styles/mixins" as *;@use "@inkcre/web-design/styles/functions" as *;@use "@/styles/index.scss" as *;${source}`
+                return `@use "@inkcre/ui-web/styles/mixins" as *;@use "@inkcre/ui-web/styles/functions" as *;@use "@/styles/index.scss" as *;${source}`
               }
               return source
             },

@@ -2,7 +2,7 @@
 import { computed, ref, watch, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIntervalFn } from '@vueuse/core'
-import { InkLoading } from '@inkcre/web-design'
+import { InkLoading } from '@inkcre/ui-web'
 import LogEntry from '@/components/obsrv/LogEntry/LogEntry.vue'
 import { Log } from '@inkcre/core'
 import { logsViewerEmits, logsViewerProps } from './LogsViewer'

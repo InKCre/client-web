@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { InkButton, InkSwitch, InkDialog, InkJsonEditor } from '@inkcre/web-design'
+import { InkButton, InkSwitch, InkDialog, InkJsonEditor } from '@inkcre/ui-web'
 import { extensionCardProps, extensionCardEmits } from './extensionCard'
 
 const props = defineProps(extensionCardProps)

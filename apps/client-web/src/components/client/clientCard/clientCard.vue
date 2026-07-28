@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { InkButton, InkInput, InkDialog, InkJsonEditor } from '@inkcre/web-design'
+import { InkButton, InkInput, InkDialog, InkJsonEditor } from '@inkcre/ui-web'
 import { Client, CreateClientForm } from '@inkcre/core'
 import { clientCardProps, clientCardEmits } from './clientCard'
 

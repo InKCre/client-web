@@ -8,7 +8,7 @@ This is a monorepo of InKCre that includes client-web, client-webext and infrast
 - pnpm `11.11.0` from the root `packageManager` field
 - Python `3.11+`, PDM, and `sustainable-vibe-coding==10.0.1`
 - Docker with Compose v2, either local or reachable through an SSH config alias
-- A GitHub token with `read:packages` access to `@inkcre/web-design`
+- A GitHub token with `read:packages` access to `@inkcre/ui-web`
 
 pnpm ignores authentication credentials declared by repository-controlled npm configuration. Store the environment-variable placeholder in the trusted user configuration:
 

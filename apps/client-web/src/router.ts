@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { Router, RouteLocationNormalizedLoaded } from 'vue-router'
-import type { InkRouter } from '@inkcre/web-design'
+import type { InkRouter } from '@inkcre/ui-web'
 import start from '@/views/start/start.vue'
 import sources from '@/views/sources/sources.vue'
 import source from '@/views/sources/source/source.vue'

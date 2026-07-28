@@ -6,7 +6,7 @@ Web client for InKCre - GUI for system management and visualization.
 
 - Framework: Vue3 + TypeScript
 - Styling: SCSS + UnoCSS
-- UI Library: `@inkcre/web-design`
+- UI Library: `@inkcre/ui-web`
 - Routing: vue-router
 - State: pinia
 - i18n: vue-i18n

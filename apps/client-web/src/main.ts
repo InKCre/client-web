@@ -6,7 +6,7 @@ import { store } from '@inkcre/core'
 
 // 样式
 import 'uno.css'
-import '@inkcre/web-design/styles'
+import '@inkcre/ui-web/styles'
 import '@vue-flow/core/dist/style.css'
 
 const app = createApp(App)

@@ -37,7 +37,7 @@ export default defineConfig({
       scss: {
         additionalData: (source: string, file: string) => {
           if (file.includes("src/components/")) {
-            return `@use "@inkcre/web-design/styles/mixins" as *;@use "@inkcre/web-design/styles/functions" as *;${source}`;
+            return `@use "@inkcre/ui-web/styles/mixins" as *;@use "@inkcre/ui-web/styles/functions" as *;${source}`;
           }
           return source;
         },

@@ -1,7 +1,7 @@
 @use 'sass:map';
-@use '@inkcre/web-design/styles/mixins' as *;
-@use '@inkcre/web-design/styles/functions' as fn;
-@use '@inkcre/web-design/tokens/ref' as ref;
+@use '@inkcre/ui-web/styles/mixins' as *;
+@use '@inkcre/ui-web/styles/functions' as fn;
+@use '@inkcre/ui-web/tokens/ref' as ref;
 
 // Responsive helpers built from reference breakpoints
 @mixin mobile {

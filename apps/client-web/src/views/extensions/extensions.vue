@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { useAsyncState } from '@vueuse/core'
 import extensionCard from '@/components/extension/extensionCard/extensionCard.vue'
 import installExtension from '@/components/extension/installExtension/installExtension.vue'
-import { InkLoading, InkDropdown } from '@inkcre/web-design'
+import { InkLoading, InkDropdown } from '@inkcre/ui-web'
 import { Client } from '@inkcre/core'
 import { Extension, configStore } from '@inkcre/core'
 

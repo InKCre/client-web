@@ -94,9 +94,9 @@ importers:
       '@inkcre/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@inkcre/web-design':
-        specifier: ^1.2.1
-        version: 1.2.2(@codemirror/autocomplete@6.20.3)(@codemirror/commands@6.10.4)(@codemirror/lang-json@6.0.2)(@codemirror/lint@6.9.7)(@codemirror/state@6.7.1)(@codemirror/view@6.43.6)(@vueuse/core@14.3.0(vue@3.5.40(typescript@5.9.3)))(dayjs@1.11.21)(vscode-json-languageservice@5.7.2)(vue-router@4.5.1(vue@3.5.40(typescript@5.9.3)))(vue@3.5.40(typescript@5.9.3))
+      '@inkcre/ui-web':
+        specifier: 1.2.2
+        version: 1.2.2(@codemirror/autocomplete@6.20.3)(@codemirror/commands@6.10.4)(@codemirror/lang-json@6.0.2)(@codemirror/lint@6.9.7)(@codemirror/state@6.7.1)(@codemirror/view@6.43.6)(@vueuse/core@14.3.0(vue@3.5.40(typescript@5.9.3)))(dayjs@1.11.21)(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)))(vscode-json-languageservice@5.7.2)(vscode-languageserver-textdocument@1.0.12)(vue-router@4.5.1(vue@3.5.40(typescript@5.9.3)))(vue@3.5.40(typescript@5.9.3))
       '@module-federation/runtime':
         specifier: ^0.21.4
         version: 0.21.6
@@ -151,6 +151,9 @@ importers:
       vscode-json-languageservice:
         specifier: ^5.6.4
         version: 5.7.2
+      vscode-languageserver-textdocument:
+        specifier: ^1.0.12
+        version: 1.0.12
       vue:
         specifier: ^3.5.18
         version: 3.5.40(typescript@5.9.3)
@@ -355,9 +358,9 @@ importers:
       '@inkcre/ext-dev-utils':
         specifier: workspace:*
         version: link:../../packages/ext-dev-utils
-      '@inkcre/web-design':
-        specifier: ^1.2.1
-        version: 1.2.2(@codemirror/autocomplete@6.20.3)(@codemirror/commands@6.10.4)(@codemirror/lang-json@6.0.2)(@codemirror/lint@6.9.7)(@codemirror/state@6.7.1)(@codemirror/view@6.43.6)(@vueuse/core@14.3.0(vue@3.5.40(typescript@5.9.3)))(dayjs@1.11.21)(vscode-json-languageservice@5.7.2)(vue-router@4.5.1(vue@3.5.40(typescript@5.9.3)))(vue@3.5.40(typescript@5.9.3))
+      '@inkcre/ui-web':
+        specifier: 1.2.2
+        version: 1.2.2(@codemirror/autocomplete@6.20.3)(@codemirror/commands@6.10.4)(@codemirror/lang-json@6.0.2)(@codemirror/lint@6.9.7)(@codemirror/state@6.7.1)(@codemirror/view@6.43.6)(@vueuse/core@14.3.0(vue@3.5.40(typescript@5.9.3)))(dayjs@1.11.21)(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)))(vscode-json-languageservice@5.7.2)(vscode-languageserver-textdocument@1.0.12)(vue-router@4.5.1(vue@3.5.40(typescript@5.9.3)))(vue@3.5.40(typescript@5.9.3))
       '@module-federation/vite':
         specifier: ^1.1.0
         version: 1.7.1(rollup@4.59.0)
@@ -437,9 +440,9 @@ importers:
       '@inkcre/core':
         specifier: workspace:*
         version: link:../core
-      '@inkcre/web-design':
-        specifier: ^1.1.6
-        version: 1.2.2(@codemirror/autocomplete@6.20.3)(@codemirror/commands@6.10.4)(@codemirror/lang-json@6.0.2)(@codemirror/lint@6.9.7)(@codemirror/state@6.7.1)(@codemirror/view@6.43.6)(@vueuse/core@14.3.0(vue@3.5.40(typescript@5.9.3)))(dayjs@1.11.21)(vscode-json-languageservice@5.7.2)(vue-router@4.5.1(vue@3.5.40(typescript@5.9.3)))(vue@3.5.40(typescript@5.9.3))
+      '@inkcre/ui-web':
+        specifier: 1.2.2
+        version: 1.2.2(@codemirror/autocomplete@6.20.3)(@codemirror/commands@6.10.4)(@codemirror/lang-json@6.0.2)(@codemirror/lint@6.9.7)(@codemirror/state@6.7.1)(@codemirror/view@6.43.6)(@vueuse/core@14.3.0(vue@3.5.40(typescript@5.9.3)))(dayjs@1.11.21)(unocss@66.7.5(vite@8.1.5(@types/node@22.17.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.90.0)(sass@1.101.6)))(vscode-json-languageservice@5.7.2)(vscode-languageserver-textdocument@1.0.12)(vue-router@4.5.1(vue@3.5.40(typescript@5.9.3)))(vue@3.5.40(typescript@5.9.3))
     devDependencies:
       pinia:
         specifier: ^3.0.3
@@ -1043,8 +1046,8 @@ packages:
   '@iconify/utils@3.1.4':
     resolution: {integrity: sha512-b1S7B1k9ohZ+iNTi2ATxbRYG9fTrJmUT0rc46bvVnNxqNRGW7dyo/vRREwyniI5IRN2RSJHDcm+s3BjWrSAjHw==}
 
-  '@inkcre/web-design@1.2.2':
-    resolution: {integrity: sha512-SsB0QPRPUNSzaEog3gvytb3FVVoS2ss/shStW7LTN+eNy4kFwBmx4I3UrXtVJSOoOKzMasKk9Id6D/61gm/UEQ==, tarball: https://npm.pkg.github.com/download/@inkcre/web-design/1.2.2/6656cbdf3d870cff7690c673d2fadfda494becbe}
+  '@inkcre/ui-web@1.2.2':
+    resolution: {integrity: sha512-26u+VHciYNpPN9BHwwMoqqPWPN56JsNoa1n5ZkfY7aE5Rq/UwUuVgrWpY1tfzRBo9ec+Fvu1IT4lBj8xLhs9ug==, tarball: https://npm.pkg.github.com/download/@inkcre/ui-web/1.2.2/4065deb9bacb8dfbcfc16bf2611376a8b7f183d0}
     peerDependencies:
       '@codemirror/autocomplete': ^6.20.0
       '@codemirror/commands': ^6.10.0
@@ -1054,7 +1057,9 @@ packages:
       '@codemirror/view': ^6.38.8
       '@vueuse/core': ^14.0.0
       dayjs: ^1.11.0
+      unocss: ^66.5.0
       vscode-json-languageservice: ^5.6.4
+      vscode-languageserver-textdocument: ^1.0.12
       vue: ^3.0.0
       vue-router: ^4.0.0
 
@@ -6712,7 +6717,7 @@ snapshots:
       '@iconify/types': 2.0.0
       import-meta-resolve: 4.2.0
 
-  '@inkcre/web-design@1.2.2(@codemirror/autocomplete@6.20.3)(@codemirror/commands@6.10.4)(@codemirror/lang-json@6.0.2)(@codemirror/lint@6.9.7)(@codemirror/state@6.7.1)(@codemirror/view@6.43.6)(@vueuse/core@14.3.0(vue@3.5.40(typescript@5.9.3)))(dayjs@1.11.21)(vscode-json-languageservice@5.7.2)(vue-router@4.5.1(vue@3.5.40(typescript@5.9.3)))(vue@3.5.40(typescript@5.9.3))':
+  '@inkcre/ui-web@1.2.2(@codemirror/autocomplete@6.20.3)(@codemirror/commands@6.10.4)(@codemirror/lang-json@6.0.2)(@codemirror/lint@6.9.7)(@codemirror/state@6.7.1)(@codemirror/view@6.43.6)(@vueuse/core@14.3.0(vue@3.5.40(typescript@5.9.3)))(dayjs@1.11.21)(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)))(vscode-json-languageservice@5.7.2)(vscode-languageserver-textdocument@1.0.12)(vue-router@4.5.1(vue@3.5.40(typescript@5.9.3)))(vue@3.5.40(typescript@5.9.3))':
     dependencies:
       '@codemirror/autocomplete': 6.20.3
       '@codemirror/commands': 6.10.4
@@ -6722,7 +6727,25 @@ snapshots:
       '@codemirror/view': 6.43.6
       '@vueuse/core': 14.3.0(vue@3.5.40(typescript@5.9.3))
       dayjs: 1.11.21
+      unocss: 66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6))
       vscode-json-languageservice: 5.7.2
+      vscode-languageserver-textdocument: 1.0.12
+      vue: 3.5.40(typescript@5.9.3)
+      vue-router: 4.5.1(vue@3.5.40(typescript@5.9.3))
+
+  '@inkcre/ui-web@1.2.2(@codemirror/autocomplete@6.20.3)(@codemirror/commands@6.10.4)(@codemirror/lang-json@6.0.2)(@codemirror/lint@6.9.7)(@codemirror/state@6.7.1)(@codemirror/view@6.43.6)(@vueuse/core@14.3.0(vue@3.5.40(typescript@5.9.3)))(dayjs@1.11.21)(unocss@66.7.5(vite@8.1.5(@types/node@22.17.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.90.0)(sass@1.101.6)))(vscode-json-languageservice@5.7.2)(vscode-languageserver-textdocument@1.0.12)(vue-router@4.5.1(vue@3.5.40(typescript@5.9.3)))(vue@3.5.40(typescript@5.9.3))':
+    dependencies:
+      '@codemirror/autocomplete': 6.20.3
+      '@codemirror/commands': 6.10.4
+      '@codemirror/lang-json': 6.0.2
+      '@codemirror/lint': 6.9.7
+      '@codemirror/state': 6.7.1
+      '@codemirror/view': 6.43.6
+      '@vueuse/core': 14.3.0(vue@3.5.40(typescript@5.9.3))
+      dayjs: 1.11.21
+      unocss: 66.7.5(vite@8.1.5(@types/node@22.17.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.90.0)(sass@1.101.6))
+      vscode-json-languageservice: 5.7.2
+      vscode-languageserver-textdocument: 1.0.12
       vue: 3.5.40(typescript@5.9.3)
       vue-router: 4.5.1(vue@3.5.40(typescript@5.9.3))
 

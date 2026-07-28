@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { InkDropdown, type DropdownOption } from '@inkcre/web-design'
+import { InkDropdown, type DropdownOption } from '@inkcre/ui-web'
 import type { CommunityMetadata } from '@inkcre/core'
 
 interface CommunityNavigatorProps {

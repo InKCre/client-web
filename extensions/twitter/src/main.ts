@@ -10,7 +10,7 @@ import Extension from './index'
 import App from './DevApp.vue'
 
 // Import design system styles
-import '@inkcre/web-design/styles'
+import '@inkcre/ui-web/styles'
 
 void bootstrapExtension({
   rootComponent: App,

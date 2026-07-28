@@ -19,8 +19,8 @@ vi.mock('vue-i18n', () => ({
   }),
 }))
 
-// Mock @inkcre/web-design
-vi.mock('@inkcre/web-design', () => ({
+// Mock @inkcre/ui-web
+vi.mock('@inkcre/ui-web', () => ({
   InkLoading: { name: 'InkLoading', template: '<div>Loading</div>' },
 }))
 

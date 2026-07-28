@@ -11,7 +11,7 @@ import {
   InkSwitch,
   InkJsonEditor,
   InkDoubleCheck,
-} from '@inkcre/web-design'
+} from '@inkcre/ui-web'
 import collectAtForm from '@/components/source/collectAtForm/collectAtForm.vue'
 import { sourceCardEmits, type SourceCardProps } from './sourceCard'
 import {

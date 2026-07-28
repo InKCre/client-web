@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { InkForm, InkInput, InkButton } from '@inkcre/web-design'
+import { InkForm, InkInput, InkButton } from '@inkcre/ui-web'
 import { installExtensionEmits } from './installExtension'
 import { InstallExtensionForm } from '@inkcre/core'
 

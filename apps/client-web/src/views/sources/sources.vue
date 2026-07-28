@@ -3,7 +3,7 @@ import { onMounted } from 'vue'
 import { useAsyncState } from '@vueuse/core'
 import sourceCard from '@/components/source/sourceCard/sourceCard.vue'
 import CreateSource from '@/components/source/createSource/createSource.vue'
-import { InkLoading } from '@inkcre/web-design'
+import { InkLoading } from '@inkcre/ui-web'
 import { Source } from '@inkcre/core'
 
 // Use useAsyncState for sources with refetch capability

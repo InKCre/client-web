@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { InkForm, InkJsonEditor } from '@inkcre/web-design'
+import { InkForm, InkJsonEditor } from '@inkcre/ui-web'
 import { collectJobFormProps, collectJobFormEmits } from './collectJobForm'
 
 const props = defineProps(collectJobFormProps)

@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Resolver } from '@inkcre/core'
 import type { Block } from '@inkcre/core'
-import { InkLoading } from '@inkcre/web-design'
+import { InkLoading } from '@inkcre/ui-web'
 
 const props = defineProps<{
   block: Block

@@ -32,7 +32,7 @@ JWT signing secret. A fresh origin has no default service or client identity. Th
 and omitted from portable exports. Do not add a hardcoded endpoint, Vite environment variable,
 Worker binding, or shared Cloudflare secret for runtime configuration.
 
-## Joint dev with @inkcre/web-design
+## Joint dev with @inkcre/ui-web
 
 Keep the lockfile and trusted GitHub Packages installation contract reproducible. A local
 `pnpm link` is not a supported repository state.

@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAsyncState } from '@vueuse/core'
-import { InkButton, InkLoading } from '@inkcre/web-design'
+import { InkButton, InkLoading } from '@inkcre/ui-web'
 import { Client } from '@inkcre/core'
 import ClientCard from '../clientCard/clientCard.vue'
 

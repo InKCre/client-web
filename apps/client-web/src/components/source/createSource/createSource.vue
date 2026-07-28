@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
-import { InkButton } from '@inkcre/web-design'
+import { InkButton } from '@inkcre/ui-web'
 import sourceForm from '../sourceForm/sourceForm.vue'
 import { createSourceEmits } from './createSource'
 import { CollectAt, SourceForm } from '@inkcre/core'

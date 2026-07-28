@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import router from '@/router'
 import { appSidePanelProps, appSidePanelEmits } from './AppSidePanel'
-import { InkButton } from '@inkcre/web-design'
+import { InkButton } from '@inkcre/ui-web'
 
 const props = defineProps(appSidePanelProps)
 const emit = defineEmits(appSidePanelEmits)

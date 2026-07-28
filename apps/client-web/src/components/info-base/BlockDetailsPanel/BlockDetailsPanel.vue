@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { InkButton, InkField } from '@inkcre/web-design'
+import { InkButton, InkField } from '@inkcre/ui-web'
 import type { BlockDetailsPanelProps } from './BlockDetailsPanel'
 import { blockDetailsPanelEmits } from './BlockDetailsPanel'
 import BlockContent from '@/components/info-base/block/BlockContent/BlockContent.vue'

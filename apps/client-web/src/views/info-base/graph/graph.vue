@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { MiniMap } from '@vue-flow/minimap'
-import { InkPopup, InkLoading, InkButton } from '@inkcre/web-design'
+import { InkPopup, InkLoading, InkButton } from '@inkcre/ui-web'
 import { useElementSize } from '@vueuse/core'
 
 import BlockNodeComponent from '@/components/info-base/BlockNode/BlockNode.vue'
