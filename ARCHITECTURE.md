@@ -95,6 +95,9 @@
   bind their assigned application ports to loopback.
 - Both servers expose an identity endpoint. The executable SVC probe discovers the registered
   Portless route, connects through loopback, and accepts only the exact target/instance payload.
+- The optional `web-ui` capability consumes a validated sibling `@inkcre/ui-web` package root
+  through exact Vite/Vitest aliases. Its source identity participates in the readiness probe;
+  normal `web`, build, check, and CI remain registry-backed.
 - WXT keeps optional Chromium state under `.runtime/dev/<instance>` and never claims a fixed
   debugging port or shared browser profile.
 - The database target uses one tracked Compose/runtime contract with two transports:

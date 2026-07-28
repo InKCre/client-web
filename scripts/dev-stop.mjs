@@ -28,7 +28,11 @@ if (!/^[a-f0-9]{16}$/.test(instance)) {
   process.exit(1)
 }
 
-const routeNames = new Set([`client-web-${instance}`, `webext-${instance}`])
+const routeNames = new Set([
+  `client-web-${instance}`,
+  `client-web-ui-${instance}`,
+  `webext-${instance}`,
+])
 const routes = output(portlessBin, ['list'])
 const processes = []
 

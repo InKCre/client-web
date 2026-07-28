@@ -46,6 +46,25 @@
             "readiness_timeout": 90,
             "poll_interval": 0.5
           },
+          "web-ui": {
+            "scope": "worktree",
+            "probe": {
+              "kind": "exec",
+              "argv": ["node", "scripts/probe-dev.mjs", "web-ui", "${dev.instance}"],
+              "cwd": ".",
+              "timeout": 5,
+              "output_limit": 1024
+            },
+            "provision": {
+              "kind": "exec",
+              "mode": "run",
+              "argv": ["node", "scripts/dev.mjs", "web-ui"],
+              "cwd": "."
+            },
+            "access": ["https://client-web-ui-${dev.instance}.localhost/"],
+            "readiness_timeout": 90,
+            "poll_interval": 0.5
+          },
           "webext": {
             "scope": "worktree",
             "probe": {

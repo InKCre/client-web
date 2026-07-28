@@ -94,14 +94,17 @@ const rootScripts = [
   'check:runtime',
   'check:workspace',
   'doctor',
+  'dev:all:ui',
   'dev:status',
   'dev:stop',
+  'dev:ui',
   'format',
   'format:check',
   'lint',
   'lint:type-aware',
   'type-check',
   'type-check:ts7',
+  'type-check:ui',
 ]
 
 for (const script of rootScripts) {

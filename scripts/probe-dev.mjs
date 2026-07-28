@@ -1,4 +1,6 @@
 import { execFileSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
+import { realpathSync } from 'node:fs'
 import { get } from 'node:https'
 import { fileURLToPath } from 'node:url'
 
@@ -8,11 +10,23 @@ const repoRoot = fileURLToPath(new URL('..', import.meta.url))
 const portlessBin = `${repoRoot}/node_modules/.bin/portless`
 const names = {
   web: 'client-web',
+  'web-ui': 'client-web-ui',
   webext: 'webext',
 }
-
 if (!names[target] || !instance || !/^[a-f0-9]{16}$/.test(instance)) {
   process.exit(2)
+}
+
+let expectedUiSource = null
+try {
+  if (target === 'web-ui' && process.env.INKCRE_UI_SOURCE_ROOT) {
+    expectedUiSource = createHash('sha256')
+      .update(realpathSync(process.env.INKCRE_UI_SOURCE_ROOT))
+      .digest('hex')
+      .slice(0, 16)
+  }
+} catch {
+  process.exit(1)
 }
 
 const routeName = `${names[target]}-${instance}`
@@ -65,7 +79,9 @@ const observation = await new Promise((resolve) => {
 
         try {
           const identity = JSON.parse(body)
-          resolve(identity.instance === instance && identity.target === target)
+          const matchesTarget = identity.instance === instance && identity.target === target
+          const matchesUiSource = !expectedUiSource || identity.uiSource === expectedUiSource
+          resolve(matchesTarget && matchesUiSource)
         } catch {
           resolve(false)
         }

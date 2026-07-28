@@ -4,7 +4,7 @@ This is a monorepo of InKCre that includes client-web, client-webext and infrast
 
 ## Development prerequisites
 
-- Node.js `22.22.3` from `.node-version`
+- Node.js `22.22.3` from the root pnpm-managed `devEngines.runtime`
 - pnpm `11.11.0` from the root `packageManager` field
 - Python `3.11+`, PDM, and `sustainable-vibe-coding==10.0.1`
 - Docker with Compose v2, either local or reachable through an SSH config alias
@@ -26,6 +26,10 @@ git submodule update --init --recursive
 pnpm install --frozen-lockfile
 svc status .
 ```
+
+pnpm resolves the exact Node runtime into `pnpm-lock.yaml` and uses it for
+repository scripts. The system Node installation is only responsible for
+launching pnpm and does not define the project runtime.
 
 The database capability pulls core-py's private digest-pinned runtime from GHCR. Authenticate the
 selected Docker engine once with a GitHub token that has `read:packages`:
@@ -71,6 +75,10 @@ Run repository-wide commands from the root:
 ```bash
 pnpm run doctor      # Diagnose required versions and generated state
 pnpm dev             # Ensure the worktree-local database and web capabilities
+pnpm dev:ui --ui-source ../ui/packages/web
+                      # Opt into sibling @inkcre/ui-web source with HMR
+pnpm type-check:ui --ui-source ../ui/packages/web
+                      # Check the client against the same source graph
 pnpm dev:webext      # Ensure the worktree-local WXT capability
 pnpm dev:status      # Observe capability health without starting anything
 pnpm dev:stop        # Stop only this worktree's routes and database runtime
@@ -84,6 +92,13 @@ pnpm type-check      # Type-check every workspace member
 pnpm check           # Non-mutating format, lint, type, package, and build gate
 pnpm build           # Build core, web, Chromium extension, and remotes
 ```
+
+The normal `pnpm dev`, `pnpm check`, and CI paths always use the exact
+registry package. The source overlay is a development-only process opt-in; it
+does not write a machine path, change a manifest or lockfile, or replace
+release verification. See the
+[client development guide](apps/client-web/docs/development.md#joint-dev-with-inkcreui-web)
+for setup, remotes, type checking, generated tokens, and rollback.
 
 Type-aware Oxlint and native TypeScript 7 are green shadow lanes:
 

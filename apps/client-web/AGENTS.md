@@ -48,6 +48,7 @@ src/
 - The user-supplied JWT signing credential is masked, never logged, and excluded from portable
   config exports.
 - Start through the root `pnpm dev` command so SVC and Portless preserve worktree identity.
+- Use root `pnpm dev:ui --ui-source <package-root>` only for the opt-in sibling UI source loop.
 
 ## Coding Guidelines
 

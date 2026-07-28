@@ -25,7 +25,7 @@
 │   └── ext-dev-utils/    # Extension dev utilities
 ├── runtime/
 │   └── database.compose.yml # Portable local/SSH database topology
-├── scripts/              # Doctor, contracts, provider transports, launchers, and cleanup
+├── scripts/              # Doctor, contracts, providers, launchers, UI source overlay, and cleanup
 ├── tasks/                # Active agent-owned task packets
 ├── .oxfmtrc.json         # Repository Oxfmt contract
 ├── .oxlintrc.json        # Repository Oxlint contract

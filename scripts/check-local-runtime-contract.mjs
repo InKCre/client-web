@@ -39,11 +39,44 @@ const rootPackage = await readJson('package.json')
 const webPackage = await readJson('apps/client-web/package.json')
 const svcConfig = await readJson('svc.json')
 
+const nodeRuntime = rootPackage.devEngines?.runtime
+if (
+  nodeRuntime?.name !== 'node' ||
+  nodeRuntime?.version !== '22.22.3' ||
+  nodeRuntime?.onFail !== 'download'
+) {
+  errors.push('root devEngines.runtime must provision exact Node 22.22.3 through pnpm')
+}
+if (await exists('.node-version')) {
+  errors.push('.node-version must remain absent; pnpm devEngines.runtime owns Node')
+}
+for (const [path, expectedNodeFile, expectedCount] of [
+  ['.github/workflows/ci.yml', 'package.json', 4],
+  ['.github/workflows/pages-cleanup.yml', 'package.json', 1],
+  ['.github/workflows/pages-deploy.yml', 'controller/package.json', 1],
+]) {
+  const workflow = await readFile(`${repoRoot}/${path}`, 'utf8')
+  const configuredNodeFiles = [...workflow.matchAll(/node-version-file:\s*(\S+)/g)].map(
+    (match) => match[1]
+  )
+  if (
+    configuredNodeFiles.length !== expectedCount ||
+    configuredNodeFiles.some((nodeFile) => nodeFile !== expectedNodeFile)
+  ) {
+    errors.push(`${path} must derive every Node setup from ${expectedNodeFile}`)
+  }
+}
 if (rootPackage.devDependencies?.portless !== '0.12.0') {
   errors.push('root devDependency "portless" must be exactly "0.12.0" for the Node 22 contract')
 }
 if (rootPackage.scripts?.dev !== 'node scripts/dev.mjs web') {
   errors.push('root "dev" script must enter the declared SVC web capability')
+}
+if (rootPackage.scripts?.['dev:ui'] !== 'node scripts/dev-ui.mjs') {
+  errors.push('root "dev:ui" script must validate and enter the opt-in SVC web-ui capability')
+}
+if (rootPackage.scripts?.['type-check:ui'] !== 'node scripts/type-check-ui.mjs') {
+  errors.push('root "type-check:ui" script must own the temporary source-graph check')
 }
 if (rootPackage.scripts?.['dev:webext'] !== 'node scripts/dev.mjs webext') {
   errors.push('root "dev:webext" script must enter the declared SVC webext capability')
@@ -172,6 +205,10 @@ if (svcConfig.dev?.profile !== 'local' || !localTargets) {
       probe: ['node', 'scripts/probe-dev.mjs', 'web', '${dev.instance}'],
       command: ['node', 'scripts/dev.mjs', 'web'],
     },
+    'web-ui': {
+      probe: ['node', 'scripts/probe-dev.mjs', 'web-ui', '${dev.instance}'],
+      command: ['node', 'scripts/dev.mjs', 'web-ui'],
+    },
     webext: {
       probe: ['node', 'scripts/probe-dev.mjs', 'webext', '${dev.instance}'],
       command: ['node', 'scripts/dev.mjs', 'webext'],
@@ -265,6 +302,46 @@ if (
 const devScript = await readFile(`${repoRoot}/scripts/dev.mjs`, 'utf8')
 if (!devScript.includes("'database'")) {
   errors.push('pnpm dev must ensure the worktree-scoped database capability')
+}
+
+const uiSourceHelper = await readFile(`${repoRoot}/scripts/ui-source.mjs`, 'utf8')
+for (const required of [
+  "'@inkcre/ui-web'",
+  "'@inkcre/ui-web/styles'",
+  "'@inkcre/ui-web/styles/functions'",
+  "'@inkcre/ui-web/styles/mixins'",
+  "'@inkcre/ui-web/tokens/ref'",
+  "'@inkcre/ui-web/tokens/sys'",
+  "'@inkcre/ui-web/tokens/comp'",
+  "'@inkcre/ui-web/utils'",
+  "'@inkcre/ui-web/locales'",
+  "'@inkcre/ui-web/uno'",
+  'development-only',
+]) {
+  if (!uiSourceHelper.includes(required)) {
+    errors.push(`UI source helper is missing contract fragment "${required}"`)
+  }
+}
+
+for (const path of [
+  'apps/client-web/vite.config.ts',
+  'apps/client-web/vitest.config.ts',
+  'extensions/twitter/vite.config.ts',
+]) {
+  const config = await readFile(`${repoRoot}/${path}`, 'utf8')
+  for (const required of [
+    'createUiSourceAliases',
+    'isPathInside',
+    'uiSourceDedupe',
+    'searchForWorkspaceRoot',
+  ]) {
+    if (!config.includes(required)) {
+      errors.push(`${path} is missing UI source contract "${required}"`)
+    }
+  }
+  if (config.includes('/Volumes/') || config.includes('/Users/')) {
+    errors.push(`${path} must not persist a machine-specific UI source path`)
+  }
 }
 
 const wxtConfig = await readFile(`${repoRoot}/apps/client-webext/wxt.config.ts`, 'utf8')

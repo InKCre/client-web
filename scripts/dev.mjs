@@ -1,9 +1,11 @@
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
+import { resolveUiSourceFromEnvironment } from './ui-source.mjs'
+
 const repoRoot = fileURLToPath(new URL('..', import.meta.url))
 const target = process.argv[2]
-const supportedTargets = new Set(['web', 'webext'])
+const supportedTargets = new Set(['web', 'web-ui', 'webext'])
 
 if (!supportedTargets.has(target)) {
   console.error(`Usage: node scripts/dev.mjs <${[...supportedTargets].join('|')}>`)
@@ -45,16 +47,28 @@ async function runDeclaredTarget() {
     return 1
   }
 
-  const name = target === 'web' ? `client-web-${instance}` : `webext-${instance}`
-  const cwd = `${repoRoot}/${target === 'web' ? 'apps/client-web' : 'apps/client-webext'}`
-  const command =
-    target === 'web' ? ['pnpm', 'exec', 'vite'] : ['node', '../../scripts/dev-wxt.mjs']
+  const isWebTarget = target === 'web' || target === 'web-ui'
+  if (target === 'web-ui') {
+    try {
+      await resolveUiSourceFromEnvironment()
+    } catch (error) {
+      console.error(`[ui-source] ${error.message}`)
+      return 2
+    }
+  }
+
+  const routePrefix =
+    target === 'web-ui' ? 'client-web-ui' : target === 'web' ? 'client-web' : 'webext'
+  const name = `${routePrefix}-${instance}`
+  const cwd = `${repoRoot}/${isWebTarget ? 'apps/client-web' : 'apps/client-webext'}`
+  const command = isWebTarget ? ['pnpm', 'exec', 'vite'] : ['node', '../../scripts/dev-wxt.mjs']
 
   return run('pnpm', ['exec', 'portless', name, ...command], {
     cwd,
     env: {
       ...process.env,
       INKCRE_DEV_INSTANCE: instance,
+      INKCRE_DEV_TARGET: target,
     },
   })
 }

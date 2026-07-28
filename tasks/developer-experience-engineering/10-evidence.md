@@ -480,9 +480,11 @@ wrangler@4.114.0` invocation has a healthy OAuth session with Pages write access
   credential denial through an independently owned SSH runtime. Remote Compose inspection
   afterward found no client-web E2E project; the core-owned three-service project remained
   running and `pdm run dev:database ready` remained green.
-- The current shell emits a non-blocking engine warning because it runs Node 26.3.0 while the
-  repository pins Node 22.22.3. The complete gate and E2E nevertheless exit successfully; a
-  supported Node 22 toolchain remains the documented contributor contract.
+- This historical run used the system Node 26.3.0 while the repository still
+  pinned Node 22.22.3 through `.node-version`; the non-blocking engine warning
+  did not affect the complete gate or E2E result. The repository later moved
+  Node authority to pnpm `devEngines.runtime`, matching `InKCre/ui` and keeping
+  project scripts on the supported Node 22.22.3 independently of system Node.
 
 ## 2026-07-26 Dependabot Release-Age Audit
 
@@ -500,3 +502,25 @@ wrangler@4.114.0` invocation has a healthy OAuth session with Pages write access
 - The npm updater now makes release timing and review isolation explicit: major/minor/patch
   cooldowns are 30/7/3 days, production and development groups accept only minor/patch updates,
   unrelated majors remain individual PRs, and at most three npm version-update PRs may be open.
+
+## 2026-07-28 Organization Node Runtime Alignment
+
+- Sir selected organization consistency over adopting the newer Node 26
+  Current line. `InKCre/ui` and `InKCre/client-web` now share exact Node
+  `22.22.3`.
+- The client root moved authority from `.node-version` plus `engines` to pnpm
+  `devEngines.runtime`, matching UI. The lockfile records the exact
+  cross-platform runtime distributions and checksums.
+- The pinned setup-node action reads `devEngines.runtime` through
+  `node-version-file: package.json`; the trusted Pages controller uses
+  `controller/package.json`. Cache and registry setup therefore derive from
+  the same package authority without retaining `.node-version`.
+- The runtime contract rejects a restored `.node-version`, an incorrect
+  runtime declaration, or a workflow that reads a different Node version
+  file.
+- With the system still on Node 26.3.0, `pnpm exec node --version` and the
+  repository doctor report Node 22.22.3. This proves project execution no
+  longer depends on the system Node installation.
+- Frozen installation, the complete 11-file / 40-test workspace check, the
+  3-file / 19-test UI source-mode suite, and the cross-repository source type
+  graph pass under the pnpm-managed Node 22.22.3 runtime.

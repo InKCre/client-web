@@ -36,14 +36,14 @@ function commandVersion(command, args = ['--version']) {
   }
 }
 
-const expectedNode = (await readFile(`${repoRoot}/.node-version`, 'utf8')).trim()
+const rootPackage = JSON.parse(await readFile(`${repoRoot}/package.json`, 'utf8'))
+const expectedNode = rootPackage.devEngines?.runtime?.version
 record(
   'node',
-  process.version === `v${expectedNode}` ? 'ok' : 'error',
-  `${process.version} (expected v${expectedNode})`
+  expectedNode && process.version === `v${expectedNode}` ? 'ok' : 'error',
+  `${process.version} (expected ${expectedNode ? `v${expectedNode}` : 'devEngines.runtime'})`
 )
 
-const rootPackage = JSON.parse(await readFile(`${repoRoot}/package.json`, 'utf8'))
 const expectedPnpm = rootPackage.packageManager.replace('pnpm@', '')
 const pnpmVersion = commandVersion('pnpm')
 record(
@@ -80,6 +80,7 @@ record(
   'svc-dev-targets',
   svcConfig.dev?.profile === 'local' &&
     localTargets?.web?.scope === 'worktree' &&
+    localTargets?.['web-ui']?.scope === 'worktree' &&
     localTargets?.webext?.scope === 'worktree'
     ? 'ok'
     : 'error',
