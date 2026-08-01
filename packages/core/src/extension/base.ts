@@ -195,7 +195,7 @@ export class Extension extends Z.class({
     const client = await Client.get(clientId)
     return await client.request({
       method: 'PUT',
-      path: `/${this.id}/config`,
+      path: `/extensions/${this.id}/config`,
       body: config || this.config,
     })
   }
