@@ -33,6 +33,21 @@ class Source extends ZodClass { static api = DBAPIClient }
 
 Make use of Vue reactivity thorughout-ly.
 
+### Info-Base Content Contract
+
+- `Block.content` is inline text when `storage === null`; otherwise it is an opaque pointer.
+- Consumers call `Block.getHydratedContent({ refresh })` and receive `string | Uint8Array`.
+  The non-enumerable cache belongs to that block instance and never replaces the persisted
+  pointer.
+- Storage handlers own pointer/byte mechanics only. `http` is bounded read-only bytes;
+  `postgresql_binary` provides peer-local byte C/R/U/D through PostgREST.
+- Resolver selection is exact. The nine shared `core.<kind>.v1` IDs are registered explicitly;
+  unknown ID, unsupported capability, supported-null, and authored-empty remain distinct.
+- `refresh` replaces a local snapshot; `materializeMissing` only permits an absent derivation.
+  Do not add `force` or `reload` aliases.
+- Object URLs and browser handles are resolver-private runtime state and must be revoked on
+  refresh, dispose, and cache eviction.
+
 ## Directory Structure
 
 ```

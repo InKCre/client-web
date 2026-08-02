@@ -42,7 +42,7 @@ async function externalRuntime() {
       engine: '28.5.2',
       compose: '2.40.3',
     },
-    contract_revision: 'peer-database-runtime-v1',
+    contract_revision: 'peer-database-runtime-v2',
     migration_head: 'd9f4e2a1b7c3',
     source_revision: 'a'.repeat(40),
     source_fingerprint: 'b'.repeat(64),

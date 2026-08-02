@@ -16,8 +16,8 @@
 │                    Extensions                        │
 │  Module Federation remotes (e.g., twitter)          │
 ├─────────────────────────────────────────────────────┤
-│                    Backend                           │
-│  PostgreSQL (PostgREST) + core-py API               │
+│                 Peer Transports                      │
+│  PostgreSQL/PostgREST protocol + core-py API        │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -34,10 +34,10 @@
 
 ## Data Flow
 
-1. Read: Component → BusinessClass.list() → DBAPIClient → PostgREST → DB
-2. Write: Component → BusinessClass → CoreAPIClient → core-py → DB
+1. Protocol read/write: Component → BusinessClass → DBAPIClient → PostgREST → PostgreSQL
+2. Application command: Component → CoreAPIClient → core-py → shared graph
 3. Extension: Activate → Load remote → Register handlers → Features ready
-4. Content: Block → Resolver → Storage.fetch() → Render
+4. Content: Block.getHydratedContent() → exact Resolver → safe local handle/component → Render
 
 ## Package Responsibilities
 
@@ -47,6 +47,8 @@
 - API clients (DBAPIClient, CoreAPIClient)
 - Extension lifecycle & Module Federation
 - Storage & Resolver abstractions
+- Peer-local PostgreSQL binary C/R/U/D and bounded HTTP byte hydration
+- Exact `core.<kind>.v1` semantic resolver contracts and typed capability failures
 - Configuration management
 - Authentication store
 - ESM-only tsdown output with declarations and declaration maps
@@ -114,5 +116,8 @@
   preview artifacts remain byte-for-byte independent of any PostgREST/core-py instance.
 - PostgreSQL/PostgREST schema, migration, roles, seed, and reset semantics remain a
   `core-py`-owned capability boundary.
+- `client-web` remains an equivalent protocol peer: it hydrates inline/storage-backed blocks,
+  performs admitted PostgreSQL binary C/R/U/D through PostgREST, and resolves semantic content
+  locally. It does not call core-py merely to avoid implementing a peer capability.
 - Stopping a worktree removes only its Portless routes and client-owned database resources. An
   external core-py runtime remains owned and reachable until core-py stops it.
