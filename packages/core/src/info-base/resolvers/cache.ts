@@ -49,6 +49,7 @@ export class ResolverCache {
         return cached.resolver as T
       }
       // Block was updated, invalidate cache entry
+      void cached.resolver.dispose()
       this.cache.delete(block.id)
     }
 
@@ -71,6 +72,7 @@ export class ResolverCache {
    * @param blockId - The block ID to invalidate
    */
   static invalidate(blockId: number): void {
+    void this.cache.get(blockId)?.resolver.dispose()
     this.cache.delete(blockId)
   }
 
@@ -79,6 +81,7 @@ export class ResolverCache {
    * Use cautiously - should only be needed for testing or major state changes.
    */
   static clear(): void {
+    for (const entry of this.cache.values()) void entry.resolver.dispose()
     this.cache.clear()
   }
 

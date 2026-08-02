@@ -24,7 +24,7 @@ function addArc() {
     created_at: undefined,
     updated_at: undefined,
     storage: null,
-    resolver: 'text',
+    resolver: 'core.text.v1',
     content: '',
   })
   const newArc = new ArcForm(

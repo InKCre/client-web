@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Resolver } from '@inkcre/core'
-import type { Block } from '@inkcre/core'
+import type { Block, ResolverContentState } from '@inkcre/core'
 import { InkLoading } from '@inkcre/ui-web'
 
 const props = defineProps<{
@@ -10,21 +10,34 @@ const props = defineProps<{
 
 // --- data ---
 const solvedContent = ref<any>(null)
-const resolverCls = Resolver.getClass(props.block.resolver)
-const resolver = new resolverCls(props.block)
+const setupError = ref<Error | null>(null)
+let resolverCls: ReturnType<typeof Resolver.getClass> | null = null
+let resolver: Resolver | null = null
+try {
+  resolverCls = Resolver.getClass(props.block.resolver)
+  resolver = new resolverCls(props.block)
+} catch (error) {
+  setupError.value = error instanceof Error ? error : new Error(String(error))
+}
 
 // --- computed ---
-const state = resolver.solvedContentState
+const idleState: ResolverContentState = { status: 'idle', error: null }
+const state = computed(() => resolver?.solvedContentState.value ?? idleState)
 const isLoading = computed(() => state.value.status === 'loading')
-const isError = computed(() => state.value.status === 'error')
-const isIdle = computed(() => state.value.status === 'idle')
+const isError = computed(() => setupError.value !== null || state.value.status === 'error')
+const isIdle = computed(() => setupError.value === null && state.value.status === 'idle')
 
 onMounted(async () => {
-  solvedContent.value = await resolver.getSolvedContent()
+  if (!resolver) return
+  try {
+    solvedContent.value = await resolver.getSolvedContent()
+  } catch {
+    // Resolver state owns the user-facing error.
+  }
 })
 
 onUnmounted(async () => {
-  await resolver.dispose()
+  await resolver?.dispose()
 })
 </script>
 
@@ -45,21 +58,20 @@ onUnmounted(async () => {
     <div v-else-if="isError" class="block-content__error">
       <span class="block-content__error-icon">!</span>
       <span class="block-content__error-text">
-        {{ state.error?.message || 'Failed to load content' }}
+        {{ setupError?.message || state.error?.message || 'Failed to load content' }}
       </span>
     </div>
 
     <!-- Success State - Render actual content component -->
     <component
-      v-else-if="solvedContent"
+      v-else-if="solvedContent !== null && resolverCls && resolver"
       :is="resolverCls.contentComp"
-      :solvedContent="solvedContent"
+      :solved-content="solvedContent"
+      :resolver="resolver"
     />
 
     <!-- Fallback for unknown state -->
-    <div v-else class="block-content__fallback">
-      {{ block.content }}
-    </div>
+    <div v-else class="block-content__fallback">Content unavailable</div>
   </div>
 </template>
 
