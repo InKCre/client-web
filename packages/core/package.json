@@ -20,7 +20,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@supabase/postgrest-js": "^2.84.0",
+    "@supabase/postgrest-js": "^2.110.9",
     "@vue-flow/core": "^1.48.1",
     "dayjs": "^1.11.0",
     "graphology": "^0.26.0",
@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@vueuse/core": "^14.1.0",
-    "pinia": "^3.0.3",
+    "pinia": "^3.0.4",
     "tsdown": "0.22.13",
     "typescript": "catalog:",
     "vue": "^3.5.18"

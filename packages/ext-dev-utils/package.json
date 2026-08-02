@@ -17,7 +17,7 @@
     "@inkcre/ui-web": "1.2.2"
   },
   "devDependencies": {
-    "pinia": "^3.0.3",
+    "pinia": "^3.0.4",
     "typescript": "catalog:",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1",
