@@ -2,7 +2,6 @@
 import { Handle, Position } from '@vue-flow/core'
 import type { BlockNodeProps } from './BlockNode'
 import { blockNodeEmits } from './BlockNode'
-import BlockContent from '../block/BlockContent/BlockContent.vue'
 
 const props = defineProps<BlockNodeProps>()
 const emit = defineEmits(blockNodeEmits)
@@ -20,7 +19,10 @@ const onNodeClick = () => {
   <Handle type="source" :position="Position.Right" class="block-node__handle" />
 
   <div class="block-node" :class="{ 'block-node--selected': selected }" @click="onNodeClick">
-    <BlockContent :block="props.data.block" />
+    <div class="block-node__content">
+      <span class="block-node__resolver">{{ props.data.block.resolver }}</span>
+      <span class="block-node__preview">{{ props.data.preview }}</span>
+    </div>
   </div>
 </template>
 

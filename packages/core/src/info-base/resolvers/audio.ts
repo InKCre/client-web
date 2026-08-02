@@ -2,38 +2,38 @@ import { ActualContentHandle, type ByteSolvedContent } from './actual-content'
 import { Resolver } from './base'
 import { type ProjectionOptions, UnsupportedResolverCapability } from './contracts'
 
-export interface VideoSolvedContent extends ByteSolvedContent {
+export interface AudioSolvedContent extends ByteSolvedContent {
   container: string | null
-  video_codec: string | null
+  codec: string | null
   duration_ms: number | null
-  width: number | null
-  height: number | null
-  frame_rate: number | null
+  channels: number | null
+  sample_rate_hz: number | null
+  bitrate_bps: number | null
 }
 
-export class VideoResolver extends Resolver<Uint8Array, VideoSolvedContent> {
-  static readonly type = 'core.video.v1'
+export class AudioResolver extends Resolver<Uint8Array, AudioSolvedContent> {
+  static readonly type = 'core.audio.v1'
   private readonly actualContent = new ActualContentHandle()
 
-  protected async _getSolvedContent(options: ProjectionOptions): Promise<VideoSolvedContent> {
+  protected async _getSolvedContent(options: ProjectionOptions): Promise<AudioSolvedContent> {
     const rawContent = await this.getRawContent(options)
     return {
       ...this.actualContent.replace(rawContent),
       container: null,
-      video_codec: null,
+      codec: null,
       duration_ms: null,
-      width: null,
-      height: null,
-      frame_rate: null,
+      channels: null,
+      sample_rate_hz: null,
+      bitrate_bps: null,
     }
   }
 
   async getText(_options: ProjectionOptions = {}): Promise<never> {
-    throw new UnsupportedResolverCapability(VideoResolver.type, 'text')
+    throw new UnsupportedResolverCapability(AudioResolver.type, 'text')
   }
 
   async getStrForEmbedding(_options: ProjectionOptions = {}): Promise<never> {
-    throw new UnsupportedResolverCapability(VideoResolver.type, 'embedding text')
+    throw new UnsupportedResolverCapability(AudioResolver.type, 'embedding text')
   }
 
   async dispose(): Promise<void> {

@@ -19,7 +19,7 @@ const form = ref(
       created_at: undefined,
       updated_at: undefined,
       storage: null,
-      resolver: 'text',
+      resolver: 'core.text.v1',
       content: '',
     })
   )
@@ -64,8 +64,8 @@ watch(
               new BlockForm({
                 created_at: undefined,
                 updated_at: undefined,
-                storage: null,
-                resolver: 'url',
+                storage: -1,
+                resolver: 'core.html.v1',
                 content: newUrl,
               })
             )
