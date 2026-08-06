@@ -19,6 +19,7 @@ import {
   VideoResolver,
   HtmlResolver,
   ZipResolver,
+  PeerManager,
 } from '@inkcre/core'
 import { createInstance } from '@module-federation/enhanced/runtime'
 import * as InKCreCore from '@inkcre/core'
@@ -149,7 +150,8 @@ export function initializeModuleFederation(): void {
  */
 export async function initializeCore(): Promise<void> {
   await configStore.initializeMeta(localStorageAdapter)
-  await configStore.loadClientConfig()
+  await configStore.loadPeerConfig()
+  PeerManager.setupBuiltinOutbounds()
   setupResolvers()
   initializeModuleFederation()
   console.log('[Core] Initialization complete')
