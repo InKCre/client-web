@@ -5,28 +5,182 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   inkcre: {
     Tables: {
-      block_embeddings: {
+      agents: {
         Row: {
-          embedding: Array<number>
+          created_at: string
           id: number
-          updated_at: string | null
+          max_model_calls_per_turn: number
+          model: number
+          name: string
+          system_prompt: string
+          tool_choice: Json | null
+          tools: Array<string>
+          updated_at: string
         }
         Insert: {
-          embedding: Array<number>
+          created_at?: string
           id?: number
-          updated_at?: string | null
+          max_model_calls_per_turn: number
+          model: number
+          name: string
+          system_prompt: string
+          tool_choice?: Json | null
+          tools?: Array<string>
+          updated_at?: string
         }
         Update: {
-          embedding?: Array<number>
+          created_at?: string
           id?: number
-          updated_at?: string | null
+          max_model_calls_per_turn?: number
+          model?: number
+          name?: string
+          system_prompt?: string
+          tool_choice?: Json | null
+          tools?: Array<string>
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: 'block_embeddings_id_fkey'
-            columns: ['id']
+            foreignKeyName: 'agents_model_fkey'
+            columns: ['model']
+            isOneToOne: false
+            referencedRelation: 'ai_models'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      ai_dialects: {
+        Row: {
+          config_schema: Json
+          description: string
+          id: string
+        }
+        Insert: {
+          config_schema?: Json
+          description: string
+          id: string
+        }
+        Update: {
+          config_schema?: Json
+          description?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      ai_models: {
+        Row: {
+          capabilities: Json
+          created_at: string
+          enabled: boolean
+          id: number
+          name: string | null
+          native_model_id: string
+          provider: number
+          updated_at: string
+        }
+        Insert: {
+          capabilities: Json
+          created_at?: string
+          enabled?: boolean
+          id?: number
+          name?: string | null
+          native_model_id: string
+          provider: number
+          updated_at?: string
+        }
+        Update: {
+          capabilities?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: number
+          name?: string | null
+          native_model_id?: string
+          provider?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'ai_models_provider_fkey'
+            columns: ['provider']
+            isOneToOne: false
+            referencedRelation: 'ai_providers'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      ai_providers: {
+        Row: {
+          config: Json
+          created_at: string
+          dialect: string
+          enabled: boolean
+          id: number
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          dialect: string
+          enabled?: boolean
+          id?: number
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          dialect?: string
+          enabled?: boolean
+          id?: number
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'ai_providers_dialect_fkey'
+            columns: ['dialect']
+            isOneToOne: false
+            referencedRelation: 'ai_dialects'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      block_embeddings: {
+        Row: {
+          block: number
+          created_at: string
+          embedding: Array<number>
+          profile: number
+          updated_at: string
+        }
+        Insert: {
+          block?: number
+          created_at?: string
+          embedding: Array<number>
+          profile?: number
+          updated_at?: string
+        }
+        Update: {
+          block?: number
+          created_at?: string
+          embedding?: Array<number>
+          profile?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'block_embeddings_block_fkey'
+            columns: ['block']
             isOneToOne: false
             referencedRelation: 'blocks'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'block_embeddings_profile_fkey'
+            columns: ['profile']
+            isOneToOne: false
+            referencedRelation: 'embedding_profiles'
             referencedColumns: ['id']
           },
         ]
@@ -66,35 +220,64 @@ export type Database = {
           },
         ]
       }
-      clients: {
+      configs: {
         Row: {
-          config: Json
-          config_schema: Json
-          created_at: string | null
-          id: string
-          labels: Array<string> | null
-          name: string
-          rest_api_url: string | null
+          created_at: string
+          key: string
+          schema: string
+          updated_at: string
+          value: Json
         }
         Insert: {
-          config?: Json
-          config_schema?: Json
-          created_at?: string | null
-          id?: string
-          labels?: Array<string> | null
-          name: string
-          rest_api_url?: string | null
+          created_at?: string
+          key: string
+          schema: string
+          updated_at?: string
+          value: Json
         }
         Update: {
-          config?: Json
-          config_schema?: Json
-          created_at?: string | null
-          id?: string
-          labels?: Array<string> | null
-          name?: string
-          rest_api_url?: string | null
+          created_at?: string
+          key?: string
+          schema?: string
+          updated_at?: string
+          value?: Json
         }
         Relationships: []
+      }
+      embedding_profiles: {
+        Row: {
+          ai_model: number
+          created_at: string
+          dimensions: number
+          id: number
+          name: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_model: number
+          created_at?: string
+          dimensions: number
+          id?: number
+          name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_model?: number
+          created_at?: string
+          dimensions?: number
+          id?: number
+          name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'embedding_profiles_ai_model_fkey'
+            columns: ['ai_model']
+            isOneToOne: false
+            referencedRelation: 'ai_models'
+            referencedColumns: ['id']
+          },
+        ]
       }
       extensions: {
         Row: {
@@ -156,26 +339,75 @@ export type Database = {
         }
         Relationships: []
       }
-      relation_embeddings: {
+      peers: {
         Row: {
-          embedding: Array<number>
-          id: number
-          updated_at: string | null
+          capabilities: Json
+          config: Json
+          config_schema: Json
+          created_at: string
+          id: string
+          labels: Array<string>
+          lease_expires_at: string | null
+          name: string
+          updated_at: string
         }
         Insert: {
-          embedding: Array<number>
-          id?: number
-          updated_at?: string | null
+          capabilities?: Json
+          config?: Json
+          config_schema?: Json
+          created_at?: string
+          id?: string
+          labels?: Array<string>
+          lease_expires_at?: string | null
+          name: string
+          updated_at?: string
         }
         Update: {
+          capabilities?: Json
+          config?: Json
+          config_schema?: Json
+          created_at?: string
+          id?: string
+          labels?: Array<string>
+          lease_expires_at?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      relation_embeddings: {
+        Row: {
+          created_at: string
+          embedding: Array<number>
+          profile: number
+          relation: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          embedding: Array<number>
+          profile?: number
+          relation?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
           embedding?: Array<number>
-          id?: number
-          updated_at?: string | null
+          profile?: number
+          relation?: number
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: 'relation_embeddings_id_fkey'
-            columns: ['id']
+            foreignKeyName: 'relation_embeddings_profile_fkey'
+            columns: ['profile']
+            isOneToOne: false
+            referencedRelation: 'embedding_profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'relation_embeddings_relation_fkey'
+            columns: ['relation']
             isOneToOne: false
             referencedRelation: 'relations'
             referencedColumns: ['id']
@@ -387,6 +619,13 @@ export type Database = {
       read_storage_blob: {
         Args: {
           blob_id: string
+        }
+        Returns: string
+      }
+      renew_peer_lease: {
+        Args: {
+          peer: string
+          ttl_seconds: number
         }
         Returns: string
       }

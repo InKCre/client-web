@@ -1,10 +1,10 @@
 import { Extension, makeExtensionProp } from '@inkcre/core'
-import { makeClientRefProp } from '@inkcre/core'
+import { makePeerRefProp } from '@inkcre/core'
 
 // --- Props ---
 export const extensionCardProps = {
   extension: makeExtensionProp(),
-  clientId: makeClientRefProp(),
+  peerId: makePeerRefProp(),
 }
 
 // --- Emits ---

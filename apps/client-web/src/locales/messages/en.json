@@ -125,7 +125,13 @@
       "updated": "Updated At",
       "storage": "Storage",
       "content": "Content",
-      "noContent": "No content"
+      "noContent": "No content",
+      "ruminate": "Ruminate",
+      "rumination": {
+        "success": "The info base was reconsidered and the graph was refreshed.",
+        "error": "Rumination failed. The graph was not changed by a confirmed result.",
+        "outcome-unknown": "The provider may have completed the request. Refresh and inspect the graph before trying again."
+      }
     },
     "graph": {
       "empty": "No blocks to display",

@@ -15,6 +15,7 @@ const repoRoot = fileURLToPath(new URL('..', import.meta.url))
 const arguments_ = process.argv.slice(2)
 const localCoreIndex = arguments_.indexOf('--local-core')
 const imageIndex = arguments_.indexOf('--image')
+const stageGenerated = arguments_.includes('--stage-generated')
 const localCore = localCoreIndex >= 0 ? resolve(repoRoot, arguments_[localCoreIndex + 1]) : null
 const requestedImage = imageIndex >= 0 ? arguments_[imageIndex + 1] : null
 
@@ -32,6 +33,10 @@ const existingPin = await readJson(`${repoRoot}/contracts/core-py.json`)
 const image = requestedImage ?? existingPin.image
 let contract
 let sourceRevision
+
+if (stageGenerated && !localCore) {
+  throw new Error('--stage-generated requires --local-core')
+}
 
 if (localCore) {
   sourceRevision = output('git', ['rev-parse', 'HEAD'], { cwd: localCore })
@@ -54,20 +59,11 @@ validateContractDocument(contract)
 if (!/^[a-f0-9]{40}$/.test(sourceRevision)) {
   throw new Error(`core source revision must be a full commit SHA, got ${sourceRevision}`)
 }
-if (!image.includes('@sha256:')) {
+if (!stageGenerated && !image.includes('@sha256:')) {
   throw new Error('core image must be pinned by digest')
 }
 
-const pin = {
-  ...existingPin,
-  source_revision: sourceRevision,
-  image,
-  contract_revision: contract.revision,
-}
-
 await mkdir(`${repoRoot}/packages/core/src/database`, { recursive: true })
-await writeFile(`${repoRoot}/contracts/core-py.json`, stableJson(pin))
-await writeFile(`${repoRoot}/contracts/core-py-contract.json`, stableJson(contract))
 await writeFile(
   `${repoRoot}/packages/core/src/database/generated.ts`,
   generateDatabaseTypes(contract)
@@ -76,5 +72,23 @@ await writeFile(
   `${repoRoot}/packages/core/src/database/runtime-contract.ts`,
   generateRuntimeContract(contract)
 )
+
+if (stageGenerated) {
+  console.log(
+    `[contract] staged generated ${contract.revision} surfaces from dirty-capable local source; pin unchanged`
+  )
+  process.exit(0)
+}
+
+const pin = {
+  ...existingPin,
+  source_revision: sourceRevision,
+  image,
+  contract_revision: contract.revision,
+  migration_head: contract.migration_heads[0],
+}
+
+await writeFile(`${repoRoot}/contracts/core-py.json`, stableJson(pin))
+await writeFile(`${repoRoot}/contracts/core-py-contract.json`, stableJson(contract))
 
 console.log(`[contract] synced ${contract.revision} from ${sourceRevision} using ${image}`)

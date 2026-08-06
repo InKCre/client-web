@@ -3,7 +3,7 @@
 export const peerJwtContract = {
   algorithm: 'HS256',
   role: 'authenticated',
-  issuer: 'inkcre-client',
+  issuer: 'inkcre-peer',
   audience: 'inkcre-api',
   required_claims: ['role', 'iss', 'aud', 'iat', 'exp'],
   maximum_lifetime_seconds: 86400,
@@ -11,7 +11,7 @@ export const peerJwtContract = {
 
 export const databaseRuntimeContract = {
   format: 1,
-  revision: 'peer-database-runtime-v2',
+  revision: 'peer-database-runtime-v3',
   protocol: {
     format: 1,
     schema: 'inkcre',

@@ -7,7 +7,7 @@ describe('MetaConfigSchema', () => {
     expect(MetaConfigSchema.parse({})).toEqual({
       INKCRE_PGREST_URL: '',
       INKCRE_JWT_SECRET: '',
-      INKCRE_CLIENT_ID: '',
+      INKCRE_PEER_ID: '',
     })
   })
 
@@ -15,17 +15,17 @@ describe('MetaConfigSchema', () => {
     expect(
       MetaConfigSchema.parse({
         INKCRE_PGREST_URL: 'https://database.example.test/',
-        INKCRE_CLIENT_ID: '00000000-0000-4000-8000-000000000002',
+        INKCRE_PEER_ID: '00000000-0000-4000-8000-000000000002',
       })
     ).toMatchObject({
       INKCRE_PGREST_URL: 'https://database.example.test/',
-      INKCRE_CLIENT_ID: '00000000-0000-4000-8000-000000000002',
+      INKCRE_PEER_ID: '00000000-0000-4000-8000-000000000002',
     })
 
     expect(
       MetaConfigSchema.safeParse({
         INKCRE_PGREST_URL: 'not-a-url',
-        INKCRE_CLIENT_ID: 'not-a-uuid',
+        INKCRE_PEER_ID: 'not-a-uuid',
       }).success
     ).toBe(false)
   })

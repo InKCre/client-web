@@ -95,4 +95,27 @@
     color: var(--ink-text-tertiary, #9ca3af);
     font-style: italic;
   }
+
+  &__organization {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--ink-border-primary, #e5e7eb);
+  }
+
+  &__rumination-outcome {
+    margin: 0;
+    font-size: 13px;
+
+    &--success {
+      color: var(--ink-success-primary, #15803d);
+    }
+
+    &--error,
+    &--outcome-unknown {
+      color: var(--ink-danger-primary, #b91c1c);
+    }
+  }
 }

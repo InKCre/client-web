@@ -185,6 +185,12 @@ const onPanelClose = () => {
   selectedBlock.value = null
 }
 
+const onRuminated = async () => {
+  const selected = selectedBlock.value?.id
+  await loadData()
+  if (selected !== undefined) onNodeSelect(selected)
+}
+
 // Fit view options with max zoom limit to prevent over-zooming on small communities
 const fitViewOptions = { padding: 0.2, maxZoom: 1.5 }
 
@@ -346,6 +352,7 @@ onMounted(() => {
           :relations="selectedBlockRelations"
           style="width: 400px"
           @close="onPanelClose"
+          @ruminated="onRuminated"
         />
       </InkPopup>
     </template>

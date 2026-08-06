@@ -1,14 +1,14 @@
 import { type PropType } from 'vue'
-import { Client } from '@inkcre/core'
+import { Peer } from '@inkcre/core'
 
-export const clientCardProps = {
-  client: { type: Object as PropType<Client>, required: true },
+export const peerCardProps = {
+  peer: { type: Object as PropType<Peer>, required: true },
   status: {
     type: String as PropType<'online' | 'offline' | 'unknown'>,
     required: true,
   },
 } as const
 
-export const clientCardEmits = {
+export const peerCardEmits = {
   updated: () => true,
 } as const

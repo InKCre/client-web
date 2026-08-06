@@ -4,6 +4,7 @@ export {
   type ExtensionModule,
   type ExtensionRuntimeState,
   Extension,
+  EXTENSION_MANAGEMENT_CAPABILITY,
   InstallExtensionForm,
   type ExtensionRef,
   ExtensionRefZ,
