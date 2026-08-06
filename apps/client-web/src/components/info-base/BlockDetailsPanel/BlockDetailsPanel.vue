@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { InkButton, InkField } from '@inkcre/ui-web'
 import type { BlockDetailsPanelProps } from './BlockDetailsPanel'
 import { blockDetailsPanelEmits } from './BlockDetailsPanel'
 import BlockContent from '@/components/info-base/block/BlockContent/BlockContent.vue'
 import dayjs from 'dayjs'
+import { OrganizationManager, PeerOutcomeUnknown } from '@inkcre/core'
 
 const props = withDefaults(defineProps<BlockDetailsPanelProps>(), {
   relations: () => [],
 })
 const emit = defineEmits(blockDetailsPanelEmits)
 const { t } = useI18n()
+const isRuminating = ref(false)
+const ruminationOutcome = ref<'success' | 'error' | 'outcome-unknown' | null>(null)
 
 const formattedCreatedAt = computed(() =>
   props.block.created_at ? dayjs(props.block.created_at).format('YYYY-MM-DD HH:mm') : '-'
@@ -23,6 +26,20 @@ const formattedUpdatedAt = computed(() =>
 
 const onClose = () => {
   emit('close')
+}
+
+const onRuminate = async () => {
+  isRuminating.value = true
+  ruminationOutcome.value = null
+  try {
+    await OrganizationManager.ruminate(props.block.id)
+    ruminationOutcome.value = 'success'
+    emit('ruminated')
+  } catch (error) {
+    ruminationOutcome.value = error instanceof PeerOutcomeUnknown ? 'outcome-unknown' : 'error'
+  } finally {
+    isRuminating.value = false
+  }
 }
 
 const onKeyDown = (e: KeyboardEvent) => {
@@ -79,6 +96,24 @@ onUnmounted(() => {
         <div class="block-details-panel__content">
           <BlockContent :block="block" />
         </div>
+      </div>
+
+      <div class="block-details-panel__organization">
+        <InkButton
+          :text="t('infoBase.blockDetails.ruminate')"
+          :loading="isRuminating"
+          theme="primary"
+          @click="onRuminate"
+        />
+        <p
+          v-if="ruminationOutcome"
+          :class="[
+            'block-details-panel__rumination-outcome',
+            `block-details-panel__rumination-outcome--${ruminationOutcome}`,
+          ]"
+        >
+          {{ t(`infoBase.blockDetails.rumination.${ruminationOutcome}`) }}
+        </p>
       </div>
     </div>
   </div>
