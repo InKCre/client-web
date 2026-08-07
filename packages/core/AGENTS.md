@@ -6,12 +6,14 @@ Shared logic package for InKCre applications and extensions.
 
 - `auth` - Authentication store
 - `base` - DBAPIClient, APIError
-- `client` - Client model & API
 - `config` - Configuration adapters & schema
 - `database` - generated relation types and environment-neutral peer protocol/JWT contract
 - `extension` - Extension lifecycle, Module Federation
 - `info-base` - Block, Relation, Storage, Resolvers
+- `organization` - Organization capability facade
 - `obsrv` - Observability (Log)
+- `peer` - Peer Active Record, discovery, protocols, and exact capability delegation
+- `semantic-retrieval` - Semantic retrieval capability facade
 - `sink/graph` - Graph layouts & algorithms
 - `source` - Source, CollectJob, CollectAt
 - `utils` - Vue prop helpers
@@ -54,12 +56,14 @@ Make use of Vue reactivity thorughout-ly.
 src/
 ├── auth/           # Authentication
 ├── base/           # API clients
-├── client/         # Client model
 ├── config/         # Configuration
 ├── extension/      # Extensions
 ├── info-base/      # Block, Relation, Storage, Resolver
 ├── libs/           # Third-party (AI)
 ├── obsrv/          # Logging
+├── organization/   # Organization capability facade
+├── peer/           # Peer discovery and delegation
+├── semantic-retrieval/ # Semantic retrieval capability facade
 ├── sink/           # Output (graph layouts)
 ├── source/         # Data collection
 ├── utils/          # Prop helpers
@@ -84,5 +88,5 @@ repository root.
 - The package is ESM-only. Do not add a CommonJS export without a named consumer and an explicit
   contract change.
 - Shipped core runtime source and output must not contain an environment profile, service origin,
-  or client identity. `runtime-contract.ts` is generated from the peer contract and contains only
+  or Peer identity. `runtime-contract.ts` is generated from the peer contract and contains only
   protocol and JWT claim metadata; tests may use explicit non-production fixtures.

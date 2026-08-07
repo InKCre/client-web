@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { PeerManager } from '../peer'
-import { Extension } from './base'
+import { Extension, ExtensionState } from './base'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -39,5 +39,28 @@ describe('Extension.updateConfig', () => {
       { body: { action: 'patch_config', extension: 'memos', patch } },
       peer
     )
+  })
+})
+
+describe('Extension runtime state', () => {
+  it('initializes isolated runtime state for parsed database models', () => {
+    const data = {
+      id: 'memos',
+      version: '0.1.0',
+      enabled: [],
+      nickname: 'Memos',
+      config: {},
+      config_schema: null,
+    }
+    const first = Extension.parse(data)
+    const second = Extension.parse(data)
+
+    expect(first.runtimeState.value).toEqual({
+      status: ExtensionState.DISCOVERED,
+      error: null,
+    })
+    first.setState(ExtensionState.LOADING)
+
+    expect(second.runtimeState.value.status).toBe(ExtensionState.DISCOVERED)
   })
 })

@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { nextTick } from 'vue'
 
+import { authStore } from '../auth'
+import { configStore } from '../config'
 import { Block } from './block'
 import { Storage } from './storages/base'
 
@@ -14,6 +17,25 @@ function storedBlock(): Block {
 
 afterEach(() => {
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
+  configStore.metaConfig.INKCRE_PGREST_URL = ''
+  authStore.token.value = undefined
+})
+
+describe('Block database access', () => {
+  it('normalizes a runtime PostgREST base URL before relation requests', async () => {
+    const fetcher = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
+      Response.json([])
+    )
+    vi.stubGlobal('fetch', fetcher)
+    authStore.token.value = 'peer-token'
+    configStore.metaConfig.INKCRE_PGREST_URL = 'http://database.example.test///'
+    await nextTick()
+
+    await expect(Block.getAll()).resolves.toEqual([])
+
+    expect(String(fetcher.mock.calls[0][0])).toBe('http://database.example.test/blocks?select=*')
+  })
 })
 
 describe('Block hydration', () => {

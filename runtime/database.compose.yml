@@ -35,13 +35,13 @@ services:
       init:
         condition: service_completed_successfully
     environment:
-      CLIENT_BASE_URL: ${CORE_PUBLIC_URL:?CORE_PUBLIC_URL is required}
-      CLIENT_ID: 00000000-0000-4000-8000-000000000002
-      CLIENT_NAME: core-py-development
       DATABASE_URL: postgresql+psycopg://inkcre_core:${CORE_DATABASE_PASSWORD}@postgres:5432/inkcre
       INKCRE_ENV_FILE: ''
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       OBSRV__LOGGING_BACKEND: none
+      PEER_ID: 00000000-0000-4000-8000-000000000002
+      PEER_LEASE_RENEW_INTERVAL_SECONDS: 1
+      PEER_NAME: core-py-development
       PORT: 8000
     ports:
       - '127.0.0.1:${CORE_PORT:-0}:8000'

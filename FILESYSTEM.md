@@ -52,13 +52,15 @@ uses its isolated profile only when an explicit browser binary is configured.
 ```
 ├── auth/           # Authentication store
 ├── base/           # DBAPIClient, base utilities
-├── client/         # Client model & API
 ├── config/         # Configuration adapters & schema
 ├── database/       # Generated environment-neutral peer protocol/JWT contract and relation types
 ├── extension/      # Extension lifecycle, Module Federation
 ├── info-base/      # Block, Relation, Storage, Resolvers
 ├── libs/           # Third-party integrations (AI)
 ├── obsrv/          # Observability (logging)
+├── organization/   # Organization capability entry points
+├── peer/           # Peer discovery, protocols, outbounds, and delegation
+├── semantic-retrieval/ # Semantic retrieval capability entry point
 ├── sink/           # Output processing (graph layouts)
 ├── source/         # Source, CollectJob, CollectAt
 ├── utils/          # Vue prop helpers, utilities
@@ -70,11 +72,11 @@ uses its isolated profile only when an explicit browser binary is configured.
 
 ```
 ├── components/     # Vue components by domain
-│   ├── client/     # Client management
 │   ├── common/     # Shared components
 │   ├── extension/  # Extension UI
 │   ├── info-base/  # Block, Relation, Graph
 │   ├── obsrv/      # Log viewer
+│   ├── peer/       # Technical Peer management (product UI says “client”)
 │   └── source/     # Source management
 ├── composables/    # Vue composition functions
 ├── locales/        # i18n translations

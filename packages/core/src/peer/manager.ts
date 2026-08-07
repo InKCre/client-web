@@ -1,5 +1,6 @@
 import { APIError } from '../base'
 import { configStore } from '../config'
+import { ZodError } from 'zod'
 import {
   CapabilityDelegationUnavailable,
   type CapabilityID,
@@ -116,8 +117,9 @@ export class PeerManager {
           protocol: advertisement.inbound.protocol,
           parameters: advertisement.inbound.parameters,
         })
-      } catch {
-        continue
+      } catch (error) {
+        if (error instanceof ZodError) continue
+        throw error
       }
     }
     return routeToPeer === null ? PeerManager.shuffled(candidates) : candidates

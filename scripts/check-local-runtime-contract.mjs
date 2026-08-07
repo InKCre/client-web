@@ -248,13 +248,22 @@ for (const required of [
   '${INKCRE_CORE_IMAGE:?INKCRE_CORE_IMAGE is required}',
   '${POSTGRES_PORT:-0}',
   '${POSTGREST_PORT:-0}',
-  '${CORE_PUBLIC_URL:?CORE_PUBLIC_URL is required}',
+  'PEER_ID: 00000000-0000-4000-8000-000000000002',
+  'PEER_LEASE_RENEW_INTERVAL_SECONDS: 1',
 ]) {
   if (!databaseCompose.includes(required)) {
     errors.push(`database Compose is missing runtime contract fragment "${required}"`)
   }
 }
-for (const forbidden of ['5432:5432', '3000:3000', 'sleep ']) {
+for (const forbidden of [
+  '5432:5432',
+  '3000:3000',
+  'sleep ',
+  'CLIENT_BASE_URL:',
+  'CLIENT_ID:',
+  'CLIENT_NAME:',
+  'CORE_PUBLIC_URL:',
+]) {
   if (databaseCompose.includes(forbidden)) {
     errors.push(`database Compose contains forbidden fixed-order fragment "${forbidden}"`)
   }
