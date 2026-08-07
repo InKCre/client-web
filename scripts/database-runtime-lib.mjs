@@ -4,6 +4,7 @@ import { access, mkdir, rm, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:net'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { SignJWT } from 'jose'
 
 import {
   inspectCoreRelease,
@@ -23,6 +24,14 @@ import {
 } from './database-provider.mjs'
 
 export const repoRoot = fileURLToPath(new URL('..', import.meta.url))
+export const BROWSER_PEER_ID = '00000000-0000-4000-8000-000000000001'
+export const CORE_PEER_ID = '00000000-0000-4000-8000-000000000002'
+
+const CORE_CAPABILITIES = new Map([
+  ['core.semantic_retrieval.v1', { method: 'POST', path: '/semantic-retrieval' }],
+  ['core.organization.rumination.v1', { method: 'POST', path: '/organization/ruminate' }],
+  ['core.extension.management.v1', { method: 'POST', path: '/extension-management' }],
+])
 
 export function validateInstance(instance) {
   if (!/^[a-z0-9][a-z0-9-]{2,48}$/.test(instance)) {
@@ -77,8 +86,12 @@ async function writeRuntimeFiles(state, credentials) {
       schema_digest: state.schema_digest ?? null,
       protocol_schema: 'inkcre',
     },
+    peer: {
+      id: BROWSER_PEER_ID,
+      name: 'client-web-development',
+    },
     core: {
-      client_id: '00000000-0000-4000-8000-000000000002',
+      peer_id: CORE_PEER_ID,
       url: state.urls.core,
     },
     postgrest: {
@@ -101,7 +114,6 @@ async function writeRuntimeFiles(state, credentials) {
     POSTGRES_PORT: String(publishedPorts.postgres),
     CORE_PORT: String(publishedPorts.core),
     POSTGREST_PORT: String(publishedPorts.postgrest),
-    CORE_PUBLIC_URL: state.urls.core,
     INKCRE_REMOTE_DOCKER_BIN: state.provider.docker_bin ?? 'docker',
     ...Object.fromEntries(Object.entries(credentials).filter(([name]) => name !== 'format')),
   }
@@ -374,10 +386,94 @@ export async function runtimeIsReady(state, timeout = 3000) {
   return coreReady && postgrestReady
 }
 
+async function createPeerToken(secret) {
+  const contract = await readJson(`${repoRoot}/contracts/core-py-contract.json`)
+  const now = Math.floor(Date.now() / 1000)
+  return new SignJWT({ role: contract.jwt.role })
+    .setProtectedHeader({ alg: contract.jwt.algorithm })
+    .setIssuedAt(now)
+    .setExpirationTime(now + 60)
+    .setIssuer(contract.jwt.issuer)
+    .setAudience(contract.jwt.audience)
+    .sign(new TextEncoder().encode(secret))
+}
+
+function expectedCapabilityUrl(baseUrl, path) {
+  return new URL(path.replace(/^\//, ''), baseUrl).href
+}
+
+function hasExpectedCapabilities(peer, baseUrl) {
+  if (!Array.isArray(peer?.capabilities) || Date.parse(peer.lease_expires_at) <= Date.now()) {
+    return false
+  }
+  return [...CORE_CAPABILITIES].every(([id, expected]) => {
+    const advertisement = peer.capabilities.find((candidate) => candidate?.id === id)
+    return (
+      advertisement?.inbound?.protocol === 'core.peer.protocol.http.v1' &&
+      advertisement.inbound.parameters?.method === expected.method &&
+      advertisement.inbound.parameters?.url === expectedCapabilityUrl(baseUrl, expected.path)
+    )
+  })
+}
+
+export async function configureCorePeer(state, timeout = 35_000) {
+  const credentials = await runtimeCredentials(state.identity)
+  const authorization = `Bearer ${await createPeerToken(credentials.JWT_SECRET)}`
+  if (state.provider.kind !== 'external') {
+    const peerUrl = new URL(`peers?id=eq.${CORE_PEER_ID}`, state.urls.postgrest)
+    const response = await fetch(peerUrl, {
+      method: 'PATCH',
+      headers: {
+        Authorization: authorization,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation',
+      },
+      body: JSON.stringify({
+        config: { http_public_base_url: state.urls.core.replace(/\/$/, '') },
+      }),
+      signal: AbortSignal.timeout(3000),
+    })
+    if (!response.ok) {
+      throw new Error(`could not configure core Peer through PostgREST: HTTP ${response.status}`)
+    }
+    const updated = await response.json()
+    if (!Array.isArray(updated) || updated.length !== 1) {
+      throw new Error('core Peer registration was not available for runtime configuration')
+    }
+  }
+
+  const deadline = Date.now() + timeout
+  const queryUrl = new URL(
+    `peers?select=capabilities,lease_expires_at&id=eq.${CORE_PEER_ID}`,
+    state.urls.postgrest
+  )
+  while (Date.now() < deadline) {
+    const query = await fetch(queryUrl, {
+      headers: { Authorization: authorization },
+      signal: AbortSignal.timeout(3000),
+    })
+    if (query.ok) {
+      const peers = await query.json()
+      if (
+        Array.isArray(peers) &&
+        peers.length === 1 &&
+        hasExpectedCapabilities(peers[0], state.urls.core)
+      ) {
+        return
+      }
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250))
+  }
+  throw new Error(`core Peer ${CORE_PEER_ID} did not publish its expected capabilities`)
+}
+
 export async function waitForRuntime(state, timeout = 120_000) {
   const deadline = Date.now() + timeout
   while (Date.now() < deadline) {
-    if (await runtimeIsReady(state)) return
+    if (await runtimeIsReady(state)) {
+      await configureCorePeer(state, Math.max(1, deadline - Date.now()))
+      return
+    }
     await new Promise((resolve) => setTimeout(resolve, 750))
   }
   throw new Error(`database runtime ${state.identity} did not become ready`)
