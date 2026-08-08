@@ -4,7 +4,7 @@ Read [/.github/instructions/component.instructions.md](/.github/instructions/com
 
 ## Quick Reference
 
-- peer: peerList, peerCard (product-facing copy may still say “client”)
+- client: clientList
 - common: AppSidePanel
 - extension: extensionCard, installExtension
 - info-base: BlockNode, BlockDetailsPanel, resolvers/*

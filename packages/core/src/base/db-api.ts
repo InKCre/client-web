@@ -15,10 +15,6 @@ function encodeTransportValue<Value>(value: unknown): Value {
   return JSON.parse(encoded) as Value
 }
 
-function normalizePostgrestBaseUrl(value: string): string {
-  return value.replace(/\/+$/, '')
-}
-
 /**
  * API Error class for handling API request errors
  */
@@ -90,7 +86,7 @@ export async function rawPostgrestFetch(
  * - Automatic authentication via authStore
  * - Reactive config updates via configStore
  *
- * Business HTTP execution belongs to its domain facade and PeerManager, not this database seam.
+ * For Core API requests (HTTP endpoints), use the Client active record instead.
  *
  * @template DT - Data type for the records in the specified relation
  */
@@ -112,7 +108,7 @@ export class DBAPIClient<
     public schemaName: 'inkcre' = 'inkcre',
     baseUrl: string = ''
   ) {
-    super(normalizePostgrestBaseUrl(baseUrl), {
+    super(baseUrl, {
       schema: schemaName,
       // Custom fetch to dynamically inject auth token on each request
       fetch: async (input, init) => {
@@ -128,7 +124,7 @@ export class DBAPIClient<
       watch(
         () => this.configStore.metaConfig.INKCRE_PGREST_URL,
         (newVal) => {
-          this.url = normalizePostgrestBaseUrl(newVal)
+          this.url = newVal
         },
         { immediate: true }
       )

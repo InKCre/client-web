@@ -36,21 +36,6 @@ export const PeerCapabilityAdvertisementSchema = z.object({
   inbound: PeerInboundInterfaceSchema,
 })
 
-export const PeerCapabilitySnapshotSchema = z
-  .array(PeerCapabilityAdvertisementSchema)
-  .superRefine((capabilities, context) => {
-    const ids = new Set<string>()
-    for (const capability of capabilities) {
-      if (ids.has(capability.id)) {
-        context.addIssue({
-          code: 'custom',
-          message: `Peer capability IDs must be unique: ${capability.id}`,
-        })
-      }
-      ids.add(capability.id)
-    }
-  })
-
 export type PeerCapabilityAdvertisement = z.infer<typeof PeerCapabilityAdvertisementSchema>
 
 const NormalizedMultimapSchema = z

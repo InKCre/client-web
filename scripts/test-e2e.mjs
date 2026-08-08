@@ -75,8 +75,7 @@ function redact(value) {
 try {
   const state = await ensureDatabaseRuntime(instance)
   await waitForRuntime(state)
-  const ownsRuntime = state.provider.kind !== 'external'
-  const baseline = ownsRuntime ? fingerprint(instance) : null
+  const baseline = fingerprint(instance)
 
   run('pnpm', ['--filter', '@inkcre/client-web', 'build-only'])
   const webPort = await availablePort()
@@ -114,21 +113,19 @@ try {
     },
   })
 
-  if (ownsRuntime) {
-    compose(instance, [
-      'run',
-      '--rm',
-      '--no-deps',
-      'init',
-      'db',
-      'reset-dev',
-      '--confirm',
-      'reset-development-data',
-    ])
-    const resetBaseline = fingerprint(instance)
-    if (resetBaseline !== baseline) {
-      throw new Error('reset-dev did not restore the deterministic E2E baseline')
-    }
+  compose(instance, [
+    'run',
+    '--rm',
+    '--no-deps',
+    'init',
+    'db',
+    'reset-dev',
+    '--confirm',
+    'reset-development-data',
+  ])
+  const resetBaseline = fingerprint(instance)
+  if (resetBaseline !== baseline) {
+    throw new Error('reset-dev did not restore the deterministic E2E baseline')
   }
 } catch (error) {
   const evidenceDirectory = `${repoRoot}/test-results/database`

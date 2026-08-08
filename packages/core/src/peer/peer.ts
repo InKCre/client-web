@@ -3,7 +3,7 @@ import { Z } from 'zod-class'
 import { DBAPIClient } from '../base'
 import { configStore } from '../config'
 import { makeObjectProp, makeStringProp } from '../utils/vue-props'
-import { PeerCapabilitySnapshotSchema } from './contracts'
+import { PeerCapabilityAdvertisementSchema } from './contracts'
 
 export type PeerRef = string
 export const PeerRefSchema = z.uuid()
@@ -43,7 +43,7 @@ export class Peer extends Z.class({
   }
 
   capabilitySnapshot() {
-    return PeerCapabilitySnapshotSchema.parse(this.capabilities)
+    return z.array(PeerCapabilityAdvertisementSchema).parse(this.capabilities)
   }
 
   async save(): Promise<void> {

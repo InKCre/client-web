@@ -63,7 +63,7 @@ export interface ExtensionModule {
   initialize?(): Promise<void>
 
   /**
-   * Called when the extension is activated (enabled for a Peer).
+   * Called when the extension is activated (enabled for a client).
    * Use for registering resolvers, handlers, and other runtime hooks.
    */
   activate?(): Promise<void>
@@ -127,17 +127,11 @@ export class Extension extends Z.class({
   /**
    * Extension instances registry for the local Peer.
    *
-   * IMPORTANT: This map assumes all instances belong to the current local Peer
+   * IMPORTANT: This map assumes all instances belong to the current local client
    * (identified by `metaConfig.INKCRE_PEER_ID`). Do not use this registry
    * to manage extensions for remote Peers.
    */
   private static _instances: Map<ExtensionRef, Extension> = new Map()
-
-  /**
-   * Runtime-only state cannot use a class-field initializer because zod-class
-   * creates parsed models without running those initializers.
-   */
-  private static _runtimeStates = new WeakMap<Extension, Ref<ExtensionRuntimeState>>()
 
   private static getEnabledInstances(): Extension[] {
     const peer = sharedConfigStore.metaConfig.INKCRE_PEER_ID
@@ -156,17 +150,10 @@ export class Extension extends Z.class({
   // Runtime State (not persisted, reactive)
   // ============================================================================
 
-  get runtimeState(): Ref<ExtensionRuntimeState> {
-    let state = Extension._runtimeStates.get(this)
-    if (!state) {
-      state = ref({
-        status: ExtensionState.DISCOVERED,
-        error: null,
-      })
-      Extension._runtimeStates.set(this, state)
-    }
-    return state
-  }
+  readonly runtimeState: Ref<ExtensionRuntimeState> = ref({
+    status: ExtensionState.DISCOVERED,
+    error: null,
+  })
 
   module: ExtensionModule | null = null
 
@@ -596,7 +583,7 @@ export class Extension extends Z.class({
 export class InstallExtensionForm extends Z.class({
   id: ExtensionRefZ,
   version: z.string().optional(),
-  enabled: z.array(z.string()).optional(), // optional initial enabled Peer IDs
+  enabled: z.array(z.string()).optional(), // optional initial enabled client IDs
 }) {
   /**
    * Install if not exist

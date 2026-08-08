@@ -88,7 +88,7 @@ async function externalRuntime() {
   return { descriptor, runtime, directory }
 }
 
-test('external attachment preserves local and database runtime identities', async () => {
+test('external attachment preserves client and database instance identities', async () => {
   const { descriptor, runtime, directory } = await externalRuntime()
 
   const state = await runtimeState('fedcba9876543210', { create: true })

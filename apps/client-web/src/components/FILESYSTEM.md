@@ -1,6 +1,8 @@
 ```
 src/components/
 ├── AGENTS.md                   # Component guidelines
+├── client/                     # Client domain
+│   └── clientList/
 ├── common/                     # Shared components
 │   ├── AGENTS.md
 │   └── AppSidePanel/
@@ -16,9 +18,6 @@ src/components/
 │   ├── AGENTS.md
 │   ├── LogEntry/
 │   └── LogsViewer/
-├── peer/                       # Technical Peer domain
-│   ├── peerCard/
-│   └── peerList/
 └── source/                     # Source domain
     ├── collectAtForm/
     ├── sourceCard/

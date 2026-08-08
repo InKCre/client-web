@@ -27,9 +27,8 @@ remote is sufficient.
 
 ## Browser-local configuration
 
-The settings page is the sole runtime authority for the PostgREST URL, technical Peer ID (shown as
-Client ID in the product UI), and user-owned JWT signing secret. A fresh origin has no default
-service or Peer identity. The secret is masked
+The settings page is the sole runtime authority for the PostgREST URL, client ID, and user-owned
+JWT signing secret. A fresh origin has no default service or client identity. The secret is masked
 and omitted from portable exports. Do not add a hardcoded endpoint, Vite environment variable,
 Worker binding, or shared Cloudflare secret for runtime configuration.
 
