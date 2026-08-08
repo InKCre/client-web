@@ -294,36 +294,3 @@ jobs:
           path: test-results/playwright
           if-no-files-found: ignore
           retention-days: 7
-
-  dependency-review-compatibility:
-    name: Dependency security review
-    needs: dependency-review
-    if: always() && (github.event_name == 'pull_request' || github.event_name == 'merge_group')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Mirror the renamed required context
-        env:
-          RESULT: ${{ needs.dependency-review.result }}
-        run: test "$RESULT" = success
-
-  peer-database-compatibility:
-    name: Peer database browser E2E
-    needs: peer-database
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Mirror the renamed required context
-        env:
-          RESULT: ${{ needs.peer-database.result }}
-        run: test "$RESULT" = success
-
-  browser-extension-compatibility:
-    name: Browser extension contract
-    needs: browser-extension
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Mirror the renamed required context
-        env:
-          RESULT: ${{ needs.browser-extension.result }}
-        run: test "$RESULT" = success
