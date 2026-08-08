@@ -52,7 +52,7 @@ if (await exists('.node-version')) {
 }
 for (const [path, expectedNodeFiles] of [
   ['.github/workflows/ci.yml', Array(5).fill('package.json')],
-  ['.github/workflows/pages-cleanup.yml', ['package.json']],
+  ['.github/workflows/pages-cleanup.yml', ['controller/package.json']],
   ['.github/workflows/pages-preview.yml', ['controller/package.json']],
   ['.github/workflows/pages-deploy.yml', ['package.json', 'controller/package.json']],
 ]) {

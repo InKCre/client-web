@@ -70,12 +70,14 @@ sequenceDiagram
   Pages-->>Preview: stable preview URL
   Preview-->>PR: deployment status and URL
   PR->>CI: closed
-  CI->>Pages: delete exact PR branch deployments
+  CI->>Pages: replace the stable PR alias with a closed-page tombstone
 ```
 
 - Preview identity is keyed by repository and PR number.
 - Repeated synchronize events update the same logical preview.
 - Fork PRs run build/check without Cloudflare credentials or preview delivery.
+- Closing a same-repository PR replaces its stable alias with a noindex closed-page tombstone;
+  historical immutable Pages deployments remain Cloudflare delivery history.
 - Deployed smoke verifies asset loading, SPA deep links, and absence of the removed `/api/config` dependency.
 - Full data E2E remains local/CI Docker by default because human preview configuration is browser-local and origin-specific.
 
