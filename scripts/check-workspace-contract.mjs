@@ -91,6 +91,7 @@ const rootScripts = [
   'build',
   'check',
   'check:package',
+  'check:release:web',
   'check:runtime',
   'check:workspace',
   'contract:check',

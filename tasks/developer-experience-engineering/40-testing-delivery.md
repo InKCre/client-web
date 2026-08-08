@@ -45,44 +45,54 @@ Failures retain traces, screenshots, browser logs, and service logs with credent
 
 ## Pull-Request Preview
 
-Recommended authority split:
-
-- GitHub Actions owns install, verification, policy, concurrency, and deployment evidence.
-- Cloudflare Pages owns static hosting and deployments.
-- Wrangler Pages direct upload runs only after required checks.
+- `Client checks` owns candidate validation. It runs the full workspace, dependency, peer-database,
+  and browser-extension contracts for pull requests targeting `main`.
+- A successful same-repository pull-request run uploads `client-web-dist` as short-lived evidence.
+  Fork pull requests can validate but do not receive a Cloudflare preview.
+- `Pages preview` is a separate trusted controller. It accepts only the exact head of an open
+  same-repository pull request targeting `main`, downloads that checked artifact without rebuilding
+  it, and deploys the deterministic branch `preview/client-web/pr-N`.
+- The stable branch alias is smoke-tested and reported back to the pull request as a GitHub
+  deployment. Preview delivery is not a required merge check and has no production authority.
 
 ```mermaid
 sequenceDiagram
   participant PR as Pull request
   participant CI as GitHub Actions
   participant Pages as Cloudflare Pages
-  participant E2E as Playwright
+  participant Preview as Preview controller
 
   PR->>CI: opened or synchronized
-  CI->>CI: frozen install, check, build
-  CI->>CI: enforce fork and credential policy
-  CI->>Pages: deploy dist to PR branch
-  Pages-->>CI: deployment id and preview URL
-  CI->>E2E: deployed static smoke
-  E2E-->>CI: evidence
-  CI-->>PR: deployment status and URL
+  CI->>CI: full validation and web artifact
+  CI-->>Preview: successful exact-head run
+  Preview->>Preview: verify same-repository open PR
+  Preview->>Pages: deploy artifact to PR branch
+  Pages-->>Preview: stable preview URL
+  Preview-->>PR: deployment status and URL
   PR->>CI: closed
-  CI->>CI: record lifecycle completion
+  CI->>Pages: delete exact PR branch deployments
 ```
 
 - Preview identity is keyed by repository and PR number.
 - Repeated synchronize events update the same logical preview.
-- Fork PRs run build/check without Cloudflare credentials unless explicitly approved through a protected path.
+- Fork PRs run build/check without Cloudflare credentials or preview delivery.
 - Deployed smoke verifies asset loading, SPA deep links, and absence of the removed `/api/config` dependency.
 - Full data E2E remains local/CI Docker by default because human preview configuration is browser-local and origin-specific.
 
 ## Production
 
-- `main` is the only production policy branch after cutover.
-- Required checks and a protected GitHub production environment gate Pages deployment.
-- CI deploys the exact `dist` artifact produced by the accepted commit and records commit, artifact digest, Pages deployment ID, and URL.
-- Production smoke checks the custom domain, static assets, history fallback, and config UI without injecting a credential.
-- Rollback selects a previous verified Pages deployment; database state is outside a static-client release.
+- Protected `main` is the only production authority after cutover. Pull-request artifacts are never
+  promoted to production.
+- Every `main` push starts a focused release run from that exact source SHA. The secret-free build
+  job performs a frozen install, builds only `@inkcre/client-web`, verifies the static and
+  environment-neutral artifact contract, and uploads `client-web-dist`.
+- The production job downloads that artifact from the same workflow run without rebuilding it,
+  proves that `main` still points to the selected SHA, deploys the fixed Pages branch `main`, and
+  smoke-tests both the exact Pages deployment and `https://app.inkcre.dev`.
+- Release evidence records source SHA, workflow run, artifact digest, Pages deployment ID, and URL.
+  Independent pull-request and release builds are not expected to be byte-identical.
+- The normal rollback is a revert pull request followed by a new protected-main release. Database
+  state is outside a static-client release.
 
 ## Browser Extension Artifacts
 

@@ -1,109 +1,111 @@
 name: Pages deployment
 
 on:
-  workflow_run:
-    workflows:
-      - Client checks
-    types:
-      - completed
-  workflow_dispatch:
-    inputs:
-      run_id:
-        description: Successful Client checks run containing client-web-dist
-        required: true
-        type: number
+  push:
+    branches:
+      - main
 
 permissions:
-  actions: read
   contents: read
-  deployments: write
-  pull-requests: read
-
-concurrency:
-  group: pages-${{ github.event.workflow_run.head_branch || inputs.run_id }}
-  cancel-in-progress: true
+  packages: read
 
 jobs:
-  identity:
-    name: Resolve trusted release identity
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event.workflow_run.conclusion == 'success'
+  build:
+    name: Build exact main release
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     outputs:
-      branch: ${{ steps.identity.outputs.branch }}
-      environment: ${{ steps.identity.outputs.environment }}
+      artifact_digest: ${{ steps.artifact.outputs['artifact-digest'] }}
       head_sha: ${{ steps.identity.outputs.head_sha }}
-      run_id: ${{ steps.identity.outputs.run_id }}
     steps:
-      - name: Resolve exact main or internal PR
+      - name: Resolve exact current main source
         id: identity
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
-            const runId = context.eventName === 'workflow_dispatch'
-              ? Number(context.payload.inputs.run_id)
-              : context.payload.workflow_run.id
-            const { data: run } = await github.rest.actions.getWorkflowRun({
+            const currentMain = await github.rest.git.getRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              run_id: runId,
+              ref: 'heads/main',
             })
-            if (run.name !== 'Client checks' || run.path !== '.github/workflows/ci.yml') {
-              core.setFailed('Artifact must come from the trusted Client checks workflow.')
+            if (currentMain.data.object.sha !== context.sha) {
+              core.setFailed('A newer main revision superseded this release run.')
               return
             }
-            if (run.conclusion !== 'success') {
-              core.setFailed('Client checks run must be successful.')
-              return
-            }
-            if (run.head_branch === 'main') {
-              const currentMain = await github.rest.git.getRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: 'heads/main',
-              })
-              if (currentMain.data.object.sha !== run.head_sha) {
-                core.setFailed('Production delivery requires the current exact main head.')
-                return
-              }
-              core.setOutput('branch', 'main')
-              core.setOutput('environment', 'production')
-              core.setOutput('head_sha', run.head_sha)
-              core.setOutput('run_id', String(runId))
-              return
-            }
-            const pulls = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: run.head_sha,
-            })
-            const pull = pulls.data.find((candidate) =>
-              candidate.state === 'open' &&
-              candidate.base.ref === 'main' &&
-              candidate.head.sha === run.head_sha &&
-              candidate.head.repo?.full_name === `${context.repo.owner}/${context.repo.repo}`
-            )
-            if (!pull) {
-              core.setFailed('Run is not the exact head of an eligible internal PR.')
-              return
-            }
-            core.setOutput('branch', `preview/client-web/pr-${pull.number}`)
-            core.setOutput('environment', 'preview')
-            core.setOutput('head_sha', run.head_sha)
-            core.setOutput('run_id', String(runId))
+            core.setOutput('head_sha', context.sha)
 
-  deploy:
-    name: Deploy secret-free static artifact
-    needs: identity
-    if: vars.CLOUDFLARE_PAGES_PROJECT != ''
-    runs-on: ubuntu-latest
-    environment: ${{ needs.identity.outputs.environment }}
-    steps:
-      - name: Checkout the trusted delivery controller
+      - name: Checkout exact main source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: main
+          ref: ${{ steps.identity.outputs.head_sha }}
+          persist-credentials: false
+
+      - name: Install the pinned pnpm release
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: 11.11.0
+
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: package.json
+          cache: pnpm
+          registry-url: https://npm.pkg.github.com
+          scope: '@inkcre'
+
+      - name: Install the frozen workspace
+        run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build the focused web release
+        run: pnpm --filter @inkcre/client-web build
+
+      - name: Verify the static web release
+        run: pnpm check:release:web
+
+      - name: Upload the exact release artifact
+        id: artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: client-web-dist
+          path: apps/client-web/dist
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Record release provenance
+        env:
+          ARTIFACT_DIGEST: ${{ steps.artifact.outputs['artifact-digest'] }}
+          RELEASE_HEAD_SHA: ${{ steps.identity.outputs.head_sha }}
+        run: |
+          {
+            echo '## Client web release build'
+            echo
+            echo "- Source SHA: \`${RELEASE_HEAD_SHA}\`"
+            echo "- Workflow run: \`${GITHUB_RUN_ID}\`"
+            echo '- Artifact: `client-web-dist`'
+            echo "- Artifact digest: \`${ARTIFACT_DIGEST}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+  deploy:
+    name: Deploy exact main release
+    needs: build
+    concurrency:
+      group: pages-main
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      deployments: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: https://app.inkcre.dev
+    steps:
+      - name: Checkout the exact delivery controller
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.build.outputs.head_sha }}
           path: controller
           persist-credentials: false
 
@@ -112,51 +114,25 @@ jobs:
         with:
           node-version-file: controller/package.json
 
-      - name: Download exact checked artifact
+      - name: Download the same-run release artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: client-web-dist
           path: .pages-delivery/dist
-          run-id: ${{ needs.identity.outputs.run_id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Reverify release authority before delivery
+      - name: Reverify main before delivery
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          RELEASE_BRANCH: ${{ needs.identity.outputs.branch }}
-          RELEASE_HEAD_SHA: ${{ needs.identity.outputs.head_sha }}
+          RELEASE_HEAD_SHA: ${{ needs.build.outputs.head_sha }}
         with:
           script: |
-            const branch = process.env.RELEASE_BRANCH
-            const expectedHead = process.env.RELEASE_HEAD_SHA
-            if (branch === 'main') {
-              const currentMain = await github.rest.git.getRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: 'heads/main',
-              })
-              if (currentMain.data.object.sha !== expectedHead) {
-                core.setFailed('Main changed after artifact selection; refusing delivery.')
-              }
-              return
-            }
-            const match = /^preview\/client-web\/pr-([1-9][0-9]*)$/.exec(branch)
-            if (!match) {
-              core.setFailed(`Unexpected Pages review branch: ${branch}`)
-              return
-            }
-            const { data: pull } = await github.rest.pulls.get({
+            const currentMain = await github.rest.git.getRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: Number(match[1]),
+              ref: 'heads/main',
             })
-            if (
-              pull.state !== 'open' ||
-              pull.base.ref !== 'main' ||
-              pull.head.sha !== expectedHead ||
-              pull.head.repo?.full_name !== `${context.repo.owner}/${context.repo.repo}`
-            ) {
-              core.setFailed('Pull request identity changed after artifact selection.')
+            if (currentMain.data.object.sha !== process.env.RELEASE_HEAD_SHA) {
+              core.setFailed('Main changed after the release build; refusing delivery.')
             }
 
       - name: Deploy to Cloudflare Pages
@@ -171,10 +147,13 @@ jobs:
           command: >-
             pages deploy dist
             --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT }}
-            --branch=${{ needs.identity.outputs.branch }}
+            --branch=main
+            --commit-hash=${{ needs.build.outputs.head_sha }}
+            --commit-dirty=false
 
-      - name: Smoke-test the exact Pages deployment
+      - name: Smoke-test Pages and app.inkcre.dev
         run: node controller/scripts/verify-pages-deployment.mjs
         env:
           CLOUDFLARE_PAGES_DEPLOYMENT_ID: ${{ steps.pages.outputs.pages-deployment-id }}
           CLOUDFLARE_PAGES_DEPLOYMENT_URL: ${{ steps.pages.outputs.deployment-url }}
+          INKCRE_CLIENT_WEB_ORIGIN: https://app.inkcre.dev
