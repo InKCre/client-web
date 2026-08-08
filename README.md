@@ -31,8 +31,9 @@ pnpm resolves the exact Node runtime into `pnpm-lock.yaml` and uses it for
 repository scripts. The system Node installation is only responsible for
 launching pnpm and does not define the project runtime.
 
-The database capability pulls core-py's private digest-pinned runtime from GHCR. Authenticate the
-selected Docker engine once with a GitHub token that has `read:packages`:
+The database capability resolves core-py's production-admitted `stable` channel to one immutable
+digest before creating a runtime. Authenticate the selected Docker engine once with a GitHub token
+that has `read:packages`:
 
 ```bash
 gh auth refresh -h github.com -s read:packages
@@ -84,6 +85,7 @@ pnpm dev:status      # Observe capability health without starting anything
 pnpm dev:stop        # Stop only this worktree's routes and database runtime
 pnpm db:ready        # Emit machine-readable development database readiness
 pnpm db:reset        # Explicitly reset only this worktree's guarded development database
+pnpm contract:sync   # Regenerate checked database types from the current stable core release
 pnpm test:e2e        # Own and remove an ephemeral database plus built-browser test runtime
 pnpm dev:all         # Start the web client with local remotes
 pnpm format          # Apply the Oxfmt baseline
@@ -133,12 +135,13 @@ environment origin, client identity, or JWT credential is compiled into the web/
 artifacts or their source maps; no `VITE_*`, Cloudflare, or Worker path supplies one. Portable
 config export excludes the credential.
 
-The database capability starts digest-pinned pgvector, core-py, and PostgREST images under the
-worktree's SVC identity, with collision-safe ports and volumes. Local Docker publishes directly to
-loopback. The SSH provider allocates ports on the remote engine and exposes them through an
-instance-owned OpenSSH control tunnel, while callers still consume loopback URLs. Both providers
-run the same tracked Compose definition and core-py initialization contract. Client-web owns no
-copied migration SQL, role bootstrap, seed ordering, or startup sleep.
+The database capability resolves core `stable` once, then starts digest-pinned pgvector, that exact
+real core service, and PostgREST under the worktree's SVC identity. Compose restores the raw schema
+and role artifact carried by the selected image into a fresh database before the core service
+reconciles runtime credentials and development data. Local Docker publishes collision-safe
+loopback ports. The SSH provider allocates ports on the remote engine and exposes them through an
+instance-owned OpenSSH control tunnel. Client-web owns no migration SQL, role definitions, seed
+ordering, or startup sleep.
 
 On a machine where core-py owns the active development stack, ignored `svc.local.json` may select
 `INKCRE_DATABASE_PROVIDER=external` plus the absolute core-py `runtime.json` descriptor. The
@@ -147,9 +150,8 @@ Compose project, Docker daemon ID, contract revision, migration head, source fin
 readiness agree. Client-web does not stop or reset that shared runtime. Browser E2E still creates
 and removes its own isolated database instance.
 
-`pnpm run doctor -- --json` reports the image digest, source revision, contract version, generated
-type drift, config provenance, and Docker availability without reading or printing the
-browser-owned JWT credential.
+`pnpm run doctor -- --json` reports the selected release channel, checked runtime metadata, config
+provenance, and Docker availability without reading or printing the browser-owned JWT credential.
 
 ## Package contract
 
@@ -160,6 +162,11 @@ browser-owned JWT credential.
 
 Shared product truth is mounted read-only from `InKCre/docs` at `docs/_shared/`. Update the Hub first and publish its commit before changing this repository's submodule reference.
 
-The generated core peer-runtime contract contains only protocol format/schema and JWT claim rules.
-Environment profiles and instance URLs remain owned by core-py and runtime configuration, not this
-repository.
+Pinned Supabase CLI generates relation types from core-py's raw PostgreSQL artifact; TypeScript
+compilation and consumer tests are the compatibility check. The runtime adapter exposes only
+protocol format/schema and JWT claim rules. Environment profiles and instance URLs remain owned by
+core-py and runtime configuration, not this repository.
+
+The checked generated files provide a useful local snapshot. Required CI regenerates them from the
+immutable release selected for that run before compiling and testing, so harmless upstream schema
+growth does not become a dependency-update gate.

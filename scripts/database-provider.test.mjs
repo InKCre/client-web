@@ -4,7 +4,11 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, test } from 'vitest'
 
-import { diagnoseDatabaseProvider, resolveDatabaseProviderConfig } from './database-provider.mjs'
+import {
+  diagnoseDatabaseProvider,
+  resolveDatabaseProviderConfig,
+  runDatabaseDocker,
+} from './database-provider.mjs'
 
 const originalEnvironment = { ...process.env }
 const temporaryDirectories = []
@@ -142,5 +146,33 @@ test('SSH diagnostics never invoke the local Docker CLI', async () => {
     engine: '28.5.2',
     compose: '2.40.3',
   })
+  await assert.rejects(readFile(marker), { code: 'ENOENT' })
+})
+
+test('SSH provider transports Docker argv without invoking local Docker', async () => {
+  const directory = await mkdtemp(`${tmpdir()}/inkcre-provider-test-`)
+  temporaryDirectories.push(directory)
+  const marker = join(directory, 'local-docker-called')
+
+  await executable(directory, 'docker', `#!/bin/sh\nprintf called > "${marker}"\nexit 97\n`)
+  await executable(
+    directory,
+    'ssh',
+    ['#!/bin/sh', 'cat >/dev/null', "printf 'remote-digest\\n'", ''].join('\n')
+  )
+
+  process.env.PATH = `${directory}:${originalEnvironment.PATH}`
+  assert.equal(
+    runDatabaseDocker(
+      {
+        kind: 'ssh',
+        target: 'test-docker-host',
+        docker_bin: '/remote/docker',
+        forward_host: '127.0.0.1',
+      },
+      ['inspect', '--format={{json .RepoDigests}}', 'ghcr.io/inkcre/core-py:stable']
+    ),
+    'remote-digest'
+  )
   await assert.rejects(readFile(marker), { code: 'ENOENT' })
 })

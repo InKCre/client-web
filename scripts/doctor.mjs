@@ -128,19 +128,19 @@ try {
   )
 }
 
-const corePin = JSON.parse(await readFile(`${repoRoot}/contracts/core-py.json`, 'utf8'))
+const coreRelease = JSON.parse(await readFile(`${repoRoot}/contracts/core-release.json`, 'utf8'))
 const coreContract = JSON.parse(
-  await readFile(`${repoRoot}/contracts/core-py-contract.json`, 'utf8')
+  await readFile(`${repoRoot}/packages/core/src/database/runtime-contract.generated.json`, 'utf8')
 )
 record(
-  'core-runtime-image',
-  corePin.image?.includes('@sha256:') ? 'ok' : 'error',
-  `${corePin.image} (${corePin.source_revision})`
+  'core-runtime-release',
+  coreRelease.stable_image === 'ghcr.io/inkcre/core-py:stable' ? 'ok' : 'error',
+  coreRelease.stable_image
 )
 record(
   'database-contract',
-  coreContract.revision === corePin.contract_revision ? 'ok' : 'error',
-  `${coreContract.revision}; schema ${coreContract.protocol?.schema}; ${Object.keys(coreContract.protocol?.relations ?? {}).length} relations`
+  coreContract.protocol?.schema === 'inkcre' ? 'ok' : 'error',
+  `${coreContract.revision}; schema ${coreContract.protocol?.schema}; Supabase-generated types checked in`
 )
 record(
   'database-readiness-profile',

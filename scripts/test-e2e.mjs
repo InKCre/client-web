@@ -32,6 +32,21 @@ function fingerprint(instance) {
     '--entrypoint',
     'python',
     'init',
+    'scripts/container.py',
+    'db',
+    'contract',
+    '--json',
+  ]).trim()
+}
+
+function developmentFingerprint(instance) {
+  return compose(instance, [
+    'run',
+    '--rm',
+    '--no-deps',
+    '--entrypoint',
+    'python',
+    'init',
     '-c',
     'from app.database_contract.catalog import development_baseline_fingerprint as f; print(f())',
   ]).trim()
@@ -75,7 +90,9 @@ function redact(value) {
 try {
   const state = await ensureDatabaseRuntime(instance)
   await waitForRuntime(state)
-  const baseline = fingerprint(instance)
+  const ownsRuntime = state.provider.kind !== 'external'
+  if (ownsRuntime) fingerprint(instance)
+  const baseline = ownsRuntime ? developmentFingerprint(instance) : null
 
   run('pnpm', ['--filter', '@inkcre/client-web', 'build-only'])
   const webPort = await availablePort()
@@ -113,19 +130,23 @@ try {
     },
   })
 
-  compose(instance, [
-    'run',
-    '--rm',
-    '--no-deps',
-    'init',
-    'db',
-    'reset-dev',
-    '--confirm',
-    'reset-development-data',
-  ])
-  const resetBaseline = fingerprint(instance)
-  if (resetBaseline !== baseline) {
-    throw new Error('reset-dev did not restore the deterministic E2E baseline')
+  if (ownsRuntime) {
+    compose(instance, [
+      'run',
+      '--rm',
+      '--no-deps',
+      'init',
+      'python',
+      'scripts/container.py',
+      'db',
+      'reset-dev',
+      '--confirm',
+      'reset-development-data',
+    ])
+    const resetBaseline = developmentFingerprint(instance)
+    if (resetBaseline !== baseline) {
+      throw new Error('reset-dev did not restore the deterministic E2E baseline')
+    }
   }
 } catch (error) {
   const evidenceDirectory = `${repoRoot}/test-results/database`

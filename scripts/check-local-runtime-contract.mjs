@@ -51,7 +51,7 @@ if (await exists('.node-version')) {
   errors.push('.node-version must remain absent; pnpm devEngines.runtime owns Node')
 }
 for (const [path, expectedNodeFile, expectedCount] of [
-  ['.github/workflows/ci.yml', 'package.json', 4],
+  ['.github/workflows/ci.yml', 'package.json', 5],
   ['.github/workflows/pages-cleanup.yml', 'package.json', 1],
   ['.github/workflows/pages-deploy.yml', 'controller/package.json', 1],
 ]) {
@@ -244,8 +244,9 @@ if (svcConfig.dev?.profile !== 'local' || !localTargets) {
 
 const databaseCompose = await readFile(`${repoRoot}/runtime/database.compose.yml`, 'utf8')
 for (const required of [
-  "command: ['db', 'init', '--profile', 'development']",
+  "command: ['python', 'scripts/container.py', 'db', 'init', '--profile', 'development']",
   '${INKCRE_CORE_IMAGE:?INKCRE_CORE_IMAGE is required}',
+  'database-contract:/database-contract',
   '${POSTGRES_PORT:-0}',
   '${POSTGREST_PORT:-0}',
   '${CORE_PUBLIC_URL:?CORE_PUBLIC_URL is required}',
@@ -282,7 +283,7 @@ const databaseRuntime = await readFile(`${repoRoot}/scripts/database-runtime-lib
 for (const required of [
   "owner_repository !== 'InKCre/core-py'",
   'runtime_instance: descriptor.identity',
-  'external database runtime contract differs from the client pin',
+  'external database runtime provenance is incomplete',
   'external database readiness and runtime descriptor differ',
   'client-web cannot stop it',
 ]) {

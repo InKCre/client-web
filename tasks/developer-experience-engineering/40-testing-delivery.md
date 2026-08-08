@@ -26,6 +26,23 @@ help links may remain only when they are not runtime configuration or bootstrap 
 
 Failures retain traces, screenshots, browser logs, and service logs with credentials redacted. Tests own deterministic seed/reset and cannot address production origins.
 
+## Merge Admission
+
+- `Workspace contract` restores the raw schema carried by the selected core release, regenerates
+  the working-tree types with pinned Supabase CLI, and lets TypeScript plus consumer tests decide
+  compatibility. The checked generated snapshot supports local development; byte-for-byte drift is
+  not itself a merge failure.
+- `client-web E2E` starts the selected immutable core service against fresh pgvector PostgreSQL,
+  restores the same schema artifact, runs core-owned initialization, and exercises PostgREST
+  read/write/deny behavior through the browser.
+- `Dependency review` and `client-webext E2E` own dependency delta and browser-extension evidence.
+- Pull-request runs provide early feedback. A GitHub merge-group run repeats all four checks against
+  current client `main` and the then-current core `stable` digest. The run fails if `stable` moves
+  before completion.
+- Core and client branches may be developed concurrently, but core must merge and deliver first.
+  There is no core-PR image selector, downstream rerun credential, or handwritten schema
+  compatibility classifier.
+
 ## Pull-Request Preview
 
 Recommended authority split:

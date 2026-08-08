@@ -1,80 +1,121 @@
 import { execFileSync } from 'node:child_process'
-import { mkdir, writeFile } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { createHash } from 'node:crypto'
+import { readFile, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 
 import {
-  generateDatabaseTypes,
-  generateRuntimeContract,
+  inspectCoreRelease,
   readJson,
+  resolveCoreRelease,
   stableJson,
-  validateContractDocument,
-} from './database-contract-lib.mjs'
+  validateCoreReleaseConfig,
+} from './core-release-lib.mjs'
+import {
+  ensureDatabaseRuntime,
+  runtimeCredentials,
+  stopDatabaseRuntime,
+  waitForRuntime,
+} from './database-runtime-lib.mjs'
+import { resolveDatabaseProviderConfig, runDatabaseDocker } from './database-provider.mjs'
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url))
-const arguments_ = process.argv.slice(2)
-const localCoreIndex = arguments_.indexOf('--local-core')
-const imageIndex = arguments_.indexOf('--image')
-const localCore = localCoreIndex >= 0 ? resolve(repoRoot, arguments_[localCoreIndex + 1]) : null
-const requestedImage = imageIndex >= 0 ? arguments_[imageIndex + 1] : null
+const args = process.argv.slice(2)
+const imageIndex = args.indexOf('--image')
+const requestedImage = imageIndex >= 0 ? args[imageIndex + 1] : null
+const check = args.includes('--check')
+const config = validateCoreReleaseConfig(await readJson(`${repoRoot}/contracts/core-release.json`))
+const provider = resolveDatabaseProviderConfig()
+const runDocker = (dockerArgs, options) => runDatabaseDocker(provider, dockerArgs, options)
+const release = requestedImage
+  ? inspectCoreRelease(runDocker, requestedImage)
+  : resolveCoreRelease(runDocker, config.stable_image)
+const instance = `typegen-${createHash('sha256')
+  .update(`${repoRoot}/${process.pid}/${Date.now()}`)
+  .digest('hex')
+  .slice(0, 16)}`
+let runtimeStarted = false
 
-function output(command, args, options = {}) {
-  return execFileSync(command, args, {
-    cwd: options.cwd ?? repoRoot,
+function output(command, commandArgs, options = {}) {
+  return execFileSync(command, commandArgs, {
+    cwd: repoRoot,
     encoding: 'utf8',
-    env: options.env ?? process.env,
-    stdio: ['ignore', 'pipe', 'pipe'],
-    timeout: 120_000,
-  }).trim()
+    input: options.input,
+    stdio: ['pipe', 'pipe', 'pipe'],
+    timeout: options.timeout ?? 180_000,
+  })
 }
 
-const existingPin = await readJson(`${repoRoot}/contracts/core-py.json`)
-const image = requestedImage ?? existingPin.image
-let contract
-let sourceRevision
+function workspaceBinary(name) {
+  return `${repoRoot}/node_modules/.bin/${name}`
+}
 
-if (localCore) {
-  sourceRevision = output('git', ['rev-parse', 'HEAD'], { cwd: localCore })
-  contract = JSON.parse(
-    output('pdm', ['run', 'db:contract'], {
-      cwd: localCore,
-      env: {
-        ...process.env,
-        INKCRE_SOURCE_REVISION: sourceRevision,
-      },
+function shellQuote(value) {
+  return `'${value.replaceAll("'", "'\\''")}'`
+}
+
+function generateTypes(state, credentials) {
+  const port =
+    state.provider.kind === 'ssh' ? state.remote_ports.postgres : state.local_ports.postgres
+  const databaseUrl = `postgresql://postgres:${credentials.POSTGRES_PASSWORD}@127.0.0.1:${port}/inkcre?sslmode=disable`
+  const args = ['gen', 'types', 'typescript', '--db-url', databaseUrl, '--schema', 'inkcre']
+  if (state.provider.kind !== 'ssh') {
+    return output(workspaceBinary('supabase'), args, { timeout: 300_000 })
+  }
+
+  const typegenCommand = ['npx', '--yes', 'supabase@2.112.0', ...args].map(shellQuote).join(' ')
+  const remoteCommand = [
+    'typegen_bin=$(mktemp -d)',
+    `trap ${shellQuote('rm -rf "$typegen_bin"')} EXIT`,
+    `ln -s ${shellQuote(state.provider.docker_bin)} "$typegen_bin/docker"`,
+    `PATH="$typegen_bin:$PATH" ${typegenCommand}`,
+  ].join('; ')
+  return output('ssh', ['-T', '-o', 'BatchMode=yes', state.provider.target, remoteCommand], {
+    timeout: 300_000,
+  })
+}
+
+async function writeOrCompare(path, content, label) {
+  if (check) {
+    const checked = await readFile(path)
+    if (!checked.equals(content)) throw new Error(`${label} is stale for ${release.image}`)
+    return
+  }
+  await writeFile(path, content)
+}
+
+try {
+  process.env.INKCRE_CORE_IMAGE = release.image
+  const state = await ensureDatabaseRuntime(instance, { stdio: 'ignore' })
+  runtimeStarted = true
+  await waitForRuntime(state)
+  const credentials = await runtimeCredentials(instance)
+
+  const rawTypes = generateTypes(state, credentials)
+  const generatedTypes = Buffer.from(
+    output(workspaceBinary('oxfmt'), ['--stdin-filepath', 'database.generated.ts'], {
+      input: rawTypes,
     })
   )
-} else {
-  output('docker', ['pull', image])
-  contract = JSON.parse(output('docker', ['run', '--rm', image, 'db', 'contract', '--json']))
-  sourceRevision = contract.source_revision
+  await writeOrCompare(
+    `${repoRoot}/packages/core/src/database/database.generated.ts`,
+    generatedTypes,
+    'generated database types'
+  )
+  const generatedRuntimeContract = Buffer.from(
+    output(workspaceBinary('oxfmt'), ['--stdin-filepath', 'runtime-contract.generated.json'], {
+      input: stableJson(release.runtime_contract),
+    })
+  )
+  await writeOrCompare(
+    `${repoRoot}/packages/core/src/database/runtime-contract.generated.json`,
+    generatedRuntimeContract,
+    'generated runtime contract'
+  )
+  console.log(
+    `[contract] ${check ? 'verified' : 'synchronized'} ${release.image} through Supabase CLI`
+  )
+} finally {
+  if (runtimeStarted) {
+    await stopDatabaseRuntime(instance, { stdio: 'ignore' })
+  }
 }
-
-validateContractDocument(contract)
-if (!/^[a-f0-9]{40}$/.test(sourceRevision)) {
-  throw new Error(`core source revision must be a full commit SHA, got ${sourceRevision}`)
-}
-if (!image.includes('@sha256:')) {
-  throw new Error('core image must be pinned by digest')
-}
-
-const pin = {
-  ...existingPin,
-  source_revision: sourceRevision,
-  image,
-  contract_revision: contract.revision,
-}
-
-await mkdir(`${repoRoot}/packages/core/src/database`, { recursive: true })
-await writeFile(`${repoRoot}/contracts/core-py.json`, stableJson(pin))
-await writeFile(`${repoRoot}/contracts/core-py-contract.json`, stableJson(contract))
-await writeFile(
-  `${repoRoot}/packages/core/src/database/generated.ts`,
-  generateDatabaseTypes(contract)
-)
-await writeFile(
-  `${repoRoot}/packages/core/src/database/runtime-contract.ts`,
-  generateRuntimeContract(contract)
-)
-
-console.log(`[contract] synced ${contract.revision} from ${sourceRevision} using ${image}`)
