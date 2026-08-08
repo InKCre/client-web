@@ -1,5 +1,6 @@
 const deploymentId = process.env.CLOUDFLARE_PAGES_DEPLOYMENT_ID
 const deploymentUrl = process.env.CLOUDFLARE_PAGES_DEPLOYMENT_URL
+const productionUrl = process.env.INKCRE_CLIENT_WEB_ORIGIN
 
 if (!deploymentId) {
   throw new Error('Wrangler did not report a Cloudflare Pages deployment ID')
@@ -13,12 +14,12 @@ if (origin.protocol !== 'https:' || !origin.hostname.endsWith('.pages.dev')) {
   throw new Error(`unexpected Cloudflare Pages deployment URL: ${origin.origin}`)
 }
 
-async function readStaticPage(path) {
+async function readStaticPage(targetOrigin, path, attempts = 5) {
   let lastError
 
-  for (let attempt = 1; attempt <= 5; attempt += 1) {
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
-      const response = await fetch(new URL(path, origin), {
+      const response = await fetch(new URL(path, targetOrigin), {
         redirect: 'error',
         signal: AbortSignal.timeout(5000),
       })
@@ -35,7 +36,7 @@ async function readStaticPage(path) {
       return
     } catch (error) {
       lastError = error
-      if (attempt < 5) {
+      if (attempt < attempts) {
         await new Promise((resolve) => setTimeout(resolve, 1000))
       }
     }
@@ -44,8 +45,17 @@ async function readStaticPage(path) {
   throw lastError
 }
 
-await readStaticPage('/')
-await readStaticPage('/__inkcre_pages_spa_smoke')
+await readStaticPage(origin, '/')
+await readStaticPage(origin, '/__inkcre_pages_spa_smoke')
+
+if (productionUrl) {
+  const productionOrigin = new URL(productionUrl)
+  if (productionOrigin.protocol !== 'https:') {
+    throw new Error(`unexpected production origin: ${productionOrigin.origin}`)
+  }
+  await readStaticPage(productionOrigin, '/', 60)
+  await readStaticPage(productionOrigin, '/__inkcre_pages_spa_smoke', 60)
+}
 
 if (process.env.GITHUB_STEP_SUMMARY) {
   const { appendFile } = await import('node:fs/promises')
@@ -56,6 +66,7 @@ if (process.env.GITHUB_STEP_SUMMARY) {
       '',
       `- Deployment ID: \`${deploymentId}\``,
       `- URL: ${origin.origin}`,
+      ...(productionUrl ? [`- Production URL: ${new URL(productionUrl).origin}`] : []),
       '- Root and SPA fallback smoke: passed',
       '',
     ].join('\n')

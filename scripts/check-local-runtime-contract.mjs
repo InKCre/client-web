@@ -50,20 +50,20 @@ if (
 if (await exists('.node-version')) {
   errors.push('.node-version must remain absent; pnpm devEngines.runtime owns Node')
 }
-for (const [path, expectedNodeFile, expectedCount] of [
-  ['.github/workflows/ci.yml', 'package.json', 5],
-  ['.github/workflows/pages-cleanup.yml', 'package.json', 1],
-  ['.github/workflows/pages-deploy.yml', 'controller/package.json', 1],
+for (const [path, expectedNodeFiles] of [
+  ['.github/workflows/ci.yml', Array(5).fill('package.json')],
+  ['.github/workflows/pages-cleanup.yml', ['package.json']],
+  ['.github/workflows/pages-preview.yml', ['controller/package.json']],
+  ['.github/workflows/pages-deploy.yml', ['package.json', 'controller/package.json']],
 ]) {
   const workflow = await readFile(`${repoRoot}/${path}`, 'utf8')
   const configuredNodeFiles = [...workflow.matchAll(/node-version-file:\s*(\S+)/g)].map(
     (match) => match[1]
   )
-  if (
-    configuredNodeFiles.length !== expectedCount ||
-    configuredNodeFiles.some((nodeFile) => nodeFile !== expectedNodeFile)
-  ) {
-    errors.push(`${path} must derive every Node setup from ${expectedNodeFile}`)
+  if (JSON.stringify(configuredNodeFiles) !== JSON.stringify(expectedNodeFiles)) {
+    errors.push(
+      `${path} must derive Node setups from ${expectedNodeFiles.join(', ')} in that order`
+    )
   }
 }
 if (rootPackage.devDependencies?.portless !== '0.12.0') {

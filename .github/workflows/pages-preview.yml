@@ -1,0 +1,206 @@
+name: Pages preview
+
+on:
+  workflow_run:
+    workflows:
+      - Client checks
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: read
+
+jobs:
+  identity:
+    name: Resolve trusted preview identity
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.identity.outputs.branch }}
+      head_sha: ${{ steps.identity.outputs.head_sha }}
+      pull_number: ${{ steps.identity.outputs.pull_number }}
+      run_id: ${{ steps.identity.outputs.run_id }}
+    steps:
+      - name: Resolve exact internal pull request
+        id: identity
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const runId = context.payload.workflow_run.id
+            const { data: run } = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+            })
+            if (run.name !== 'Client checks' || run.path !== '.github/workflows/ci.yml') {
+              core.setFailed('Preview artifact must come from the trusted Client checks workflow.')
+              return
+            }
+            if (run.conclusion !== 'success' || run.event !== 'pull_request') {
+              core.setFailed('Preview delivery requires a successful pull-request check run.')
+              return
+            }
+            if (run.head_repository?.full_name !== `${context.repo.owner}/${context.repo.repo}`) {
+              core.setFailed('Fork pull requests are not eligible for preview delivery.')
+              return
+            }
+
+            const pulls = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: run.head_sha,
+            })
+            const pull = pulls.data.find((candidate) =>
+              candidate.state === 'open' &&
+              candidate.base.ref === 'main' &&
+              candidate.head.sha === run.head_sha &&
+              candidate.head.repo?.full_name === `${context.repo.owner}/${context.repo.repo}`
+            )
+            if (!pull) {
+              core.setFailed('Run is not the exact head of an eligible internal pull request.')
+              return
+            }
+
+            core.setOutput('branch', `preview/client-web/pr-${pull.number}`)
+            core.setOutput('head_sha', run.head_sha)
+            core.setOutput('pull_number', String(pull.number))
+            core.setOutput('run_id', String(runId))
+
+  deploy:
+    name: Deploy pull-request preview
+    needs: identity
+    concurrency:
+      group: pages-preview-client-web-${{ needs.identity.outputs.pull_number }}
+      cancel-in-progress: true
+    permissions:
+      actions: read
+      contents: read
+      deployments: write
+      pull-requests: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: preview
+    steps:
+      - name: Checkout the trusted preview controller
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: controller
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: controller/package.json
+
+      - name: Download the exact checked artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: client-web-dist
+          path: .pages-preview/dist
+          run-id: ${{ needs.identity.outputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Reverify pull-request identity before delivery
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PREVIEW_BRANCH: ${{ needs.identity.outputs.branch }}
+          PREVIEW_HEAD_SHA: ${{ needs.identity.outputs.head_sha }}
+          PULL_NUMBER: ${{ needs.identity.outputs.pull_number }}
+        with:
+          script: |
+            const expectedBranch = `preview/client-web/pr-${process.env.PULL_NUMBER}`
+            if (process.env.PREVIEW_BRANCH !== expectedBranch) {
+              core.setFailed(`Unexpected Pages preview branch: ${process.env.PREVIEW_BRANCH}`)
+              return
+            }
+            const { data: pull } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: Number(process.env.PULL_NUMBER),
+            })
+            if (
+              pull.state !== 'open' ||
+              pull.base.ref !== 'main' ||
+              pull.head.sha !== process.env.PREVIEW_HEAD_SHA ||
+              pull.head.repo?.full_name !== `${context.repo.owner}/${context.repo.repo}`
+            ) {
+              core.setFailed('Pull-request identity changed after artifact selection.')
+            }
+
+      - name: Register the pull-request deployment
+        id: github-deployment
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PREVIEW_HEAD_SHA: ${{ needs.identity.outputs.head_sha }}
+          PULL_NUMBER: ${{ needs.identity.outputs.pull_number }}
+        with:
+          script: |
+            const { data: deployment } = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: process.env.PREVIEW_HEAD_SHA,
+              environment: 'preview',
+              description: `Cloudflare Pages preview for PR #${process.env.PULL_NUMBER}`,
+              auto_merge: false,
+              required_contexts: [],
+              transient_environment: true,
+              production_environment: false,
+            })
+            core.setOutput('deployment_id', String(deployment.id))
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deployment.id,
+              state: 'in_progress',
+              log_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            })
+
+      - name: Deploy to the isolated Pages preview branch
+        id: pages
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
+          wranglerVersion: 4.114.0
+          workingDirectory: .pages-preview
+          command: >-
+            pages deploy dist
+            --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+            --branch=${{ needs.identity.outputs.branch }}
+            --commit-hash=${{ needs.identity.outputs.head_sha }}
+            --commit-dirty=false
+
+      - name: Smoke-test the stable preview URL
+        run: node controller/scripts/verify-pages-deployment.mjs
+        env:
+          CLOUDFLARE_PAGES_DEPLOYMENT_ID: ${{ steps.pages.outputs.pages-deployment-id }}
+          CLOUDFLARE_PAGES_DEPLOYMENT_URL: ${{ steps.pages.outputs.pages-deployment-alias-url }}
+
+      - name: Report the pull-request deployment
+        if: ${{ always() && steps.github-deployment.outputs.deployment_id != '' }}
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          DEPLOYMENT_ID: ${{ steps.github-deployment.outputs.deployment_id }}
+          JOB_STATUS: ${{ job.status }}
+          PREVIEW_URL: ${{ steps.pages.outputs.pages-deployment-alias-url }}
+        with:
+          script: |
+            const success = process.env.JOB_STATUS === 'success'
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: Number(process.env.DEPLOYMENT_ID),
+              state: success ? 'success' : 'failure',
+              description: success ? 'Pull-request preview is ready' : 'Pull-request preview failed',
+              log_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              ...(success && process.env.PREVIEW_URL
+                ? { environment_url: process.env.PREVIEW_URL }
+                : {}),
+            })
