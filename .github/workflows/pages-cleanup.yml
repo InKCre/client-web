@@ -6,38 +6,87 @@ on:
       - main
     types:
       - closed
+  workflow_dispatch:
+    inputs:
+      pull_number:
+        description: Closed pull request whose preview alias should be retired
+        required: true
+        type: number
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
-  group: pages-cleanup-client-web-${{ github.event.pull_request.number }}
+  group: pages-cleanup-client-web-${{ github.event.pull_request.number || inputs.pull_number }}
   cancel-in-progress: false
 
 jobs:
   cleanup:
-    name: Delete exact Pages preview
+    name: Retire exact Pages preview
     if: >-
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      vars.CLOUDFLARE_PAGES_PROJECT != ''
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.base.ref == 'main' &&
+      github.event.pull_request.base.repo.full_name == github.repository &&
+      github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
-    environment: preview
+    timeout-minutes: 10
+    environment:
+      name: preview
+      url: ${{ steps.tombstone.outputs.pages-deployment-alias-url }}
     steps:
+      - name: Resolve the closed pull request
+        id: identity
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          REQUESTED_PULL_NUMBER: ${{ github.event.pull_request.number || inputs.pull_number }}
+        with:
+          script: |
+            const pullNumber = Number(process.env.REQUESTED_PULL_NUMBER)
+            if (!Number.isInteger(pullNumber) || pullNumber < 1) {
+              core.setFailed('A positive pull-request number is required.')
+              return
+            }
+            const { data: pull } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pullNumber,
+            })
+            if (
+              pull.state !== 'closed' ||
+              pull.base.ref !== 'main' ||
+              pull.base.repo.full_name !== `${context.repo.owner}/${context.repo.repo}` ||
+              pull.head.repo?.full_name !== `${context.repo.owner}/${context.repo.repo}`
+            ) {
+              core.setFailed('Retirement only accepts a closed same-repository PR targeting main.')
+              return
+            }
+            core.setOutput('branch', `preview/client-web/pr-${pullNumber}`)
+
       - name: Checkout trusted cleanup controller
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: main
+          ref: ${{ github.workflow_sha }}
+          path: controller
           persist-credentials: false
 
       - name: Set up Node
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
-          node-version-file: package.json
+          node-version-file: controller/package.json
 
-      - name: Delete only the matching review branch deployments
-        run: node scripts/cleanup-pages-preview.mjs
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_PAGES_BRANCH: preview/client-web/pr-${{ github.event.pull_request.number }}
-          CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+      - name: Replace the stable preview alias with a closed-page tombstone
+        id: tombstone
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
+          wranglerVersion: 4.114.0
+          workingDirectory: controller/.github/pages-preview-closed
+          command: >-
+            pages deploy .
+            --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+            --branch=${{ steps.identity.outputs.branch }}
+            --commit-hash=${{ github.workflow_sha }}
+            --commit-dirty=false
