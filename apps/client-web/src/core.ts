@@ -9,16 +9,10 @@ import {
   configStore,
   localStorageAdapter,
   setMFImplementation,
-  registerCoreResolvers,
   TextResolver,
-  AudioResolver,
-  EpubResolver,
-  FileResolver,
   ImageResolver,
-  PdfResolver,
   VideoResolver,
   HtmlResolver,
-  ZipResolver,
 } from '@inkcre/core'
 import { createInstance } from '@module-federation/enhanced/runtime'
 import * as InKCreCore from '@inkcre/core'
@@ -32,8 +26,6 @@ import ContentText from '@/components/info-base/resolvers/ContentText.vue'
 import ContentImage from '@/components/info-base/resolvers/ContentImage.vue'
 import ContentVideo from '@/components/info-base/resolvers/ContentVideo.vue'
 import ContentHtml from '@/components/info-base/resolvers/ContentHtml.vue'
-import ContentAudio from '@/components/info-base/resolvers/ContentAudio.vue'
-import ContentFile from '@/components/info-base/resolvers/ContentFile.vue'
 
 // ============================================================================
 // Resolver Component Registration
@@ -45,15 +37,9 @@ import ContentFile from '@/components/info-base/resolvers/ContentFile.vue'
  */
 export function setupResolvers(): void {
   TextResolver.contentComp = ContentText
-  AudioResolver.contentComp = ContentAudio
-  EpubResolver.contentComp = ContentFile
-  FileResolver.contentComp = ContentFile
   ImageResolver.contentComp = ContentImage
-  PdfResolver.contentComp = ContentFile
   VideoResolver.contentComp = ContentVideo
   HtmlResolver.contentComp = ContentHtml
-  ZipResolver.contentComp = ContentFile
-  registerCoreResolvers()
 
   console.log('[Core] Resolver components registered')
 }

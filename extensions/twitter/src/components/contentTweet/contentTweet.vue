@@ -49,7 +49,7 @@ const isAttachmentFailed = (index: number) => {
 <template>
   <div class="content-tweet__header">
     <span class="content-tweet__icon">𝕏</span>
-    <span class="content-tweet__user">@{{ props.solvedContent.user_id ?? 'unknown' }}</span>
+    <span class="content-tweet__user">@{{ props.solvedContent.user_id }}</span>
   </div>
   <div class="content-tweet__text">{{ displayText }}</div>
   <div v-if="attachmentCount > 0" class="content-tweet__media">

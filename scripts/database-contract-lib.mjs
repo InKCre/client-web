@@ -98,38 +98,10 @@ function relationshipsType(relationships) {
   return ['[', entries.join(',\n'), '        ]'].join('\n')
 }
 
-function functionArgumentsType(name, function_) {
-  if (function_.request_media_type === 'application/octet-stream') return 'never'
-  if (function_.arguments.length === 0) return 'Record<never, never>'
-
-  const lines = function_.arguments.map((argument) => {
-    if (argument.name === null) {
-      throw new TypeError(`${name} unnamed argument requires an admitted raw transport`)
-    }
-    return `          ${property(argument.name)}: ${typeScriptType(argument.type)}`
-  })
-  return ['{', ...lines, '        }'].join('\n')
-}
-
-function functionsType(functions) {
-  const entries = Object.entries(functions)
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([name, function_]) => {
-      return [
-        `      ${property(name)}: {`,
-        `        Args: ${functionArgumentsType(name, function_)}`,
-        `        Returns: ${typeScriptType(function_.returns)}`,
-        '      }',
-      ].join('\n')
-    })
-  return entries.length === 0 ? 'Record<never, never>' : ['{', ...entries, '    }'].join('\n')
-}
-
 export function validateContractDocument(contract) {
   requireObject(contract, 'core contract')
   const protocol = requireObject(contract.protocol, 'core contract protocol')
   const relations = requireObject(protocol.relations, 'core contract relations')
-  const functions = requireObject(protocol.functions, 'core contract functions')
   const jwt = requireObject(contract.jwt, 'core contract JWT')
 
   if (contract.format !== 1 || protocol.format !== 1) {
@@ -143,42 +115,6 @@ export function validateContractDocument(contract) {
   }
   if (Object.keys(relations).length === 0) {
     throw new Error('core contract must publish at least one relation')
-  }
-  for (const [name, functionDocument] of Object.entries(functions)) {
-    const function_ = requireObject(functionDocument, `${name} function`)
-    if (!Array.isArray(function_.arguments)) {
-      throw new TypeError(`${name} function arguments must be an array`)
-    }
-    for (const argument of function_.arguments) {
-      const validatedArgument = requireObject(argument, `${name} function argument`)
-      if (validatedArgument.name !== null && typeof validatedArgument.name !== 'string') {
-        throw new TypeError(`${name} function argument name must be string or null`)
-      }
-      typeScriptType(validatedArgument.type)
-    }
-    typeScriptType(function_.returns)
-    if (typeof function_.returns_set !== 'boolean') {
-      throw new TypeError(`${name} function returns_set must be boolean`)
-    }
-    if (!['immutable', 'stable', 'volatile'].includes(function_.volatility)) {
-      throw new TypeError(`${name} function volatility is invalid`)
-    }
-    if (function_.request_media_type === 'application/octet-stream') {
-      const [argument] = function_.arguments
-      if (
-        function_.arguments.length !== 1 ||
-        argument.name !== null ||
-        argument.type?.format !== 'bytea'
-      ) {
-        throw new TypeError(`${name} raw binary request requires one unnamed bytea argument`)
-      }
-    }
-    if (
-      function_.response_media_type === 'application/octet-stream' &&
-      function_.returns?.format !== 'bytea'
-    ) {
-      throw new TypeError(`${name} raw binary response requires a bytea return`)
-    }
   }
   for (const field of ['algorithm', 'role', 'issuer', 'audience']) {
     if (typeof jwt[field] !== 'string' || jwt[field].length === 0) {
@@ -238,7 +174,6 @@ export function generateDatabaseTypes(contract) {
         '      }',
       ].join('\n')
     })
-  const functions = functionsType(validated.protocol.functions)
 
   return formatTypeScript(
     `${[
@@ -258,7 +193,7 @@ export function generateDatabaseTypes(contract) {
       relations.join('\n'),
       '    }',
       '    Views: Record<never, never>',
-      `    Functions: ${functions}`,
+      '    Functions: Record<never, never>',
       '  }',
       '}',
       '',

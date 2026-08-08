@@ -149,12 +149,8 @@ const loadData = async () => {
     // Transform blocks to nodes with relations
     allNodes.value = blocks.map((block) => {
       const blockRelations = blockRelationsMap.get(block.id) ?? []
-      const preview =
-        block.storage === null
-          ? block.content.length > 50
-            ? block.content.slice(0, 50) + '...'
-            : block.content
-          : 'Stored content — select to open'
+      // Use block.content as preview (truncated)
+      const preview = block.content.length > 50 ? block.content.slice(0, 50) + '...' : block.content
       return blockToNode(block, preview, blockRelations)
     })
 

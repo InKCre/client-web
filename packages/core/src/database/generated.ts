@@ -315,21 +315,6 @@ export type Database = {
         }
         Relationships: []
       }
-      storage_blobs: {
-        Row: {
-          data: string
-          id: string
-        }
-        Insert: {
-          data: string
-          id?: string
-        }
-        Update: {
-          data?: string
-          id?: string
-        }
-        Relationships: []
-      }
       storage_types: {
         Row: {
           config_schema: Json
@@ -379,18 +364,7 @@ export type Database = {
       }
     }
     Views: Record<never, never>
-    Functions: {
-      create_storage_blob: {
-        Args: never
-        Returns: string
-      }
-      read_storage_blob: {
-        Args: {
-          blob_id: string
-        }
-        Returns: string
-      }
-    }
+    Functions: Record<never, never>
   }
 }
 

@@ -11,7 +11,7 @@ export const peerJwtContract = {
 
 export const databaseRuntimeContract = {
   format: 1,
-  revision: 'peer-database-runtime-v2',
+  revision: 'peer-database-runtime-v1',
   protocol: {
     format: 1,
     schema: 'inkcre',

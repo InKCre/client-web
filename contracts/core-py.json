@@ -1,9 +1,9 @@
 {
   "format": 1,
   "repository": "InKCre/core-py",
-  "source_revision": "9c4e02444788982e3373ea8816dfc80edbce58df",
+  "source_revision": "0a477db051665e0bb5a3faa888c9d9415cc084f8",
   "image": "ghcr.io/inkcre/core-py@sha256:2cd11e50eaaeb1832d00d36e3821ac748b7e4b80f549c62085157de8e9044289",
-  "contract_revision": "peer-database-runtime-v2",
+  "contract_revision": "peer-database-runtime-v1",
   "migration_head": "d9f4e2a1b7c3",
   "runtime_images": {
     "pgvector": "pgvector/pgvector:pg17@sha256:d2ef61f42ef767baa5a1475393303cc235bcd92febd9d7014eddb48b41f3bad0",

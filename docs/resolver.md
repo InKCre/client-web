@@ -1,9 +1,5 @@
-# Resolver Notes
+# 解析器
 
-The durable client-web resolver architecture is owned by
-[Client-Web Info-Base Architecture](info-base/ARCHITECTURE.md#resolver-system)。
-
-Resolvers are exact, versioned interpreters of hydrated block content and direct relations；they
-are not merely display components。Unknown resolver、unsupported capability、supported-null and
-authored-empty are distinct outcomes。New code uses `refresh` and `materializeMissing` with the
-stable semantics recorded by that architecture document。
+- 解析器是用于解析不同类型的块内容，提供统一的接口以对块进行展示、修改等操作
+- 块通过其 `resolver` 字段指定解析器
+- 解析器可以通过插件载入
