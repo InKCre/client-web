@@ -4,6 +4,14 @@ on:
   pull_request:
     branches:
       - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  merge_group:
+    types:
+      - checks_requested
   push:
     branches:
       - main
@@ -14,13 +22,62 @@ permissions:
   packages: read
 
 concurrency:
-  group: client-checks-${{ github.ref }}
+  group: >-
+    client-checks-${{
+      github.event.pull_request.number ||
+      github.event.merge_group.head_sha ||
+      github.ref
+    }}
   cancel-in-progress: true
 
 jobs:
+  core-release:
+    name: Resolve stable core release
+    runs-on: ubuntu-latest
+    outputs:
+      contract_revision: ${{ steps.release.outputs.contract_revision }}
+      image: ${{ steps.release.outputs.image }}
+      schema_digest: ${{ steps.release.outputs.schema_digest }}
+      source_revision: ${{ steps.release.outputs.source_revision }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: package.json
+
+      - name: Authenticate to GHCR
+        uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7 # v4.5.1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve stable once to an immutable release
+        id: release
+        run: node scripts/resolve-core-release.mjs
+
+      - name: Record upstream release selection
+        env:
+          CONTRACT_REVISION: ${{ steps.release.outputs.contract_revision }}
+          CORE_IMAGE: ${{ steps.release.outputs.image }}
+          SCHEMA_DIGEST: ${{ steps.release.outputs.schema_digest }}
+          SOURCE_REVISION: ${{ steps.release.outputs.source_revision }}
+        run: |
+          {
+            echo '## Selected core service release'
+            echo
+            echo "- Image: \`$CORE_IMAGE\`"
+            echo "- Source: \`$SOURCE_REVISION\`"
+            echo "- Schema: \`$SCHEMA_DIGEST\`"
+            echo "- Runtime contract: \`$CONTRACT_REVISION\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   dependency-review:
-    name: Dependency security review
-    if: github.event_name == 'pull_request'
+    name: Dependency review
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -34,6 +91,7 @@ jobs:
 
   workspace:
     name: Workspace contract
+    needs: core-release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -59,6 +117,16 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Authenticate to GHCR
+        uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7 # v4.5.1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate types from the selected raw schema
+        run: pnpm contract:sync -- --image "${{ needs.core-release.outputs.image }}"
+
       - name: Verify static, typed, and package contracts
         run: pnpm check
 
@@ -72,6 +140,11 @@ jobs:
           path: apps/client-web/dist
           if-no-files-found: error
           retention-days: 7
+
+      - name: Reject a moved stable release
+        run: >-
+          node scripts/resolve-core-release.mjs
+          --expect "${{ needs.core-release.outputs.image }}"
 
       - name: Upload unit-test evidence on failure
         if: failure()
@@ -116,7 +189,8 @@ jobs:
         run: pnpm type-check:ts7
 
   peer-database:
-    name: Peer database browser E2E
+    name: client-web E2E
+    needs: core-release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -143,18 +217,22 @@ jobs:
       - name: Install the exact browser engine
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Authenticate to the pinned core runtime
+      - name: Authenticate to GHCR
         uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7 # v4.5.1
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Verify the pinned core image contract
-        run: node scripts/verify-core-image-contract.mjs
-
-      - name: Run the isolated browser/database chain
+      - name: Run the selected real core service and isolated browser/database chain
         run: pnpm test:e2e:web
+        env:
+          INKCRE_CORE_IMAGE: ${{ needs.core-release.outputs.image }}
+
+      - name: Reject a moved stable release
+        run: >-
+          node scripts/resolve-core-release.mjs
+          --expect "${{ needs.core-release.outputs.image }}"
 
       - name: Upload browser and database evidence on failure
         if: failure()
@@ -168,7 +246,7 @@ jobs:
           retention-days: 7
 
   browser-extension:
-    name: Browser extension contract
+    name: client-webext E2E
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -219,3 +297,36 @@ jobs:
           path: test-results/playwright
           if-no-files-found: ignore
           retention-days: 7
+
+  dependency-review-compatibility:
+    name: Dependency security review
+    needs: dependency-review
+    if: always() && (github.event_name == 'pull_request' || github.event_name == 'merge_group')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mirror the renamed required context
+        env:
+          RESULT: ${{ needs.dependency-review.result }}
+        run: test "$RESULT" = success
+
+  peer-database-compatibility:
+    name: Peer database browser E2E
+    needs: peer-database
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mirror the renamed required context
+        env:
+          RESULT: ${{ needs.peer-database.result }}
+        run: test "$RESULT" = success
+
+  browser-extension-compatibility:
+    name: Browser extension contract
+    needs: browser-extension
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mirror the renamed required context
+        env:
+          RESULT: ${{ needs.browser-extension.result }}
+        run: test "$RESULT" = success

@@ -16,37 +16,43 @@
 │                    Extensions                        │
 │  Module Federation remotes (e.g., twitter)          │
 ├─────────────────────────────────────────────────────┤
-│                    Backend                           │
-│  PostgreSQL (PostgREST) + core-py API               │
+│                 Peer Transports                      │
+│  PostgreSQL/PostgREST protocol + core-py API        │
 └─────────────────────────────────────────────────────┘
 ```
 
 ## Core Patterns
 
 - BusinessClass (`core/src/`) - Zod schema + TS class + static API
-- Dual API (`core/src/base`, `core/src/client`) - DBAPIClient (PostgREST) + CoreAPIClient (REST)
+- Peer access (`core/src/base`, `core/src/peer`) - DBAPIClient for shared database facts plus
+  PeerManager for exact capability delegation
 - Module Federation (`core/src/extension`) - Dynamic plugin loading
 - Registry (`core/src/info-base/`) - Pluggable Storage & Resolver
 - Config (`core/src/config`) - environment-neutral schema plus runtime-owned browser or extension
   storage
-- Peer runtime contract (`core/src/database/runtime-contract.ts`) - generated protocol and JWT
-  claim metadata without environment instances
+- Database types (`core/src/database/database.generated.ts`) - Supabase CLI output generated from
+  core-py's neutral PostgreSQL schema artifact, behind a stable local type adapter
+- Peer runtime contract (`core/src/database/runtime-contract.generated.json`) - upstream protocol
+  and JWT metadata projected through a small environment-neutral adapter
 
 ## Data Flow
 
-1. Read: Component → BusinessClass.list() → DBAPIClient → PostgREST → DB
-2. Write: Component → BusinessClass → CoreAPIClient → core-py → DB
+1. Protocol read/write: Component → BusinessClass → DBAPIClient → PostgREST → PostgreSQL
+2. Delegated command: Component → domain manager → PeerManager → advertised inbound → provider's
+   non-delegating local implementation
 3. Extension: Activate → Load remote → Register handlers → Features ready
-4. Content: Block → Resolver → Storage.fetch() → Render
+4. Content: Block.getHydratedContent() → exact Resolver → safe local handle/component → Render
 
 ## Package Responsibilities
 
 ### @inkcre/core
 
-- Domain models (Block, Relation, Source, Client, Extension)
-- API clients (DBAPIClient, CoreAPIClient)
+- Domain models (Block, Relation, Source, Peer, Extension)
+- Shared-database access through DBAPIClient and exact capability routing through PeerManager
 - Extension lifecycle & Module Federation
 - Storage & Resolver abstractions
+- Peer-local PostgreSQL binary C/R/U/D and bounded HTTP byte hydration
+- Exact `core.<kind>.v1` semantic resolver contracts and typed capability failures
 - Configuration management
 - Authentication store
 - ESM-only tsdown output with declarations and declaration maps
@@ -58,7 +64,7 @@
 - UI components by domain
 - Static Vite output
 - Browser-local bootstrap configuration and JWT signing
-- Environment-neutral static artifact; no InKCre environment origin or client identity is compiled
+- Environment-neutral static artifact; no InKCre environment origin or Peer identity is compiled
   in
 - No application Worker or runtime config endpoint
 
@@ -104,6 +110,10 @@
   - `local` invokes the host Docker CLI and publishes collision-safe loopback ports;
   - `ssh` sends a bounded Compose payload to one user-configured SSH alias, lets the remote engine
     allocate loopback ports, and exposes them through an instance-owned OpenSSH control tunnel.
+- A new client-owned runtime resolves core-py's production-admitted `stable` channel once to an
+  immutable digest. Compose copies that image's raw schema bundle into an isolated volume, restores
+  it into fresh pgvector PostgreSQL, lets the same real core service reconcile runtime roles and
+  development data, then starts core-py and PostgREST against that database.
 - An optional `external` development attachment consumes one absolute, ignored core-py runtime
   descriptor. It proves owner repository, database runtime instance, Compose project, Docker
   daemon, contract revision, migration head, source fingerprint, and live endpoints before reuse.
@@ -114,5 +124,11 @@
   preview artifacts remain byte-for-byte independent of any PostgREST/core-py instance.
 - PostgreSQL/PostgREST schema, migration, roles, seed, and reset semantics remain a
   `core-py`-owned capability boundary.
+- Pull-request checks provide early evidence; the same workflow handles GitHub merge-group commits
+  and re-resolves `stable` immediately before final admission. There is no core/client PR linkage or
+  checked source/migration equality rule.
+- `client-web` remains an equivalent protocol peer: it hydrates inline/storage-backed blocks,
+  performs admitted PostgreSQL binary C/R/U/D through PostgREST, and resolves semantic content
+  locally. It does not call core-py merely to avoid implementing a peer capability.
 - Stopping a worktree removes only its Portless routes and client-owned database resources. An
   external core-py runtime remains owned and reachable until core-py stops it.

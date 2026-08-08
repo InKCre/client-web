@@ -17,12 +17,38 @@ services:
       timeout: 3s
       retries: 30
 
-  init:
+  contract:
     image: ${INKCRE_CORE_IMAGE:?INKCRE_CORE_IMAGE is required}
-    command: ['db', 'init', '--profile', 'development']
+    user: '0:0'
+    command: ['sh', '-eu', '-c', 'cp -R /app/database-contract/. /database-contract/']
+    volumes:
+      - database-contract:/database-contract
+
+  restore:
+    image: pgvector/pgvector:pg17@sha256:d2ef61f42ef767baa5a1475393303cc235bcd92febd9d7014eddb48b41f3bad0
+    entrypoint: ['sh', '-eu', '-c']
+    command:
+      - >-
+        psql -v ON_ERROR_STOP=1 -h postgres -U postgres -d inkcre
+        < /database-contract/database-roles.sql
+        && psql -v ON_ERROR_STOP=1 -h postgres -U postgres -d inkcre
+        < /database-contract/database-schema.sql
     depends_on:
+      contract:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - database-contract:/database-contract:ro
+
+  init:
+    image: ${INKCRE_CORE_IMAGE:?INKCRE_CORE_IMAGE is required}
+    command: ['python', 'scripts/container.py', 'db', 'init', '--profile', 'development']
+    depends_on:
+      restore:
+        condition: service_completed_successfully
     environment:
       CORE_DATABASE_PASSWORD: ${CORE_DATABASE_PASSWORD:?CORE_DATABASE_PASSWORD is required}
       MIGRATION_DATABASE_URL: postgresql+psycopg://postgres:${POSTGRES_PASSWORD}@postgres:5432/inkcre
@@ -30,7 +56,7 @@ services:
 
   core:
     image: ${INKCRE_CORE_IMAGE:?INKCRE_CORE_IMAGE is required}
-    command: ['web']
+    command: ['python', 'scripts/container.py', 'web']
     depends_on:
       init:
         condition: service_completed_successfully
@@ -74,4 +100,5 @@ services:
       - '127.0.0.1:${POSTGREST_PORT:-0}:3000'
 
 volumes:
+  database-contract:
   postgres_data:

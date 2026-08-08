@@ -93,6 +93,8 @@ const rootScripts = [
   'check:package',
   'check:runtime',
   'check:workspace',
+  'contract:check',
+  'contract:sync',
   'doctor',
   'dev:all:ui',
   'dev:status',

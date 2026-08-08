@@ -85,6 +85,8 @@ if (command === 'ensure') {
     '--rm',
     '--no-deps',
     'init',
+    'python',
+    'scripts/container.py',
     'db',
     'reset-dev',
     '--confirm',

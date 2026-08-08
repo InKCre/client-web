@@ -7,7 +7,8 @@
     "seed-dev",
     "ready",
     "reset-dev",
-    "contract"
+    "contract",
+    "schema"
   ],
   "format": 1,
   "jwt": {
@@ -671,5 +672,5 @@
     "schema": "inkcre"
   },
   "revision": "peer-database-runtime-v1",
-  "source_revision": "0a477db051665e0bb5a3faa888c9d9415cc084f8"
+  "source_revision": "02a5d2c435208bac9035071434f1dde0b5ee4c78"
 }

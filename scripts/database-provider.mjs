@@ -301,6 +301,27 @@ function temporaryProviderEnvironment(provider) {
   return { directory, path }
 }
 
+export function runDatabaseDocker(provider, args, options = {}) {
+  if (provider.kind === 'external') {
+    throw new Error('external database runtime does not expose its Docker owner')
+  }
+  if (provider.kind === 'local') {
+    return execFileSync('docker', args, {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      stdio: options.stdio ?? ['ignore', 'pipe', 'pipe'],
+      timeout: options.timeout ?? 180_000,
+    }).trim()
+  }
+
+  const temporary = temporaryProviderEnvironment(provider)
+  try {
+    return remoteCompose(provider, temporary.path, ['__docker__', ...args], options).trim()
+  } finally {
+    rmSync(temporary.directory, { recursive: true, force: true })
+  }
+}
+
 export function diagnoseDatabaseProvider(provider) {
   if (provider.kind === 'external') {
     const descriptor = JSON.parse(readFileSync(provider.descriptor, 'utf8'))
@@ -308,7 +329,8 @@ export function diagnoseDatabaseProvider(provider) {
       descriptor.format !== 1 ||
       descriptor.owner_repository !== 'InKCre/core-py' ||
       !/^[a-f0-9]{16}$/.test(descriptor.identity) ||
-      descriptor.contract_revision !== 'peer-database-runtime-v1' ||
+      typeof descriptor.contract_revision !== 'string' ||
+      descriptor.contract_revision.length === 0 ||
       !descriptor.docker?.daemon_id
     ) {
       throw new Error('external database runtime descriptor is invalid')

@@ -17,6 +17,10 @@ if [ "${1:-}" = "__provider-check__" ]; then
   "$docker_bin" compose version --short
   exit 0
 fi
+if [ "${1:-}" = "__docker__" ]; then
+  shift
+  exec "$docker_bin" "$@"
+fi
 
 compose_file="$payload_dir/database.compose.yml"
 environment_file="$payload_dir/compose.env"

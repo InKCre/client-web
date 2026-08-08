@@ -14,6 +14,7 @@
     "db:ready": "node scripts/database-runtime.mjs ready",
     "db:reset": "node scripts/database-runtime.mjs reset --yes",
     "contract:sync": "node scripts/sync-database-contract.mjs",
+    "contract:check": "node scripts/sync-database-contract.mjs --check",
     "dev:all": "concurrently \"pnpm dev\" \"pnpm -r --filter './extensions/*' dev\"",
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
@@ -49,6 +50,7 @@
     "oxlint": "1.75.0",
     "oxlint-tsgolint": "7.0.2001",
     "portless": "0.12.0",
+    "supabase": "2.112.0",
     "typescript": "catalog:",
     "vitest": "4.1.10"
   },

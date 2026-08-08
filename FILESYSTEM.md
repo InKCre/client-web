@@ -15,6 +15,8 @@
 ├── apps/
 │   ├── client-web/       # Main web application
 │   └── client-webext/    # Browser extension
+├── contracts/
+│   └── core-release.json # Stable upstream channel plus digest-pinned supporting images
 ├── docs/
 │   ├── index.md          # Local documentation and SVC navigation
 │   ├── _shared/          # Read-only InKCre/docs Hub submodule
@@ -25,7 +27,7 @@
 │   └── ext-dev-utils/    # Extension dev utilities
 ├── runtime/
 │   └── database.compose.yml # Portable local/SSH database topology
-├── scripts/              # Doctor, contracts, providers, launchers, UI source overlay, and cleanup
+├── scripts/              # Release resolver, schema typegen, providers, launchers, and cleanup
 ├── tasks/                # Active agent-owned task packets
 ├── .oxfmtrc.json         # Repository Oxfmt contract
 ├── .oxlintrc.json        # Repository Oxlint contract
@@ -54,7 +56,7 @@ uses its isolated profile only when an explicit browser binary is configured.
 ├── base/           # DBAPIClient, base utilities
 ├── client/         # Client model & API
 ├── config/         # Configuration adapters & schema
-├── database/       # Generated environment-neutral peer protocol/JWT contract and relation types
+├── database/       # Supabase relation types plus stable database/runtime-contract adapters
 ├── extension/      # Extension lifecycle, Module Federation
 ├── info-base/      # Block, Relation, Storage, Resolvers
 ├── libs/           # Third-party integrations (AI)

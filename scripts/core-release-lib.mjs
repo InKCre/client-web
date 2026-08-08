@@ -1,0 +1,136 @@
+import { execFileSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
+import { readFile } from 'node:fs/promises'
+
+const stableImagePattern = /^ghcr\.io\/inkcre\/core-py:stable$/
+const digestPattern = /^ghcr\.io\/inkcre\/core-py@sha256:[0-9a-f]{64}$/
+const sourceRevisionPattern = /^[0-9a-f]{40}$/
+const sha256Pattern = /^[0-9a-f]{64}$/
+
+export function stableJson(value) {
+  return `${JSON.stringify(value, null, 2)}\n`
+}
+
+export async function readJson(path) {
+  return JSON.parse(await readFile(path, 'utf8'))
+}
+
+export function validateCoreReleaseConfig(config) {
+  if (
+    config?.format !== 1 ||
+    config.repository !== 'InKCre/core-py' ||
+    !stableImagePattern.test(config.stable_image)
+  ) {
+    throw new Error('core release config must select InKCre/core-py stable')
+  }
+  for (const name of ['pgvector', 'postgrest']) {
+    const image = config.runtime_images?.[name]
+    if (typeof image !== 'string' || !image.includes('@sha256:')) {
+      throw new Error(`${name} runtime image must be digest-pinned`)
+    }
+  }
+  return config
+}
+
+function validateArtifactEntry(entry, expectedPath, label) {
+  if (
+    !entry ||
+    entry.path !== expectedPath ||
+    !sha256Pattern.test(entry.sha256) ||
+    !Number.isSafeInteger(entry.size) ||
+    entry.size <= 0
+  ) {
+    throw new Error(`core ${label} artifact metadata is invalid`)
+  }
+}
+
+export function validateSchemaManifest(manifest) {
+  if (
+    manifest?.format !== 1 ||
+    typeof manifest.contract_revision !== 'string' ||
+    manifest.contract_revision.length === 0 ||
+    !sourceRevisionPattern.test(manifest.source_revision)
+  ) {
+    throw new Error('core schema manifest identity is invalid')
+  }
+  validateArtifactEntry(manifest.schema, '/app/database-contract/database-schema.sql', 'schema')
+  validateArtifactEntry(manifest.roles, '/app/database-contract/database-roles.sql', 'role')
+  validateArtifactEntry(
+    manifest.runtime_contract,
+    '/app/database-contract/runtime-contract.json',
+    'runtime contract'
+  )
+  return manifest
+}
+
+export function validateRuntimeContract(contract, manifest) {
+  if (
+    contract?.format !== 1 ||
+    contract.revision !== manifest.contract_revision ||
+    contract.source_revision !== manifest.source_revision ||
+    contract.protocol?.schema !== 'inkcre' ||
+    typeof contract.jwt?.algorithm !== 'string' ||
+    typeof contract.jwt?.role !== 'string'
+  ) {
+    throw new Error('core runtime contract does not match its schema manifest')
+  }
+  return contract
+}
+
+export function selectImmutableDigest(repoDigests) {
+  const canonicalDigests = [
+    ...new Set(repoDigests.filter((candidate) => digestPattern.test(candidate))),
+  ]
+  if (canonicalDigests.length !== 1) {
+    throw new Error('stable core image did not resolve to one canonical digest')
+  }
+  return canonicalDigests[0]
+}
+
+export function localDocker(args, options = {}) {
+  return execFileSync('docker', args, {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    timeout: options.timeout ?? 180_000,
+  }).trim()
+}
+
+export function resolveCoreRelease(runDocker, stableImage) {
+  if (!stableImagePattern.test(stableImage)) {
+    throw new Error(`unexpected core stable image: ${stableImage}`)
+  }
+  runDocker(['pull', stableImage], { timeout: 300_000 })
+  const repoDigests = JSON.parse(
+    runDocker(['inspect', '--format={{json .RepoDigests}}', stableImage])
+  )
+  const image = selectImmutableDigest(repoDigests)
+  return inspectCoreRelease(runDocker, image)
+}
+
+export function inspectCoreRelease(runDocker, image) {
+  if (!digestPattern.test(image)) {
+    throw new Error(`core release must be digest-pinned: ${image}`)
+  }
+  const manifest = validateSchemaManifest(
+    JSON.parse(
+      runDocker(['run', '--rm', image, 'python', 'scripts/container.py', 'db', 'schema', '--json'])
+    )
+  )
+  const runtimeContract = validateRuntimeContract(
+    JSON.parse(
+      runDocker(['run', '--rm', image, 'cat', '/app/database-contract/runtime-contract.json'])
+    ),
+    manifest
+  )
+  return { image, manifest, runtime_contract: runtimeContract }
+}
+
+export function sha256(content) {
+  return createHash('sha256').update(content).digest('hex')
+}
+
+export function verifyArtifact(content, metadata, label) {
+  if (content.length !== metadata.size || sha256(content) !== metadata.sha256) {
+    throw new Error(`core ${label} artifact does not match its manifest`)
+  }
+}
