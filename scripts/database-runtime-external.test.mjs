@@ -42,8 +42,8 @@ async function externalRuntime() {
       engine: '28.5.2',
       compose: '2.40.3',
     },
-    contract_revision: 'peer-database-runtime-v3',
-    migration_head: 'c0d1e2f3a4b5',
+    contract_revision: 'peer-database-runtime-v1',
+    migration_head: 'd9f4e2a1b7c3',
     source_revision: 'a'.repeat(40),
     source_fingerprint: 'b'.repeat(64),
     converging: false,
@@ -88,7 +88,7 @@ async function externalRuntime() {
   return { descriptor, runtime, directory }
 }
 
-test('external attachment preserves local and database runtime identities', async () => {
+test('external attachment preserves client and database instance identities', async () => {
   const { descriptor, runtime, directory } = await externalRuntime()
 
   const state = await runtimeState('fedcba9876543210', { create: true })

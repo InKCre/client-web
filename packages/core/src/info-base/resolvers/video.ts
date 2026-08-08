@@ -1,42 +1,32 @@
-import { ActualContentHandle, type ByteSolvedContent } from './actual-content'
-import { Resolver } from './base'
-import { type ProjectionOptions, UnsupportedResolverCapability } from './contracts'
+/**
+ * Core Video Resolver
+ *
+ * Handles video content from various sources.
+ * Apps must extend this class and provide contentComp Vue component.
+ */
 
-export interface VideoSolvedContent extends ByteSolvedContent {
-  container: string | null
-  video_codec: string | null
-  duration_ms: number | null
-  width: number | null
-  height: number | null
-  frame_rate: number | null
+import { Resolver } from './base'
+
+export interface VideoContent {
+  url: string
+  mimeType: string
+  thumbnailUrl?: string
 }
 
-export class VideoResolver extends Resolver<Uint8Array, VideoSolvedContent> {
-  static readonly type = 'core.video.v1'
-  private readonly actualContent = new ActualContentHandle()
+export type VideoRawContent = string | VideoContent
 
-  protected async _getSolvedContent(options: ProjectionOptions): Promise<VideoSolvedContent> {
-    const rawContent = await this.getRawContent(options)
-    return {
-      ...this.actualContent.replace(rawContent),
-      container: null,
-      video_codec: null,
-      duration_ms: null,
-      width: null,
-      height: null,
-      frame_rate: null,
-    }
+/**
+ * Abstract video resolver with logic implementation.
+ * Apps must extend and provide contentComp.
+ */
+export class VideoResolver extends Resolver<VideoRawContent> {
+  static readonly type = 'video'
+
+  static {
+    Resolver.register('video', this)
   }
 
-  async getText(_options: ProjectionOptions = {}): Promise<never> {
-    throw new UnsupportedResolverCapability(VideoResolver.type, 'text')
-  }
-
-  async getStrForEmbedding(_options: ProjectionOptions = {}): Promise<never> {
-    throw new UnsupportedResolverCapability(VideoResolver.type, 'embedding text')
-  }
-
-  async dispose(): Promise<void> {
-    this.actualContent.dispose()
+  protected async _getSolvedContent(): Promise<VideoRawContent> {
+    return this.getRawContent()
   }
 }

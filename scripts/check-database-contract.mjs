@@ -27,9 +27,6 @@ if (pin.contract_revision !== contract.revision) {
 if (contract.source_revision !== pin.source_revision) {
   errors.push('core contract snapshot was not emitted by the pinned source revision')
 }
-if (contract.migration_heads.length !== 1 || pin.migration_head !== contract.migration_heads[0]) {
-  errors.push('core pin and contract snapshot migration heads differ')
-}
 
 const generatedTypes = await readFile(`${repoRoot}/packages/core/src/database/generated.ts`, 'utf8')
 if (generatedTypes !== generateDatabaseTypes(contract)) {

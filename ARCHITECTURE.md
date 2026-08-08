@@ -16,16 +16,15 @@
 │                    Extensions                        │
 │  Module Federation remotes (e.g., twitter)          │
 ├─────────────────────────────────────────────────────┤
-│                 Peer Transports                      │
-│  PostgreSQL/PostgREST protocol + core-py API        │
+│                    Backend                           │
+│  PostgreSQL (PostgREST) + core-py API               │
 └─────────────────────────────────────────────────────┘
 ```
 
 ## Core Patterns
 
 - BusinessClass (`core/src/`) - Zod schema + TS class + static API
-- Peer access (`core/src/base`, `core/src/peer`) - DBAPIClient for shared database facts plus
-  PeerManager for exact capability delegation
+- Dual API (`core/src/base`, `core/src/client`) - DBAPIClient (PostgREST) + CoreAPIClient (REST)
 - Module Federation (`core/src/extension`) - Dynamic plugin loading
 - Registry (`core/src/info-base/`) - Pluggable Storage & Resolver
 - Config (`core/src/config`) - environment-neutral schema plus runtime-owned browser or extension
@@ -35,22 +34,19 @@
 
 ## Data Flow
 
-1. Protocol read/write: Component → BusinessClass → DBAPIClient → PostgREST → PostgreSQL
-2. Delegated command: Component → domain manager → PeerManager → advertised inbound → provider's
-   non-delegating local implementation
+1. Read: Component → BusinessClass.list() → DBAPIClient → PostgREST → DB
+2. Write: Component → BusinessClass → CoreAPIClient → core-py → DB
 3. Extension: Activate → Load remote → Register handlers → Features ready
-4. Content: Block.getHydratedContent() → exact Resolver → safe local handle/component → Render
+4. Content: Block → Resolver → Storage.fetch() → Render
 
 ## Package Responsibilities
 
 ### @inkcre/core
 
-- Domain models (Block, Relation, Source, Peer, Extension)
-- Shared-database access through DBAPIClient and exact capability routing through PeerManager
+- Domain models (Block, Relation, Source, Client, Extension)
+- API clients (DBAPIClient, CoreAPIClient)
 - Extension lifecycle & Module Federation
 - Storage & Resolver abstractions
-- Peer-local PostgreSQL binary C/R/U/D and bounded HTTP byte hydration
-- Exact `core.<kind>.v1` semantic resolver contracts and typed capability failures
 - Configuration management
 - Authentication store
 - ESM-only tsdown output with declarations and declaration maps
@@ -62,7 +58,7 @@
 - UI components by domain
 - Static Vite output
 - Browser-local bootstrap configuration and JWT signing
-- Environment-neutral static artifact; no InKCre environment origin or Peer identity is compiled
+- Environment-neutral static artifact; no InKCre environment origin or client identity is compiled
   in
 - No application Worker or runtime config endpoint
 
@@ -118,8 +114,5 @@
   preview artifacts remain byte-for-byte independent of any PostgREST/core-py instance.
 - PostgreSQL/PostgREST schema, migration, roles, seed, and reset semantics remain a
   `core-py`-owned capability boundary.
-- `client-web` remains an equivalent protocol peer: it hydrates inline/storage-backed blocks,
-  performs admitted PostgreSQL binary C/R/U/D through PostgREST, and resolves semantic content
-  locally. It does not call core-py merely to avoid implementing a peer capability.
 - Stopping a worktree removes only its Portless routes and client-owned database resources. An
   external core-py runtime remains owned and reachable until core-py stops it.

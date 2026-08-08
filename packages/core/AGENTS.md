@@ -6,14 +6,12 @@ Shared logic package for InKCre applications and extensions.
 
 - `auth` - Authentication store
 - `base` - DBAPIClient, APIError
+- `client` - Client model & API
 - `config` - Configuration adapters & schema
 - `database` - generated relation types and environment-neutral peer protocol/JWT contract
 - `extension` - Extension lifecycle, Module Federation
 - `info-base` - Block, Relation, Storage, Resolvers
-- `organization` - Organization capability facade
 - `obsrv` - Observability (Log)
-- `peer` - Peer Active Record, discovery, protocols, and exact capability delegation
-- `semantic-retrieval` - Semantic retrieval capability facade
 - `sink/graph` - Graph layouts & algorithms
 - `source` - Source, CollectJob, CollectAt
 - `utils` - Vue prop helpers
@@ -35,35 +33,18 @@ class Source extends ZodClass { static api = DBAPIClient }
 
 Make use of Vue reactivity thorughout-ly.
 
-### Info-Base Content Contract
-
-- `Block.content` is inline text when `storage === null`; otherwise it is an opaque pointer.
-- Consumers call `Block.getHydratedContent({ refresh })` and receive `string | Uint8Array`.
-  The non-enumerable cache belongs to that block instance and never replaces the persisted
-  pointer.
-- Storage handlers own pointer/byte mechanics only. `http` is bounded read-only bytes;
-  `postgresql_binary` provides peer-local byte C/R/U/D through PostgREST.
-- Resolver selection is exact. The nine shared `core.<kind>.v1` IDs are registered explicitly;
-  unknown ID, unsupported capability, supported-null, and authored-empty remain distinct.
-- `refresh` replaces a local snapshot; `materializeMissing` only permits an absent derivation.
-  Do not add `force` or `reload` aliases.
-- Object URLs and browser handles are resolver-private runtime state and must be revoked on
-  refresh, dispose, and cache eviction.
-
 ## Directory Structure
 
 ```
 src/
 ├── auth/           # Authentication
 ├── base/           # API clients
+├── client/         # Client model
 ├── config/         # Configuration
 ├── extension/      # Extensions
 ├── info-base/      # Block, Relation, Storage, Resolver
 ├── libs/           # Third-party (AI)
 ├── obsrv/          # Logging
-├── organization/   # Organization capability facade
-├── peer/           # Peer discovery and delegation
-├── semantic-retrieval/ # Semantic retrieval capability facade
 ├── sink/           # Output (graph layouts)
 ├── source/         # Data collection
 ├── utils/          # Prop helpers
@@ -88,5 +69,5 @@ repository root.
 - The package is ESM-only. Do not add a CommonJS export without a named consumer and an explicit
   contract change.
 - Shipped core runtime source and output must not contain an environment profile, service origin,
-  or Peer identity. `runtime-contract.ts` is generated from the peer contract and contains only
+  or client identity. `runtime-contract.ts` is generated from the peer contract and contains only
   protocol and JWT claim metadata; tests may use explicit non-production fixtures.

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { ContentCompProps } from '@inkcre/core'
-import type { ImageSolvedContent } from '@inkcre/core'
 
-const props = defineProps<ContentCompProps<ImageSolvedContent>>()
+// ImageResolver transforms Blob to Object URL string
+const props = defineProps<ContentCompProps<string>>()
 
 const imageError = ref(false)
 
@@ -16,7 +16,7 @@ const onError = () => {
   <div class="content-image">
     <img
       v-if="!imageError"
-      :src="props.solvedContent.objectUrl"
+      :src="props.solvedContent"
       alt="Block image"
       class="content-image__img"
       @error="onError"

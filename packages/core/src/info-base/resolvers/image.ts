@@ -1,38 +1,41 @@
-import { ActualContentHandle, type ByteSolvedContent } from './actual-content'
+/**
+ * Core Image Resolver
+ *
+ * Handles image content from various sources.
+ * Converts Blob to Object URL for display.
+ * Apps must extend this class and provide contentComp Vue component.
+ */
+
 import { Resolver } from './base'
-import { type ProjectionOptions, UnsupportedResolverCapability } from './contracts'
 
-export interface ImageSolvedContent extends ByteSolvedContent {
-  format: string | null
-  width: number | null
-  height: number | null
-  frame_count: number | null
-}
+/**
+ * Abstract image resolver with logic implementation.
+ * Expects raw content to be Blob, solved content to be Object URL.
+ * Apps must extend and provide contentComp.
+ */
+export class ImageResolver extends Resolver<Blob, string> {
+  static readonly type = 'image'
+  protected _objectUrl: string | null = null
 
-export class ImageResolver extends Resolver<Uint8Array, ImageSolvedContent> {
-  static readonly type = 'core.image.v1'
-  private readonly actualContent = new ActualContentHandle()
-
-  protected async _getSolvedContent(options: ProjectionOptions): Promise<ImageSolvedContent> {
-    const rawContent = await this.getRawContent(options)
-    return {
-      ...this.actualContent.replace(rawContent),
-      format: null,
-      width: null,
-      height: null,
-      frame_count: null,
-    }
+  static {
+    Resolver.register('image', this)
   }
 
-  async getText(_options: ProjectionOptions = {}): Promise<never> {
-    throw new UnsupportedResolverCapability(ImageResolver.type, 'text')
+  protected async _getSolvedContent(): Promise<string> {
+    const rawContent = await this.getRawContent()
+    this._objectUrl = URL.createObjectURL(rawContent)
+    return this._objectUrl
   }
 
-  async getStrForEmbedding(_options: ProjectionOptions = {}): Promise<never> {
-    throw new UnsupportedResolverCapability(ImageResolver.type, 'embedding text')
-  }
-
+  /**
+   * ObjectURL requires explicit revocation to free memory.
+   * Check `chrome://blob-internals/` to see active Blob URLs.
+   * Run `fetch(_objectUrl)` to confirm revocation.
+   */
   async dispose(): Promise<void> {
-    this.actualContent.dispose()
+    if (this._objectUrl) {
+      URL.revokeObjectURL(this._objectUrl)
+      this._objectUrl = null
+    }
   }
 }

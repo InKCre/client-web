@@ -1,9 +1,9 @@
 import { execFileSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import {
   chmodSync,
   copyFileSync,
   existsSync,
-  mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
@@ -209,7 +209,11 @@ export function runDatabaseCompose(state, composeEnvironmentPath, args, options 
 }
 
 function controlSocket(state) {
-  return `${repoRoot}/.runtime/ssh/${state.identity}`
+  const identity = createHash('sha256')
+    .update(`${repoRoot}/${state.identity}`)
+    .digest('hex')
+    .slice(0, 20)
+  return `/tmp/inkcre-ssh-${identity}`
 }
 
 function checkControlSocket(state) {
@@ -231,7 +235,6 @@ export function openDatabaseAccess(state) {
   if (checkControlSocket(state)) return state
 
   const socket = controlSocket(state)
-  mkdirSync(`${repoRoot}/.runtime/ssh`, { recursive: true, mode: 0o700 })
   if (existsSync(socket)) unlinkSync(socket)
 
   const forwards = Object.keys(state.local_ports).flatMap((name) => [

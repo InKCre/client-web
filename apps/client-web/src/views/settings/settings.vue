@@ -5,7 +5,6 @@ import { InkForm, InkInput, InkButton, InkDoubleCheck } from '@inkcre/ui-web'
 import { configStore, MetaConfigSchema, type MetaConfig } from '@inkcre/core'
 import { setLocale, SUPPORT_LOCALES, LOCALE_NAMES, type SupportLocale } from '@/locales'
 import i18n from '@/locales'
-import PeerList from '@/components/peer/peerList/peerList.vue'
 
 const { t } = useI18n()
 
@@ -35,7 +34,7 @@ const onSave = async () => {
     const validated = MetaConfigSchema.parse(metaFormConfig)
     Object.assign(configStore.metaConfig, validated)
     await configStore.saveMeta()
-    await configStore.loadPeerConfig()
+    await configStore.loadClientConfig()
     alert(t('settings.saveSuccess'))
   } catch (error) {
     console.error('Failed to save config:', error)
@@ -56,7 +55,7 @@ const onExport = () => {
     containsCredential: false,
     metaConfig: {
       INKCRE_PGREST_URL: configStore.metaConfig.INKCRE_PGREST_URL,
-      INKCRE_PEER_ID: configStore.metaConfig.INKCRE_PEER_ID,
+      INKCRE_CLIENT_ID: configStore.metaConfig.INKCRE_CLIENT_ID,
     },
   }
   const configJson = JSON.stringify(portableConfig, null, 2)
@@ -92,7 +91,7 @@ const onFileSelected = async (event: Event) => {
       })
       Object.assign(configStore.metaConfig, validated)
       await configStore.saveMeta()
-      await configStore.loadPeerConfig()
+      await configStore.loadClientConfig()
       Object.assign(metaFormConfig, configStore.metaConfig)
       alert(t('settings.saveSuccess'))
     } catch (error) {
@@ -135,7 +134,7 @@ const onFileSelected = async (event: Event) => {
       </label>
 
       <InkInput
-        v-model="metaFormConfig.INKCRE_PEER_ID"
+        v-model="metaFormConfig.INKCRE_CLIENT_ID"
         :label="t('settings.clientId')"
         placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
       />
@@ -168,8 +167,6 @@ const onFileSelected = async (event: Event) => {
       <InkButton :text="t('settings.importConfig')" @click="onImport" />
     </div>
     <p class="settings-view__export-note">{{ t('settings.exportExcludesSecret') }}</p>
-
-    <PeerList />
 
     <!-- Hidden file input for import -->
     <input

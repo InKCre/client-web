@@ -4,11 +4,11 @@ import { useAsyncState } from '@vueuse/core'
 import extensionCard from '@/components/extension/extensionCard/extensionCard.vue'
 import installExtension from '@/components/extension/installExtension/installExtension.vue'
 import { InkLoading, InkDropdown } from '@inkcre/ui-web'
-import { Peer } from '@inkcre/core'
+import { Client } from '@inkcre/core'
 import { Extension, configStore } from '@inkcre/core'
 
 // --- data ---
-const selectedPeerId = ref<string>(configStore.metaConfig.INKCRE_PEER_ID)
+const selectedClientId = ref<string>(configStore.metaConfig.INKCRE_CLIENT_ID)
 
 const {
   state: extensions,
@@ -35,8 +35,8 @@ const updExtension = (updatedExtension: Extension) => {
     <div class="extensions-view__list">
       <div class="extensions-view__header">
         <InkDropdown
-          v-model="selectedPeerId"
-          :refresher="Peer.listAsOptions"
+          v-model="selectedClientId"
+          :refresher="Client.listAsOptions"
           :label="'Client ID'"
           :placeholder="'Select a client'"
         />
@@ -50,7 +50,7 @@ const updExtension = (updatedExtension: Extension) => {
         v-else
         :key="extension.id"
         :extension="extension"
-        :peer-id="selectedPeerId"
+        :client-id="selectedClientId"
         @toggle="updExtension"
         @edit-config="updExtension"
       />

@@ -1,8 +1,8 @@
 /**
  * Info-Base Storage System
  *
- * Storages turn an opaque block pointer into bytes. Semantic interpretation belongs
- * to the block resolver rather than a storage implementation.
+ * Storages provide a unified interface to retrieve "real" content from block.content.
+ * For example, HttpImageStorage fetches image bytes from a URL stored in block.content.
  *
  * This module defines the Storage class with DB integration and registry pattern.
  */
@@ -65,7 +65,7 @@ export class StorageType extends Z.class({
 /**
  * Storage class - provides registry pattern, interface, and DB persistence.
  *
- * Subclasses implement _getRawContent to provide mechanics-specific byte retrieval.
+ * Subclasses implement _getRawContent to provide type-specific content retrieval.
  *
  * @template RawContentT - The type of content this storage returns
  */
@@ -142,6 +142,21 @@ export class Storage<RawContentT = unknown> {
     })
   }
 
+  /**
+   * Retrieve raw content for a block using its storage configuration.
+   * If block has no storage, returns block.content as passthrough.
+   *
+   * @param block - The block to retrieve content for
+   * @returns The raw content (type depends on storage handler)
+   */
+  static async fetchRawContent(block: IStorageBlock): Promise<unknown> {
+    if (block.storage === null || block.storage === undefined) {
+      return block.content
+    }
+    const storage = await Storage.get(block.storage)
+    return storage.getRawContent(block)
+  }
+
   // ============================================================================
   // Constructor
   // ============================================================================
@@ -176,22 +191,12 @@ export class Storage<RawContentT = unknown> {
   /**
    * Internal method to retrieve raw content.
    * Subclasses override this to provide type-specific content retrieval.
-   * Base instances are catalog projections and cannot hydrate block content.
+   * Base implementation returns block.content as passthrough.
    *
    * @param block - The block to retrieve content for
    * @returns The raw content
    */
   protected async _getRawContent(block: IStorageBlock): Promise<RawContentT> {
-    throw new Error(
-      `Storage type ${this.type} does not implement byte hydration for block ${block.id}.`
-    )
+    return block.content as RawContentT
   }
-}
-
-export abstract class WritableStorage<RawContentT> extends Storage<RawContentT> {
-  abstract createRawContent(content: RawContentT): Promise<string>
-
-  abstract updateRawContent(blockContent: string, content: RawContentT): Promise<boolean>
-
-  abstract deleteRawContent(blockContent: string): Promise<boolean>
 }

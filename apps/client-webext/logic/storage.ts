@@ -17,7 +17,7 @@ const metaAdapter = createWebextAdapter({
 
 export async function initializeExtensionConfig(): Promise<void> {
   await configStore.initializeMeta(metaAdapter)
-  await configStore.loadPeerConfig()
+  await configStore.loadClientConfig()
 }
 
 // Re-export the schema-owned types while keeping persistence extension-local.

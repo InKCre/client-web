@@ -35,12 +35,12 @@ export const AIConfigSchema = z.object({
  * Contains URLs and secrets needed to fetch and initialize app config
  */
 const UnconfiguredUrlSchema = z.union([z.literal(''), z.url()])
-const UnconfiguredPeerIdSchema = z.union([z.literal(''), z.uuid()])
+const UnconfiguredClientIdSchema = z.union([z.literal(''), z.uuid()])
 
 export const MetaConfigSchema = z.object({
   INKCRE_PGREST_URL: UnconfiguredUrlSchema.default(''),
   INKCRE_JWT_SECRET: z.string().default(''),
-  INKCRE_PEER_ID: UnconfiguredPeerIdSchema.default(''),
+  INKCRE_CLIENT_ID: UnconfiguredClientIdSchema.default(''),
 })
 
 export type MetaConfig = z.infer<typeof MetaConfigSchema>
@@ -49,13 +49,12 @@ export type MetaConfig = z.infer<typeof MetaConfigSchema>
  * App configuration schema (runtime)
  * Contains extension registry URL, AI settings, and runtime app configuration
  */
-export const PeerConfigSchema = z.object({
+export const ClientConfigSchema = z.object({
   extension_registry_url: z.url().default(''),
-  peer_http_timeout_ms: z.number().int().positive().default(30_000),
   ai: AIConfigSchema.default(() => AIConfigSchema.parse({})),
 })
 
 /**
  * Config type
  */
-export type PeerConfig = z.infer<typeof PeerConfigSchema>
+export type ClientConfig = z.infer<typeof ClientConfigSchema>

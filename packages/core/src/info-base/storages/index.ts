@@ -1,7 +1,6 @@
 // Base storage classes and types
 export {
   Storage,
-  WritableStorage,
   StorageType,
   type StorageTypeRef,
   StorageTypeRefZ,
@@ -11,6 +10,16 @@ export {
 } from './base'
 
 // HTTP storage implementations
-export { HttpStorage, StorageContentTooLargeError, type HttpStorageConfig } from './http'
-
-export { PostgreSQLBinaryStorage, type PostgreSQLBlobPointer } from './postgresql'
+export {
+  HttpStorage,
+  HttpImageStorage,
+  HttpVideoStorage,
+  HttpTextStorage,
+  HttpHtmlStorage,
+  HttpJsonStorage,
+  type HttpStorageConfig,
+  type VideoContent,
+  type TextContent,
+  type HtmlContent,
+  type JsonContent,
+} from './http'
