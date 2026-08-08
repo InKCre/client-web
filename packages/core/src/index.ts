@@ -22,7 +22,6 @@ export {
   type ExtensionRuntimeState,
   // Extension model
   Extension,
-  EXTENSION_MANAGEMENT_CAPABILITY,
   InstallExtensionForm,
   type ExtensionRef,
   // Module Federation
@@ -36,42 +35,14 @@ export {
   makeExtensionProp,
 } from './extension'
 
-// Peer discovery and delegation
+// Client
 export {
-  Peer,
-  PeerManager,
-  PeerHTTPOutbound,
-  CapabilityDelegationUnavailable,
-  PeerOutcomeUnknown,
-  PeerProtocolError,
-  PeerRequestNotExecuted,
-  PEER_EXECUTION_HEADER,
-  PEER_HTTP_PROTOCOL,
-  type CapabilityID,
-  type JsonValue,
-  type PeerProtocolRequest,
-  type PeerProtocolResponse,
-  type PeerRef,
-  makePeerProp,
-  makePeerRefProp,
-} from './peer'
-
-// Peer-delivered business capabilities
-export {
-  SemanticRetrievalManager,
-  SemanticRetrievalDelegationError,
-  SemanticRetrievalRequestSchema,
-  SemanticRetrievalResultSchema,
-  VectorRetrievalOptionsSchema,
-  SEMANTIC_RETRIEVAL_CAPABILITY,
-  type SemanticRetrievalRequest,
-  type SemanticRetrievalResult,
-} from './semantic-retrieval'
-export {
-  OrganizationManager,
-  OrganizationDelegationError,
-  RUMINATION_CAPABILITY,
-} from './organization'
+  Client,
+  CreateClientForm,
+  type ClientRef,
+  makeClientProp,
+  makeClientRefProp,
+} from './client'
 
 // Source
 export {
@@ -161,14 +132,14 @@ export * from './sink/graph'
 // Configuration
 export {
   configStore,
-  PeerConfigSchema,
+  ClientConfigSchema,
   MetaConfigSchema,
   AIConfigSchema,
   LLMProviderConfigSchema,
   localStorageAdapter,
   createWebextAdapter,
   CONFIG_STORAGE_KEY,
-  type PeerConfig,
+  type ClientConfig,
   type MetaConfig,
   type ProviderType,
   type LLMProviderConfig,

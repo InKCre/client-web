@@ -13,12 +13,11 @@
   "jwt": {
     "algorithm": "HS256",
     "audience": "inkcre-api",
-    "issuer": "inkcre-peer",
+    "issuer": "inkcre-client",
     "maximum_lifetime_seconds": 86400,
     "required_claims": ["role", "iss", "aud", "iat", "exp"],
     "role": "authenticated"
   },
-  "migration_heads": ["c0d1e2f3a4b5"],
   "profiles": ["runtime", "development"],
   "protocol": {
     "format": 1,
@@ -59,322 +58,11 @@
         },
         "returns_set": false,
         "volatility": "stable"
-      },
-      "renew_peer_lease": {
-        "arguments": [
-          {
-            "name": "peer",
-            "type": {
-              "format": "uuid",
-              "kind": "string"
-            }
-          },
-          {
-            "name": "ttl_seconds",
-            "type": {
-              "format": "integer",
-              "kind": "number"
-            }
-          }
-        ],
-        "returns": {
-          "database_type": "timestamp with time zone",
-          "format": "date-time",
-          "kind": "string"
-        },
-        "returns_set": false,
-        "volatility": "volatile"
       }
     },
     "relations": {
-      "agents": {
-        "columns": {
-          "created_at": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "format": "date-time",
-              "kind": "string"
-            }
-          },
-          "id": {
-            "generated": true,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "kind": "number"
-            }
-          },
-          "max_model_calls_per_turn": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "number"
-            }
-          },
-          "model": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "number"
-            }
-          },
-          "name": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "string"
-            }
-          },
-          "system_prompt": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "string"
-            }
-          },
-          "tool_choice": {
-            "generated": false,
-            "has_default": false,
-            "nullable": true,
-            "type": {
-              "kind": "json"
-            }
-          },
-          "tools": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "items": {
-                "kind": "string"
-              },
-              "kind": "array"
-            }
-          },
-          "updated_at": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "format": "date-time",
-              "kind": "string"
-            }
-          }
-        },
-        "relationships": [
-          {
-            "columns": ["model"],
-            "foreign_key_name": "agents_model_fkey",
-            "one_to_one": false,
-            "referenced_columns": ["id"],
-            "referenced_relation": "ai_models"
-          }
-        ]
-      },
-      "ai_dialects": {
-        "columns": {
-          "config_schema": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "kind": "json"
-            }
-          },
-          "description": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "string"
-            }
-          },
-          "id": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "string"
-            }
-          }
-        },
-        "relationships": []
-      },
-      "ai_models": {
-        "columns": {
-          "capabilities": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "json"
-            }
-          },
-          "created_at": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "format": "date-time",
-              "kind": "string"
-            }
-          },
-          "enabled": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "kind": "boolean"
-            }
-          },
-          "id": {
-            "generated": true,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "kind": "number"
-            }
-          },
-          "name": {
-            "generated": false,
-            "has_default": false,
-            "nullable": true,
-            "type": {
-              "kind": "string"
-            }
-          },
-          "native_model_id": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "string"
-            }
-          },
-          "provider": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "number"
-            }
-          },
-          "updated_at": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "format": "date-time",
-              "kind": "string"
-            }
-          }
-        },
-        "relationships": [
-          {
-            "columns": ["provider"],
-            "foreign_key_name": "ai_models_provider_fkey",
-            "one_to_one": false,
-            "referenced_columns": ["id"],
-            "referenced_relation": "ai_providers"
-          }
-        ]
-      },
-      "ai_providers": {
-        "columns": {
-          "config": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "kind": "json"
-            }
-          },
-          "created_at": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "format": "date-time",
-              "kind": "string"
-            }
-          },
-          "dialect": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "string"
-            }
-          },
-          "enabled": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "kind": "boolean"
-            }
-          },
-          "id": {
-            "generated": true,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "kind": "number"
-            }
-          },
-          "name": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "string"
-            }
-          },
-          "updated_at": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "format": "date-time",
-              "kind": "string"
-            }
-          }
-        },
-        "relationships": [
-          {
-            "columns": ["dialect"],
-            "foreign_key_name": "ai_providers_dialect_fkey",
-            "one_to_one": false,
-            "referenced_columns": ["id"],
-            "referenced_relation": "ai_dialects"
-          }
-        ]
-      },
       "block_embeddings": {
         "columns": {
-          "block": {
-            "generated": true,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "kind": "number"
-            }
-          },
-          "created_at": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "format": "date-time",
-              "kind": "string"
-            }
-          },
           "embedding": {
             "generated": false,
             "has_default": false,
@@ -386,7 +74,7 @@
               "kind": "array"
             }
           },
-          "profile": {
+          "id": {
             "generated": true,
             "has_default": true,
             "nullable": false,
@@ -396,8 +84,8 @@
           },
           "updated_at": {
             "generated": false,
-            "has_default": true,
-            "nullable": false,
+            "has_default": false,
+            "nullable": true,
             "type": {
               "format": "date-time",
               "kind": "string"
@@ -406,18 +94,11 @@
         },
         "relationships": [
           {
-            "columns": ["block"],
-            "foreign_key_name": "block_embeddings_block_fkey",
+            "columns": ["id"],
+            "foreign_key_name": "block_embeddings_id_fkey",
             "one_to_one": false,
             "referenced_columns": ["id"],
             "referenced_relation": "blocks"
-          },
-          {
-            "columns": ["profile"],
-            "foreign_key_name": "block_embeddings_profile_fkey",
-            "one_to_one": false,
-            "referenced_columns": ["id"],
-            "referenced_relation": "embedding_profiles"
           }
         ]
       },
@@ -484,115 +165,71 @@
           }
         ]
       },
-      "configs": {
+      "clients": {
         "columns": {
-          "created_at": {
+          "config": {
             "generated": false,
             "has_default": true,
-            "nullable": false,
-            "type": {
-              "format": "date-time",
-              "kind": "string"
-            }
-          },
-          "key": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "string"
-            }
-          },
-          "schema": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "string"
-            }
-          },
-          "updated_at": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "format": "date-time",
-              "kind": "string"
-            }
-          },
-          "value": {
-            "generated": false,
-            "has_default": false,
             "nullable": false,
             "type": {
               "kind": "json"
             }
-          }
-        },
-        "relationships": []
-      },
-      "embedding_profiles": {
-        "columns": {
-          "ai_model": {
+          },
+          "config_schema": {
             "generated": false,
-            "has_default": false,
+            "has_default": true,
             "nullable": false,
             "type": {
-              "kind": "number"
+              "kind": "json"
             }
           },
           "created_at": {
             "generated": false,
             "has_default": true,
-            "nullable": false,
+            "nullable": true,
             "type": {
               "format": "date-time",
               "kind": "string"
             }
           },
-          "dimensions": {
+          "id": {
+            "generated": false,
+            "has_default": true,
+            "nullable": false,
+            "type": {
+              "format": "uuid",
+              "kind": "string"
+            }
+          },
+          "labels": {
+            "generated": false,
+            "has_default": true,
+            "nullable": true,
+            "type": {
+              "items": {
+                "kind": "string"
+              },
+              "kind": "array"
+            }
+          },
+          "name": {
             "generated": false,
             "has_default": false,
             "nullable": false,
             "type": {
-              "kind": "number"
+              "kind": "string"
             }
           },
-          "id": {
-            "generated": true,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "kind": "number"
-            }
-          },
-          "name": {
+          "rest_api_url": {
             "generated": false,
             "has_default": false,
             "nullable": true,
             "type": {
               "kind": "string"
             }
-          },
-          "updated_at": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "format": "date-time",
-              "kind": "string"
-            }
           }
         },
-        "relationships": [
-          {
-            "columns": ["ai_model"],
-            "foreign_key_name": "embedding_profiles_ai_model_fkey",
-            "one_to_one": false,
-            "referenced_columns": ["id"],
-            "referenced_relation": "ai_models"
-          }
-        ]
+        "relationships": []
       },
       "extensions": {
         "columns": {
@@ -721,101 +358,8 @@
         },
         "relationships": []
       },
-      "peers": {
-        "columns": {
-          "capabilities": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "kind": "json"
-            }
-          },
-          "config": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "kind": "json"
-            }
-          },
-          "config_schema": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "kind": "json"
-            }
-          },
-          "created_at": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "format": "date-time",
-              "kind": "string"
-            }
-          },
-          "id": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "format": "uuid",
-              "kind": "string"
-            }
-          },
-          "labels": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "items": {
-                "kind": "string"
-              },
-              "kind": "array"
-            }
-          },
-          "lease_expires_at": {
-            "generated": false,
-            "has_default": false,
-            "nullable": true,
-            "type": {
-              "format": "date-time",
-              "kind": "string"
-            }
-          },
-          "name": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "string"
-            }
-          },
-          "updated_at": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "format": "date-time",
-              "kind": "string"
-            }
-          }
-        },
-        "relationships": []
-      },
       "relation_embeddings": {
         "columns": {
-          "created_at": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "format": "date-time",
-              "kind": "string"
-            }
-          },
           "embedding": {
             "generated": false,
             "has_default": false,
@@ -827,15 +371,7 @@
               "kind": "array"
             }
           },
-          "profile": {
-            "generated": true,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "kind": "number"
-            }
-          },
-          "relation": {
+          "id": {
             "generated": true,
             "has_default": true,
             "nullable": false,
@@ -845,8 +381,8 @@
           },
           "updated_at": {
             "generated": false,
-            "has_default": true,
-            "nullable": false,
+            "has_default": false,
+            "nullable": true,
             "type": {
               "format": "date-time",
               "kind": "string"
@@ -855,15 +391,8 @@
         },
         "relationships": [
           {
-            "columns": ["profile"],
-            "foreign_key_name": "relation_embeddings_profile_fkey",
-            "one_to_one": false,
-            "referenced_columns": ["id"],
-            "referenced_relation": "embedding_profiles"
-          },
-          {
-            "columns": ["relation"],
-            "foreign_key_name": "relation_embeddings_relation_fkey",
+            "columns": ["id"],
+            "foreign_key_name": "relation_embeddings_id_fkey",
             "one_to_one": false,
             "referenced_columns": ["id"],
             "referenced_relation": "relations"
@@ -1202,6 +731,6 @@
     },
     "schema": "inkcre"
   },
-  "revision": "peer-database-runtime-v3",
-  "source_revision": "f1b211661cbedf3600584ec9d27cbdf2628322f1"
+  "revision": "peer-database-runtime-v2",
+  "source_revision": "9c4e02444788982e3373ea8816dfc80edbce58df"
 }

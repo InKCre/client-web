@@ -138,14 +138,6 @@ export function validateContractDocument(contract) {
   if (typeof contract.revision !== 'string' || contract.revision.length === 0) {
     throw new Error('core contract revision must be a non-empty string')
   }
-  if (
-    !Array.isArray(contract.migration_heads) ||
-    contract.migration_heads.length !== 1 ||
-    typeof contract.migration_heads[0] !== 'string' ||
-    contract.migration_heads[0].length === 0
-  ) {
-    throw new Error('core contract must publish exactly one migration head')
-  }
   if (protocol.schema !== 'inkcre') {
     throw new Error(`expected protocol schema "inkcre", got ${String(protocol.schema)}`)
   }

@@ -8,5 +8,4 @@ export interface BlockDetailsPanelProps {
 
 export const blockDetailsPanelEmits = {
   close: () => true,
-  ruminated: () => true,
 } as const

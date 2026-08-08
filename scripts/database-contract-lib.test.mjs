@@ -9,12 +9,11 @@ import {
 const ownerContract = {
   format: 1,
   revision: 'test-runtime-v1',
-  migration_heads: ['f0e1d2c3b4a5'],
   source_revision: 'a'.repeat(40),
   commands: ['ready'],
   profiles: ['runtime', 'development'],
   environment: 'production',
-  peer: {
+  client: {
     id: '00000000-0000-4000-8000-000000000001',
   },
   postgrest: {
@@ -23,7 +22,7 @@ const ownerContract = {
   jwt: {
     algorithm: 'HS256',
     role: 'authenticated',
-    issuer: 'inkcre-peer',
+    issuer: 'inkcre-client',
     audience: 'inkcre-api',
     required_claims: ['role', 'iss', 'aud', 'iat', 'exp'],
     maximum_lifetime_seconds: 86400,

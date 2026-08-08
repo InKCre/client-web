@@ -123,13 +123,7 @@
       "updated": "更新时间",
       "storage": "存储",
       "content": "内容",
-      "noContent": "暂无内容",
-      "ruminate": "反刍",
-      "rumination": {
-        "success": "已重新理解这条信息，并刷新信息图。",
-        "error": "反刍失败，没有得到可确认的图变更。",
-        "outcome-unknown": "提供方可能已经完成请求。再次执行前，请先刷新并检查信息图。"
-      }
+      "noContent": "暂无内容"
     },
     "graph": {
       "empty": "没有找到块",
