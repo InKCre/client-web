@@ -250,8 +250,8 @@ importers:
   apps/client-webext:
     dependencies:
       '@ai-sdk/anthropic':
-        specifier: ^2.0.38
-        version: 2.0.89(zod@4.4.3)
+        specifier: ^4.0.10
+        version: 4.0.10(zod@4.4.3)
       '@ai-sdk/google':
         specifier: ^2.0.24
         version: 2.0.84(zod@4.4.3)
@@ -475,9 +475,9 @@ packages:
   '@1natsu/wait-element@4.2.0':
     resolution: {integrity: sha512-Om0Q+WE9mNrpY4AwMTvkFiYHv8VM7TML3PvOqXy+w6kAjLjKhGYHYX+305+a6J8RVpds9s7IF2Z5aOPYwULFNw==}
 
-  '@ai-sdk/anthropic@2.0.89':
-    resolution: {integrity: sha512-N1mNjuYRM3vmP5/o4Ir1upDBdoSk+qVEIEYZ2Zl02i1rVumEjPb10bODygDjkNXd8SOtVcK5vgDMg4VrODinSA==}
-    engines: {node: '>=18'}
+  '@ai-sdk/anthropic@4.0.10':
+    resolution: {integrity: sha512-L9GlJyL8stPyv5QTRONnVoRVw82b6iBuX4LTiRJMM++I2RfDe+yrBsPa6gz6Msll9GZ7JsX0MRNUP4G1afjDTw==}
+    engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
@@ -511,9 +511,19 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
+  '@ai-sdk/provider-utils@5.0.6':
+    resolution: {integrity: sha512-i4mVayGtC+HrRmtfPFOxvKKQgFU+1dwTTsh4MY0jY1MaGuppOwDFrNYrJ3dDXWMkO3o6FDVAKY8ZDsy7hLsO9Q==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
   '@ai-sdk/provider@2.0.3':
     resolution: {integrity: sha512-h88OPkavHTiN9tMn2l5awAznGB0lXzjcLhgR1/rvjB2zlLprsNxbM2tt6OJsHUxduLC3klq0/eqaSf6fX5XVww==}
     engines: {node: '>=18'}
+
+  '@ai-sdk/provider@4.0.2':
+    resolution: {integrity: sha512-pfPoy9J1B1xV7cqJ8MYHOsDYrMv5tR3+EMNfI249OhkD2uRakvav3Fo7XpD2luuN/YNCBY7KfEQc7vEV7KEtyw==}
+    engines: {node: '>=22'}
 
   '@ai-sdk/vue@2.0.219':
     resolution: {integrity: sha512-HdF9cRu5Fppl08e8deonDLVoIs8hjOB/y+76LqvIacB4rRFzx1s3BctJ6+P7wqDeJLIGK7kWRIfDdE08qxXJNg==}
@@ -2783,6 +2793,9 @@ packages:
 
   '@webext-core/match-patterns@1.1.0':
     resolution: {integrity: sha512-vebVVbcOyva4jyvljIzRJwjFi/OKMLr96LIIxiPeXfA38gE4Z3+H6Y9DwRmn7pWErJGNNHU6XOhOb5ZwicGs7Q==}
+
+  '@workflow/serde@4.1.0':
+    resolution: {integrity: sha512-pav4F2BoirECWR7Nf1TKt+2eETcBj7jj4cBefQ8VXQCA6NPkaKeLfj/zMgi+3zYV5ZIBT4GuUiphsj0/b9hPQQ==}
 
   '@wxt-dev/browser@0.1.43':
     resolution: {integrity: sha512-RMB0zgfe7uuiTp18s9taLeKXoOCLBV418797dnEggiMWmM1JDJekiLtlvrNc6QeZg+amDBy2/KKYuQB2kh/K9A==}
@@ -6293,10 +6306,10 @@ snapshots:
       defu: 6.1.7
       many-keys-map: 3.0.3
 
-  '@ai-sdk/anthropic@2.0.89(zod@4.4.3)':
+  '@ai-sdk/anthropic@4.0.10(zod@4.4.3)':
     dependencies:
-      '@ai-sdk/provider': 2.0.3
-      '@ai-sdk/provider-utils': 3.0.30(zod@4.4.3)
+      '@ai-sdk/provider': 4.0.2
+      '@ai-sdk/provider-utils': 5.0.6(zod@4.4.3)
       zod: 4.4.3
 
   '@ai-sdk/gateway@2.0.118(zod@4.4.3)':
@@ -6331,7 +6344,19 @@ snapshots:
       eventsource-parser: 3.1.0
       zod: 4.4.3
 
+  '@ai-sdk/provider-utils@5.0.6(zod@4.4.3)':
+    dependencies:
+      '@ai-sdk/provider': 4.0.2
+      '@standard-schema/spec': 1.1.0
+      '@workflow/serde': 4.1.0
+      eventsource-parser: 3.1.0
+      zod: 4.4.3
+
   '@ai-sdk/provider@2.0.3':
+    dependencies:
+      json-schema: 0.4.0
+
+  '@ai-sdk/provider@4.0.2':
     dependencies:
       json-schema: 0.4.0
 
@@ -8503,6 +8528,8 @@ snapshots:
       is-potential-custom-element-name: 1.0.1
 
   '@webext-core/match-patterns@1.1.0': {}
+
+  '@workflow/serde@4.1.0': {}
 
   '@wxt-dev/browser@0.1.43':
     dependencies:
