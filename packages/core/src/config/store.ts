@@ -2,11 +2,11 @@ import { defineStore } from 'pinia'
 import { ref, shallowRef } from 'vue'
 import { store } from '../store'
 import type { ConfigAdapterWithWrite } from './types'
-import { ClientConfigSchema, MetaConfigSchema, type ClientConfig, type MetaConfig } from './schema'
+import { MetaConfigSchema, PeerConfigSchema, type MetaConfig, type PeerConfig } from './schema'
 import { loadConfig as zodLoadConfig } from 'zod-config'
 
-// Lazy import Client to avoid circular imports
-const lazyClient = async () => (await import('../client/client')).Client
+// Lazy import Peer to avoid circular imports
+const lazyPeer = async () => (await import('../peer/peer')).Peer
 
 const unconfiguredAdapter: ConfigAdapterWithWrite = {
   name: 'unconfigured',
@@ -17,12 +17,12 @@ const unconfiguredAdapter: ConfigAdapterWithWrite = {
 }
 
 /**
- * Config store, includes metaConfig and clientConfig, managing their loading and saving.
+ * Config store, includes metaConfig and peerConfig, managing their loading and saving.
  */
 export const useConfigStore = defineStore('inkcre-config', () => {
   const metaAdapter = shallowRef<ConfigAdapterWithWrite>(unconfiguredAdapter)
   const metaConfig = ref<MetaConfig>(MetaConfigSchema.parse({}))
-  const clientConfig = ref<ClientConfig>(ClientConfigSchema.parse({}))
+  const peerConfig = ref<PeerConfig>(PeerConfigSchema.parse({}))
   const isLoading = ref(false)
   const error = ref<Error | null>(null)
 
@@ -45,19 +45,19 @@ export const useConfigStore = defineStore('inkcre-config', () => {
     }
   }
 
-  async function loadClientConfig(): Promise<void> {
-    if (!metaConfig.value.INKCRE_CLIENT_ID) {
-      clientConfig.value = ClientConfigSchema.parse({})
+  async function loadPeerConfig(): Promise<void> {
+    if (!metaConfig.value.INKCRE_PEER_ID) {
+      peerConfig.value = PeerConfigSchema.parse({})
       return
     }
 
-    const Client = await lazyClient()
+    const Peer = await lazyPeer()
     try {
-      const loaded = await Client.getSelf()
-      clientConfig.value = ClientConfigSchema.parse(loaded.config)
+      const loaded = await Peer.getSelf()
+      peerConfig.value = PeerConfigSchema.parse(loaded.config)
     } catch {
-      clientConfig.value = ClientConfigSchema.parse({})
-      console.error('[Config] Failed to load client config.')
+      peerConfig.value = PeerConfigSchema.parse({})
+      console.error('[Config] Failed to load Peer config.')
     }
   }
 
@@ -74,18 +74,18 @@ export const useConfigStore = defineStore('inkcre-config', () => {
 
   async function resetMeta(): Promise<void> {
     metaConfig.value = MetaConfigSchema.parse({})
-    clientConfig.value = ClientConfigSchema.parse({})
+    peerConfig.value = PeerConfigSchema.parse({})
     await saveMeta()
   }
 
   return {
     metaConfig,
-    clientConfig,
+    peerConfig,
     metaAdapter,
     isLoading,
     error,
     initializeMeta,
-    loadClientConfig,
+    loadPeerConfig,
     saveMeta,
     resetMeta,
   }

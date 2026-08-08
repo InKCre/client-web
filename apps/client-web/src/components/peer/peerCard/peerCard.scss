@@ -1,4 +1,4 @@
-.client-card {
+.peer-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -12,17 +12,12 @@
     gap: sys-var(space, xs);
   }
 
-  &__item-name {
-    @include apply-font(body-lg);
-    color: sys-var(color, text, base);
-  }
-
   &__item-id {
     @include apply-font(label-sm, mono);
     color: sys-var(color, text, subtle);
   }
 
-  &__item-url {
+  &__item-capabilities {
     @include apply-font(label-sm);
     color: sys-var(color, text, subtle);
   }
@@ -46,16 +41,5 @@
       background-color: sys-var(color, surface, subtle);
       color: sys-var(color, text, subtle);
     }
-  }
-
-  &__edit {
-    display: flex;
-    flex-direction: column;
-    gap: sys-var(space, xs);
-  }
-
-  &__edit-actions {
-    display: flex;
-    gap: sys-var(space, sm);
   }
 }

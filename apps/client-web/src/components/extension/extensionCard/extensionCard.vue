@@ -26,18 +26,18 @@ const toggleModel = computed({
   get: () => {
     return togglePromise.value
       ? togglePromise.value
-      : props.extension.isEnabledForClient(props.clientId)
+      : props.extension.isEnabledForPeer(props.peerId)
   },
   set: async (newValue: boolean) => {
     togglePromise.value = (async () => {
-      if (props.extension.isEnabledForClient(props.clientId)) {
-        await props.extension.disableForClient(props.clientId)
+      if (props.extension.isEnabledForPeer(props.peerId)) {
+        await props.extension.disableForPeer(props.peerId)
       } else {
-        await props.extension.enableForClient(props.clientId)
+        await props.extension.enableForPeer(props.peerId)
       }
       emit('toggle', props.extension)
       togglePromise.value = null
-      return props.extension.isEnabledForClient(props.clientId)
+      return props.extension.isEnabledForPeer(props.peerId)
     })()
   },
 })
@@ -50,7 +50,7 @@ const onConfirmConfig = () => {
   if (props.extension) {
     configPopupOpen.value = (async () => {
       try {
-        const updatedExtension = await props.extension.updateConfig(props.clientId)
+        const updatedExtension = await props.extension.updateConfig(props.peerId)
         emit('edit-config', updatedExtension)
         return false // close dialog
       } catch (error) {

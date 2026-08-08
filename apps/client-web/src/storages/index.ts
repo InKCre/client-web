@@ -6,14 +6,8 @@
  */
 
 // Import all storage handlers to trigger @Storage.registry decorator
-import {
-  HttpImageStorage,
-  HttpVideoStorage,
-  HttpTextStorage,
-  HttpHtmlStorage,
-  HttpJsonStorage,
-} from '@inkcre/core'
+import { HttpStorage, PostgreSQLBinaryStorage } from '@inkcre/core'
 
 // Handlers are auto-registered via decorator, no need to do anything else
 // Just ensure they're imported
-export { HttpImageStorage, HttpVideoStorage, HttpTextStorage, HttpHtmlStorage, HttpJsonStorage }
+export { HttpStorage, PostgreSQLBinaryStorage }

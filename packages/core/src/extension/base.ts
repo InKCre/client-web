@@ -10,9 +10,17 @@ import { Z } from 'zod-class'
 import { ref, type Ref } from 'vue'
 import { DBAPIClient } from '../base/db-api'
 import { makeStringProp, makeObjectProp } from '../utils/vue-props'
-import { Client, type ClientRef } from '../client/client'
 import { configStore as sharedConfigStore } from '../config'
+import {
+  type JsonValue,
+  JsonValueSchema,
+  PeerManager,
+  PeerProtocolResponseSchema,
+  type PeerRef,
+} from '../peer'
 import { getMFImplementation } from './module-federation'
+
+export const EXTENSION_MANAGEMENT_CAPABILITY = 'core.extension.management.v1'
 
 // ============================================================================
 // Extension Lifecycle State
@@ -55,7 +63,7 @@ export interface ExtensionModule {
   initialize?(): Promise<void>
 
   /**
-   * Called when the extension is activated (enabled for a client).
+   * Called when the extension is activated (enabled for a Peer).
    * Use for registering resolvers, handlers, and other runtime hooks.
    */
   activate?(): Promise<void>
@@ -98,7 +106,7 @@ export const ExtensionRefZ = z.string()
 export class Extension extends Z.class({
   id: ExtensionRefZ,
   version: z.string(),
-  enabled: z.array(z.string()).optional().default([]), // uuid array for client IDs
+  enabled: z.array(z.string()).optional().default([]), // UUID array for Peer IDs
   nickname: z.string().nullable(),
   config: z.looseObject({}).default({}),
   config_schema: z.looseObject({}).nullable(),
@@ -117,20 +125,24 @@ export class Extension extends Z.class({
   // ============================================================================
 
   /**
-   * Extension instances registry for the local client.
+   * Extension instances registry for the local Peer.
    *
-   * IMPORTANT: This map assumes all instances belong to the current local client
-   * (identified by `CONFIG.value.INKCRE_CLIENT_ID`). Do not use this registry
-   * to manage extensions for remote clients.
+   * IMPORTANT: This map assumes all instances belong to the current local Peer
+   * (identified by `metaConfig.INKCRE_PEER_ID`). Do not use this registry
+   * to manage extensions for remote Peers.
    */
   private static _instances: Map<ExtensionRef, Extension> = new Map()
 
+  /**
+   * Runtime-only state cannot use a class-field initializer because zod-class
+   * creates parsed models without running those initializers.
+   */
+  private static _runtimeStates = new WeakMap<Extension, Ref<ExtensionRuntimeState>>()
+
   private static getEnabledInstances(): Extension[] {
-    const clientId = sharedConfigStore.metaConfig.INKCRE_CLIENT_ID
-    if (!clientId) return []
-    return Array.from(Extension._instances.values()).filter((ext) =>
-      ext.isEnabledForClient(clientId)
-    )
+    const peer = sharedConfigStore.metaConfig.INKCRE_PEER_ID
+    if (!peer) return []
+    return Array.from(Extension._instances.values()).filter((ext) => ext.isEnabledForPeer(peer))
   }
 
   /**
@@ -144,10 +156,17 @@ export class Extension extends Z.class({
   // Runtime State (not persisted, reactive)
   // ============================================================================
 
-  readonly runtimeState: Ref<ExtensionRuntimeState> = ref({
-    status: ExtensionState.DISCOVERED,
-    error: null,
-  })
+  get runtimeState(): Ref<ExtensionRuntimeState> {
+    let state = Extension._runtimeStates.get(this)
+    if (!state) {
+      state = ref({
+        status: ExtensionState.DISCOVERED,
+        error: null,
+      })
+      Extension._runtimeStates.set(this, state)
+    }
+    return state
+  }
 
   module: ExtensionModule | null = null
 
@@ -187,16 +206,24 @@ export class Extension extends Z.class({
   // Instance Methods (existing)
   // ============================================================================
 
-  isEnabledForClient(clientId: ClientRef): boolean {
-    return this.enabled.includes(clientId)
+  isEnabledForPeer(peer: PeerRef): boolean {
+    return this.enabled.includes(peer)
   }
 
-  async updateConfig(clientId: ClientRef, config?: Record<string, any>): Promise<Extension> {
-    const client = await Client.get(clientId)
-    return await client.request({
-      method: 'PUT',
-      path: `/extensions/${this.id}/config`,
-      body: config || this.config,
+  async updateConfig(peer: PeerRef, config?: Record<string, unknown>): Promise<Extension> {
+    const patch = config ?? this.config
+    if (sharedConfigStore.metaConfig.INKCRE_PEER_ID === peer) {
+      const result = await Extension.dbApi
+        .update({ config: patch })
+        .eq('id', this.id)
+        .select()
+        .single()
+      return Extension.parse(result.data)
+    }
+    return this.manageRemote(peer, {
+      action: 'patch_config',
+      extension: this.id,
+      patch: JsonValueSchema.parse(patch),
     })
   }
 
@@ -332,7 +359,7 @@ export class Extension extends Z.class({
    * Convention: ${registryUrl}/${extensionId}/client-web/remoteEntry.js?version=${version}
    */
   getRemoteEntryUrl(): string {
-    const registryUrl = sharedConfigStore.clientConfig.extension_registry_url
+    const registryUrl = sharedConfigStore.peerConfig.extension_registry_url
     if (!registryUrl) {
       throw new Error('Extension registry URL is not configured (extension_registry_url)')
     }
@@ -380,11 +407,11 @@ export class Extension extends Z.class({
   // Enable/Disable Methods (with lifecycle)
   // ============================================================================
 
-  async enableForClient(clientId: ClientRef): Promise<void> {
-    console.log(`[Extension] Enabling ${this.id} for client ${clientId}`)
+  async enableForPeer(peer: PeerRef): Promise<void> {
+    console.log(`[Extension] Enabling ${this.id} for Peer ${peer}`)
 
-    if (sharedConfigStore.metaConfig.INKCRE_CLIENT_ID === clientId) {
-      // Local client
+    if (sharedConfigStore.metaConfig.INKCRE_PEER_ID === peer) {
+      // Local Peer
 
       // Activate if ready, or load->init->activate if discovered
       if (this.runtimeState.value.status === ExtensionState.READY) {
@@ -397,32 +424,26 @@ export class Extension extends Z.class({
 
       // Update local database after successful enable
       if (this.runtimeState.value.status === ExtensionState.ACTIVE) {
-        this.enabled.push(clientId)
+        this.enabled.push(peer)
         await Extension.dbApi.update({ enabled: this.enabled }).eq('id', this.id)
       } else {
-        throw new Error(`Failed to enable extension ${this.id} for local client`)
+        throw new Error(`Failed to enable extension ${this.id} for local Peer`)
       }
     } else {
-      // Remote client: call remote API
-      const client = await Client.get(clientId)
-      await client.request({
-        method: 'POST',
-        path: `/extensions/${this.id}/enable`,
+      const updated = await this.manageRemote(peer, {
+        action: 'enable',
+        extension: this.id,
       })
-
-      // Update local enabled array
-      if (!this.enabled.includes(clientId)) {
-        this.enabled.push(clientId)
-      }
+      this.enabled = updated.enabled
     }
 
-    console.log(`[Extension] ${this.id} enabled for client ${clientId}`)
+    console.log(`[Extension] ${this.id} enabled for Peer ${peer}`)
   }
 
-  async disableForClient(clientId: ClientRef): Promise<void> {
-    console.log(`[Extension] Disabling ${this.id} for client ${clientId}`)
+  async disableForPeer(peer: PeerRef): Promise<void> {
+    console.log(`[Extension] Disabling ${this.id} for Peer ${peer}`)
 
-    if (sharedConfigStore.metaConfig.INKCRE_CLIENT_ID === clientId) {
+    if (sharedConfigStore.metaConfig.INKCRE_PEER_ID === peer) {
       // Deactivate if active
       if (this.runtimeState.value.status === ExtensionState.ACTIVE) {
         await this.deactivate()
@@ -430,30 +451,36 @@ export class Extension extends Z.class({
 
       // Update local database after successful disable
       if (this.runtimeState.value.status === ExtensionState.READY) {
-        const index = this.enabled.indexOf(clientId)
+        const index = this.enabled.indexOf(peer)
         if (index !== -1) {
           this.enabled.splice(index, 1)
         }
         await Extension.dbApi.update({ enabled: this.enabled }).eq('id', this.id)
       } else {
-        throw new Error(`Failed to disable extension ${this.id} for local client`)
+        throw new Error(`Failed to disable extension ${this.id} for local Peer`)
       }
     } else {
-      // Remote client: call remote API
-      const client = await Client.get(clientId)
-      await client.request({
-        method: 'POST',
-        path: `/extensions/${this.id}/disable`,
+      const updated = await this.manageRemote(peer, {
+        action: 'disable',
+        extension: this.id,
       })
-
-      // Update local enabled array
-      const index = this.enabled.indexOf(clientId)
-      if (index !== -1) {
-        this.enabled.splice(index, 1)
-      }
+      this.enabled = updated.enabled
     }
 
-    console.log(`[Extension] ${this.id} disabled for client ${clientId}`)
+    console.log(`[Extension] ${this.id} disabled for Peer ${peer}`)
+  }
+
+  private async manageRemote(peer: PeerRef, command: JsonValue): Promise<Extension> {
+    const delegated = await PeerManager.delegate(
+      EXTENSION_MANAGEMENT_CAPABILITY,
+      { body: command },
+      peer
+    )
+    const response = PeerProtocolResponseSchema.parse(delegated)
+    if (response.status !== 200 || !Object.prototype.hasOwnProperty.call(response, 'body')) {
+      throw new Error(`Extension management Peer returned HTTP ${response.status}`)
+    }
+    return Extension.parse(response.body)
   }
 
   // ============================================================================
@@ -569,7 +596,7 @@ export class Extension extends Z.class({
 export class InstallExtensionForm extends Z.class({
   id: ExtensionRefZ,
   version: z.string().optional(),
-  enabled: z.array(z.string()).optional(), // optional initial enabled client IDs
+  enabled: z.array(z.string()).optional(), // optional initial enabled Peer IDs
 }) {
   /**
    * Install if not exist

@@ -149,8 +149,12 @@ const loadData = async () => {
     // Transform blocks to nodes with relations
     allNodes.value = blocks.map((block) => {
       const blockRelations = blockRelationsMap.get(block.id) ?? []
-      // Use block.content as preview (truncated)
-      const preview = block.content.length > 50 ? block.content.slice(0, 50) + '...' : block.content
+      const preview =
+        block.storage === null
+          ? block.content.length > 50
+            ? block.content.slice(0, 50) + '...'
+            : block.content
+          : 'Stored content — select to open'
       return blockToNode(block, preview, blockRelations)
     })
 
@@ -179,6 +183,12 @@ const onNodeSelect = (blockId: number) => {
 // Handle panel close
 const onPanelClose = () => {
   selectedBlock.value = null
+}
+
+const onRuminated = async () => {
+  const selected = selectedBlock.value?.id
+  await loadData()
+  if (selected !== undefined) onNodeSelect(selected)
 }
 
 // Fit view options with max zoom limit to prevent over-zooming on small communities
@@ -342,6 +352,7 @@ onMounted(() => {
           :relations="selectedBlockRelations"
           style="width: 400px"
           @close="onPanelClose"
+          @ruminated="onRuminated"
         />
       </InkPopup>
     </template>

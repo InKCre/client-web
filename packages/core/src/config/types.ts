@@ -13,4 +13,4 @@ export interface ConfigAdapterWithWrite extends ConfigAdapter {
 export const CONFIG_STORAGE_KEY = 'inkcre_app_config'
 
 // Re-export Config, AppConfig and MetaConfig types from schema for convenience
-export type { ClientConfig, MetaConfig } from './schema'
+export type { MetaConfig, PeerConfig } from './schema'
