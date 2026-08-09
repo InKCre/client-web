@@ -11,14 +11,19 @@ slot; it is not a Pages branch or a browser enablement state.
    `twitter-target-dist` directories.
 2. `Pages and Twitter Registry delivery` accepts only a successful,
    same-repository `Client checks` push run whose SHA is still `main`.
-3. The controller downloads both same-run artifacts without rebuilding them. It
-   builds the canonical manifest from the complete Twitter directory, including
-   `remoteEntry.js` and `assets/`, with the frozen publisher toolchain.
-4. It captures any existing target provenance, publishes through the public
-   Registry with the scoped `INKCRE_EXTENSION_REGISTRY_TOKEN`, then reads the
-   public release, canonical manifest, and every declared file back by digest.
-5. Only after that public verification and a second `main` recheck may the
-   controller deploy the checked web artifact to Pages.
+3. A change to `extensions/twitter/target-publish.json` is the explicit release
+   intent. Only that case downloads the checked Twitter artifact, builds its
+   canonical manifest, and enters the Registry publication lane. Changing the
+   Twitter source tree or shared MF declaration without that release intent is a
+   delivery error, not a silent skip.
+4. The publication lane captures any existing target provenance, publishes with
+   the scoped `INKCRE_EXTENSION_REGISTRY_TOKEN`, then reads the public release,
+   canonical manifest, and every declared file back by digest. Any immutable-slot
+   conflict fails closed and blocks Pages.
+5. A main revision without release intent skips the Twitter lane rather than
+   trying to replace the already-published target. After the applicable target
+   gate and a second `main` recheck, the controller deploys the checked web
+   artifact to Pages.
 
 Pull requests, merge-group runs, manual CI runs, and Pages previews never meet
 the controller identity predicate and cannot publish a production Registry
@@ -45,6 +50,13 @@ Registry association stores the first accepted source repository, source
 revision, and build ID. A rerun with the same target key and digest is valid,
 but the controller verifies that this original target provenance remains
 unchanged.
+
+The workspace may rebuild different Twitter bytes when shared Host code changes.
+Those incidental candidate bytes are not a new Extension release and must not be
+written into an existing immutable target slot. An intentional Twitter code or
+compatibility release must update `target-publish.json` together with its
+version/contract change; the workflow enforces this source-to-intent pairing and
+the strict publication lane then proves or rejects it.
 
 The workflow summary separately records the current checked source revision,
 the delivery controller revision, and delivery run ID. Those delivery facts are
