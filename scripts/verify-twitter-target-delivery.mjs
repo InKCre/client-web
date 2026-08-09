@@ -231,12 +231,12 @@ function releaseLocation(registryUrl, config) {
 }
 
 function manifestLocation(registryUrl, targetDigest) {
-  return `${registryRoot(registryUrl)}/v1/artifacts/${encodeURIComponent(targetDigest)}/manifest`
+  return `${registryRoot(registryUrl)}/v1/artifacts/${targetDigest}/manifest`
 }
 
 function artifactFileLocation(registryUrl, targetDigest, relativePath) {
   const encodedPath = relativePath.split('/').map(encodeURIComponent).join('/')
-  return `${registryRoot(registryUrl)}/v1/artifacts/${encodeURIComponent(targetDigest)}/files/${encodedPath}`
+  return `${registryRoot(registryUrl)}/v1/artifacts/${targetDigest}/files/${encodedPath}`
 }
 
 function targetForKey(release, targetKey) {

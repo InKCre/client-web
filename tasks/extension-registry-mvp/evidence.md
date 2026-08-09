@@ -78,6 +78,11 @@ Observed facts only. Decisions and remaining work are in [plan.md](plan.md).
   `Access-Control-Allow-Origin: *` for the public release, immutable artifact manifest, and
   immutable `remoteEntry.js`. The delivery verifier now sends that representative browser origin
   and checks CORS on the release as well as every artifact response.
+- Delivery run `31337195878` then proved the CORS correction and exposed a separate verifier-only
+  URL drift: it percent-encoded the digest's `sha256:` separator while the released Runtime/API
+  emits the canonical unescaped digest segment. The Registry fast file route correctly rejected
+  that non-canonical path with 422, and Pages remained gated. The verifier now constructs the same
+  canonical artifact URL as the released consumer and locks this with a regression assertion.
 
 ## Production Provisioning Evidence
 
