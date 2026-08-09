@@ -141,10 +141,18 @@ test('proves an idempotent same-digest rerun retains first target provenance', a
         ])
       )
     )
-    const fetchImplementation = async (input) => {
+    const requests = []
+    const fetchImplementation = async (input, init = {}) => {
       const requestPath = new URL(input).pathname
+      requests.push({
+        path: requestPath,
+        origin: new Headers(init.headers).get('origin'),
+      })
       if (requestPath.endsWith('/versions/0.1.0')) {
-        return new Response(JSON.stringify(release), { status: 200 })
+        return new Response(JSON.stringify(release), {
+          status: 200,
+          headers: { 'access-control-allow-origin': '*' },
+        })
       }
       if (requestPath.endsWith('/manifest')) {
         return new Response(canonicalManifest, {
@@ -201,6 +209,14 @@ test('proves an idempotent same-digest rerun retains first target provenance', a
       controller_revision: '3'.repeat(40),
       workflow_run_id: '101',
     })
+    const productionBrowserRequests = requests
+      .filter((request) => request.origin === 'https://app.inkcre.dev')
+      .map((request) => request.path)
+    assert.ok(
+      productionBrowserRequests.some((requestPath) => requestPath.endsWith('/versions/0.1.0'))
+    )
+    assert.ok(productionBrowserRequests.some((requestPath) => requestPath.endsWith('/manifest')))
+    assert.ok(productionBrowserRequests.some((requestPath) => requestPath.includes('/files/')))
   } finally {
     await rm(fixture.root, { recursive: true, force: true })
   }

@@ -4,6 +4,8 @@ import { appendFile, lstat, mkdir, readFile, readdir, writeFile } from 'node:fs/
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+const PRODUCTION_BROWSER_ORIGIN = 'https://app.inkcre.dev'
+
 function sha256(content) {
   return createHash('sha256').update(content).digest('hex')
 }
@@ -250,8 +252,11 @@ async function responseJson(response, label) {
 }
 
 async function fetchPublicRelease({ registryUrl, config, fetchImplementation }) {
-  const response = await fetchImplementation(releaseLocation(registryUrl, config))
+  const response = await fetchImplementation(releaseLocation(registryUrl, config), {
+    headers: { Origin: PRODUCTION_BROWSER_ORIGIN },
+  })
   const release = await responseJson(response, 'public Registry release')
+  assertBrowserReadable(response, 'public Registry release')
   const [namespace, name] = config.coordinate.split('/', 2)
   assert.equal(release.namespace, namespace, 'public Registry namespace differs')
   assert.equal(release.name, name, 'public Registry name differs')
@@ -301,17 +306,21 @@ function expectedProvenance(beforePublication, requestedProvenance) {
   }
 }
 
+function assertBrowserReadable(response, label) {
+  assert.equal(
+    response.headers.get('access-control-allow-origin'),
+    '*',
+    `${label} must allow browser reads`
+  )
+}
+
 function assertImmutableCacheHeaders(response, label) {
   assert.match(
     response.headers.get('cache-control') ?? '',
     /\bimmutable\b/,
     `${label} must be immutable`
   )
-  assert.equal(
-    response.headers.get('access-control-allow-origin'),
-    '*',
-    `${label} must allow browser reads`
-  )
+  assertBrowserReadable(response, label)
 }
 
 export async function verifyPublicTarget({
@@ -377,7 +386,9 @@ export async function verifyPublicTarget({
     'public target provenance changed during an idempotent delivery'
   )
 
-  const manifestResponse = await fetchImplementation(manifestLocation(registryUrl, targetDigest))
+  const manifestResponse = await fetchImplementation(manifestLocation(registryUrl, targetDigest), {
+    headers: { Origin: PRODUCTION_BROWSER_ORIGIN },
+  })
   assert.ok(manifestResponse.ok, `public target manifest returned HTTP ${manifestResponse.status}`)
   assertImmutableCacheHeaders(manifestResponse, 'public target manifest')
   const publicManifest = JSON.parse(await manifestResponse.text())
@@ -393,7 +404,8 @@ export async function verifyPublicTarget({
     ([left], [right]) => canonicalCompare(left, right)
   )) {
     const fileResponse = await fetchImplementation(
-      artifactFileLocation(registryUrl, targetDigest, relativePath)
+      artifactFileLocation(registryUrl, targetDigest, relativePath),
+      { headers: { Origin: PRODUCTION_BROWSER_ORIGIN } }
     )
     assert.ok(
       fileResponse.ok,

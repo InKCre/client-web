@@ -65,7 +65,19 @@ Observed facts only. Decisions and remaining work are in [plan.md](plan.md).
   Registry outage, 204 handling, null-self management peer, remote Core dispatch, and third-peer
   rejection. Core and client-web type checks passed at that point.
 - Full `pnpm check` passed after the target-delivery and runtime/UI changes converged: formatting,
-  lint, type checking, 66 tests, all workspace builds, and the static/package contracts.
+  lint, type checking, 67 tests, all workspace builds, and the static/package contracts.
+- Protected-main `Client checks` run `31336494562` passed and retained the exact
+  `client-web-dist` and `twitter-target-dist` artifacts for source
+  `c488ebe6c81b0fd889f79179bb52b1b7be493c41`.
+- Delivery run `31336623861` published `inkcre/twitter@0.1.0#web-module-federation-v1` as
+  `sha256:1cfb7744dcb97cecfe427b39f79994a3809f02a88be7ad67e2ef42f92d0a8220`, with the
+  exact main source revision and that delivery run as first provenance. It correctly withheld
+  Pages deployment when its verification request omitted a browser `Origin` header and therefore
+  observed no CORS response header from standard CORS middleware.
+- Direct production probes that include `Origin: https://app.inkcre.dev` receive
+  `Access-Control-Allow-Origin: *` for the public release, immutable artifact manifest, and
+  immutable `remoteEntry.js`. The delivery verifier now sends that representative browser origin
+  and checks CORS on the release as well as every artifact response.
 
 ## Production Provisioning Evidence
 

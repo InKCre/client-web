@@ -23,8 +23,9 @@
    changing its identity or embedding either value in static artifacts.
 2. [pending permissions] Validate Core API authorization and PostgREST RLS/grants against the
    new tables in production.
-3. [pending target delivery] Publish/admit the Web target through the owned release workflow and
-   run a real browser digest-artifact lifecycle proof.
+3. [target admitted; Pages retry pending] The exact-main Web target is public and immutable. Land
+   the representative-browser CORS verification correction, let the owned workflow deploy the
+   already checked Pages artifact, then run a real browser digest-artifact lifecycle proof.
 4. [pending migration decision] Decide whether/how legacy `extensions` records migrate to
    Registry installations; do not reinterpret its enabled UUID array.
 5. [complete] Run the full `pnpm check` after concurrent target/CD work settles.
