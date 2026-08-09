@@ -95,14 +95,54 @@ jobs:
         with:
           ref: ${{ needs.identity.outputs.source_sha }}
           path: controller
+          fetch-depth: 2
           persist-credentials: false
 
+      - name: Determine whether Twitter target publication is requested
+        id: twitter-release
+        working-directory: controller
+        env:
+          SOURCE_SHA: ${{ needs.identity.outputs.source_sha }}
+        run: |
+          if ! git cat-file -e "${SOURCE_SHA}^"; then
+            echo 'Cannot prove Twitter release intent without the checked revision parent.' >&2
+            exit 1
+          fi
+
+          if git diff --quiet "${SOURCE_SHA}^" "$SOURCE_SHA" -- extensions/twitter/target-publish.json; then
+            release_intent=false
+          else
+            release_intent=true
+          fi
+          if git diff --quiet "${SOURCE_SHA}^" "$SOURCE_SHA" -- \
+            extensions/twitter \
+            ':(exclude)extensions/twitter/target-publish.json' \
+            extensions/mf-shared.ts; then
+            target_source_changed=false
+          else
+            target_source_changed=true
+          fi
+
+          if [[ "$target_source_changed" == 'true' && "$release_intent" != 'true' ]]; then
+            echo 'target-publish.json must change with Twitter target sources.' >&2
+            exit 1
+          fi
+          if [[ "$release_intent" == 'true' ]]; then
+            echo 'publish=true' >> "$GITHUB_OUTPUT"
+            echo 'Twitter target publication requested by target-publish.json.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'publish=false' >> "$GITHUB_OUTPUT"
+            echo 'Twitter target publication skipped: no explicit release intent.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Set up Python 3.12 publisher runtime
+        if: steps.twitter-release.outputs.publish == 'true'
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version-file: controller/tooling/extension-publisher/.python-version
 
       - name: Install the pinned uv publisher runner
+        if: steps.twitter-release.outputs.publish == 'true'
         uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           version: 0.12.3
@@ -123,6 +163,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download checked Twitter target artifact
+        if: steps.twitter-release.outputs.publish == 'true'
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: twitter-target-dist
@@ -131,6 +172,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Reverify main before target publication
+        if: steps.twitter-release.outputs.publish == 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           SOURCE_SHA: ${{ needs.identity.outputs.source_sha }}
@@ -146,6 +188,7 @@ jobs:
             }
 
       - name: Build and validate the canonical Twitter target manifest
+        if: steps.twitter-release.outputs.publish == 'true'
         run: |
           uv run --project controller/tooling/extension-publisher --frozen inkcre-ext build-target \
             --config controller/extensions/twitter/target-publish.json \
@@ -158,6 +201,7 @@ jobs:
             --output .twitter-target-delivery/local-target.json
 
       - name: Capture existing target provenance
+        if: steps.twitter-release.outputs.publish == 'true'
         env:
           INKCRE_EXTENSION_REGISTRY_URL: ${{ vars.INKCRE_EXTENSION_REGISTRY_URL }}
         run: |
@@ -170,6 +214,7 @@ jobs:
             --output .twitter-target-delivery/before-publication.json
 
       - name: Publish the immutable Twitter target
+        if: steps.twitter-release.outputs.publish == 'true'
         env:
           INKCRE_EXTENSION_REGISTRY_URL: ${{ vars.INKCRE_EXTENSION_REGISTRY_URL }}
           INKCRE_EXTENSION_REGISTRY_TOKEN: ${{ secrets.INKCRE_EXTENSION_REGISTRY_TOKEN }}
@@ -190,6 +235,7 @@ jobs:
           cmp --silent .twitter-target-delivery/manifest.json .twitter-target-delivery/published-manifest.json
 
       - name: Verify the public target digest and provenance
+        if: steps.twitter-release.outputs.publish == 'true'
         env:
           INKCRE_EXTENSION_REGISTRY_URL: ${{ vars.INKCRE_EXTENSION_REGISTRY_URL }}
           SOURCE_REPOSITORY: https://github.com/${{ github.repository }}

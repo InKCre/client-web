@@ -69,7 +69,7 @@ Observed facts only. Decisions and remaining work are in [plan.md](plan.md).
   Registry outage, 204 handling, null-self management peer, remote Core dispatch, and third-peer
   rejection. Core and client-web type checks passed at that point.
 - Full `pnpm check` passed after the target-delivery and runtime/UI changes converged: formatting,
-  lint, type checking, 67 tests, all workspace builds, and the static/package contracts.
+  lint, type checking, 68 tests, all workspace builds, and the static/package contracts.
 - Protected-main `Client checks` run `31336494562` passed and retained the exact
   `client-web-dist` and `twitter-target-dist` artifacts for source
   `c488ebe6c81b0fd889f79179bb52b1b7be493c41`.
@@ -87,6 +87,14 @@ Observed facts only. Decisions and remaining work are in [plan.md](plan.md).
   emits the canonical unescaped digest segment. The Registry fast file route correctly rejected
   that non-canonical path with 422, and Pages remained gated. The verifier now constructs the same
   canonical artifact URL as the released consumer and locks this with a regression assertion.
+- Main delivery `31338467792` correctly rejected a rebuilt Twitter candidate digest
+  `sha256:0e65f3788e697e99a9189e8f2dec587918c8499cc1cb141ce1c7c4a09c153411` because
+  `inkcre/twitter@0.1.0#web-module-federation-v1` already owns immutable digest
+  `sha256:1cfb7744dcb97cecfe427b39f79994a3809f02a88be7ad67e2ef42f92d0a8220`.
+  All 40 candidate files had changed after a shared Host rebuild even though no Twitter release was
+  requested. Delivery now treats `target-publish.json` as explicit target-release intent: strict
+  publish/verification still gates Pages when requested, while unrelated Host revisions preserve
+  the existing target and deploy only the checked Pages artifact.
 
 ## Production Provisioning Evidence
 

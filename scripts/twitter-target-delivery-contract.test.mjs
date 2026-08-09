@@ -249,6 +249,42 @@ test('locks target delivery to checked main artifacts and the immutable publishe
   assert.match(delivery, /run\.event !== 'push'/)
   assert.match(delivery, /run\.head_branch !== 'main'/)
   assert.match(delivery, /currentMain\.data\.object\.sha !== run\.head_sha/)
+  assert.match(delivery, /fetch-depth: 2/)
+  assert.match(delivery, /name: Determine whether Twitter target publication is requested/)
+  assert.match(
+    delivery,
+    /git diff --quiet "\$\{SOURCE_SHA\}\^" "\$SOURCE_SHA" -- extensions\/twitter\/target-publish\.json/
+  )
+  assert.match(delivery, /target-publish\.json must change with Twitter target sources/)
+  assert.match(delivery, /':\(exclude\)extensions\/twitter\/target-publish\.json'/)
+  assert.match(delivery, /Cannot prove Twitter release intent without the checked revision parent/)
+
+  const workflowStep = (name) => {
+    const start = delivery.indexOf(`      - name: ${name}`)
+    assert.notEqual(start, -1, `missing workflow step: ${name}`)
+    const next = delivery.indexOf('\n      - name:', start + 1)
+    return delivery.slice(start, next === -1 ? undefined : next)
+  }
+  for (const name of [
+    'Set up Python 3.12 publisher runtime',
+    'Install the pinned uv publisher runner',
+    'Download checked Twitter target artifact',
+    'Reverify main before target publication',
+    'Build and validate the canonical Twitter target manifest',
+    'Capture existing target provenance',
+    'Publish the immutable Twitter target',
+    'Verify the public target digest and provenance',
+  ]) {
+    assert.match(workflowStep(name), /if: steps\.twitter-release\.outputs\.publish == 'true'/)
+  }
+  assert.match(
+    workflowStep('Publish the immutable Twitter target'),
+    /INKCRE_EXTENSION_REGISTRY_TOKEN/
+  )
+  assert.doesNotMatch(
+    workflowStep('Deploy to Cloudflare Pages'),
+    /steps\.twitter-release\.outputs\.publish/
+  )
   assert.match(delivery, /name: client-web-dist/)
   assert.match(delivery, /name: twitter-target-dist/)
   assert.match(delivery, /run-id: \$\{\{ needs\.identity\.outputs\.run_id \}\}/)
