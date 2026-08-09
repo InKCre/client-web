@@ -114,3 +114,30 @@ Observed facts only. Decisions and remaining work are in [plan.md](plan.md).
 - A bounded production mutation preserved the row identity and replaced only its config with the
   public Registry origin and canonical production Core peer
   `063cd1df-c495-5006-a119-67aa633b26be`. Neither value is compiled into the Pages artifact.
+
+## Final Production Acceptance
+
+- Runtime/API `0.1.3` was released from exact ext-reg main by run `31340825004`. Client PR
+  [#61](https://github.com/InKCre/client-web/pull/61) merged as
+  `f29c98983a6fb29a5bb46e7b5cf3d4cd7ed1beb9`; exact-main Client checks run `31341300838`
+  passed, and delivery run `31341424369` skipped every Twitter publication step, deployed the
+  checked Pages artifact, and passed both Pages and `app.inkcre.dev` smoke.
+- A clean production Chromium journey started with zero Registry installation rows, zero peer
+  bindings, and zero dynamic Core Twitter routes. UI install created exactly one shared
+  `inkcre/twitter@0.1.0` installation and no bindings.
+- Web enable selected and loaded `web-module-federation-v1` at
+  `sha256:1cfb7744dcb97cecfe427b39f79994a3809f02a88be7ad67e2ef42f92d0a8220`;
+  a full page reload cold-restored that exact persisted digest.
+- Core enable kept the same product version and selected `python-core-v1` at
+  `sha256:70d12049bd31c27e8bf024d26f9df91761a44fe4b58a7110681b171c50d1d679`.
+  Production then held two peer bindings with the same Extension Version and different target
+  bytes, and Core published three dynamic Twitter routes.
+- Core disable removed its binding and all three dynamic routes. Web disable completed local
+  Module Federation lifecycle cleanup and removed its binding. UI uninstall removed the shared
+  installation. Final authoritative reads returned zero installations, zero bindings, and zero
+  Core Twitter routes after 22 successful Registry responses.
+- Chromium emits `requestfailed(net::ERR_ABORTED)` after receiving the uninstall's valid 204.
+  A focused probe captured `response(204)` first with
+  `Access-Control-Allow-Origin: https://app.inkcre.dev`; UI await completed and a subsequent
+  authoritative Core read returned 404. No unexpected browser request, page, or console failure
+  occurred.

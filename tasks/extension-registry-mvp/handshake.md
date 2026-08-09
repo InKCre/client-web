@@ -32,21 +32,25 @@ configured Core peer ──> /extension-installations/{namespace}/{name}/enable|
 1. [complete] Provision the deployed browser client config with the production Registry URL and
    exact management Core peer UUID. Neither value is present in static source, environment
    defaults, or Pages artifacts.
-2. Confirm the management Core peer permits the browser's authenticated calls to all required
+2. [complete] The management Core peer permits the browser's authenticated calls to all required
    `/extension-installations` routes, including 204 uninstall.
-3. Confirm PostgREST RLS/grants let the browser read its current peer binding and insert/delete
+3. [complete] PostgREST RLS/grants let the browser read its current peer binding and insert/delete
    its own `extension_peer_bindings` row. The browser also needs enough binding visibility for a
    helpful uninstall preflight; Core's delete route remains the authoritative all-peer guard.
-4. Perform the published-target browser acceptance: install exact coordinate, select compatible
-   target, load digest artifact and chunks, enable, restart current peer, disable, and uninstall.
+4. [complete] The published-target browser acceptance installed the exact coordinate, selected
+   compatible targets, loaded digest artifacts and chunks, enabled both peers, cold-restored the
+   current Web peer, disabled both peers, and uninstalled with zero residue.
 
 ## Open Conflict / Risk Record
 
-- The generated schema proves table shape only; it cannot prove deployed PostgREST RLS/grants.
-  A denied binding write/read must be treated as a production integration blocker, not bypassed
-  by client-side state.
+- Generated schema alone cannot prove deployed PostgREST RLS/grants; the final production browser
+  journey supplied that missing runtime proof for binding read/insert/delete.
 - The production browser config was corrected from localhost to canonical deployment values. Its
   recovery/reprovisioning mechanism remains deployment-owned rather than a static client concern.
 - Binding rows omit entrypoint/artifact format. The adapter uses the immutable digest manifest to
   recover entrypoint on startup; if Registry artifact delivery is unavailable, it leaves the
   persisted binding intact and reports startup failure rather than deleting it.
+- Chromium reports the successful cross-origin 204 uninstall as `net::ERR_ABORTED` after exposing
+  the 204 response to `fetch`. The bounded probe proved correct CORS, resolved UI await, Core 404
+  afterward, and zero DB residue; acceptance therefore excludes only that exact post-response
+  observation and continues to reject every unexpected request/page/console error.
