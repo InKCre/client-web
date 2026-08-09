@@ -19,18 +19,18 @@
 7. [complete] Consume Runtime/API `0.1.3`, whose public `RegistryClient` preserves the browser
    receiver required by native `fetch`; keep the Host-side receiver correction as defense in depth.
 
-## Remaining Acceptance Work
+## Production Acceptance
 
 1. [complete] Provision the browser client's Registry origin and management Core UUID without
    changing its identity or embedding either value in static artifacts.
-2. [Core and PostgREST production paths proven] Core namespaced lifecycle APIs and browser reads
-   of the new installation/binding tables are authorized in production. Complete the browser-local
-   binding write/delete proof after the Runtime/API `0.1.3` client delivery completes.
-3. [target admitted; Pages release-intent correction delivered] The exact-main Web target is
+2. [complete] Core namespaced lifecycle APIs and browser reads/writes of the new
+   installation/binding tables are authorized in production; browser-local binding insert/delete
+   completed through the real PostgREST path.
+3. [complete] The exact-main Web target is
    public and immutable. Strict publication is behind explicit `target-publish.json` release
    intent, so unrelated Host revisions deploy the checked Pages artifact without attempting to
-   overwrite the target. Deliver Runtime/API `0.1.3`, then rerun the full digest-artifact
-   enable/cold-start/disable/uninstall proof.
-4. [pending migration decision] Decide whether/how legacy `extensions` records migrate to
-   Registry installations; do not reinterpret its enabled UUID array.
+   overwrite the target. Runtime/API `0.1.3` and client main `f29c9898` completed the full
+   digest-artifact enable/cold-start/disable/uninstall proof.
+4. [post-MVP] Legacy `extensions` migration remains a separate product decision; MVP neither
+   reinterprets its enabled UUID array nor requires migration.
 5. [complete] Run the full `pnpm check` after concurrent target/CD work settles.

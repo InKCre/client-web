@@ -23,11 +23,14 @@
   delete, and current-peer-only startup. The UI accepts namespace/name plus exact version,
   displays bindings for only the local Web peer or configured management Core peer, and keeps
   legacy lifecycle boot disabled during this migration.
+- **Production acceptance**: complete at client main `f29c9898`. A real Chromium journey proved
+  UI install, exact Web-target enable, cold restore, same-version Core-target enable, both peer
+  disables, dynamic Core route withdrawal, uninstall, and zero installation/binding/route residue.
 - **Guardrails**: generated database files come only from the exact image. Production publication
   and deployment must consume successful protected-main artifacts; no PR/preview may publish.
 
 ## Packet Map
 
 - [evidence.md](evidence.md) — observed release, image/typegen, and runtime facts.
-- [handshake.md](handshake.md) — owner boundaries and required provisioning/permission handoff.
-- [plan.md](plan.md) — completed implementation sequence and remaining acceptance work.
+- [handshake.md](handshake.md) — owner boundaries and completed production handoff.
+- [plan.md](plan.md) — completed implementation and production acceptance sequence.
