@@ -4,9 +4,11 @@ Observed facts only. Decisions and remaining work are in [plan.md](plan.md).
 
 ## Registry And Core Inputs
 
-- `@inkcre/extension-runtime@0.1.2` is the public anonymous release tarball at
-  `https://github.com/InKCre/ext-reg/releases/download/v0.1.2/inkcre-extension-runtime-0.1.2.tgz`.
-  Its SHA-256 is `12ce4cd736b364cccb42dd05b9f7f526b89c3444deefb4feeb52242b9a17d20a`.
+- `@inkcre/extension-runtime@0.1.3` is the public anonymous release tarball at
+  `https://github.com/InKCre/ext-reg/releases/download/v0.1.3/inkcre-extension-runtime-0.1.3.tgz`.
+  Its SHA-256 is `933cd32b9a29808a50fd92727bfb6d9a2c0282a5e12c43e6c50ecc259cf11fcf`;
+  its pnpm integrity is
+  `sha512-ux5zHCtnaPqmkoD4TMEAKvWrad91zeqM0IxT1e6ltooTbxgGOPKsSle7c5tGGqgOhHvjIJb+tpjzUM7qrDxCxw==`.
 - The public Registry Worker origin is known operational evidence, but it is not compiled into
   client-web. Production provisioning must write it into the deployed browser client's
   `extension_registry_url`.
@@ -70,6 +72,10 @@ Observed facts only. Decisions and remaining work are in [plan.md](plan.md).
   to the manager, so Chromium rejected the immutable-manifest request with `Illegal invocation`.
   The adapter now binds its selected fetch implementation to `globalThis`; a brand-checking
   regression test reproduces the native receiver requirement that ordinary mock functions omit.
+- A subsequent clean browser journey proved that the released `RegistryClient` independently
+  had the same receiver defect while reading the public release before install. Runtime/API
+  `0.1.3` binds its selected fetch implementation to `globalThis` and owns the same brand-checking
+  regression at the public SDK boundary; client-web consumes that exact immutable correction.
 - Focused core test run passed: 18 tests across Registry lifecycle, no-target/unknown-condition,
   Registry outage, 204 handling, null-self management peer, remote Core dispatch, and third-peer
   rejection. Core and client-web type checks passed at that point.
