@@ -29,6 +29,21 @@ await Promise.all(
   ].map((path) => requireFile(`${repoRoot}/${path}`))
 )
 
+const twitterRemoteEntry = `${repoRoot}/extensions/twitter/dist/client-web/remoteEntry.js`
+try {
+  const content = await readFile(twitterRemoteEntry, 'utf8')
+  if (content.includes('/twitter/client-web/')) {
+    errors.push('Twitter remote entry retains an absolute /twitter/client-web/ artifact base')
+  }
+  if (!content.includes('./assets/')) {
+    errors.push(
+      'Twitter remote entry does not reference its chunks through a relative artifact base'
+    )
+  }
+} catch (error) {
+  errors.push(`Twitter remote entry inspection failed: ${error.message}`)
+}
+
 try {
   await access(`${coreRoot}/dist/index.cjs`)
   errors.push('unexpected CommonJS output: packages/core/dist/index.cjs')

@@ -94,6 +94,72 @@ export type Database = {
         }
         Relationships: []
       }
+      extension_installations: {
+        Row: {
+          config: Json
+          config_schema: Json
+          name: string
+          namespace: string
+          version: string
+        }
+        Insert: {
+          config?: Json
+          config_schema?: Json
+          name: string
+          namespace: string
+          version: string
+        }
+        Update: {
+          config?: Json
+          config_schema?: Json
+          name?: string
+          namespace?: string
+          version?: string
+        }
+        Relationships: []
+      }
+      extension_peer_bindings: {
+        Row: {
+          name: string
+          namespace: string
+          peer_id: string
+          target_digest: string
+          target_key: string
+          version: string
+        }
+        Insert: {
+          name: string
+          namespace: string
+          peer_id: string
+          target_digest: string
+          target_key: string
+          version: string
+        }
+        Update: {
+          name?: string
+          namespace?: string
+          peer_id?: string
+          target_digest?: string
+          target_key?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'extension_peer_bindings_installation_fkey'
+            columns: ['namespace', 'name', 'version']
+            isOneToOne: false
+            referencedRelation: 'extension_installations'
+            referencedColumns: ['namespace', 'name', 'version']
+          },
+          {
+            foreignKeyName: 'extension_peer_bindings_peer_fkey'
+            columns: ['peer_id']
+            isOneToOne: false
+            referencedRelation: 'clients'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       extensions: {
         Row: {
           config: Json | null

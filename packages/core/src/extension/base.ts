@@ -1,8 +1,10 @@
 /**
  * Extension System - Core Definitions and Model
  *
- * Defines the interface between host application and extensions,
- * along with the Extension model for database persistence and lifecycle management.
+ * Defines the legacy extension model backed by the `extensions` table.
+ *
+ * Registry-backed deployments use `registry.ts` instead. The legacy UUID
+ * `enabled` array must not be interpreted as a Registry peer binding.
  */
 
 import { z } from 'zod'
@@ -95,6 +97,9 @@ export const ExtensionRefZ = z.string()
  * Apps must provide implementation via setMFImplementation.
  */
 
+/**
+ * Legacy transition model. New Registry installs must use RegistryExtensionManager.
+ */
 export class Extension extends Z.class({
   id: ExtensionRefZ,
   version: z.string(),

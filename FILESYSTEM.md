@@ -29,6 +29,8 @@
 │   └── database.compose.yml # Portable local/SSH database topology
 ├── scripts/              # Release resolver, schema typegen, providers, launchers, and cleanup
 ├── tasks/                # Active agent-owned task packets
+├── tooling/
+│   └── extension-publisher/ # Frozen Python Registry publisher toolchain
 ├── .oxfmtrc.json         # Repository Oxfmt contract
 ├── .oxlintrc.json        # Repository Oxlint contract
 ├── AGENTS.md             # This repo's agent guide

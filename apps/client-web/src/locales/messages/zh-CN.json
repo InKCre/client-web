@@ -74,10 +74,17 @@
   "extension": {
     "installNew": "安装扩展",
     "installExtensionTitle": "安装新扩展",
-    "extensionId": "扩展 ID",
+    "namespace": "命名空间",
+    "name": "名称",
     "version": "版本",
+    "versionPlaceholder": "精确版本，例如 0.1.0",
+    "peer": "Peer",
+    "selectPeer": "选择当前 Web Peer 或已配置的 Core Peer",
+    "peerHelp": "当前 Web Peer 在本地加载 Module Federation；唯一可选远程 Peer 是部署配置的 Core 管理 Peer。",
     "editConfig": "编辑配置",
-    "editConfigTitle": "编辑扩展配置"
+    "editConfigTitle": "编辑扩展配置",
+    "uninstall": "卸载",
+    "uninstallDisabled": "请先禁用当前 Peer；其他 Peer 仍有 binding 时同样不能卸载。"
   },
   "collectJob": {
     "title": "采集任务详情",

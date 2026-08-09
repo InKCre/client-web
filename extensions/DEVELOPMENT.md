@@ -19,3 +19,11 @@ filesystem allowance, and UI-owned Sass prelude. The normal `pnpm dev:all`,
 build, check, and CI paths continue to use the locked registry package. See
 [`apps/client-web/docs/development.md`](../apps/client-web/docs/development.md#joint-dev-with-inkcreui-web)
 for the full lifecycle and release-fidelity boundary.
+
+## Registry Target Metadata
+
+`twitter/target-publish.json` describes the `inkcre/twitter@0.1.0` Web target.
+Its Module Federation, shared-host, and ES2022 conditions must track the actual client-web host;
+`pnpm test:unit` verifies that alignment. Building the remote creates a relocatable
+`dist/client-web` artifact only. Publishing it remains an approved exact-main delivery action and
+is intentionally not part of local development or this preparation slice.

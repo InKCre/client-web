@@ -194,6 +194,120 @@
         },
         "relationships": []
       },
+      "extension_installations": {
+        "columns": {
+          "config": {
+            "generated": false,
+            "has_default": true,
+            "nullable": false,
+            "type": {
+              "kind": "json"
+            }
+          },
+          "config_schema": {
+            "generated": false,
+            "has_default": true,
+            "nullable": false,
+            "type": {
+              "kind": "json"
+            }
+          },
+          "name": {
+            "generated": false,
+            "has_default": false,
+            "nullable": false,
+            "type": {
+              "kind": "string"
+            }
+          },
+          "namespace": {
+            "generated": false,
+            "has_default": false,
+            "nullable": false,
+            "type": {
+              "kind": "string"
+            }
+          },
+          "version": {
+            "generated": false,
+            "has_default": false,
+            "nullable": false,
+            "type": {
+              "kind": "string"
+            }
+          }
+        },
+        "relationships": []
+      },
+      "extension_peer_bindings": {
+        "columns": {
+          "name": {
+            "generated": false,
+            "has_default": false,
+            "nullable": false,
+            "type": {
+              "kind": "string"
+            }
+          },
+          "namespace": {
+            "generated": false,
+            "has_default": false,
+            "nullable": false,
+            "type": {
+              "kind": "string"
+            }
+          },
+          "peer_id": {
+            "generated": false,
+            "has_default": false,
+            "nullable": false,
+            "type": {
+              "format": "uuid",
+              "kind": "string"
+            }
+          },
+          "target_digest": {
+            "generated": false,
+            "has_default": false,
+            "nullable": false,
+            "type": {
+              "kind": "string"
+            }
+          },
+          "target_key": {
+            "generated": false,
+            "has_default": false,
+            "nullable": false,
+            "type": {
+              "kind": "string"
+            }
+          },
+          "version": {
+            "generated": false,
+            "has_default": false,
+            "nullable": false,
+            "type": {
+              "kind": "string"
+            }
+          }
+        },
+        "relationships": [
+          {
+            "columns": ["name", "namespace", "version"],
+            "foreign_key_name": "extension_peer_bindings_installation_fkey",
+            "one_to_one": false,
+            "referenced_columns": ["name", "namespace", "version"],
+            "referenced_relation": "extension_installations"
+          },
+          {
+            "columns": ["peer_id"],
+            "foreign_key_name": "extension_peer_bindings_peer_fkey",
+            "one_to_one": false,
+            "referenced_columns": ["id"],
+            "referenced_relation": "clients"
+          }
+        ]
+      },
       "extensions": {
         "columns": {
           "config": {
@@ -672,5 +786,5 @@
     "schema": "inkcre"
   },
   "revision": "peer-database-runtime-v1",
-  "source_revision": "02a5d2c435208bac9035071434f1dde0b5ee4c78"
+  "source_revision": "19632baa5ed1dbd8064387181e557a530a9eec84"
 }

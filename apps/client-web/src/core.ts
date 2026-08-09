@@ -7,6 +7,7 @@
 
 import {
   configStore,
+  registryExtensions,
   localStorageAdapter,
   setMFImplementation,
   TextResolver,
@@ -22,6 +23,9 @@ import * as Pinia from 'pinia'
 import * as VueRouter from 'vue-router'
 import * as VueUse from '@vueuse/core'
 import packageJson from '../package.json'
+import moduleFederationRuntimePackageJson from '@module-federation/runtime/package.json'
+import vuePackageJson from 'vue/package.json'
+import corePackageJson from '../../../packages/core/package.json'
 import ContentText from '@/components/info-base/resolvers/ContentText.vue'
 import ContentImage from '@/components/info-base/resolvers/ContentImage.vue'
 import ContentVideo from '@/components/info-base/resolvers/ContentVideo.vue'
@@ -45,6 +49,20 @@ export function setupResolvers(): void {
 }
 // Configuration
 // ============================================================================
+
+/**
+ * Concrete capabilities supplied by this static Web host. Deployment URLs are
+ * deliberately absent: Registry origin remains runtime client configuration.
+ */
+export const clientWebRegistryPlatformProfile = Object.freeze({
+  'inkcre.integration': 'module-federation-esm-v1',
+  'inkcre.extension-api': '1.0.0',
+  'module-federation.runtime': moduleFederationRuntimePackageJson.version,
+  'module-federation.share-scope': 'default',
+  'shared.vue': vuePackageJson.version,
+  'shared.@inkcre/core': corePackageJson.version,
+  'web.ecmascript': 'es2022',
+})
 
 // ============================================================================
 // Module Federation
@@ -100,7 +118,7 @@ export function initializeModuleFederation(): void {
         },
       },
       '@inkcre/core': {
-        version: '0.0.0',
+        version: corePackageJson.version,
         lib: () => InKCreCore,
         shareConfig: {
           singleton: true,
@@ -112,8 +130,11 @@ export function initializeModuleFederation(): void {
 
   // Inject MF implementation into core
   const mfImpl = {
-    registerRemotes: (remotes: Array<{ name: string; entry: string; type: string }>) => {
-      mfInstance.registerRemotes(remotes)
+    registerRemotes: (
+      remotes: Array<{ name: string; entry: string; type: 'module' | 'script' }>,
+      options?: { force?: boolean }
+    ) => {
+      mfInstance.registerRemotes(remotes, options)
     },
     loadRemote: async <T>(remoteName: string): Promise<T | null> => {
       return mfInstance.loadRemote<T>(remoteName)
@@ -121,6 +142,7 @@ export function initializeModuleFederation(): void {
   }
 
   setMFImplementation(mfImpl)
+  registryExtensions.configurePlatformProfile(clientWebRegistryPlatformProfile)
 
   console.log('[Core] Module Federation initialized')
 }

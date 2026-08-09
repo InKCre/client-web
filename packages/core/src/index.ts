@@ -31,8 +31,28 @@ export {
   loadRemote,
   isMFInitialized,
   type RemoteConfig,
+  type RegisterRemotesOptions,
   type MFImplementation,
   makeExtensionProp,
+  // Registry deployment and current-peer runtime
+  RegistryExtensionError,
+  RegistryTargetNotCompatibleError,
+  RegistryBindingConflictError,
+  RegistryBindingPersistenceError,
+  RegistryInstallationSchema,
+  RegistryPeerBindingSchema,
+  CoreRegistryInstallationApi,
+  RegistryExtensionManager,
+  registryExtensions,
+  registryRemoteName,
+  type RegistryCoordinate,
+  type RegistryInstallation,
+  type RegistryInstallationInput,
+  type RegistryPeerBinding,
+  type RegistryInstallationApi,
+  type RegistryBindingStore,
+  type RegistryExtensionManagerOptions,
+  type RuntimeExtensionModule,
 } from './extension'
 
 // Client

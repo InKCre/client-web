@@ -6,6 +6,7 @@
 - [Filesystem map](../FILESYSTEM.md)
 - [Client and local UI development](../apps/client-web/docs/development.md)
 - [Information-base architecture](info-base/ARCHITECTURE.md)
+- [Twitter Registry target delivery](twitter-registry-target-delivery.md)
 - [Shared product requirements](_shared/10-prd/index.md)
 - [Shared unit topology](_shared/20-product-tdd/unit-topology.md)
 - [Shared state and authority](_shared/20-product-tdd/system-state-and-authority.md)

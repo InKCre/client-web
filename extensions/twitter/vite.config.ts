@@ -15,6 +15,14 @@ import {
 const extensionRoot = fileURLToPath(new URL('.', import.meta.url))
 const extensionComponents = fileURLToPath(new URL('./src/components', import.meta.url))
 
+export const twitterArtifactBase = './'
+export const twitterBuildTarget = 'es2022'
+export const twitterBuildOptions = {
+  target: twitterBuildTarget,
+  outDir: 'dist/client-web',
+  sourcemap: true,
+}
+
 export default defineConfig(async ({ command }) => {
   const uiSource = await resolveUiSourceForVite(command)
   const uiSourceComponents = uiSource ? path.resolve(uiSource.root, 'src/components') : null
@@ -52,12 +60,8 @@ export default defineConfig(async ({ command }) => {
           },
         }
       : {}),
-    base: '/twitter/client-web/',
-    build: {
-      target: 'esnext',
-      outDir: 'dist/client-web',
-      sourcemap: true,
-    },
+    base: twitterArtifactBase,
+    build: twitterBuildOptions,
     css: {
       preprocessorOptions: {
         scss: {

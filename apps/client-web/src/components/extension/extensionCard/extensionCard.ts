@@ -1,14 +1,16 @@
-import { Extension, makeExtensionProp } from '@inkcre/core'
-import { makeClientRefProp } from '@inkcre/core'
+import { type PropType } from 'vue'
+import type { RegistryInstallation } from '@inkcre/core'
 
 // --- Props ---
 export const extensionCardProps = {
-  extension: makeExtensionProp(),
-  clientId: makeClientRefProp(),
-}
+  extension: { type: Object as PropType<RegistryInstallation>, required: true },
+  enabled: { type: Boolean, required: true },
+  peerId: { type: String, required: true },
+} as const
 
 // --- Emits ---
 export const extensionCardEmits = {
-  toggle: (_extension: Extension) => true,
-  'edit-config': (_extension: Extension) => true,
+  changed: () => true,
+  updated: (_extension: RegistryInstallation) => true,
+  uninstalled: () => true,
 } as const

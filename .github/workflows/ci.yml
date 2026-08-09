@@ -1,6 +1,9 @@
 name: Client checks
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
@@ -28,6 +31,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  workflow-lint:
+    name: GitHub Actions syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Go for actionlint
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.25.0'
+          cache: false
+
+      - name: Validate GitHub Actions definitions
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12 .github/workflows/*.yml
+
   core-release:
     name: Resolve stable core release
     runs-on: ubuntu-latest
@@ -131,12 +150,35 @@ jobs:
         run: pnpm audit:dependencies
 
       - name: Upload the exact static artifact
+        id: client-web-artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: client-web-dist
           path: apps/client-web/dist
           if-no-files-found: error
           retention-days: 7
+
+      - name: Upload the exact Twitter target artifact
+        id: twitter-target-artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: twitter-target-dist
+          path: extensions/twitter/dist/client-web
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Record checked artifact provenance
+        env:
+          CLIENT_WEB_ARTIFACT_DIGEST: ${{ steps.client-web-artifact.outputs['artifact-digest'] }}
+          TWITTER_TARGET_ARTIFACT_DIGEST: ${{ steps.twitter-target-artifact.outputs['artifact-digest'] }}
+        run: |
+          {
+            echo '## Checked delivery artifacts'
+            echo
+            echo "- Source SHA: \`${GITHUB_SHA}\`"
+            echo "- Client web artifact digest: \`${CLIENT_WEB_ARTIFACT_DIGEST}\`"
+            echo "- Twitter target artifact digest: \`${TWITTER_TARGET_ARTIFACT_DIGEST}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Reject a moved stable release
         run: >-

@@ -1,0 +1,11 @@
+[project]
+name = "inkcre-extension-publisher"
+version = "0.0.0"
+description = "Frozen publisher toolchain for client-web Registry delivery"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "inkcre-extension-registry[cli] @ https://github.com/InKCre/ext-reg/releases/download/v0.1.2/inkcre_extension_registry-0.1.2-py3-none-any.whl#sha256=ac8771ba3a92b5e50deee1ea6f5a81511b3e0f4d716c60e24d873c99b9641e56",
+]
+
+[tool.uv]
+required-version = "==0.12.3"
