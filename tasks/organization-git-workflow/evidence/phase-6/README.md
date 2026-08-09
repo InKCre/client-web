@@ -53,11 +53,12 @@ change product code or repository-specific CI/CD topology.
   its implementation-specific contribution guide, client-web owns its application-specific pull-
   request template, and the organization defaults cover missing files.
 
-## Remaining publication
+## Publication
 
-- The local `InKCre/.github/GOVERNANCE.md` change states the all-external fork approval rule and the
-  actual environment-job credential boundary. It requires explicit commit and push authorization.
-- The task packet and this evidence remain local until explicitly authorized for commit and push.
+- `InKCre/.github` commit `510cdd3` publishes the all-external fork approval rule and the actual
+  environment-job credential boundary directly on its non-product governance `main`.
+- Documentation-only client-web PR #53 records the completed task state and this evidence without
+  changing product code, workflows, repository settings, or delivery behavior.
 
 ## Rollback
 
