@@ -13,6 +13,7 @@ import {
   type RegistryCoordinate,
   type RegistryInstallation,
   type RegistryInstallationApi,
+  type RegistryExtensionManagerOptions,
   type RegistryPeerBinding,
 } from './registry'
 
@@ -42,6 +43,7 @@ const originalClientConfig = { ...configStore.clientConfig }
 
 afterEach(() => {
   Object.assign(configStore.clientConfig, originalClientConfig)
+  vi.unstubAllGlobals()
   vi.restoreAllMocks()
 })
 
@@ -136,6 +138,7 @@ function createHarness(
     deactivateFailure?: Error
     bindingDeleteFailure?: Error
     initialBindings?: RegistryPeerBinding[]
+    useGlobalFetch?: boolean
   } = {}
 ) {
   const events: string[] = []
@@ -202,7 +205,7 @@ function createHarness(
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     )
   }) as unknown as typeof globalThis.fetch
-  const manager = new RegistryExtensionManager({
+  const managerOptions: RegistryExtensionManagerOptions = {
     installationApi,
     bindingStore: store,
     currentPeerId: () => peerId,
@@ -210,9 +213,10 @@ function createHarness(
     registryOrigin: () => 'https://registry.example',
     registryClientFactory: () => registry,
     getMFImplementation: () => mf,
-    fetch,
     platformProfile: profile,
-  })
+  }
+  if (!options.useGlobalFetch) managerOptions.fetch = fetch
+  const manager = new RegistryExtensionManager(managerOptions)
 
   return {
     events,
@@ -315,6 +319,27 @@ describe('RegistryExtensionManager', () => {
     )
     expect(harness.events).toEqual(['register-remote', 'load-remote', 'initialize', 'activate'])
     expect(harness.store.events).toEqual(['create-binding'])
+  })
+
+  it('preserves the browser receiver required by the default fetch implementation', async () => {
+    const browserFetch = vi.fn(function (this: unknown) {
+      if (this !== globalThis) throw new TypeError('Illegal invocation')
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            artifact_format: 'module-federation-esm-v1',
+            entrypoint: 'remoteEntry.js',
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        )
+      )
+    }) as unknown as typeof globalThis.fetch
+    vi.stubGlobal('fetch', browserFetch)
+    const harness = createHarness({ useGlobalFetch: true })
+
+    await expect(harness.manager.enable(installation)).resolves.toEqual(bindingFor())
+
+    expect(browserFetch).toHaveBeenCalledOnce()
   })
 
   it('does not persist a binding when Module Federation loading fails', async () => {

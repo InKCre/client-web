@@ -65,6 +65,11 @@ Observed facts only. Decisions and remaining work are in [plan.md](plan.md).
   first checks bindings then relies on Core's authoritative guard.
 - The adapter force-registers MF remotes to clear old runtime/module caches before loading a
   re-enabled or changed exact digest.
+- Production browser acceptance reached the Web enable path and exposed a native-browser-only
+  receiver bug: storing `window.fetch` on the manager and invoking it as a member rebound `this`
+  to the manager, so Chromium rejected the immutable-manifest request with `Illegal invocation`.
+  The adapter now binds its selected fetch implementation to `globalThis`; a brand-checking
+  regression test reproduces the native receiver requirement that ordinary mock functions omit.
 - Focused core test run passed: 18 tests across Registry lifecycle, no-target/unknown-condition,
   Registry outage, 204 handling, null-self management peer, remote Core dispatch, and third-peer
   rejection. Core and client-web type checks passed at that point.

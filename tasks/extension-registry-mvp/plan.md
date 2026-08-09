@@ -21,12 +21,14 @@
 
 1. [complete] Provision the browser client's Registry origin and management Core UUID without
    changing its identity or embedding either value in static artifacts.
-2. [pending permissions] Validate Core API authorization and PostgREST RLS/grants against the
-   new tables in production.
-3. [target admitted; Pages release-intent correction pending] The exact-main Web target is public
-   and immutable. Keep strict publication behind explicit `target-publish.json` release intent so
-   unrelated Host rebuilds cannot overwrite its slot; deploy the checked Pages artifact, then run
-   a real browser digest-artifact lifecycle proof.
+2. [Core and PostgREST production paths proven] Core namespaced lifecycle APIs and browser reads
+   of the new installation/binding tables are authorized in production. Complete the browser-local
+   binding write/delete proof after the native fetch receiver correction is delivered.
+3. [target admitted; Pages release-intent correction delivered] The exact-main Web target is
+   public and immutable. Strict publication is behind explicit `target-publish.json` release
+   intent, so unrelated Host revisions deploy the checked Pages artifact without attempting to
+   overwrite the target. Deliver the browser fetch correction, then rerun the full digest-artifact
+   enable/cold-start/disable/uninstall proof.
 4. [pending migration decision] Decide whether/how legacy `extensions` records migrate to
    Registry installations; do not reinterpret its enabled UUID array.
 5. [complete] Run the full `pnpm check` after concurrent target/CD work settles.
