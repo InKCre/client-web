@@ -123,6 +123,13 @@ export class Client extends Z.class({
     resBodySchema?: { parse<T>(input: unknown): T }
   }): Promise<T> {
     const { method, path, body, query, resBodySchema } = options
+    const parseSuccessfulResponse = async (response: Response): Promise<T> => {
+      if (response.status === 204) {
+        return undefined as T
+      }
+      const responseData = await response.json()
+      return resBodySchema ? resBodySchema.parse(responseData) : responseData
+    }
 
     if (!this.rest_api_url) {
       throw new Error(`Client ${this.id} does not have a REST API URL configured.`)
@@ -187,8 +194,7 @@ export class Client extends Z.class({
             })
 
             if (retryResponse.ok) {
-              const retryData = await retryResponse.json()
-              return resBodySchema ? resBodySchema.parse(retryData) : retryData
+              return parseSuccessfulResponse(retryResponse)
             }
           } catch (retryError) {
             console.warn('[Client] Token refresh and retry failed:', retryError)
@@ -198,8 +204,7 @@ export class Client extends Z.class({
         throw new APIError(errorMessage, response.status, responseData)
       }
 
-      const responseData = await response.json()
-      return resBodySchema ? resBodySchema.parse(responseData) : responseData
+      return parseSuccessfulResponse(response)
     } catch (error) {
       if (error instanceof APIError) {
         throw error

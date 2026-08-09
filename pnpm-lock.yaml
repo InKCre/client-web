@@ -398,6 +398,9 @@ importers:
 
   packages/core:
     dependencies:
+      '@inkcre/extension-runtime':
+        specifier: https://github.com/InKCre/ext-reg/releases/download/v0.1.2/inkcre-extension-runtime-0.1.2.tgz
+        version: https://github.com/InKCre/ext-reg/releases/download/v0.1.2/inkcre-extension-runtime-0.1.2.tgz
       '@supabase/postgrest-js':
         specifier: ^2.84.0
         version: 2.110.8
@@ -1061,6 +1064,10 @@ packages:
 
   '@iconify/utils@3.1.4':
     resolution: {integrity: sha512-b1S7B1k9ohZ+iNTi2ATxbRYG9fTrJmUT0rc46bvVnNxqNRGW7dyo/vRREwyniI5IRN2RSJHDcm+s3BjWrSAjHw==}
+
+  '@inkcre/extension-runtime@https://github.com/InKCre/ext-reg/releases/download/v0.1.2/inkcre-extension-runtime-0.1.2.tgz':
+    resolution: {integrity: sha512-8FguGaayojcdPvw3iHdmpUD/8LJqbOuQJBUec1E/ra4WoVOXlqbOtOYuUmKpAoRXxaicSkda4wYIVLtlQ+DQUw==, tarball: https://github.com/InKCre/ext-reg/releases/download/v0.1.2/inkcre-extension-runtime-0.1.2.tgz}
+    version: 0.1.2
 
   '@inkcre/ui-web@1.2.2':
     resolution: {integrity: sha512-26u+VHciYNpPN9BHwwMoqqPWPN56JsNoa1n5ZkfY7aE5Rq/UwUuVgrWpY1tfzRBo9ec+Fvu1IT4lBj8xLhs9ug==, tarball: https://npm.pkg.github.com/download/@inkcre/ui-web/1.2.2/4065deb9bacb8dfbcfc16bf2611376a8b7f183d0}
@@ -6947,6 +6954,10 @@ snapshots:
       '@antfu/install-pkg': 1.1.0
       '@iconify/types': 2.0.0
       import-meta-resolve: 4.2.0
+
+  '@inkcre/extension-runtime@https://github.com/InKCre/ext-reg/releases/download/v0.1.2/inkcre-extension-runtime-0.1.2.tgz':
+    dependencies:
+      semver: 7.8.5
 
   '@inkcre/ui-web@1.2.2(@codemirror/autocomplete@6.20.3)(@codemirror/commands@6.10.4)(@codemirror/lang-json@6.0.2)(@codemirror/lint@6.9.7)(@codemirror/state@6.7.1)(@codemirror/view@6.43.6)(@vueuse/core@14.3.0(vue@3.5.40(typescript@5.9.3)))(dayjs@1.11.21)(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)))(vscode-json-languageservice@5.7.2)(vscode-languageserver-textdocument@1.0.12)(vue-router@4.5.1(vue@3.5.40(typescript@5.9.3)))(vue@3.5.40(typescript@5.9.3))':
     dependencies:

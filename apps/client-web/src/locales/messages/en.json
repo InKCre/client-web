@@ -74,11 +74,17 @@
   "extension": {
     "installNew": "Install Extension",
     "installExtensionTitle": "Install New Extension",
-    "extensionId": "Extension ID",
+    "namespace": "Namespace",
+    "name": "Name",
     "version": "Version",
+    "versionPlaceholder": "exact version, for example 0.1.0",
+    "peer": "Peer",
+    "selectPeer": "Select the current Web peer or configured Core peer",
+    "peerHelp": "The current Web peer loads Module Federation locally. The only remote option is the deployment-configured Core management peer.",
     "editConfig": "Edit Config",
     "editConfigTitle": "Edit Extension Configuration",
-    "versionPlaceholder": "like 0.1.0 or optional for latest"
+    "uninstall": "Uninstall",
+    "uninstallDisabled": "Disable this peer before uninstalling. Other peer bindings also prevent removal."
   },
   "collectJob": {
     "title": "Collect Job Details",

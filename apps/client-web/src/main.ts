@@ -20,12 +20,13 @@ import { initializeCore } from './core'
 await initializeCore()
 app.mount('#app')
 
-// Initialize Extension
-import { Extension } from '@inkcre/core'
-Extension.startup().catch((error) => {
-  console.error('[Extension] Startup failed:', error)
+// Registry lifecycle restores only persisted bindings for this current peer.
+// The legacy `Extension` adapter is intentionally not booted during migration.
+import { registryExtensions } from '@inkcre/core'
+registryExtensions.startup().catch((error) => {
+  console.error('[Registry Extension] Startup failed:', error)
 })
 
 window.addEventListener('beforeunload', () => {
-  void Extension.shutdown()
+  void registryExtensions.shutdown()
 })
