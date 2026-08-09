@@ -54,6 +54,10 @@ Observed facts only. Decisions and remaining work are in [plan.md](plan.md).
   deployment-injected `extension_management_peer_id` UUIDs. It contains no production default.
 - `Client.request()` now treats successful 204 responses as `undefined`, including after a 401
   retry; this is required for Core uninstall.
+- Production browser acceptance exposed that a valid Core `rest_api_url` ending in `/` was joined
+  with an absolute request path as `//extension-installations`, which Heroku rejected with 404.
+  The shared Client URL join now normalizes boundary slashes for both health and API requests; its
+  regression test uses the production-shaped trailing-slash base URL.
 - The Registry adapter keeps legacy `Extension` isolated. It writes a local binding only after
   MF load/initialize/activate succeeds; on persistence failure it compensates runtime. Disable
   retains the binding if cleanup fails. If cleanup succeeds but deleting the binding fails, it

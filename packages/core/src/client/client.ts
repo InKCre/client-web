@@ -10,6 +10,10 @@ export const makeClientProp = (v?: any) => makeObjectProp<Client>(v)
 export const makeClientRefProp = (v?: any) => makeStringProp<ClientRef>(v)
 export const ClientRefZ = z.uuid()
 
+function restApiUrl(baseUrl: string, path: string): URL {
+  return new URL(`${baseUrl.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`)
+}
+
 /**
  * Client Active Record
  *
@@ -89,7 +93,7 @@ export class Client extends Z.class({
       return 'offline'
     }
     try {
-      const response = await fetch(`${this.rest_api_url}/health`, {
+      const response = await fetch(restApiUrl(this.rest_api_url, '/health'), {
         method: 'GET',
         signal: AbortSignal.timeout(5000), // 5s timeout
       })
@@ -135,7 +139,7 @@ export class Client extends Z.class({
       throw new Error(`Client ${this.id} does not have a REST API URL configured.`)
     }
 
-    const url = new URL(`${this.rest_api_url}${path}`)
+    const url = restApiUrl(this.rest_api_url, path)
     const headers = await this.getAuthHeaders()
 
     const config: RequestInit = {
