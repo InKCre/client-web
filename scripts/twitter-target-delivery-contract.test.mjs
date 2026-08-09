@@ -217,6 +217,12 @@ test('proves an idempotent same-digest rerun retains first target provenance', a
     )
     assert.ok(productionBrowserRequests.some((requestPath) => requestPath.endsWith('/manifest')))
     assert.ok(productionBrowserRequests.some((requestPath) => requestPath.includes('/files/')))
+    assert.ok(
+      productionBrowserRequests
+        .filter((requestPath) => requestPath.includes('/v1/artifacts/'))
+        .every((requestPath) => requestPath.includes(`/artifacts/${local.target_digest}/`))
+    )
+    assert.ok(productionBrowserRequests.every((requestPath) => !requestPath.includes('sha256%3A')))
   } finally {
     await rm(fixture.root, { recursive: true, force: true })
   }
