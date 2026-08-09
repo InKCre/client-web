@@ -3,7 +3,7 @@
 - **Objective**: move client-web from the legacy `extensions` transition model to the
   Registry installation and current-peer binding contract without embedding deployment
   addresses or guessing peer authority.
-- **Immutable inputs**: ext-reg Runtime/API `v0.1.2`; Core Registry implementation PR #47
+- **Immutable inputs**: ext-reg Runtime/API `v0.1.3`; Core Registry implementation PR #47
   merged at `19632baa`; generated contracts came from its exact image
   `ghcr.io/inkcre/core-py@sha256:b8f43a7a9a558e6bb4d86e2d31baffe826a250dcdf32c9faf457a279e836ad10`;
   the subsequently verified production image is

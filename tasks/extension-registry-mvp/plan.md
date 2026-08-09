@@ -16,6 +16,8 @@
 6. [complete] Add focused regression coverage for Registry outage, missing/unknown target,
    MF failure atomicity, cleanup failure, uninstall guard, management-peer null-self, third-peer
    rejection, MF force registration, and 204 Core responses.
+7. [complete] Consume Runtime/API `0.1.3`, whose public `RegistryClient` preserves the browser
+   receiver required by native `fetch`; keep the Host-side receiver correction as defense in depth.
 
 ## Remaining Acceptance Work
 
@@ -23,11 +25,11 @@
    changing its identity or embedding either value in static artifacts.
 2. [Core and PostgREST production paths proven] Core namespaced lifecycle APIs and browser reads
    of the new installation/binding tables are authorized in production. Complete the browser-local
-   binding write/delete proof after the native fetch receiver correction is delivered.
+   binding write/delete proof after the Runtime/API `0.1.3` client delivery completes.
 3. [target admitted; Pages release-intent correction delivered] The exact-main Web target is
    public and immutable. Strict publication is behind explicit `target-publish.json` release
    intent, so unrelated Host revisions deploy the checked Pages artifact without attempting to
-   overwrite the target. Deliver the browser fetch correction, then rerun the full digest-artifact
+   overwrite the target. Deliver Runtime/API `0.1.3`, then rerun the full digest-artifact
    enable/cold-start/disable/uninstall proof.
 4. [pending migration decision] Decide whether/how legacy `extensions` records migrate to
    Registry installations; do not reinterpret its enabled UUID array.
