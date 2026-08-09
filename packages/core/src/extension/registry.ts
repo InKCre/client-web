@@ -289,7 +289,7 @@ export class RegistryExtensionManager {
     this.registryClientFactory =
       options.registryClientFactory ?? ((origin) => new RegistryClient(origin))
     this.getMfImplementation = options.getMFImplementation ?? getMFImplementation
-    this.fetchImplementation = options.fetch ?? globalThis.fetch
+    this.fetchImplementation = (options.fetch ?? globalThis.fetch).bind(globalThis)
     this.platformProfile = options.platformProfile
   }
 
