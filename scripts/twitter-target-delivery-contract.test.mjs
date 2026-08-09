@@ -256,7 +256,7 @@ test('locks target delivery to checked main artifacts and the immutable publishe
     /git diff --quiet "\$\{SOURCE_SHA\}\^" "\$SOURCE_SHA" -- extensions\/twitter\/target-publish\.json/
   )
   assert.match(delivery, /target-publish\.json must change with Twitter target sources/)
-  assert.match(delivery, /'\:\(exclude\)extensions\/twitter\/target-publish\.json'/)
+  assert.match(delivery, /':\(exclude\)extensions\/twitter\/target-publish\.json'/)
   assert.match(delivery, /Cannot prove Twitter release intent without the checked revision parent/)
 
   const workflowStep = (name) => {
