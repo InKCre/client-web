@@ -145,11 +145,14 @@ function createHarness(
   }
   store.deleteFailure = options.bindingDeleteFailure
 
+  const getInstallation = vi.fn(async () => installation)
+  const install = vi.fn(async () => installation)
+  const uninstall = vi.fn(async () => undefined)
   const installationApi: RegistryInstallationApi = {
     list: vi.fn(async () => [installation]),
-    get: vi.fn(async () => installation),
-    install: vi.fn(async () => installation),
-    uninstall: vi.fn(async () => undefined),
+    get: getInstallation,
+    install,
+    uninstall,
     updateConfig: vi.fn(async () => installation),
   }
   const registry = {
@@ -215,6 +218,9 @@ function createHarness(
     events,
     store,
     installationApi,
+    getInstallation,
+    install,
+    uninstall,
     registry,
     registerRemotes,
     loadRemote,
@@ -230,14 +236,14 @@ describe('RegistryExtensionManager', () => {
       extension_management_peer_id: managementPeerId,
     })
     const request = vi.fn(async () => [])
-    vi.spyOn(Client, 'get').mockResolvedValue({ request } as unknown as Client)
+    const get = vi.spyOn(Client, 'get').mockResolvedValue({ request } as unknown as Client)
     const getSelf = vi
       .spyOn(Client, 'getSelf')
       .mockRejectedValue(new Error('browser self row has rest_api_url=null'))
 
     await expect(new CoreRegistryInstallationApi().list()).resolves.toEqual([])
 
-    expect(Client.get).toHaveBeenCalledWith(managementPeerId)
+    expect(get).toHaveBeenCalledWith(managementPeerId)
     expect(getSelf).not.toHaveBeenCalled()
   })
 
@@ -354,7 +360,7 @@ describe('RegistryExtensionManager', () => {
 
     await expect(harness.manager.install(installation)).rejects.toThrow('registry outage')
 
-    expect(harness.installationApi.install).not.toHaveBeenCalled()
+    expect(harness.install).not.toHaveBeenCalled()
   })
 
   it('cleans up runtime before deleting the current peer binding', async () => {
@@ -407,7 +413,7 @@ describe('RegistryExtensionManager', () => {
       RegistryBindingConflictError
     )
 
-    expect(harness.installationApi.uninstall).not.toHaveBeenCalled()
+    expect(harness.uninstall).not.toHaveBeenCalled()
   })
 
   it('starts only current-peer bindings without re-resolving the mutable release', async () => {
@@ -417,7 +423,7 @@ describe('RegistryExtensionManager', () => {
 
     expect(harness.store.listedPeers).toEqual([peerId])
     expect(harness.registry.getPublishedRelease).not.toHaveBeenCalled()
-    expect(harness.installationApi.get).not.toHaveBeenCalled()
+    expect(harness.getInstallation).not.toHaveBeenCalled()
     expect(harness.loadRemote).toHaveBeenCalledOnce()
   })
 })
