@@ -53,7 +53,7 @@
     "id": "ID",
     "collectAt": "Collect At",
     "config": "Config",
-    "collectJobs": "Collect Jobs",
+    "jobs": "Jobs",
     "newJob": "New Job",
     "newJobTitle": "Create New Collect Job",
     "newJobDescription": "Create a new collect job for this source. The job will be queued and executed as soon as possible.",
@@ -80,8 +80,8 @@
     "editConfigTitle": "Edit Extension Configuration",
     "versionPlaceholder": "like 0.1.0 or optional for latest"
   },
-  "collectJob": {
-    "title": "Collect Job Details",
+  "job": {
+    "title": "Job Details",
     "jobId": "Job ID",
     "status": "Status",
     "source": "Source",
@@ -95,7 +95,7 @@
     "stop": "Stop",
     "retry": "Retry",
     "notAvailable": "N/A",
-    "notFound": "Collect job not found",
+    "notFound": "Job not found",
     "sourceNotFound": "Source not found"
   },
   "logs": {
@@ -117,21 +117,25 @@
     "editConfig": "Edit Config"
   },
   "infoBase": {
-    "blockDetails": {
-      "title": "Block Details",
+    "blockInspector": {
+      "title": "Block Inspector",
       "id": "ID",
       "resolver": "Resolver",
       "created": "Created At",
       "updated": "Updated At",
       "storage": "Storage",
-      "content": "Content",
-      "noContent": "No content",
+      "missing": "Block #{block} no longer exists.",
+      "viewContent": "View content",
       "ruminate": "Ruminate",
       "rumination": {
         "success": "The info base was reconsidered and the graph was refreshed.",
         "error": "Rumination failed. The graph was not changed by a confirmed result.",
         "outcome-unknown": "The provider may have completed the request. Refresh and inspect the graph before trying again."
       }
+    },
+    "solvedContent": {
+      "title": "Content",
+      "missing": "Block #{block} no longer exists."
     },
     "graph": {
       "empty": "No blocks to display",

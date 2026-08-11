@@ -1,0 +1,210 @@
+<script setup lang="ts">
+import { computed, ref, watch, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { useAsyncState } from '@vueuse/core'
+import { useEAsyncState } from '@/composables/use-async-state'
+import { InkLoading, InkButton, InkField } from '@inkcre/ui-web'
+import LogsViewer from '@/components/obsrv/LogsViewer/LogsViewer.vue'
+import { Job, JobStatus, Source } from '@inkcre/core'
+import dayjs from 'dayjs'
+
+const route = useRoute()
+const { t } = useI18n()
+
+// --- data ---
+const jobId = computed(() => Number(route.params.id))
+const pollingInterval = computed(() => (isRunning.value ? 1500 : 5000))
+const jobPollingIntervalId = ref<ReturnType<typeof setInterval> | null>(null)
+
+const {
+  state: job,
+  isLoading: jobLoading,
+  execute: refetchJob,
+} = useEAsyncState(() => Job.get(jobId.value), null, {
+  immediate: true,
+  useLast: true,
+})
+
+const {
+  state: source,
+  execute: refetchSource,
+  isLoading: sourceLoading,
+} = useAsyncState(
+  async () => {
+    const sourceRef = job.value?.parameters.source
+    if (typeof sourceRef === 'number') {
+      return await Source.get(sourceRef)
+    }
+    return null
+  },
+  null,
+  { shallow: false }
+)
+
+// --- logs ---
+const enableLogsPolling = computed(() => isRunning.value)
+
+// --- computed ---
+const isRunning = computed(() => job.value?.status === JobStatus.RUNNING)
+
+const formattedState = computed(() => {
+  return JSON.stringify(job.value?.state || {}, null, 2)
+})
+
+const statusColor = computed(() => {
+  if (!job.value) return ''
+  switch (job.value.status) {
+    case JobStatus.PENDING:
+      return 'status--pending'
+    case JobStatus.RUNNING:
+      return 'status--running'
+    case JobStatus.FINISHED:
+      return 'status--finished'
+    case JobStatus.FAILED:
+      return 'status--failed'
+    default:
+      return ''
+  }
+})
+
+// --- methods ---
+const formatDate = (date: Date | null) => {
+  if (!date) return t('job.notAvailable')
+  return dayjs(date).format('YYYY-MM-DD HH:mm:ss')
+}
+
+// --- watchers ---
+watch(
+  () => job.value?.parameters.source,
+  (newSourceId) => {
+    if (newSourceId) {
+      refetchSource()
+    }
+  },
+  { immediate: true }
+)
+
+watch(
+  [() => job.value?.status, () => job.value?.isTerminal],
+  ([newStatus]) => {
+    if (!newStatus || job.value?.isTerminal) {
+      // Clear polling when job reaches final state or status becomes null
+      if (jobPollingIntervalId.value) {
+        clearInterval(jobPollingIntervalId.value)
+        jobPollingIntervalId.value = null
+      }
+      return
+    }
+
+    // Start polling if not already running
+    if (!jobPollingIntervalId.value) {
+      jobPollingIntervalId.value = setInterval(() => {
+        refetchJob()
+      }, pollingInterval.value)
+    }
+  },
+  { immediate: true }
+)
+
+watch(
+  () => pollingInterval.value,
+  (newInterval) => {
+    // Update interval if polling is active and not in final state
+    if (jobPollingIntervalId.value && !job.value?.isTerminal) {
+      clearInterval(jobPollingIntervalId.value)
+      jobPollingIntervalId.value = setInterval(() => {
+        refetchJob()
+      }, newInterval)
+    }
+  }
+)
+
+// Clean up interval on component unmount
+onUnmounted(() => {
+  if (jobPollingIntervalId.value) {
+    clearInterval(jobPollingIntervalId.value)
+  }
+})
+</script>
+
+<template>
+  <main class="job-view">
+    <div v-if="!job" class="job-view__loading">
+      <InkLoading />
+    </div>
+    <!-- Content -->
+    <template v-else-if="job">
+      <!-- Left Section: Metadata -->
+      <section class="job-view__metadata">
+        <div class="metadata__header">
+          <h2 class="metadata__title">{{ t('job.title') }}</h2>
+        </div>
+
+        <InkField :label="t('job.jobId')">
+          <span class="metadata__value">{{ job.id }}</span>
+        </InkField>
+
+        <InkField :label="t('job.status')">
+          <div class="flex items-center gap-2">
+            <span class="metadata__value" :class="statusColor">
+              {{ job.status }}
+            </span>
+            <span class="i-mdi-refresh" :class="{ 'animate-spin': jobLoading }" />
+          </div>
+        </InkField>
+
+        <InkField :label="t('job.source')">
+          <div v-if="sourceLoading" class="metadata__value">
+            {{ t('common.loading') }}
+          </div>
+          <div v-else-if="source" class="metadata__value">
+            <div class="source-info">
+              <span class="source-info__type">{{ source.type }}</span>
+              <span class="source-info__nickname">{{ source.nickname }}</span>
+              <span class="source-info__id">#{{ source.id }}</span>
+            </div>
+          </div>
+          <span v-else class="metadata__value">
+            {{ t('job.sourceNotFound') }}
+          </span>
+        </InkField>
+
+        <InkField :label="t('job.createdAt')">
+          <span class="metadata__value">{{ formatDate(job.created_at) }}</span>
+        </InkField>
+
+        <InkField :label="t('job.startedAt')">
+          <span class="metadata__value">{{ formatDate(job.started_at) }}</span>
+        </InkField>
+
+        <InkField :label="t('job.closedAt')">
+          <span class="metadata__value">{{ formatDate(job.closed_at) }}</span>
+        </InkField>
+
+        <InkField :label="t('job.state')">
+          <pre class="metadata__value whitespace-pre">{{ formattedState }}</pre>
+        </InkField>
+      </section>
+
+      <!-- Right Section: Logs -->
+      <section class="job-view__logs">
+        <h3 class="job-view__logs__title">{{ t('logs.title') }}</h3>
+        <LogsViewer
+          v-if="job"
+          class="flex-1 w-full"
+          :trace-id="`job.${job.id}`"
+          :enable-polling="enableLogsPolling"
+          :polling-interval="pollingInterval"
+        />
+      </section>
+    </template>
+    <!-- TODO: use inkPlaceholder -->
+    <div v-else class="job-view__error">
+      <span>{{ t('job.notFound') }}</span>
+      <InkButton :text="t('common.back')" theme="subtle" size="sm" @click="$router.back()" />
+    </div>
+  </main>
+</template>
+
+<style lang="scss" scoped src="./job.scss" />

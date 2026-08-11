@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { type Tweet } from '../../schema'
-import type { ContentCompProps } from '@inkcre/core'
+import type { SolvedContentRendererProps } from '@inkcre/core'
 
-const props = defineProps<ContentCompProps<Tweet>>()
+const props = defineProps<SolvedContentRendererProps<Tweet>>()
 
 // Track failed image loads
 const failedAttachments = ref<Set<number>>(new Set())

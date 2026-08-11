@@ -387,7 +387,9 @@ export async function runtimeIsReady(state, timeout = 3000) {
 }
 
 async function createPeerToken(secret) {
-  const contract = await readJson(`${repoRoot}/contracts/core-py-contract.json`)
+  const contract = await readJson(
+    `${repoRoot}/packages/core/src/database/runtime-contract.generated.json`
+  )
   const now = Math.floor(Date.now() / 1000)
   return new SignJWT({ role: contract.jwt.role })
     .setProtectedHeader({ alg: contract.jwt.algorithm })

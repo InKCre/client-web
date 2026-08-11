@@ -9,6 +9,8 @@ export class SourceType extends Z.class({
   id: SourceTypeRefZ,
   description: z.string(),
   config_schema: z.looseObject({}).default(() => ({})),
+  collect_config_schema: z.looseObject({}).default(() => ({})),
+  backfill_config_schema: z.looseObject({}).nullable(),
 }) {
   static dbApi: DBAPIClient<'sources_types', SourceType> = new DBAPIClient<
     'sources_types',

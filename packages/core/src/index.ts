@@ -51,6 +51,7 @@ export {
   type JsonValue,
   type PeerProtocolRequest,
   type PeerProtocolResponse,
+  PeerProtocolResponseSchema,
   type PeerRef,
   makePeerProp,
   makePeerRefProp,
@@ -78,16 +79,28 @@ export {
   Source,
   SourceForm,
   SourceType,
-  CollectAt,
-  SourceCollectJob,
-  SourceCollectJobForm,
-  SourceCollectJobStatus,
+  SourceManager,
+  SOURCE_COLLECT_JOB_TYPE,
+  SOURCE_BACKFILL_JOB_TYPE,
+  type SourceImplementation,
   type SourceRef,
   type SourceTypeRef,
-  type SourceCollectJobRef,
   makeSourceProp,
   makeSourceRefProp,
 } from './source'
+
+// Durable background execution and recurring definitions
+export {
+  Job,
+  JobType,
+  JobManager,
+  JobStatus,
+  DuplicateJobHandlerError,
+  type JobHandler,
+  type JobRef,
+  type JobTypeRef,
+} from './job'
+export { Cron, CronForm } from './cron'
 
 // Observability
 export { Log, type LogRef } from './obsrv'
@@ -107,7 +120,11 @@ export {
   makeRelationRefProp,
   // Resolver protocols
   type ResolverContentState,
-  type ContentCompProps,
+  type SolvedContentRendererProps,
+  type InfoBaseRoute,
+  type InfoBaseRouter,
+  setInfoBaseRouter,
+  getInfoBaseRouter,
   // Resolver implementations
   Resolver,
   ResolverCache,

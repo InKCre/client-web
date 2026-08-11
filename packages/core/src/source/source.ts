@@ -2,8 +2,6 @@ import { z } from 'zod'
 import { Z } from 'zod-class'
 import { DBAPIClient } from '../base/db-api'
 import { makeNumberProp, makeObjectProp } from '../utils/vue-props'
-import { zinstance } from '../utils/zinstance'
-import { CollectAt } from './collect-at'
 import { SourceTypeRefZ } from './source-type'
 
 export type SourceRef = number
@@ -14,9 +12,13 @@ export const SourceRefZ = z.number()
 export class Source extends Z.class({
   id: SourceRefZ,
   type: SourceTypeRefZ,
-  nickname: z.string(),
+  nickname: z.string().nullable(),
   config: z.looseObject({}).default(() => ({})),
-  collect_at: zinstance<CollectAt>(CollectAt).nullable(),
+  state: z.looseObject({}).default(() => ({})),
+  storage: z.number().int().nullable(),
+  block: z.number().int().nullable(),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date(),
 }) {
   static dbApi: DBAPIClient<'sources', Source> = new DBAPIClient<'sources', Source>(
     'sources',
@@ -41,8 +43,11 @@ export class Source extends Z.class({
 }
 
 export class SourceForm extends Z.class({
-  ...Source.shape,
-  id: z.undefined(),
+  type: SourceTypeRefZ,
+  nickname: z.string().nullable().default(null),
+  config: z.looseObject({}).default(() => ({})),
+  state: z.looseObject({}).default(() => ({})),
+  storage: z.number().int().nullable().default(null),
 }) {
   public async create() {
     return Source.parse((await Source.dbApi.insert(this).select().single()).data)

@@ -7,7 +7,7 @@
  *
  * Architecture:
  * - Resolver instances are created per-block with optional relations
- * - Each resolver has a contentComp Vue component for rendering
+ * - Each resolver has a presentation-neutral solvedContentRenderer
  * - Resolver stores resolver classes statically and provides factory methods
  * - This implementation integrates with Block, Relation, and Storage models
  */
@@ -39,12 +39,15 @@ export interface ResolverContentState {
 // ============================================================================
 
 /**
- * Props passed to contentComp Vue components.
+ * Props passed to presentation-neutral solved-content renderers.
  * Components receive the resolver instance and pre-resolved content.
  */
-export interface ContentCompProps<SolvedContentT = any> {
+export interface SolvedContentRendererProps<
+  SolvedContentT = any,
+  ResolverT extends Resolver<any, SolvedContentT> = Resolver<any, SolvedContentT>,
+> {
   /** The resolver instance (provides access to block and relations) */
-  resolver: Resolver<any, SolvedContentT>
+  resolver: ResolverT
   solvedContent: SolvedContentT
 }
 
@@ -55,7 +58,7 @@ export interface ContentCompProps<SolvedContentT = any> {
 export interface ResolverClass {
   new (block: Block, relations?: Relation[]): Resolver
   readonly type: string
-  contentComp: Component
+  solvedContentRenderer: Component
 }
 
 /**
@@ -65,7 +68,7 @@ export interface ResolverClass {
  * This class merges the protocol-level BaseResolver with info-base-specific DB integration.
  *
  * Subclasses must:
- * - Set static `type` and `contentComp`
+ * - Set static `type` and `solvedContentRenderer`
  * - Override `_getSolvedContent()` for content transformation
  *
  * @template RawContentT - The type of raw content from storage
@@ -76,7 +79,7 @@ export abstract class Resolver<RawContentT = unknown, SolvedContentT = RawConten
   static readonly type: string
 
   /** Vue component for rendering - settable by applications */
-  static contentComp: Component
+  static solvedContentRenderer: Component
 
   private static resolverClasses: Map<string, ResolverClass> = new Map()
   static register(type: string, resolverClass: ResolverClass): void {

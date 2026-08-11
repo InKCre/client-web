@@ -1,0 +1,117 @@
+.job-view {
+  display: flex;
+  flex-direction: row;
+  gap: sys-var(space, xl);
+  flex: 1;
+  min-width: 0;
+  align-items: flex-start;
+  box-sizing: border-box;
+  padding: sys-var(space, lg) sys-var(space, xl);
+  background: sys-var(color, surface, base);
+
+  &__loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+  }
+
+  &__error {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, md);
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    @include apply-font(body-lg);
+    color: sys-var(color, text, subtle);
+  }
+
+  &__metadata {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, md);
+    padding: sys-var(space, lg);
+    border: 1px solid sys-var(color, border, base);
+    box-sizing: border-box;
+    min-width: 280px;
+    max-width: 40%;
+  }
+
+  &__logs {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, md);
+    padding: sys-var(space, lg);
+    border: 1px solid sys-var(color, border, base);
+    box-sizing: border-box;
+    align-self: stretch;
+    flex: 1;
+    max-width: 60%;
+    min-width: 360px;
+
+    &__title {
+      @include apply-font(title-sm);
+      color: sys-var(color, text, base);
+      margin: 0;
+    }
+  }
+}
+
+.metadata {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: sys-var(space, md);
+  }
+
+  &__title {
+    @include apply-font(title-sm);
+    color: sys-var(color, text, base);
+    margin: 0;
+  }
+
+  &__value {
+    @include apply-font(label-lg);
+    color: sys-var(color, text, base);
+    overflow-x: auto;
+
+    &.status--pending {
+      color: sys-var(color, warning, base);
+    }
+
+    &.status--running {
+      color: sys-var(color, info, base);
+    }
+
+    &.status--finished {
+      color: sys-var(color, success, base);
+    }
+
+    &.status--failed {
+      color: sys-var(color, danger, base);
+    }
+  }
+}
+
+.source-info {
+  display: flex;
+  flex-direction: column;
+  gap: sys-var(space, xs);
+
+  &__type {
+    @include apply-font(label-md);
+    color: sys-var(color, text, subtle);
+  }
+
+  &__nickname {
+    @include apply-font(body-md);
+    color: sys-var(color, text, base);
+  }
+
+  &__id {
+    @include apply-font(label-sm, mono);
+    color: sys-var(color, text, subtle);
+  }
+}

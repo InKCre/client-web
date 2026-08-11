@@ -20,6 +20,7 @@ import {
   HtmlResolver,
   ZipResolver,
   PeerManager,
+  JobManager,
 } from '@inkcre/core'
 import { createInstance } from '@module-federation/enhanced/runtime'
 import * as InKCreCore from '@inkcre/core'
@@ -45,15 +46,15 @@ import ContentFile from '@/components/info-base/resolvers/ContentFile.vue'
  * Each resolver needs a Vue component to render content.
  */
 export function setupResolvers(): void {
-  TextResolver.contentComp = ContentText
-  AudioResolver.contentComp = ContentAudio
-  EpubResolver.contentComp = ContentFile
-  FileResolver.contentComp = ContentFile
-  ImageResolver.contentComp = ContentImage
-  PdfResolver.contentComp = ContentFile
-  VideoResolver.contentComp = ContentVideo
-  HtmlResolver.contentComp = ContentHtml
-  ZipResolver.contentComp = ContentFile
+  TextResolver.solvedContentRenderer = ContentText
+  AudioResolver.solvedContentRenderer = ContentAudio
+  EpubResolver.solvedContentRenderer = ContentFile
+  FileResolver.solvedContentRenderer = ContentFile
+  ImageResolver.solvedContentRenderer = ContentImage
+  PdfResolver.solvedContentRenderer = ContentFile
+  VideoResolver.solvedContentRenderer = ContentVideo
+  HtmlResolver.solvedContentRenderer = ContentHtml
+  ZipResolver.solvedContentRenderer = ContentFile
   registerCoreResolvers()
 
   console.log('[Core] Resolver components registered')
@@ -152,7 +153,12 @@ export async function initializeCore(): Promise<void> {
   await configStore.initializeMeta(localStorageAdapter)
   await configStore.loadPeerConfig()
   PeerManager.setupBuiltinOutbounds()
+  JobManager.startWorker()
   setupResolvers()
   initializeModuleFederation()
   console.log('[Core] Initialization complete')
+}
+
+export function shutdownCore(): void {
+  JobManager.stopWorker()
 }

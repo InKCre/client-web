@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { ContentCompProps, VideoSolvedContent } from '@inkcre/core'
+import type { SolvedContentRendererProps, VideoSolvedContent } from '@inkcre/core'
 
-defineProps<ContentCompProps<VideoSolvedContent>>()
+defineProps<SolvedContentRendererProps<VideoSolvedContent>>()
 </script>
 
 <template>

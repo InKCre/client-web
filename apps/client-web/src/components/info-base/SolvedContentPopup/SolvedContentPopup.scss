@@ -1,0 +1,39 @@
+.solved-content-popup {
+  display: flex;
+  flex-direction: column;
+  width: min(900px, 94vw);
+  max-height: 88vh;
+  background: var(--ink-bg-primary, #fff);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--ink-border-primary, #e5e7eb);
+
+    h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+  }
+
+  &__controls {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__content {
+    overflow: auto;
+    padding: 20px;
+  }
+
+  &__state {
+    display: flex;
+    min-height: 240px;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: var(--ink-text-secondary, #6b7280);
+  }
+}

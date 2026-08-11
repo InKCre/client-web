@@ -1,6 +1,7 @@
 // Models
 export * from './block'
 export * from './relation'
+export * from './router'
 
 // Resolvers
 export * as resolvers from './resolvers'
@@ -19,7 +20,7 @@ export {
   registerCoreResolvers,
   // Resolver base types and utilities
   type ResolverContentState,
-  type ContentCompProps,
+  type SolvedContentRendererProps,
   CORE_RESOLVER_IDS,
   DuplicateResolverRegistrationError,
   ResolverContractError,

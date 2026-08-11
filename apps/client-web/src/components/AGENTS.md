@@ -9,7 +9,8 @@ Read [/.github/instructions/component.instructions.md](/.github/instructions/com
 - extension: extensionCard, installExtension
 - info-base: BlockNode, BlockDetailsPanel, resolvers/*
 - obsrv: LogEntry, LogsViewer
-- source: sourceCard, sourceForm, collectAtForm, collectJobForm
+- source: sourceCard, sourceForm
+- job: JobCard
 
 ## Component Pattern
 
