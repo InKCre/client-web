@@ -9,11 +9,13 @@
   the subsequently verified production image is
   `ghcr.io/inkcre/core-py@sha256:1de46f335de355a8a9eb27e2784089b4cdef35ad66d64788ae233a1cdf80e670`;
   both expose migration `f2a6c8e4b1d7` and the same database contract.
-- **Generated contract evidence**: the previously generated files still describe the rejected
-  installation/binding schema. Core main `34914b6` is now production-admitted as exact image
+- **Generated contract evidence**: Core main `34914b6` is production-admitted as exact image
   `ghcr.io/inkcre/core-py@sha256:eaed6a4059020087a1ff5e83524478d74cd7455544c01f565927d543944104a2`
-  with runtime contract `peer-database-runtime-v2`. The Web CI now uploads its exact-image
-  generated files and rejects any checked-in drift; this gate must turn green before merge.
+  with runtime contract `peer-database-runtime-v2`. Web CI run `31471610957` generated the
+  canonical relation/RPC through the exact image and Supabase, uploaded both generated files,
+  and then intentionally rejected the stale checked-in v1 files. Those exact artifacts now
+  replace the rejected installation/binding schema; the temporary column/RPC type seam is gone.
+  Web CI permanently uploads generated evidence and rejects checked-in drift.
 - **Authority split**: Registry owns released native Distributions; the deployment owns one
   installed version in canonical `extensions`; each Peer UUID may be present in `enabled[]`;
   each Host owns only in-process running state.
@@ -28,6 +30,9 @@
 - **Production acceptance**: pending. Registry and Core are already cut over and green; Web must
   synchronize generated truth from the exact Core image, publish the Twitter MF Distribution,
   deploy the checked Pages artifact, and complete the final Chromium lifecycle.
+- **Current verification**: local `pnpm check` passes after synchronization: format, lint,
+  TypeScript, 76 tests, every workspace build, and package contract. The next PR run must repeat
+  exact-image generation and prove zero generated diff before merge.
 - **Guardrails**: generated database files come only from the exact image. Production publication
   and deployment must consume successful protected-main artifacts; no PR/preview may publish.
 

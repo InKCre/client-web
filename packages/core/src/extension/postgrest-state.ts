@@ -2,13 +2,6 @@ import { APIError, DBAPIClient } from '../base'
 import { InstalledExtensionSchema, type InstalledExtension } from './model'
 import type { ExtensionStatePort } from './state'
 
-type CurrentGeneratedExtensionsColumn = 'id' | 'enabled'
-
-interface UntypedPostgrestResponse {
-  data: unknown
-  error: { message: string } | null
-}
-
 export class ExtensionStatePersistenceError extends Error {
   constructor(operation: string, cause?: unknown) {
     super(
@@ -23,20 +16,13 @@ export class PostgrestExtensionStatePort implements ExtensionStatePort {
   private readonly dbApi = new DBAPIClient<'extensions'>('extensions')
 
   async list(): Promise<InstalledExtension[]> {
-    const response = await this.dbApi
-      .from()
-      .select()
-      .order(this.generatedColumn('name'), { ascending: true })
+    const response = await this.dbApi.from().select().order('name', { ascending: true })
     assertSuccess(response, 'list')
     return InstalledExtensionSchema.array().parse(response.data ?? [])
   }
 
   async get(name: string): Promise<InstalledExtension | null> {
-    const response = await this.dbApi
-      .from()
-      .select()
-      .eq(this.generatedColumn('name'), name)
-      .maybeSingle()
+    const response = await this.dbApi.from().select().eq('name', name).maybeSingle()
     assertSuccess(response, 'read')
     return response.data === null ? null : InstalledExtensionSchema.parse(response.data)
   }
@@ -69,11 +55,7 @@ export class PostgrestExtensionStatePort implements ExtensionStatePort {
   }
 
   async updateConfig(name: string, config: Record<string, unknown>): Promise<InstalledExtension> {
-    const response = await this.dbApi
-      .update({ config })
-      .eq(this.generatedColumn('name'), name)
-      .select()
-      .single()
+    const response = await this.dbApi.update({ config }).eq('name', name).select().single()
     assertSuccess(response, 'update config')
     return InstalledExtensionSchema.parse(response.data)
   }
@@ -85,8 +67,8 @@ export class PostgrestExtensionStatePort implements ExtensionStatePort {
   ): Promise<InstalledExtension> {
     const response = await this.dbApi
       .update({ version, nickname, config_schema: null })
-      .eq(this.generatedColumn('name'), name)
-      .filter(this.generatedColumn('enabled'), 'eq', '{}')
+      .eq('name', name)
+      .filter('enabled', 'eq', '{}')
       .select()
       .maybeSingle()
     assertSuccess(response, 'change version')
@@ -104,12 +86,11 @@ export class PostgrestExtensionStatePort implements ExtensionStatePort {
     peerId: string,
     enabled: boolean
   ): Promise<InstalledExtension> {
-    // Remove this cast only after contract:sync consumes the exact Core image
-    // containing set_extension_peer_enabled and the canonical extensions row.
-    const response = (await this.dbApi.rpc(
-      'set_extension_peer_enabled' as never,
-      { p_name: name, p_peer_id: peerId, p_enabled: enabled } as never
-    )) as unknown as UntypedPostgrestResponse
+    const response = await this.dbApi.rpc('set_extension_peer_enabled', {
+      p_name: name,
+      p_peer_id: peerId,
+      p_enabled: enabled,
+    })
     assertSuccess(response, enabled ? 'enable Peer' : 'disable Peer')
     const rows = InstalledExtensionSchema.array().parse(response.data ?? [])
     const updated = rows[0]
@@ -126,9 +107,9 @@ export class PostgrestExtensionStatePort implements ExtensionStatePort {
     const response = await this.dbApi
       .from()
       .delete()
-      .eq(this.generatedColumn('name'), name)
-      .filter(this.generatedColumn('enabled'), 'eq', '{}')
-      .select(this.generatedColumn('name'))
+      .eq('name', name)
+      .filter('enabled', 'eq', '{}')
+      .select('name')
     assertSuccess(response, 'uninstall')
     const deletedRows = InstalledExtensionSchema.pick({ name: true }).array().parse(response.data)
     if (deletedRows.length !== 1) {
@@ -137,14 +118,6 @@ export class PostgrestExtensionStatePort implements ExtensionStatePort {
         new Error(`Extension ${name} is missing or still enabled on a Peer.`)
       )
     }
-  }
-
-  /**
-   * Temporary type-only seam: runtime column names are never translated.
-   * The generated contract still describes the pre-cutover `id` column.
-   */
-  private generatedColumn(name: 'name' | 'enabled'): CurrentGeneratedExtensionsColumn {
-    return name as CurrentGeneratedExtensionsColumn
   }
 }
 
