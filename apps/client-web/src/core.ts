@@ -164,9 +164,15 @@ export function initializeModuleFederation(): void {
  * Initialize all core systems.
  * Call this in main.ts before creating the Vue app.
  */
-export async function initializeCore(): Promise<void> {
+export function shouldLoadClientConfigAtBootstrap(pathname: string): boolean {
+  return !/^\/settings(?:\/|$)/.test(pathname)
+}
+
+export async function initializeCore(options: { loadClientConfig?: boolean } = {}): Promise<void> {
   await configStore.initializeMeta(localStorageAdapter)
-  await configStore.loadClientConfig()
+  if (options.loadClientConfig ?? true) {
+    await configStore.loadClientConfig()
+  }
   setupResolvers()
   initializeModuleFederation()
   initializeExtensionHost(new PostgrestExtensionStatePort())

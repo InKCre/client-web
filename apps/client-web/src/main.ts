@@ -16,8 +16,12 @@ app.use(store)
 app.use(router)
 
 // Initialize core package
-import { initializeCore } from './core'
-await initializeCore()
+import { initializeCore, shouldLoadClientConfigAtBootstrap } from './core'
+await initializeCore({
+  // Settings is the recovery surface for invalid or incomplete bootstrap
+  // credentials. It must mount without first contacting the configured Peer.
+  loadClientConfig: shouldLoadClientConfigAtBootstrap(window.location.pathname),
+})
 app.mount('#app')
 
 import { getExtensionHost } from './core'
