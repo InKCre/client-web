@@ -27,12 +27,17 @@
   `mf-manifest.json` with Module Federation, preserves the platform lifecycle, and mutates only
   the current Peer through the server-owned atomic RPC. The old target matcher, generic artifact
   manifest, installation/binding tables, and shared Runtime package are removed.
-- **Production acceptance**: pending. Registry and Core are already cut over and green; Web must
-  synchronize generated truth from the exact Core image, publish the Twitter MF Distribution,
-  deploy the checked Pages artifact, and complete the final Chromium lifecycle.
+- **Production acceptance**: in progress. Registry and Core are cut over and green; Web PR #63
+  merged as `cae553f658de0ef895da9a9875a193930f9ae584` after exact-image generation proved
+  zero generated diff and every required check passed. Its main run `31472520854` also passed.
+  Delivery run `31472757005` stopped before any Registry or Pages mutation because the isolated
+  controller had not installed its locked `semver` dependency. The follow-up hotfix installs the
+  frozen workspace in that job; native publication, Pages deployment, and final Chromium lifecycle
+  remain pending.
 - **Current verification**: local `pnpm check` passes after synchronization: format, lint,
-  TypeScript, 76 tests, every workspace build, and package contract. The next PR run must repeat
-  exact-image generation and prove zero generated diff before merge.
+  TypeScript, 76 tests, every workspace build, and package contract. PR and main CI repeated the
+  exact-image generation and proved zero generated diff. The delivery dependency hotfix must pass
+  actionlint and the protected-main artifact handoff before remote mutation resumes.
 - **Guardrails**: generated database files come only from the exact image. Production publication
   and deployment must consume successful protected-main artifacts; no PR/preview may publish.
 
