@@ -8,7 +8,7 @@ Shared logic package for InKCre applications and extensions.
 - `base` - DBAPIClient, APIError
 - `config` - Configuration adapters & schema
 - `database` - Supabase-generated relation types and environment-neutral peer protocol/JWT contract
-- `extension` - Extension lifecycle, Module Federation
+- `extension` - Native Web Extension Host, semantic state port, Module Federation lifecycle
 - `info-base` - Block, Relation, Storage, Resolvers
 - `organization` - Organization capability facade
 - `obsrv` - Observability (Log)
@@ -34,6 +34,18 @@ class Source extends ZodClass { static api = DBAPIClient }
 ### Coupled with Vue
 
 Make use of Vue reactivity thorughout-ly.
+
+### Web Extension Host Contract
+
+- `InstalledExtension` is the one deployment row: canonical Name, exact version, `enabled` Peer
+  UUIDs, Nickname, config, and config schema.
+- `WebExtensionHost` depends on `ExtensionStatePort`, never generated database/table types.
+- `PostgrestExtensionStatePort` owns transport details and uses the atomic
+  `set_extension_peer_enabled` database operation.
+- The Host checks the exact Release's `@inkcre/core` range before registering its Registry-hosted
+  native manifest URL with Module Federation.
+- Preserve `initialize`, `activate`, `deactivate`, and `dispose`, including durable-state failure
+  compensation.
 
 ### Info-Base Content Contract
 

@@ -32,21 +32,14 @@ describe('MetaConfigSchema', () => {
 })
 
 describe('ClientConfigSchema', () => {
-  it('keeps Registry and management-peer configuration unconfigured until deployment provides it', () => {
+  it('keeps Registry configuration unconfigured until deployment provides it', () => {
     expect(ClientConfigSchema.parse({})).toMatchObject({
       extension_registry_url: '',
-      extension_management_peer_id: '',
     })
     expect(
       ClientConfigSchema.parse({
         extension_registry_url: 'https://registry.operator.example/',
-        extension_management_peer_id: '00000000-0000-4000-8000-000000000002',
       }).extension_registry_url
     ).toBe('https://registry.operator.example/')
-    expect(
-      ClientConfigSchema.parse({
-        extension_management_peer_id: '00000000-0000-4000-8000-000000000002',
-      }).extension_management_peer_id
-    ).toBe('00000000-0000-4000-8000-000000000002')
   })
 })

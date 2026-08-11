@@ -22,7 +22,38 @@
   "profiles": ["runtime", "development"],
   "protocol": {
     "format": 1,
-    "functions": {},
+    "functions": {
+      "set_extension_peer_enabled": {
+        "arguments": [
+          {
+            "name": "p_name",
+            "nullable": false,
+            "type": {
+              "kind": "string"
+            }
+          },
+          {
+            "name": "p_peer_id",
+            "nullable": false,
+            "type": {
+              "format": "uuid",
+              "kind": "string"
+            }
+          },
+          {
+            "name": "p_enabled",
+            "nullable": false,
+            "type": {
+              "kind": "boolean"
+            }
+          }
+        ],
+        "returns": {
+          "relation": "extensions",
+          "set": true
+        }
+      }
+    },
     "relations": {
       "block_embeddings": {
         "columns": {
@@ -194,126 +225,12 @@
         },
         "relationships": []
       },
-      "extension_installations": {
-        "columns": {
-          "config": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "kind": "json"
-            }
-          },
-          "config_schema": {
-            "generated": false,
-            "has_default": true,
-            "nullable": false,
-            "type": {
-              "kind": "json"
-            }
-          },
-          "name": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "string"
-            }
-          },
-          "namespace": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "string"
-            }
-          },
-          "version": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "string"
-            }
-          }
-        },
-        "relationships": []
-      },
-      "extension_peer_bindings": {
-        "columns": {
-          "name": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "string"
-            }
-          },
-          "namespace": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "string"
-            }
-          },
-          "peer_id": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "format": "uuid",
-              "kind": "string"
-            }
-          },
-          "target_digest": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "string"
-            }
-          },
-          "target_key": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "string"
-            }
-          },
-          "version": {
-            "generated": false,
-            "has_default": false,
-            "nullable": false,
-            "type": {
-              "kind": "string"
-            }
-          }
-        },
-        "relationships": [
-          {
-            "columns": ["name", "namespace", "version"],
-            "foreign_key_name": "extension_peer_bindings_installation_fkey",
-            "one_to_one": false,
-            "referenced_columns": ["name", "namespace", "version"],
-            "referenced_relation": "extension_installations"
-          },
-          {
-            "columns": ["peer_id"],
-            "foreign_key_name": "extension_peer_bindings_peer_fkey",
-            "one_to_one": false,
-            "referenced_columns": ["id"],
-            "referenced_relation": "clients"
-          }
-        ]
-      },
       "extensions": {
         "columns": {
           "config": {
             "generated": false,
             "has_default": true,
-            "nullable": true,
+            "nullable": false,
             "type": {
               "kind": "json"
             }
@@ -338,7 +255,7 @@
               "kind": "array"
             }
           },
-          "id": {
+          "name": {
             "generated": false,
             "has_default": false,
             "nullable": false,
@@ -785,6 +702,6 @@
     },
     "schema": "inkcre"
   },
-  "revision": "peer-database-runtime-v1",
-  "source_revision": "19632baa5ed1dbd8064387181e557a530a9eec84"
+  "revision": "peer-database-runtime-v2",
+  "source_revision": "34914b6deed4768237508fdb02e033655feb8073"
 }

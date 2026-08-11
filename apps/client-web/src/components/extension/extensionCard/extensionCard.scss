@@ -24,6 +24,11 @@
     color: sys-var(color, text, subtle);
   }
 
+  &__nickname {
+    @include apply-font(body-sm);
+    color: sys-var(color, text, subtle);
+  }
+
   &__actions {
     display: flex;
     gap: sys-var(space, sm);

@@ -94,94 +94,28 @@ export type Database = {
         }
         Relationships: []
       }
-      extension_installations: {
-        Row: {
-          config: Json
-          config_schema: Json
-          name: string
-          namespace: string
-          version: string
-        }
-        Insert: {
-          config?: Json
-          config_schema?: Json
-          name: string
-          namespace: string
-          version: string
-        }
-        Update: {
-          config?: Json
-          config_schema?: Json
-          name?: string
-          namespace?: string
-          version?: string
-        }
-        Relationships: []
-      }
-      extension_peer_bindings: {
-        Row: {
-          name: string
-          namespace: string
-          peer_id: string
-          target_digest: string
-          target_key: string
-          version: string
-        }
-        Insert: {
-          name: string
-          namespace: string
-          peer_id: string
-          target_digest: string
-          target_key: string
-          version: string
-        }
-        Update: {
-          name?: string
-          namespace?: string
-          peer_id?: string
-          target_digest?: string
-          target_key?: string
-          version?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'extension_peer_bindings_installation_fkey'
-            columns: ['namespace', 'name', 'version']
-            isOneToOne: false
-            referencedRelation: 'extension_installations'
-            referencedColumns: ['namespace', 'name', 'version']
-          },
-          {
-            foreignKeyName: 'extension_peer_bindings_peer_fkey'
-            columns: ['peer_id']
-            isOneToOne: false
-            referencedRelation: 'clients'
-            referencedColumns: ['id']
-          },
-        ]
-      }
       extensions: {
         Row: {
-          config: Json | null
+          config: Json
           config_schema: Json | null
           enabled: string[]
-          id: string
+          name: string
           nickname: string | null
           version: string
         }
         Insert: {
-          config?: Json | null
+          config?: Json
           config_schema?: Json | null
           enabled?: string[]
-          id: string
+          name: string
           nickname?: string | null
           version: string
         }
         Update: {
-          config?: Json | null
+          config?: Json
           config_schema?: Json | null
           enabled?: string[]
-          id?: string
+          name?: string
           nickname?: string | null
           version?: string
         }
@@ -431,7 +365,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      set_extension_peer_enabled: {
+        Args: { p_enabled: boolean; p_name: string; p_peer_id: string }
+        Returns: {
+          config: Json
+          config_schema: Json | null
+          enabled: string[]
+          name: string
+          nickname: string | null
+          version: string
+        }[]
+        SetofOptions: {
+          from: '*'
+          to: 'extensions'
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       sourcecollectjobstatus: 'pending' | 'running' | 'finished' | 'failed'

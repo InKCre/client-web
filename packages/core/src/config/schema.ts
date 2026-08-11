@@ -53,9 +53,6 @@ export const ClientConfigSchema = z.object({
   // Deployment-owned client configuration supplies this URL. Static artifacts
   // deliberately keep the unconfigured state instead of embedding an origin.
   extension_registry_url: UnconfiguredUrlSchema.default(''),
-  // A browser peer has no Core REST API of its own. Deployment configuration
-  // names the reachable Core peer that owns installation/configuration routes.
-  extension_management_peer_id: UnconfiguredClientIdSchema.default(''),
   ai: AIConfigSchema.default(() => AIConfigSchema.parse({})),
 })
 

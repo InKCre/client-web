@@ -1,11 +1,13 @@
-# Architecture of InKCre Web extensions
+# Architecture of InKCre Web Extensions
 
-- Extensions are Module Federation remotes. A Registry-aware host resolves an exact target digest
-  and loads its declared entrypoint from
-  `https://{registry-origin}/v1/artifacts/{target-digest}/files/{entrypoint}`.
-- Remote artifacts use a relative Vite base so all chunks and CSS remain under that same
-  digest-addressed prefix; an artifact never needs a target-specific Registry URL at build time.
-- `target-publish.json` records the immutable Extension coordinate and technical compatibility
-  conditions. It is source metadata, not proof of a published target.
-- Extensions need configuration shared with their relevant implementation, such as Python.
-- Extensions can access the core API exposed by their host.
+- An Extension Release may associate one native Module Federation Distribution.
+- The producer emits `mf-manifest.json`, the Remote entry, and referenced shared/exposed assets.
+- The producer keeps Vite `base: './'`; Registry admission validates the native closure and
+  materializes only `metaData.publicPath` to the immutable public Release prefix.
+- The Web Host reads the exact Release descriptor, checks its `@inkcre/core` range, then passes the
+  Registry-hosted native manifest URL directly to the current Module Federation Host.
+- The Remote default export preserves `initialize`, `activate`, `deactivate`, and `dispose`.
+- Extension code imports and uses `@inkcre/core` directly. There is no shared Extension Runtime/API
+  package, generic target matcher, or canonical cross-format artifact manifest.
+- `package.json` owns the Extension Name/Nickname, Release version, and typed native Host SDK
+  association used by checked publication automation.

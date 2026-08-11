@@ -143,6 +143,22 @@ jobs:
       - name: Generate types from the selected raw schema
         run: pnpm contract:sync -- --image "${{ needs.core-release.outputs.image }}"
 
+      - name: Upload the generated database contract
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: generated-database-contract-${{ github.sha }}
+          path: |
+            packages/core/src/database/database.generated.ts
+            packages/core/src/database/runtime-contract.generated.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Reject a stale checked-in database contract
+        run: >-
+          git diff --exit-code --
+          packages/core/src/database/database.generated.ts
+          packages/core/src/database/runtime-contract.generated.json
+
       - name: Verify static, typed, and package contracts
         run: pnpm check
 
@@ -158,11 +174,18 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Upload the exact Twitter target artifact
-        id: twitter-target-artifact
+      - name: Validate the native Twitter Module Federation snapshot
+        run: >-
+          node scripts/verify-twitter-mf-distribution.mjs inspect-local
+          --package extensions/twitter/package.json
+          --core-package packages/core/package.json
+          --artifact-directory extensions/twitter/dist/client-web
+
+      - name: Upload the exact Twitter Module Federation snapshot
+        id: twitter-mf-artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: twitter-target-dist
+          name: twitter-mf-dist
           path: extensions/twitter/dist/client-web
           if-no-files-found: error
           retention-days: 7
@@ -170,14 +193,14 @@ jobs:
       - name: Record checked artifact provenance
         env:
           CLIENT_WEB_ARTIFACT_DIGEST: ${{ steps.client-web-artifact.outputs['artifact-digest'] }}
-          TWITTER_TARGET_ARTIFACT_DIGEST: ${{ steps.twitter-target-artifact.outputs['artifact-digest'] }}
+          TWITTER_MF_ARTIFACT_DIGEST: ${{ steps.twitter-mf-artifact.outputs['artifact-digest'] }}
         run: |
           {
             echo '## Checked delivery artifacts'
             echo
             echo "- Source SHA: \`${GITHUB_SHA}\`"
             echo "- Client web artifact digest: \`${CLIENT_WEB_ARTIFACT_DIGEST}\`"
-            echo "- Twitter target artifact digest: \`${TWITTER_TARGET_ARTIFACT_DIGEST}\`"
+            echo "- Twitter MF snapshot digest: \`${TWITTER_MF_ARTIFACT_DIGEST}\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Reject a moved stable release
