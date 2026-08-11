@@ -32,8 +32,10 @@
   zero generated diff and every required check passed. Its main run `31472520854` also passed.
   Delivery run `31472757005` stopped before any Registry or Pages mutation because the isolated
   controller had not installed its locked `semver` dependency. The follow-up hotfix installs the
-  frozen workspace in that job; native publication, Pages deployment, and final Chromium lifecycle
-  remain pending.
+  frozen workspace in that job. Delivery recovery also checks the exact public Release: an
+  unchanged version with no Module Federation association republishes the current checked artifact,
+  while an existing association remains a no-op. Native publication, Pages deployment, and final
+  Chromium lifecycle remain pending.
 - **Current verification**: local `pnpm check` passes after synchronization: format, lint,
   TypeScript, 76 tests, every workspace build, and package contract. PR and main CI repeated the
   exact-image generation and proved zero generated diff. The delivery dependency hotfix must pass
