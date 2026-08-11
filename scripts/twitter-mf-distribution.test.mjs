@@ -241,6 +241,9 @@ test('retains exact-main checked-artifact governance without generic target deli
   assert.match(delivery, /name: twitter-mf-dist/)
   assert.match(delivery, /run-id: \$\{\{ needs\.identity\.outputs\.run_id \}\}/)
   assert.match(delivery, /new package\.json version/)
+  assert.match(delivery, /Recovering missing native Twitter association/)
+  assert.match(delivery, /release\.module_federation !== null/)
+  assert.match(delivery, /Cannot determine native Release recovery state/)
   assert.match(delivery, /verify-twitter-mf-distribution\.mjs prepare-body/)
   assert.match(
     delivery,

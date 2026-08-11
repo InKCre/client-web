@@ -99,10 +99,12 @@ jobs:
           fetch-depth: 2
           persist-credentials: false
 
-      - name: Require a new native Release version for Twitter changes
+      - name: Require version intent or recover a missing native association
         id: twitter-release
         working-directory: controller
         env:
+          INKCRE_EXTENSION_REGISTRY_URL: >-
+            ${{ vars.INKCRE_EXTENSION_REGISTRY_URL || 'https://registry.inkcre.dev' }}
           SOURCE_SHA: ${{ needs.identity.outputs.source_sha }}
         run: |
           if ! git cat-file -e "${SOURCE_SHA}^"; then
@@ -112,6 +114,7 @@ jobs:
 
           previous_version="$(git show "${SOURCE_SHA}^:extensions/twitter/package.json" | node --input-type=module --eval 'let input = ""; for await (const chunk of process.stdin) input += chunk; process.stdout.write(JSON.parse(input).version)')"
           current_version="$(node --input-type=module --eval 'import manifest from "./extensions/twitter/package.json" with { type: "json" }; process.stdout.write(manifest.version)')"
+          extension_path="$(node --input-type=module --eval 'import manifest from "./extensions/twitter/package.json" with { type: "json" }; process.stdout.write(manifest.inkcre.name)')"
           if git diff --quiet "${SOURCE_SHA}^" "$SOURCE_SHA" -- extensions/twitter extensions/mf-shared.ts; then
             source_changed=false
           else
@@ -126,8 +129,25 @@ jobs:
             echo 'publish=true' >> "$GITHUB_OUTPUT"
             echo "Native Twitter Release $current_version requested." >> "$GITHUB_STEP_SUMMARY"
           else
-            echo 'publish=false' >> "$GITHUB_OUTPUT"
-            echo 'Native Twitter publication skipped: Release version is unchanged.' >> "$GITHUB_STEP_SUMMARY"
+            descriptor="$RUNNER_TEMP/twitter-release.json"
+            status="$(curl --silent --show-error --output "$descriptor" --write-out '%{http_code}' \
+              "${INKCRE_EXTENSION_REGISTRY_URL%/}/v1/extensions/${extension_path}/releases/${current_version}")"
+            if [[ "$status" == '200' ]]; then
+              has_native_association="$(node --input-type=module --eval 'import { readFile } from "node:fs/promises"; const release = JSON.parse(await readFile(process.argv[1], "utf8")); process.stdout.write(String(release.module_federation !== null))' "$descriptor")"
+            elif [[ "$status" == '404' ]]; then
+              has_native_association=false
+            else
+              echo "Cannot determine native Release recovery state: Registry returned HTTP $status." >&2
+              exit 1
+            fi
+
+            if [[ "$has_native_association" == 'false' ]]; then
+              echo 'publish=true' >> "$GITHUB_OUTPUT"
+              echo "Recovering missing native Twitter association for Release $current_version." >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo 'publish=false' >> "$GITHUB_OUTPUT"
+              echo 'Native Twitter publication skipped: the unchanged Release already has its association.' >> "$GITHUB_STEP_SUMMARY"
+            fi
           fi
 
       - name: Install the pinned pnpm release
