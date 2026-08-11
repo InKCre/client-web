@@ -20,12 +20,12 @@ describe('Client.request', () => {
     })
 
     await expect(
-      client.request({ method: 'DELETE', path: '/extension-installations/inkcre/twitter' })
+      client.request({ method: 'DELETE', path: '/documents/example' })
     ).resolves.toBeUndefined()
 
     expect(fetch).toHaveBeenCalledOnce()
     expect(fetch).toHaveBeenCalledWith(
-      new URL('https://core.example/extension-installations/inkcre/twitter'),
+      new URL('https://core.example/documents/example'),
       expect.objectContaining({ method: 'DELETE' })
     )
   })
@@ -43,13 +43,13 @@ describe('Client.request', () => {
     await expect(
       client.request({
         method: 'GET',
-        path: 'extension-installations',
+        path: 'documents',
         query: { peer: 'web' },
       })
     ).resolves.toEqual({ ok: true })
 
     expect(fetch).toHaveBeenCalledWith(
-      new URL('https://core.example/api/extension-installations?peer=web'),
+      new URL('https://core.example/api/documents?peer=web'),
       expect.objectContaining({ method: 'GET' })
     )
   })

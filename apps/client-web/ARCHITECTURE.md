@@ -190,10 +190,13 @@ Two separate API clients for different access patterns:
 
 ### 3. Module Federation Extension System
 
-Dynamic plugin loading with lifecycle management. Extensions register custom storages and resolvers.
+One Web Extension Host reads the canonical deployment row through a semantic state port. Before
+Module Federation fetches executable bytes, it resolves the exact Registry Release and checks the
+producer's `@inkcre/core` range. The Registry-hosted native `mf-manifest.json` URL goes directly to
+the current MF Host.
 
 **Lifecycle:**
-DISCOVERED → LOADING → LOADED → INITIALIZING → READY → ACTIVATING → ACTIVE
+initialize → activate → deactivate → dispose
 
 **Benefits:**
 
@@ -263,7 +266,7 @@ Implements domain entities using BusinessClass pattern. Each entity has:
 
 ### Extension System
 
-Module Federation-based plugins with lifecycle management. Extensions can:
+Native Module Federation plugins use `@inkcre/core` directly and can:
 
 - Register custom resolvers for new content types
 - Register custom storages for data retrieval
@@ -307,7 +310,8 @@ User action → Component → BusinessClass instance → CoreAPIClient → core-
 
 ### Extension Flow
 
-Extension activation → Register remote → Load module → Initialize (register handlers) → Activate (start tasks) → Features available
+Installed row enabled for this Peer → exact Release/Host-range preflight → register native manifest
+→ load module → initialize → activate → atomically persist Peer enabled intent
 
 ### Content Resolution Flow
 

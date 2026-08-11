@@ -4,16 +4,20 @@ A component that displays extension information and provides controls for toggli
 
 ## Props
 
-- `extension` (Extension, required): The extension object to display
+- `extension` (InstalledExtension, required): the canonical installed row
+- `enabled` (boolean, required): whether the current Web Peer UUID is in `enabled[]`
 
 ## Emits
 
-- `toggle`: Emitted when the user toggles the enable/disable switch
-- `edit-config`: Emitted after the extension configuration is successfully updated
+- `changed`: Emitted after current-Peer enablement changes and the list should be refreshed
+- `updated`: Emitted with the canonical row after configuration or version changes
+- `uninstalled`: Emitted after the canonical row is removed
 
 ## Features
 
-- Display extension ID, version, and optional nickname
+- Display canonical Extension Name, exact version, and optional nickname
 - Toggle enable/disable status with a switch
 - Edit extension configuration via JSON editor in a dialog
+- Change the exact shared version only while every Peer is disabled
 - Auto-formats configuration as JSON for easier editing
+- Prevents uninstall while any Peer remains enabled

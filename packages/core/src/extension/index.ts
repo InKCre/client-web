@@ -1,17 +1,13 @@
-// Extension lifecycle and model
 export {
-  ExtensionState,
+  ExtensionNameSchema,
+  ExtensionVersionSchema,
+  InstalledExtensionSchema,
+  InstallExtensionInputSchema,
   type ExtensionModule,
-  type ExtensionRuntimeState,
-  Extension,
-  InstallExtensionForm,
-  type ExtensionRef,
-  ExtensionRefZ,
-  makeExtensionProp,
-  makeExtensionRefProp,
-} from './base'
+  type InstalledExtension,
+  type InstallExtensionInput,
+} from './model'
 
-// Module Federation
 export {
   setMFImplementation,
   getMFImplementation,
@@ -23,24 +19,23 @@ export {
   type MFImplementation,
 } from './module-federation'
 
-// Registry-backed deployment installations and current-peer Web bindings.
 export {
-  RegistryExtensionError,
-  RegistryTargetNotCompatibleError,
-  RegistryBindingConflictError,
-  RegistryBindingPersistenceError,
-  RegistryInstallationSchema,
-  RegistryPeerBindingSchema,
-  CoreRegistryInstallationApi,
-  RegistryExtensionManager,
-  registryExtensions,
-  registryRemoteName,
-  type RegistryCoordinate,
-  type RegistryInstallation,
-  type RegistryInstallationInput,
-  type RegistryPeerBinding,
-  type RegistryInstallationApi,
-  type RegistryBindingStore,
-  type RegistryExtensionManagerOptions,
-  type RuntimeExtensionModule,
+  ExtensionReleaseSchema,
+  RegistryExtensionReleaseReader,
+  type ExtensionRelease,
+  type ModuleFederationDistribution,
+  type ExtensionReleaseReader,
 } from './registry'
+
+export type { ExtensionStatePort } from './state'
+
+export { PostgrestExtensionStatePort, ExtensionStatePersistenceError } from './postgrest-state'
+
+export {
+  WebExtensionHost,
+  WebExtensionHostError,
+  WebExtensionIncompatibleError,
+  WebExtensionEnabledError,
+  webExtensionRemoteName,
+  type WebExtensionHostOptions,
+} from './host'

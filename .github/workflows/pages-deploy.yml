@@ -1,4 +1,4 @@
-name: Pages and Twitter Registry delivery
+name: Pages and native Extension delivery
 
 on:
   workflow_run:
@@ -54,7 +54,7 @@ jobs:
               per_page: 100,
             })
             const artifactNames = new Set(artifacts.map((artifact) => artifact.name))
-            for (const artifactName of ['client-web-dist', 'twitter-target-dist']) {
+            for (const artifactName of ['client-web-dist', 'twitter-mf-dist']) {
               if (!artifactNames.has(artifactName)) {
                 core.setFailed(`Checked main run is missing required artifact: ${artifactName}`)
                 return
@@ -75,7 +75,7 @@ jobs:
             core.setOutput('source_sha', run.head_sha)
 
   deliver:
-    name: Publish verified Twitter target and deploy exact Pages artifact
+    name: Publish native Twitter snapshot and deploy exact Pages artifact
     needs: identity
     concurrency:
       group: pages-main
@@ -98,56 +98,36 @@ jobs:
           fetch-depth: 2
           persist-credentials: false
 
-      - name: Determine whether Twitter target publication is requested
+      - name: Require a new native Release version for Twitter changes
         id: twitter-release
         working-directory: controller
         env:
           SOURCE_SHA: ${{ needs.identity.outputs.source_sha }}
         run: |
           if ! git cat-file -e "${SOURCE_SHA}^"; then
-            echo 'Cannot prove Twitter release intent without the checked revision parent.' >&2
+            echo 'Cannot prove native Release intent without the checked revision parent.' >&2
             exit 1
           fi
 
-          if git diff --quiet "${SOURCE_SHA}^" "$SOURCE_SHA" -- extensions/twitter/target-publish.json; then
-            release_intent=false
+          previous_version="$(git show "${SOURCE_SHA}^:extensions/twitter/package.json" | node --input-type=module --eval 'let input = ""; for await (const chunk of process.stdin) input += chunk; process.stdout.write(JSON.parse(input).version)')"
+          current_version="$(node --input-type=module --eval 'import manifest from "./extensions/twitter/package.json" with { type: "json" }; process.stdout.write(manifest.version)')"
+          if git diff --quiet "${SOURCE_SHA}^" "$SOURCE_SHA" -- extensions/twitter extensions/mf-shared.ts; then
+            source_changed=false
           else
-            release_intent=true
-          fi
-          if git diff --quiet "${SOURCE_SHA}^" "$SOURCE_SHA" -- \
-            extensions/twitter \
-            ':(exclude)extensions/twitter/target-publish.json' \
-            extensions/mf-shared.ts; then
-            target_source_changed=false
-          else
-            target_source_changed=true
+            source_changed=true
           fi
 
-          if [[ "$target_source_changed" == 'true' && "$release_intent" != 'true' ]]; then
-            echo 'target-publish.json must change with Twitter target sources.' >&2
+          if [[ "$source_changed" == 'true' && "$previous_version" == "$current_version" ]]; then
+            echo 'Twitter native Distribution changes require a new package.json version.' >&2
             exit 1
           fi
-          if [[ "$release_intent" == 'true' ]]; then
+          if [[ "$previous_version" != "$current_version" ]]; then
             echo 'publish=true' >> "$GITHUB_OUTPUT"
-            echo 'Twitter target publication requested by target-publish.json.' >> "$GITHUB_STEP_SUMMARY"
+            echo "Native Twitter Release $current_version requested." >> "$GITHUB_STEP_SUMMARY"
           else
             echo 'publish=false' >> "$GITHUB_OUTPUT"
-            echo 'Twitter target publication skipped: no explicit release intent.' >> "$GITHUB_STEP_SUMMARY"
+            echo 'Native Twitter publication skipped: Release version is unchanged.' >> "$GITHUB_STEP_SUMMARY"
           fi
-
-      - name: Set up Python 3.12 publisher runtime
-        if: steps.twitter-release.outputs.publish == 'true'
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
-        with:
-          python-version-file: controller/tooling/extension-publisher/.python-version
-
-      - name: Install the pinned uv publisher runner
-        if: steps.twitter-release.outputs.publish == 'true'
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
-        with:
-          version: 0.12.3
-          enable-cache: true
-          cache-dependency-glob: controller/tooling/extension-publisher/uv.lock
 
       - name: Set up Node for delivery verification
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
@@ -162,16 +142,30 @@ jobs:
           run-id: ${{ needs.identity.outputs.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download checked Twitter target artifact
+      - name: Download the exact checked Twitter snapshot
         if: steps.twitter-release.outputs.publish == 'true'
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: twitter-target-dist
-          path: .twitter-target-delivery/dist
+          name: twitter-mf-dist
+          path: .twitter-mf-delivery/dist
           run-id: ${{ needs.identity.outputs.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Reverify main before target publication
+      - name: Validate checked native manifest and association
+        if: steps.twitter-release.outputs.publish == 'true'
+        run: |
+          node controller/scripts/verify-twitter-mf-distribution.mjs prepare-body \
+            --package controller/extensions/twitter/package.json \
+            --core-package controller/packages/core/package.json \
+            --artifact-directory .twitter-mf-delivery/dist \
+            --source-repository "https://github.com/${{ github.repository }}" \
+            --source-revision "${{ needs.identity.outputs.source_sha }}" \
+            --build-id "client-web-mf-build-${{ needs.identity.outputs.run_id }}" \
+            --output .twitter-mf-delivery/prepare.json
+          cd .twitter-mf-delivery/dist
+          zip -q -r ../snapshot.zip .
+
+      - name: Reverify main before native publication
         if: steps.twitter-release.outputs.publish == 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
@@ -184,75 +178,66 @@ jobs:
               ref: 'heads/main',
             })
             if (currentMain.data.object.sha !== process.env.SOURCE_SHA) {
-              core.setFailed('Main changed after checked artifacts were selected; refusing target publication.')
+              core.setFailed('Main changed after checked artifacts were selected; refusing native publication.')
             }
 
-      - name: Build and validate the canonical Twitter target manifest
-        if: steps.twitter-release.outputs.publish == 'true'
-        run: |
-          uv run --project controller/tooling/extension-publisher --frozen inkcre-ext build-target \
-            --config controller/extensions/twitter/target-publish.json \
-            --directory .twitter-target-delivery/dist \
-            --output .twitter-target-delivery/manifest.json > .twitter-target-delivery/build.json
-          node controller/scripts/verify-twitter-target-delivery.mjs inspect-local \
-            --config controller/extensions/twitter/target-publish.json \
-            --artifact-directory .twitter-target-delivery/dist \
-            --manifest .twitter-target-delivery/manifest.json \
-            --output .twitter-target-delivery/local-target.json
-
-      - name: Capture existing target provenance
+      - name: Prepare the exact native Twitter Release
         if: steps.twitter-release.outputs.publish == 'true'
         env:
-          INKCRE_EXTENSION_REGISTRY_URL: ${{ vars.INKCRE_EXTENSION_REGISTRY_URL }}
-        run: |
-          test -n "$INKCRE_EXTENSION_REGISTRY_URL"
-          target_digest="$(node --input-type=module --eval 'import { readFile } from "node:fs/promises"; const target = JSON.parse(await readFile(".twitter-target-delivery/local-target.json", "utf8")); process.stdout.write(target.target_digest)')"
-          node controller/scripts/verify-twitter-target-delivery.mjs capture-public \
-            --registry-url "$INKCRE_EXTENSION_REGISTRY_URL" \
-            --config controller/extensions/twitter/target-publish.json \
-            --target-digest "$target_digest" \
-            --output .twitter-target-delivery/before-publication.json
-
-      - name: Publish the immutable Twitter target
-        if: steps.twitter-release.outputs.publish == 'true'
-        env:
-          INKCRE_EXTENSION_REGISTRY_URL: ${{ vars.INKCRE_EXTENSION_REGISTRY_URL }}
+          INKCRE_EXTENSION_REGISTRY_URL: >-
+            ${{ vars.INKCRE_EXTENSION_REGISTRY_URL || 'https://registry.inkcre.dev' }}
           INKCRE_EXTENSION_REGISTRY_TOKEN: ${{ secrets.INKCRE_EXTENSION_REGISTRY_TOKEN }}
-          SOURCE_REPOSITORY: https://github.com/${{ github.repository }}
-          SOURCE_REVISION: ${{ needs.identity.outputs.source_sha }}
-          BUILD_ID: client-web-target-delivery-${{ github.run_id }}
         run: |
           test -n "$INKCRE_EXTENSION_REGISTRY_URL"
           test -n "$INKCRE_EXTENSION_REGISTRY_TOKEN"
-          uv run --project controller/tooling/extension-publisher --frozen inkcre-ext publish-target \
-            --registry-url "$INKCRE_EXTENSION_REGISTRY_URL" \
-            --config controller/extensions/twitter/target-publish.json \
-            --directory .twitter-target-delivery/dist \
-            --source-repository "$SOURCE_REPOSITORY" \
-            --source-revision "${{ needs.identity.outputs.source_sha }}" \
-            --build-id "$BUILD_ID" \
-            --manifest-output .twitter-target-delivery/published-manifest.json > .twitter-target-delivery/publish.json
-          cmp --silent .twitter-target-delivery/manifest.json .twitter-target-delivery/published-manifest.json
+          release_path="$(node --input-type=module --eval 'import { readFile } from "node:fs/promises"; const input = JSON.parse(await readFile(".twitter-mf-delivery/prepare.json", "utf8")); process.stdout.write(input.version)')"
+          extension_path="$(node --input-type=module --eval 'import manifest from "./controller/extensions/twitter/package.json" with { type: "json" }; process.stdout.write(manifest.inkcre.name)')"
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer $INKCRE_EXTENSION_REGISTRY_TOKEN" \
+            --header 'Content-Type: application/json' \
+            --data-binary @.twitter-mf-delivery/prepare.json \
+            "${INKCRE_EXTENSION_REGISTRY_URL%/}/v1/extensions/${extension_path}/releases" \
+            > .twitter-mf-delivery/prepared-release.json
+          printf '%s\n' "$extension_path" > .twitter-mf-delivery/extension-path
+          printf '%s\n' "$release_path" > .twitter-mf-delivery/release-path
 
-      - name: Verify the public target digest and provenance
+      - name: Upload the exact native Twitter snapshot
         if: steps.twitter-release.outputs.publish == 'true'
         env:
-          INKCRE_EXTENSION_REGISTRY_URL: ${{ vars.INKCRE_EXTENSION_REGISTRY_URL }}
-          SOURCE_REPOSITORY: https://github.com/${{ github.repository }}
-          SOURCE_REVISION: ${{ needs.identity.outputs.source_sha }}
-          BUILD_ID: client-web-target-delivery-${{ github.run_id }}
+          INKCRE_EXTENSION_REGISTRY_URL: >-
+            ${{ vars.INKCRE_EXTENSION_REGISTRY_URL || 'https://registry.inkcre.dev' }}
+          INKCRE_EXTENSION_REGISTRY_TOKEN: ${{ secrets.INKCRE_EXTENSION_REGISTRY_TOKEN }}
         run: |
-          node controller/scripts/verify-twitter-target-delivery.mjs verify-public \
+          extension_path="$(tr -d '\n' < .twitter-mf-delivery/extension-path)"
+          release_path="$(tr -d '\n' < .twitter-mf-delivery/release-path)"
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer $INKCRE_EXTENSION_REGISTRY_TOKEN" \
+            --form 'content=@.twitter-mf-delivery/snapshot.zip;type=application/zip' \
+            "${INKCRE_EXTENSION_REGISTRY_URL%/}/v1/extensions/${extension_path}/releases/${release_path}/module-federation" \
+            > .twitter-mf-delivery/uploaded-release.json
+
+      - name: Publish and verify the native Twitter Release
+        if: steps.twitter-release.outputs.publish == 'true'
+        env:
+          INKCRE_EXTENSION_REGISTRY_URL: >-
+            ${{ vars.INKCRE_EXTENSION_REGISTRY_URL || 'https://registry.inkcre.dev' }}
+          INKCRE_EXTENSION_REGISTRY_TOKEN: ${{ secrets.INKCRE_EXTENSION_REGISTRY_TOKEN }}
+        run: |
+          extension_path="$(tr -d '\n' < .twitter-mf-delivery/extension-path)"
+          release_path="$(tr -d '\n' < .twitter-mf-delivery/release-path)"
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer $INKCRE_EXTENSION_REGISTRY_TOKEN" \
+            "${INKCRE_EXTENSION_REGISTRY_URL%/}/v1/extensions/${extension_path}/releases/${release_path}/publish" \
+            > .twitter-mf-delivery/published-release.json
+          node controller/scripts/verify-twitter-mf-distribution.mjs verify-public \
             --registry-url "$INKCRE_EXTENSION_REGISTRY_URL" \
-            --config controller/extensions/twitter/target-publish.json \
-            --manifest .twitter-target-delivery/manifest.json \
-            --before-publication .twitter-target-delivery/before-publication.json \
-            --source-repository "$SOURCE_REPOSITORY" \
-            --source-revision "${{ needs.identity.outputs.source_sha }}" \
-            --build-id "$BUILD_ID" \
-            --delivery-revision "${{ github.workflow_sha }}" \
-            --delivery-run-id "${{ github.run_id }}" \
-            --output .twitter-target-delivery/verification.json
+            --package controller/extensions/twitter/package.json \
+            --core-package controller/packages/core/package.json \
+            --artifact-directory .twitter-mf-delivery/dist \
+            --output .twitter-mf-delivery/verification.json
 
       - name: Reverify main before Pages delivery
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -266,7 +251,7 @@ jobs:
               ref: 'heads/main',
             })
             if (currentMain.data.object.sha !== process.env.SOURCE_SHA) {
-              core.setFailed('Main changed after target verification; refusing Pages delivery.')
+              core.setFailed('Main changed after native verification; refusing Pages delivery.')
             }
 
       - name: Deploy to Cloudflare Pages

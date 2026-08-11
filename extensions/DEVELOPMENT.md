@@ -1,29 +1,32 @@
-# Development Guide of InKCre Web extensions
+# Development Guide of InKCre Web Extensions
 
-InKCre Web loads extension through Module Federation, extension is the MF Remote.
+InKCre Web Extensions are native Module Federation Remotes. Their default exposed module uses the
+Web lifecycle defined by `@inkcre/core`.
 
-InKCre provides a playground for extension, which mocks all points Host (apps, eg. client-web, client-webext) will use of the extension.
+## Local Development
 
-For most of case, pass the playground test is enough.
-But in some situation, a joint debugging is required. At this point, you can give a list of extension you want to joint debug in `.env`, and host will start the dev servers and use Vite to proxy them. At this mode, you can still add breakpoints in extension's code and so debug it.
+Use `pnpm dev:all` for joint Host/Remote development. The extension playground remains useful for
+isolated lifecycle and UI work.
 
-When a remote and `@inkcre/ui-web` are being changed together, start the
-consumer-owned source lane from the repository root:
+When a Remote and `@inkcre/ui-web` change together, start the consumer-owned source lane:
 
 ```bash
 pnpm dev:all:ui --ui-source ../ui/packages/web
 ```
 
-The Twitter Vite config reuses the host's exact source aliases, peer dedupe,
-filesystem allowance, and UI-owned Sass prelude. The normal `pnpm dev:all`,
-build, check, and CI paths continue to use the locked registry package. See
-[`apps/client-web/docs/development.md`](../apps/client-web/docs/development.md#joint-dev-with-inkcreui-web)
-for the full lifecycle and release-fidelity boundary.
+The Twitter Vite config reuses the Host's source aliases, peer dedupe, filesystem allowance, and
+UI-owned Sass prelude. Normal build, check, and CI paths consume the locked UI package.
 
-## Registry Target Metadata
+## Native Distribution
 
-`twitter/target-publish.json` describes the `inkcre/twitter@0.1.0` Web target.
-Its Module Federation, shared-host, and ES2022 conditions must track the actual client-web host;
-`pnpm test:unit` verifies that alignment. Building the remote creates a relocatable
-`dist/client-web` artifact only. Publishing it remains an approved exact-main delivery action and
-is intentionally not part of local development or this preparation slice.
+- `package.json` declares canonical Extension Name/Nickname and the `@inkcre/core` Host range.
+- The package version is the exact Extension Release version and must change when Remote source or
+  shared-module input changes.
+- `vite.config.ts` retains `base: './'` and `manifest: true`.
+- `pnpm check` builds the Remote and validates its native manifest, Remote entry, and referenced
+  shared/exposed JS/CSS closure.
+- Protected-main CI retains the checked snapshot. Delivery uploads those exact files as one ZIP to
+  the Registry native Module Federation endpoint; local development never publishes.
+
+See [`apps/client-web/docs/development.md`](../apps/client-web/docs/development.md) for the full
+joint-development boundary.

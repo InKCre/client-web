@@ -29,8 +29,6 @@
 │   └── database.compose.yml # Portable local/SSH database topology
 ├── scripts/              # Release resolver, schema typegen, providers, launchers, and cleanup
 ├── tasks/                # Active agent-owned task packets
-├── tooling/
-│   └── extension-publisher/ # Frozen Python Registry publisher toolchain
 ├── .oxfmtrc.json         # Repository Oxfmt contract
 ├── .oxlintrc.json        # Repository Oxlint contract
 ├── AGENTS.md             # This repo's agent guide
@@ -59,7 +57,7 @@ uses its isolated profile only when an explicit browser binary is configured.
 ├── client/         # Client model & API
 ├── config/         # Configuration adapters & schema
 ├── database/       # Supabase relation types plus stable database/runtime-contract adapters
-├── extension/      # Extension lifecycle, Module Federation
+├── extension/      # Canonical Extension model/state port, Web Host, Module Federation
 ├── info-base/      # Block, Relation, Storage, Resolvers
 ├── libs/           # Third-party integrations (AI)
 ├── obsrv/          # Observability (logging)
@@ -118,7 +116,7 @@ uses its isolated profile only when an explicit browser binary is configured.
 │   ├── index.ts    # Federation module entry
 │   └── main.ts     # Dev playground entry
 ├── package.json
-├── vite.config.ts  # Module Federation config
+├── vite.config.ts  # Native Module Federation manifest config
 └── tsconfig.json
 ```
 

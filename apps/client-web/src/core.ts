@@ -7,13 +7,17 @@
 
 import {
   configStore,
-  registryExtensions,
+  getMFImplementation,
   localStorageAdapter,
+  PostgrestExtensionStatePort,
+  RegistryExtensionReleaseReader,
   setMFImplementation,
   TextResolver,
   ImageResolver,
   VideoResolver,
   HtmlResolver,
+  WebExtensionHost,
+  type ExtensionStatePort,
 } from '@inkcre/core'
 import { createInstance } from '@module-federation/enhanced/runtime'
 import * as InKCreCore from '@inkcre/core'
@@ -23,8 +27,6 @@ import * as Pinia from 'pinia'
 import * as VueRouter from 'vue-router'
 import * as VueUse from '@vueuse/core'
 import packageJson from '../package.json'
-import moduleFederationRuntimePackageJson from '@module-federation/runtime/package.json'
-import vuePackageJson from 'vue/package.json'
 import corePackageJson from '../../../packages/core/package.json'
 import ContentText from '@/components/info-base/resolvers/ContentText.vue'
 import ContentImage from '@/components/info-base/resolvers/ContentImage.vue'
@@ -50,19 +52,27 @@ export function setupResolvers(): void {
 // Configuration
 // ============================================================================
 
-/**
- * Concrete capabilities supplied by this static Web host. Deployment URLs are
- * deliberately absent: Registry origin remains runtime client configuration.
- */
-export const clientWebRegistryPlatformProfile = Object.freeze({
-  'inkcre.integration': 'module-federation-esm-v1',
-  'inkcre.extension-api': '1.0.0',
-  'module-federation.runtime': moduleFederationRuntimePackageJson.version,
-  'module-federation.share-scope': 'default',
-  'shared.vue': vuePackageJson.version,
-  'shared.@inkcre/core': corePackageJson.version,
-  'web.ecmascript': 'es2022',
-})
+let extensionHost: WebExtensionHost | null = null
+
+export function initializeExtensionHost(state: ExtensionStatePort): WebExtensionHost {
+  extensionHost = new WebExtensionHost({
+    state,
+    releases: new RegistryExtensionReleaseReader(
+      () => configStore.clientConfig.extension_registry_url
+    ),
+    moduleFederation: getMFImplementation,
+    currentPeerId: () => configStore.metaConfig.INKCRE_CLIENT_ID,
+    hostSdkVersion: corePackageJson.version,
+  })
+  return extensionHost
+}
+
+export function getExtensionHost(): WebExtensionHost {
+  if (!extensionHost) {
+    throw new Error('Web Extension Host state port has not been initialized.')
+  }
+  return extensionHost
+}
 
 // ============================================================================
 // Module Federation
@@ -131,7 +141,7 @@ export function initializeModuleFederation(): void {
   // Inject MF implementation into core
   const mfImpl = {
     registerRemotes: (
-      remotes: Array<{ name: string; entry: string; type: 'module' | 'script' }>,
+      remotes: Array<{ name: string; entry: string; type?: 'module' | 'script' }>,
       options?: { force?: boolean }
     ) => {
       mfInstance.registerRemotes(remotes, options)
@@ -142,7 +152,6 @@ export function initializeModuleFederation(): void {
   }
 
   setMFImplementation(mfImpl)
-  registryExtensions.configurePlatformProfile(clientWebRegistryPlatformProfile)
 
   console.log('[Core] Module Federation initialized')
 }
@@ -160,5 +169,6 @@ export async function initializeCore(): Promise<void> {
   await configStore.loadClientConfig()
   setupResolvers()
   initializeModuleFederation()
+  initializeExtensionHost(new PostgrestExtensionStatePort())
   console.log('[Core] Initialization complete')
 }

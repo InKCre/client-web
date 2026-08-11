@@ -8,7 +8,7 @@
 export interface RemoteConfig {
   name: string
   entry: string
-  type: 'module' | 'script'
+  type?: 'module' | 'script'
 }
 
 export interface RegisterRemotesOptions {

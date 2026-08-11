@@ -23,7 +23,10 @@ extensions/
 - `src/index.ts` - Federation module entry, exports resolvers/storages
 - `src/main.ts` - Development playground
 - `vite.config.ts` - Module Federation configuration
-- `package.json` - Extension dependencies
+- `package.json` - Extension dependencies, identity, Release, and Host SDK association
+
+Production builds emit a native `mf-manifest.json`. Keep `base: './'`; Registry publication
+materializes its `metaData.publicPath` for the immutable public Release prefix.
 
 ## Commands
 

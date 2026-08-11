@@ -3,13 +3,13 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { InkForm, InkInput, InkButton } from '@inkcre/ui-web'
 import { installExtensionEmits } from './installExtension'
-import { registryExtensions } from '@inkcre/core'
+import { getExtensionHost } from '@/core'
 
 const emit = defineEmits(installExtensionEmits)
 const { t } = useI18n()
 
 // --- data ---
-const form = ref({ namespace: '', name: '', version: '' })
+const form = ref({ name: '', version: '' })
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 
@@ -18,10 +18,10 @@ const onSubmit = async () => {
   isLoading.value = true
   try {
     error.value = null
-    await registryExtensions.install(form.value)
+    await getExtensionHost().install(form.value)
     emit('install')
     // Reset form on success
-    form.value = { namespace: '', name: '', version: '' }
+    form.value = { name: '', version: '' }
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : String(cause)
     console.error('Failed to install Registry extension:', cause)
@@ -37,8 +37,12 @@ const onSubmit = async () => {
     <h2 class="title">{{ t('extension.installExtensionTitle') }}</h2>
 
     <InkForm class="form">
-      <InkInput v-model="form.namespace" :label="t('extension.namespace')" required />
-      <InkInput v-model="form.name" :label="t('extension.name')" required />
+      <InkInput
+        v-model="form.name"
+        :label="t('extension.name')"
+        :placeholder="t('extension.namePlaceholder')"
+        required
+      />
       <InkInput
         v-model="form.version"
         :label="t('extension.version')"

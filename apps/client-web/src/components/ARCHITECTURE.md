@@ -24,8 +24,8 @@ componentName/
 
 **Characteristics**:
 
-- Props accept BusinessClass instances
-- Emit BusinessClass instances
+- Props accept domain-owned models or generated contracts
+- Emits carry typed domain payloads
 - Contain domain-specific logic
 
 **Examples**: `sourceCard`, `extensionCard`, `BlockNode`
@@ -66,19 +66,17 @@ Use helper functions from `vue-props.ts` for type-safe props:
 - `makeNumberProp<T>()`
 - `makeBooleanProp()`
 
-### BusinessClass Props
+### Domain Props
 
-Each BusinessClass provides prop helpers for consistent typing:
-
-- `makeSourceProp()` for Source entities
-- `makeExtensionProp()` for Extension entities
-- Similar patterns for other business classes
+Use Vue `PropType` or the shared prop helpers to preserve the owning model's exact TypeScript type.
+Extension components consume the canonical `InstalledExtension` contract exported by
+`@inkcre/core`; they do not define a parallel UI model.
 
 ### Emit Validators
 
 Define emits with payload validation:
 
-- Emit BusinessClass instances, not IDs
+- Emit the owning domain model when the consumer needs the changed state, not a reconstructed ID
 - Use type-safe validators for event payloads
 
 ## Business Domain Organization
