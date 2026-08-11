@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { AudioSolvedContent, ContentCompProps } from '@inkcre/core'
+import type { AudioSolvedContent, SolvedContentRendererProps } from '@inkcre/core'
 
-defineProps<ContentCompProps<AudioSolvedContent>>()
+defineProps<SolvedContentRendererProps<AudioSolvedContent>>()
 </script>
 
 <template>

@@ -2,39 +2,40 @@
 
 ## Rationale
 
-Provides a detailed view of a single source with its configuration and associated collect jobs.
+Provides a detailed view of one Source with its configuration, Jobs, and ordinary collection Crons.
 
 ## Goals
 
 - Display comprehensive source information
 - Allow inline editing of nickname and config
-- List all collect jobs for this source with pagination
+- List Jobs whose parameters reference this Source
+- Create ordinary and historical collection Jobs
+- Create, run, and delete ordinary collection Crons
 - Provide actions to create new jobs and delete the source
 
 ## Specification
 
 ### Layout
 
-- Two-panel layout (left: source details, right: collect jobs)
-- Similar to SourceCollectJob view layout
+- Two-panel layout (left: Source details, right: scheduling and Jobs)
 
 ### Left Panel (Source Details)
 
 - Source type, nickname, and ID
 - Inline nickname editing (using InkInput)
 - Config display and editing (using InkJsonEditor with save button)
-- Collect at schedule display
 - Delete action button
 
-### Right Panel (Collect Jobs List)
+### Right Panel (Scheduling and Jobs)
 
 - "New Job" button at the top (full width)
-- List of collect jobs with pagination
+- Cron controls and current schedules
+- List of Jobs for this Source
 - Each job shows: ID, status, created date, and clickable link to job detail
-- Pagination controls at the bottom
 
 ### Actions
 
-- New Job: Opens center popup with title, newCollectJob component, and cancel/create buttons
+- New Job: chooses ordinary collection or historical backfill, validates its JSON config, and creates a global Job
+- Schedule: creates an ordinary collection Cron from a five-field schedule
 - Delete: Deletes the source and navigates back to sources list
 - Save Config: Saves the edited configuration

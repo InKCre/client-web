@@ -2,27 +2,10 @@
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import {
-  InkField,
-  InkButton,
-  InkInput,
-  InkPicker,
-  InkPopup,
-  InkSwitch,
-  InkJsonEditor,
-  InkDoubleCheck,
-} from '@inkcre/ui-web'
-import collectAtForm from '@/components/source/collectAtForm/collectAtForm.vue'
+import { InkButton, InkInput, InkPopup, InkJsonEditor, InkDoubleCheck } from '@inkcre/ui-web'
 import { sourceCardEmits, type SourceCardProps } from './sourceCard'
-import {
-  CollectAt,
-  Source,
-  SourceCollectJob,
-  SourceCollectJobForm,
-  SourceCollectJobStatus,
-  SourceType,
-} from '@inkcre/core'
-import { useCloned, computedAsync } from '@vueuse/core'
+import { Job, JobManager, JobStatus, Source, SourceType } from '@inkcre/core'
+import { computedAsync } from '@vueuse/core'
 
 const props = defineProps<SourceCardProps>()
 const emit = defineEmits(sourceCardEmits)
@@ -53,29 +36,24 @@ const sourceType = computedAsync(
   { shallow: false }
 )
 const latestOpenJob = computedAsync(
-  async (): Promise<SourceCollectJob | null> => {
+  async (): Promise<Job | null> => {
     if (sourceData.value?.id) {
-      return await SourceCollectJob.getLatestOpenBySource(sourceData.value.id)
+      const jobs = await Job.getBySource(sourceData.value.id)
+      return (
+        jobs.find((job) => job.status === JobStatus.PENDING || job.status === JobStatus.RUNNING) ??
+        null
+      )
     }
     return null
   },
   null,
   { shallow: true }
 )
-const collectAtModel = ref<CollectAt | null>(null)
 const configPopupOpen = ref(false)
 const configModel = ref('')
 const nicknameModel = ref('')
 
 // --- watchers ---
-watch(
-  () => sourceData.value?.collect_at,
-  (newVal) => {
-    collectAtModel.value = newVal ? useCloned(newVal).cloned.value : null
-  },
-  { immediate: true }
-)
-
 watch(
   () => sourceData.value?.nickname,
   (newVal) => {
@@ -87,19 +65,6 @@ watch(
 // --- computed ---
 const formattedConfig = computed(() => {
   return JSON.stringify(sourceData.value?.config || {}, null, 2)
-})
-
-const toggleAutoCollect = computed({
-  get: () => collectAtModel.value != null,
-  set: (value: boolean) => {
-    if (value) {
-      if (collectAtModel.value == null) {
-        collectAtModel.value = CollectAt.parse({})
-      }
-    } else {
-      collectAtModel.value = null
-    }
-  },
 })
 
 // --- methods ---
@@ -116,36 +81,20 @@ const onEditConfig = () => {
 }
 
 const onRunNow = async () => {
-  const form = new SourceCollectJobForm({
+  const job = await JobManager.create('core.source.collect.v1', {
     source: sourceData.value!.id,
-    created_at: new Date(),
-    started_at: null,
-    closed_at: null,
-    status: SourceCollectJobStatus.PENDING,
-    state: {},
     config: {},
   })
-  const job = await form.create()
-  router.push(`/sources/collectJob/${job.id}`)
+  router.push(`/jobs/${job.id}`)
 }
 
 const onDelete = () => {
   emit('delete', sourceData.value!)
 }
 
-const onConfirmCollectAt = () => {
-  sourceData.value!.collect_at = useCloned(collectAtModel.value).cloned.value
-  sourceData.value!.save()
-}
-
-const onConfirmCollectAtAndClose = (closePopup: () => void) => {
-  onConfirmCollectAt()
-  closePopup()
-}
-
 const onCheckOpenJob = () => {
   if (latestOpenJob.value) {
-    router.push(`/sources/collectJob/${latestOpenJob.value.id}`)
+    router.push(`/jobs/${latestOpenJob.value.id}`)
   }
 }
 
@@ -193,34 +142,6 @@ const onConfirmConfig = () => {
         <span class="source-card__id">{{ sourceData.id }}</span>
       </div>
     </div>
-
-    <InkField
-      class="source-card__collect-at"
-      label="Will run collect at"
-      layout="inline"
-      @click.stop
-    >
-      <InkPicker
-        :modelValue="sourceData.collect_at"
-        :formatter="(val: CollectAt | null) => (val ? CollectAt.format(val) : 'click to set')"
-        displayValueAs="inline-text"
-      >
-        <template #default="{ closePopup }">
-          <div class="collect-at__title">Config source auto collecting</div>
-          <collectAtForm v-if="collectAtModel !== null" v-model="collectAtModel" />
-          <div v-else>Auto collect off.</div>
-          <div class="collect-at__actions">
-            <InkSwitch v-model="toggleAutoCollect" size="md" />
-            <InkButton text="Cancel" theme="subtle" @click="closePopup" />
-            <InkButton
-              text="Confirm"
-              theme="primary"
-              @click="onConfirmCollectAtAndClose(closePopup)"
-            />
-          </div>
-        </template>
-      </InkPicker>
-    </InkField>
 
     <div class="source-card__config">
       <pre class="source-card__config-text">{{ formattedConfig }}</pre>

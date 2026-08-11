@@ -1,17 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import {
-  InkInput,
-  InkJsonEditor,
-  InkField,
-  InkSwitch,
-  InkDropdown,
-  type DropdownOption,
-  InkForm,
-} from '@inkcre/ui-web'
-import collectAtForm from '@/components/source/collectAtForm/collectAtForm.vue'
+import { computed, ref } from 'vue'
+import { InkInput, InkJsonEditor, InkDropdown, type DropdownOption, InkForm } from '@inkcre/ui-web'
 import { sourceFormProps, sourceFormEmits } from './sourceForm'
-import { CollectAt, SourceType } from '@inkcre/core'
+import { SourceType } from '@inkcre/core'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps(sourceFormProps)
@@ -20,20 +11,6 @@ const { t } = useI18n()
 
 // --- data ---
 const sourceTypes = ref<(DropdownOption & SourceType)[]>([])
-
-// --- computed ---
-const toggleAutoCollect = computed({
-  get: () => props.modelValue.collect_at != null,
-  set: (value: boolean) => {
-    if (value) {
-      if (props.modelValue.collect_at == null) {
-        props.modelValue.collect_at = CollectAt.parse({})
-      }
-    } else {
-      props.modelValue.collect_at = null
-    }
-  },
-})
 
 const configJson = computed<string>({
   get: () => {
@@ -69,21 +46,6 @@ const loadSourceTypes = async (): Promise<(DropdownOption & SourceType)[]> => {
       :refresher="loadSourceTypes"
       :label="t('source.type')"
     />
-
-    <InkField :label="t('source.collectAt')" prop="collect_at">
-      <template #label-right>
-        <div class="flex flex-row flex-1 justify-end">
-          <InkSwitch v-model="toggleAutoCollect" size="xs" />
-        </div>
-      </template>
-      <collectAtForm
-        v-if="props.modelValue.collect_at != null"
-        v-model="props.modelValue.collect_at"
-      />
-      <!-- <span v-else class="source-form__collect-at-placeholder">
-        {{ t("source.collectAtOff") }}
-      </span> -->
-    </InkField>
 
     <InkJsonEditor
       v-model="configJson"

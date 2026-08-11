@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { ByteSolvedContent, ContentCompProps } from '@inkcre/core'
+import type { ByteSolvedContent, SolvedContentRendererProps } from '@inkcre/core'
 
-const props = defineProps<ContentCompProps<ByteSolvedContent>>()
+const props = defineProps<SolvedContentRendererProps<ByteSolvedContent>>()
 
 const label = computed(() => props.resolver.block.resolver.split('.')[1]?.toUpperCase() ?? 'FILE')
 </script>

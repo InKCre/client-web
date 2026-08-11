@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { ContentCompProps } from '@inkcre/core'
-const props = defineProps<ContentCompProps<string>>()
+import type { SolvedContentRendererProps } from '@inkcre/core'
+const props = defineProps<SolvedContentRendererProps<string>>()
 
 const displayContent = computed(() => {
   const textContent = stripHtml(props.solvedContent)

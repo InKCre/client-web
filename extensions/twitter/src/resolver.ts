@@ -23,7 +23,7 @@ import ContentTweet from './components/contentTweet/contentTweet.vue'
 
 export class TweetResolver extends Resolver<string, Tweet> {
   static readonly type = 'extensions.twitter.tweet.v1'
-  static readonly contentComp = markRaw(ContentTweet)
+  static readonly solvedContentRenderer = markRaw(ContentTweet)
 
   static {
     Resolver.register(TweetResolver.type, TweetResolver)

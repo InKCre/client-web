@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { ContentCompProps } from '@inkcre/core'
+import type { SolvedContentRendererProps } from '@inkcre/core'
 import type { ImageSolvedContent } from '@inkcre/core'
 
-const props = defineProps<ContentCompProps<ImageSolvedContent>>()
+const props = defineProps<SolvedContentRendererProps<ImageSolvedContent>>()
 
 const imageError = ref(false)
 

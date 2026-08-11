@@ -21,6 +21,13 @@ export default defineConfig({
       },
     },
     {
+      name: 'mail-info-base',
+      testMatch: 'mail-info-base.spec.ts',
+      use: {
+        baseURL: process.env.INKCRE_E2E_WEB_URL,
+      },
+    },
+    {
       name: 'browser-extension',
       testMatch: 'browser-extension.spec.ts',
     },

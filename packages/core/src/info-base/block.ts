@@ -39,7 +39,14 @@ export class Block extends Z.class({
   declare private _hydratedContentSource?: string
 
   static async get(id: BlockRef): Promise<Block> {
-    return Block.parse((await this.dbApi.from().select().eq('id', id)).data?.[0])
+    const block = await this.find(id)
+    if (!block) throw new Error(`Block ${id} does not exist`)
+    return block
+  }
+
+  static async find(id: BlockRef): Promise<Block | null> {
+    const row = (await this.dbApi.from().select().eq('id', id).maybeSingle()).data
+    return row ? Block.parse(row) : null
   }
 
   static async getAll(): Promise<Block[]> {

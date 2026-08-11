@@ -2,7 +2,7 @@
  * Core HTML Resolver
  *
  * Handles HTML content from various sources.
- * Apps must extend this class and provide contentComp Vue component.
+ * Apps bind a presentation-neutral solved-content renderer.
  */
 
 import { Resolver } from './base'
@@ -13,7 +13,7 @@ export type HtmlRawContent = string | Uint8Array
 
 /**
  * Abstract HTML resolver with logic implementation.
- * Apps must extend and provide contentComp.
+ * Apps bind the renderer without changing this Resolver contract.
  */
 export class HtmlResolver extends Resolver<HtmlRawContent, string> {
   static readonly type = 'core.html.v1'

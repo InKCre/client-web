@@ -2,7 +2,7 @@
  * Text Resolver
  *
  * Handles plain text content (characters, numbers, punctuation - no formatting).
- * Apps must extend this class and provide contentComp Vue component.
+ * Apps bind a presentation-neutral solved-content renderer.
  */
 
 import { Resolver } from './base'
@@ -11,7 +11,7 @@ import { decodeUnicode } from './decode'
 
 /**
  * Abstract text resolver with logic implementation.
- * Apps must extend and provide contentComp.
+ * Apps bind the renderer without changing this Resolver contract.
  */
 export class TextResolver extends Resolver<string | Uint8Array, string> {
   static readonly type = 'core.text.v1'

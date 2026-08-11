@@ -42,6 +42,6 @@ The component displays logs filtered by trace ID in a scrollable container. It s
 - Loading state indicator appears only when polling is active
 - Error state shows inline error message instead of logs
 - Auto-scroll to bottom via CSS (no JavaScript scroll management)
-- Reuses existing log styles from sourceCollectJob.scss
+- Uses its own presentation-neutral log styles
 - Integrates LogEntry component for individual log rendering
 - Watches traceId changes and reloads logs accordingly

@@ -15,7 +15,8 @@ Shared logic package for InKCre applications and extensions.
 - `peer` - Peer Active Record, discovery, protocols, and exact capability delegation
 - `semantic-retrieval` - Semantic retrieval capability facade
 - `sink/graph` - Graph layouts & algorithms
-- `source` - Source, CollectJob, CollectAt
+- `source` - Source and Source runtime integration
+- `job` / `cron` - global asynchronous work and schedule models
 - `utils` - Vue prop helpers
 
 ## Key Patterns
