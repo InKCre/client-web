@@ -1,6 +1,6 @@
 # Organization Git and GitHub Workflow Implementation Plan
 
-- **Status**: Phases 0-3 are complete. Phase 3 landed the core schema-bearing stable release foundation, the client stable resolver/typegen/real-service E2E contract, separate PR preview and exact-main delivery controllers, direct required-check names, and the accepted repository settings. Client PR #49 was admitted through a real one-entry merge queue; merge-group run `31256717813` passed all four required checks on synthetic commit `cc857104`, which became main. The temporary queue rule was then removed so GitHub does not force one merge method; squash remains the default and rebase remains available. Preview cleanup run `31256442627`, automatic cleanup run `31256837743`, and production runs `31256434332`/`31256836894` passed. Deferred full-stack preview bootstrap and live external-fork package-access probing are recorded rather than represented as finished. The reverted synchronized product series is preserved without conflicts in draft client-web #50 and core-py #45. Immediate fan-out, dependency-update pull requests, and a cross-repository GitHub App remain rejected. Phases 4-6 remain proposed and unauthorized.
+- **Status**: Phases 0-6 are complete. Phase 3 landed the core schema-bearing stable release foundation, the client stable resolver/typegen/real-service E2E contract, separate PR preview and exact-main delivery controllers, direct required-check names, and the accepted repository settings. Client PR #49 was admitted through a real one-entry merge queue; merge-group run `31256717813` passed all four required checks on synthetic commit `cc857104`, which became main. The temporary queue rule was then removed so GitHub does not force one merge method; squash remains the default and rebase remains available. Preview cleanup run `31256442627`, automatic cleanup run `31256837743`, and production runs `31256434332`/`31256836894` passed. Deferred full-stack preview bootstrap and live external-fork package-access probing are recorded rather than represented as finished. The reverted synchronized product series is preserved without conflicts in draft client-web #50 and core-py #45. Phase 4 independently aligned core-py governance through merged PR #46 and live-proved main CI, immutable publication, production admission, `stable`, and cleanup before removing its temporary worktree. Immediate fan-out, dependency-update pull requests, and a cross-repository GitHub App remain rejected. Phase 5 resolved release PR #34 and package `1.3.1`, published the check-name governance, merged runner-CD foundation PR #35 and sequential cutover PR #36, disabled Cloudflare automatic Git builds after dual-run proof, live-proved runner preview/cleanup and exact-main same-run production delivery, adopted `ui-web checks`, serialized release runs, and completed the UI ruleset/merge-method transition. Phase 6 applied and live-verified the four repositories' read-only workflow defaults, disabled Actions review approval, all-external fork approval, full-SHA enforcement, and the missing client-web production-main policy. Final settings and workflow audits pass; `.github` commit `510cdd3` publishes the final guardrail and client-web PR #53 records the completed task evidence.
 - **Control surface**: [`packet.md`](./packet.md) owns current task state and decisions. This file owns execution order, planned mutations, verification, and rollback.
 - **Durable owner**: `InKCre/.github` will own the organization Git and GitHub workflow standard. Repository code, tests, release mechanics, and profile-specific instructions remain with each repository.
 - **Enforcement scope**: `InKCre/core-py`, `InKCre/client-web`, `InKCre/ui`, and `InKCre/docs`. `InKCre/.github` is included only as the governance control plane.
@@ -34,7 +34,21 @@
 - Reject force pushes, deletion, and merge commits; require linear history.
 - Allow squash and rebase merges. Document squash as the normal choice and rebase as an intentional choice for curated commit series or stack maintenance.
 - Leave automatic branch deletion disabled while the stacked-PR workflow is being learned.
-- Preserve repository-specific check names and bind checks to the GitHub Actions app when the setting supports a source identity.
+- Name reported check contexts `<scope> <kind>` in lowercase. Use the repository name as `scope`
+  unless a monorepo job validates one independently understood application or package, in which case
+  use that application or package name. Validation kinds are `checks`, `tests`, and `e2e tests`:
+  `checks` is the aggregate code/build/package contract; use `tests` or `e2e tests` when those lanes
+  report independently. Delivery jobs use `preview`, `preview cleanup`, and `deployment`. Keep
+  implementation adjectives and internal architecture terms in step names and documentation rather
+  than public check names.
+- Treat required-context names as stable GitHub API. Bind them to the GitHub Actions app when the
+  setting supports a source identity, and migrate each existing repository only alongside a real
+  workflow change. Phase 5 applies this convention to `ui-web checks`; existing names in
+  `client-web`, `client-webext`, `core-py`, and `docs` remain unchanged until their next justified
+  workflow slice.
+- Repository-owned check contexts follow this naming convention. Provider-owned integration checks,
+  such as Cloudflare's fixed `Cloudflare Pages` context, retain the provider name and are documented
+  separately; do not create a duplicate wrapper job merely to rename them.
 - Treat an emergency rule change as audited break-glass work: state the reason and affected repository, obtain explicit authorization, restore the baseline immediately after recovery, and follow with a pull request. Do not maintain a routine administrator bypass.
 
 ## Stacked Pull-Request Convention
@@ -56,6 +70,7 @@
   - status-check and conversation semantics;
   - squash-default, rebase-allowed merge policy;
   - stacked pull-request procedure;
+  - stable `<scope> <kind>` public check naming for validation and delivery jobs;
   - candidate validation, preview delivery, release authority, and artifact identity;
   - GitHub Free enforcement and exception handling.
 - Add `CONTRIBUTING.md` as the concise contributor entrypoint. Link to `GOVERNANCE.md` and require repository-local verification commands.
@@ -149,13 +164,52 @@ GitHub uses defaults from a public `.github` repository only when a repository h
 
 ### `InKCre/ui` Package Profile
 
-- Keep `.github/workflows/ci.yml` as pull-request validation with required context `Reproducible workspace check` and Changesets validation.
+- Keep `.github/workflows/ci.yml` as pull-request validation and rename its aggregate required
+  context from `Reproducible workspace check` to `ui-web checks`. The job continues to own the
+  frozen workspace, generated-output, type, unit-test, build, packed-package, story, and Changesets
+  contracts; the simpler context name describes its public scope rather than every internal step.
 - Keep `.github/workflows/release-and-publish.yml` as the only package release authority on `main`:
   - serialize runs with one `ui-release-main` concurrency group;
   - use `cancel-in-progress: false` so a publication is never cancelled halfway;
   - continue using the built-in `GITHUB_TOKEN` as `NODE_AUTH_TOKEN` for GitHub Packages.
+- Migrate Histoire delivery from Cloudflare's Git pull integration to repository-owned runner push
+  without replacing the existing `inkcre-web-design` Pages project or its custom domain:
+  - export the current Pages project/build/domain/branch-control configuration before editing; use
+    `wrangler pages download config` in a disposable location or the authenticated Cloudflare API,
+    review the result, and never copy credentials into the repository;
+  - pin Wrangler in the workspace and check in a reviewed Pages configuration derived from the
+    existing project, with project name and `packages/web/.histoire/dist` output owned as code;
+  - keep `ui-web checks` secret-free and upload its exact successful Histoire output as a short-lived
+    artifact;
+  - add a trusted `workflow_run` preview controller that accepts only an open, same-repository pull
+    request targeting `main` at the exact checked head, downloads that artifact without executing
+    pull-request code, and pushes it to deterministic Cloudflare branch `pr-N`;
+  - add a trusted close controller that replaces the exact `pr-N` alias with a small `noindex`
+    tombstone; accept that older immutable Cloudflare deployments remain reachable;
+  - add a protected-main delivery workflow that checks out exact `main`, performs a focused Histoire
+    release build, transfers the same-run artifact to a production job, pushes it with Wrangler, and
+    smokes `https://design.inkcre.dev`;
+  - use repository `preview` and `production` environments, select the existing organization
+    Cloudflare credentials for `ui`, and set repository variable `CLOUDFLARE_PAGES_PROJECT` to
+    `inkcre-web-design`; separate preview and production tokens are not required for this static site;
+  - name repository-owned delivery jobs `ui-web preview`, `ui-web preview cleanup`, and
+    `ui-web deployment`; keep them as delivery evidence rather than merge-required contexts.
+- Cut over without downtime: keep Cloudflare automatic Git builds enabled while the runner delivery
+  foundation lands and proves one main push; prove runner preview on a subsequent non-stacked UI
+  pull request, then disable automatic preview and production builds, merge through the runner lane,
+  and verify the canonical site and close-time retirement. Previous deployments remain hosted
+  throughout the transition. The Cloudflare GitHub App is currently installed for all organization
+  repositories, so removing only `ui` access is not a Phase 5 exit condition; audit and narrow that
+  installation separately only when the other repositories' usage is known.
+- Treat package publication and Histoire delivery as parallel outputs of protected `main`. A failure
+  in one lane does not prove the other artifact invalid; record and repair the failed authority
+  without republishing the successful output solely to synchronize run IDs.
 - Resolve current release pull request #34 before tightening protection:
-  - immediately approve its `action_required` run or manually dispatch `.github/workflows/ci.yml` against `changeset-release/main`;
+  - prefer approving its existing `action_required` pull-request run so the PR-only Changesets
+    validation executes as well as the workspace check;
+  - use manual dispatch against `changeset-release/main` only as a fallback, because the current
+    workflow skips Changesets validation for `workflow_dispatch`; pair that fallback with an
+    explicit exact-head release-diff/Changesets validation;
   - verify that the successful `Reproducible workspace check` is attached to the exact release pull-request head SHA and GitHub Actions app identity.
 - Accept manual approval or dispatch as the initial low-frequency release-PR operating procedure.
 - If repeated release-PR updates make that procedure materially costly, automate in a separately approved slice with a dedicated GitHub App installed only on `InKCre/ui`:
@@ -165,9 +219,16 @@ GitHub uses defaults from a public `.github` repository only when a repository h
   - pass that token through `changesets/action`'s `with.github-token` input;
   - keep package publication on the built-in token;
   - do not use a classic PAT, execute pull-request head code under `pull_request_target`, or synthesize custom required checks.
-- Extend the existing repository rulesets so `main` requires a pull request, conversation resolution, linear history, the current strict required context, and no bypass. Preserve deletion and non-fast-forward protection.
+- After the Phase 5 workflow pull request reports successful `ui-web checks`, atomically replace the
+  old required context with `ui-web checks` bound to GitHub Actions app `15368`; do not add a second
+  compatibility job. In the same settings slice, extend the existing rulesets so `main` requires a
+  pull request, conversation resolution, linear history, the strict required context, and no bypass.
+  Preserve deletion and non-fast-forward protection.
 - Disable merge commits; retain squash and rebase. Changesets reads the final `.changeset` files, so either method preserves version intent.
 - In stacked package work, merge bottom-up and restack before checks. Never use `changeset-release/main` as the base of a feature stack.
+- Require maintainer approval before workflows from every external fork contributor run. Approval
+  permits only secret-free `ui-web checks`; the same-repository identity gate independently denies
+  runner preview delivery to forks.
 
 ### `InKCre/docs` Documentation-Site Profile
 
@@ -271,25 +332,73 @@ credential or a synthetic fork.
 
 ### Phase 4: Core Service Alignment
 
-- Land contribution-link and immutable-Action-pin changes without changing the core runtime topology.
-- Verify all four required contexts, preview identity and cleanup, GHCR publication, exact-current-main production guard, and Heroku health checks.
-- Enable linear history and repository merge-method settings after checks are green.
+- Do not use the intentionally unmergeable synchronized product PR #45 as the governance acceptance
+  vehicle. Create a dedicated clean branch/worktree from current `core-py/origin/main`, extract only
+  the contribution-link and immutable-Action-pin changes, and leave PR #45 draft and unchanged.
+- Keep the repository check scoped to program code and infrastructure configuration. Configure Ruff
+  centrally to exclude Markdown so populated Hub references and task prose cannot fail the code gate;
+  retain actionlint and the existing Python, lock, migration, settings, type, and test contracts.
+- Verify all four required contexts plus preview identity/delivery on the small governance pull
+  request. Do not copy PR #45's product-specific stale validation repairs into this slice.
+- After those checks are green, enable linear history, disable merge commits while retaining squash
+  and rebase, and merge the governance pull request through the protected path.
+- Use the resulting main runs to verify GHCR publication, exact-current-main production guard,
+  production health checks, and movement of `stable`; then verify preview cleanup and remove the
+  temporary worktree.
 - Rollback: revert documentation/pins through a pull request and restore merge settings. Do not roll back production artifacts solely to undo governance metadata.
 
 ### Phase 5: Package Repository Alignment
 
-- Resolve `ui` release pull request #34 with exact-head evidence.
-- Land release concurrency and any immutable-Action-pin changes.
-- Exercise a disposable two-level stack bottom-up; verify restacking, latest-base checks, squash-default behavior, and optional rebase merge without merge commits.
-- Extend the UI rulesets only after the release pull request can reliably obtain `Reproducible workspace check`.
+- Refresh and export UI repository settings plus the current `inkcre-web-design` Cloudflare project
+  configuration. Confirm the existing organization Cloudflare credential can address that project;
+  if it cannot, stop before cutover and create a project-scoped Pages token rather than weakening the
+  workflow or replacing the live project.
+- Amend organization governance with the `<scope> <kind>` check-context convention. Apply it only to
+  `ui` in this phase; do not reopen completed `client-web` or `core-py` workflow work merely to rename
+  contexts.
+- Resolve and merge `ui` release pull request #34 under its existing required-context name, with
+  exact-head pull-request-event evidence, before changing that name; verify the resulting package
+  publication, tag, release, main Release run, Cloudflare main deployment, and canonical Histoire
+  site. If the old `action_required` run can no longer be approved, use exact-head manual CI plus a
+  separate release-diff/Changesets validation rather than silently omitting the PR-only step.
+- Land the runner-CD foundation through the existing `Reproducible workspace check` context. Keep
+  every existing Action pin and pin each newly introduced artifact/deployment Action at its reviewed
+  immutable commit. Verify the existing `Cloudflare Pages` check and exact-head branch preview while
+  the pull integration remains active. After merge, verify the new runner-owned
+  `ui-web deployment` against `https://design.inkcre.dev` before disabling either Cloudflare build
+  lane.
+- Use a second sequential, non-stacked governance/release pull request for the `ui-web checks` rename
+  and non-cancelling `ui-release-main` concurrency. Wait for that exact head to report the successful
+  new GitHub-Actions-owned context while the old rule still blocks merge. Prove runner-owned
+  `ui-web preview` and its deterministic `pr-N` alias, disable Cloudflare automatic Git deployments,
+  atomically switch the required context and remaining rules, then merge and verify runner-only
+  production delivery and close-time preview retirement before considering any organization-wide
+  Cloudflare App access change.
+- Record manual exact-head dispatch or approval as the initial operating procedure for low-frequency
+  Changesets and design-token pull requests created by the built-in `GITHUB_TOKEN`.
+- Do not create synthetic pull requests solely to exercise stacking. Keep the documented bottom-up
+  restack procedure available for real stacked work, and validate it only when such work naturally
+  occurs.
+- Disable merge commits while retaining squash and rebase after the new required context is proven.
 - Treat dedicated GitHub App automation as a separate credential-bearing Impact Handshake after manual operating cost is observed.
-- Rollback: restore rulesets and revert workflow changes. Revoke the optional App installation and secret if that later slice fails; its issued token expires independently.
+- Rollback: before disabling automatic Cloudflare builds, retain the exported project/build settings.
+  If runner delivery fails before cutover, leave the pull integration active and revert the runner
+  workflow through a pull request. If it fails after cutover, re-enable automatic production and
+  preview builds first so `design.inkcre.dev` keeps receiving updates, then revert. Coordinate the
+  workflow job name and required-context rule so the ruleset never waits for a name the active
+  workflow cannot emit; restore the exported rulesets and merge settings as needed. Do not unpublish
+  an already successful package solely to roll back Histoire delivery. Revoke the optional release
+  App installation and secret if that later slice fails; its issued token expires independently.
 
 ### Phase 6: Actions Hardening and Final Audit
 
-- Change per-repository workflow defaults to read-only and disallow Actions approval of pull-request reviews.
-- Enforce immutable Action SHAs after the pin audit.
-- Pilot and then apply selected-actions allowlists one repository at a time.
+- Freeze each repository's Actions settings, fork policy, production branch policy, workflow action references, and rollback payload before mutation.
+- Change remaining per-repository workflow defaults to read-only and disallow Actions approval of pull-request reviews. Preserve explicit job-level write grants for release and deployment jobs.
+- Require maintainer approval before every external fork contributor's read-only, secret-free workflow run in all four repositories.
+- Enforce immutable Action SHAs after confirming every checked-in external Action is already pinned to a full commit SHA; local actions remain local references.
+- Add the missing `main`-only branch policy to the `client-web` production environment.
+- Treat selected-actions allowlists as optional defense in depth. If justified, probe only `docs` first with GitHub-owned Actions plus exact current third-party action patterns, then restore `allowed_actions=all` on any unexplained workflow-start failure. Do not make the allowlist a Phase 6 exit condition.
+- After each repository mutation, run a secret-free manual validation workflow and stop or restore that repository before continuing if it cannot start normally.
 - Run a final read-only audit against all common controls, profile-specific workflows, environment policies, templates, required-check sources, and merge methods.
 - Record any exception with owner, reason, compensating control, and review date in `GOVERNANCE.md`; do not hide drift in the task packet.
 - Exit condition: the final audit has no unexplained difference between the documented standard and live GitHub state.
@@ -309,7 +418,6 @@ credential or a synthetic fork.
   - a failed latest-head required check blocks merge;
   - unresolved review conversation blocks merge;
   - an eligible corrected pull request merges through squash by default;
-  - a two-level stack can be merged bottom-up after restacking;
   - pull-request previews are isolated and cleaned without production authority;
   - protected-main release workflows build, identify, deploy or publish, and verify their own outputs;
   - direct administrator push is unavailable under normal configuration.
