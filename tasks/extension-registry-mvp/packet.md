@@ -36,6 +36,14 @@
   unchanged version with no Module Federation association republishes the current checked artifact,
   while an existing association remains a no-op. Native publication, Pages deployment, and final
   Chromium lifecycle remain pending.
+- **Black-box findings**: the protected-main delivery rerun `31473889880` published the native
+  Twitter association, deployed the exact checked Pages artifact, and passed its public smoke test
+  after the organization Cloudflare token gained Pages Read/Write. Public Release, MF manifest,
+  CORS, immutable caching, Registry UI, D1-backed catalog, Core readiness, and the empty canonical
+  deployment relation have been verified. Chromium then exposed one recovery defect: a partially
+  configured origin could contact PostgREST before mounting `/settings`, leaving no UI for repairing
+  its credential. The recovery hotfix makes `/settings` skip remote client-config bootstrap; normal
+  routes retain the existing load-before-render contract.
 - **Current verification**: local `pnpm check` passes after synchronization: format, lint,
   TypeScript, 76 tests, every workspace build, and package contract. PR and main CI repeated the
   exact-image generation and proved zero generated diff. The delivery dependency hotfix must pass
