@@ -105,8 +105,8 @@ jobs:
           fail-on-severity: high
           fail-on-scopes: development, runtime
 
-  workspace:
-    name: Workspace contract
+  database-contract:
+    name: Database contract
     needs: core-release
     runs-on: ubuntu-latest
     steps:
@@ -159,6 +159,38 @@ jobs:
           packages/core/src/database/database.generated.ts
           packages/core/src/database/runtime-contract.generated.json
 
+      - name: Reject a moved stable release
+        run: >-
+          node scripts/resolve-core-release.mjs
+          --expect "${{ needs.core-release.outputs.image }}"
+
+  workspace:
+    name: Workspace contract
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Install the pinned pnpm release
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: 11.11.0
+
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: package.json
+          cache: pnpm
+          registry-url: https://npm.pkg.github.com
+          scope: '@inkcre'
+
+      - name: Install the frozen workspace
+        run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Verify static, typed, and package contracts
         run: pnpm check
 
@@ -181,12 +213,28 @@ jobs:
           --core-package packages/core/package.json
           --artifact-directory extensions/twitter/dist/client-web
 
+      - name: Build the read-only Twitter preview Release
+        run: >-
+          node scripts/verify-twitter-mf-distribution.mjs preview-release
+          --package extensions/twitter/package.json
+          --core-package packages/core/package.json
+          --artifact-directory extensions/twitter/dist/client-web
+          --output .preview-release/twitter.json
+
       - name: Upload the exact Twitter Module Federation snapshot
         id: twitter-mf-artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: twitter-mf-dist
           path: extensions/twitter/dist/client-web
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload the exact Twitter preview Release
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: twitter-mf-preview-release
+          path: .preview-release/twitter.json
           if-no-files-found: error
           retention-days: 7
 
@@ -202,11 +250,6 @@ jobs:
             echo "- Client web artifact digest: \`${CLIENT_WEB_ARTIFACT_DIGEST}\`"
             echo "- Twitter MF snapshot digest: \`${TWITTER_MF_ARTIFACT_DIGEST}\`"
           } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Reject a moved stable release
-        run: >-
-          node scripts/resolve-core-release.mjs
-          --expect "${{ needs.core-release.outputs.image }}"
 
       - name: Upload unit-test evidence on failure
         if: failure()
