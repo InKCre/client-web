@@ -180,7 +180,7 @@ test('builds and assembles a read-only native Twitter preview projection', async
 
     const publicRelease = JSON.parse(
       await readFile(
-        path.join(pagesDirectory, 'v1/extensions/inkcre/twitter/releases/0.1.1'),
+        path.join(pagesDirectory, `v1/extensions/inkcre/twitter/releases/${release.version}`),
         'utf8'
       )
     )
@@ -189,7 +189,7 @@ test('builds and assembles a read-only native Twitter preview projection', async
       await readFile(
         path.join(
           pagesDirectory,
-          'extensions/inkcre/twitter/0.1.1/module-federation/remoteEntry.js'
+          `extensions/inkcre/twitter/${release.version}/module-federation/remoteEntry.js`
         ),
         'utf8'
       ),
@@ -199,14 +199,14 @@ test('builds and assembles a read-only native Twitter preview projection', async
       await readFile(
         path.join(
           pagesDirectory,
-          'extensions/inkcre/twitter/0.1.1/module-federation/mf-manifest.json'
+          `extensions/inkcre/twitter/${release.version}/module-federation/mf-manifest.json`
         ),
         'utf8'
       )
     )
     assert.equal(
       publicManifest.metaData.publicPath,
-      'https://preview.example/extensions/inkcre/twitter/0.1.1/module-federation/'
+      `https://preview.example/extensions/inkcre/twitter/${release.version}/module-federation/`
     )
     assert.match(await readFile(path.join(pagesDirectory, '_headers'), 'utf8'), /no-store/)
   } finally {
