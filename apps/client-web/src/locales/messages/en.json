@@ -80,6 +80,8 @@
     "namePlaceholder": "namespace/name, for example inkcre/twitter",
     "version": "Version",
     "versionPlaceholder": "exact version, for example 0.1.0",
+    "setup": "Set Up",
+    "setupTitle": "Set Up {name}",
     "editConfig": "Edit Config",
     "editConfigTitle": "Edit Extension Configuration",
     "changeVersion": "Change Version",

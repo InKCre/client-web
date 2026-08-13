@@ -80,6 +80,8 @@
     "namePlaceholder": "namespace/name，例如 inkcre/twitter",
     "version": "版本",
     "versionPlaceholder": "精确版本，例如 0.1.0",
+    "setup": "设置",
+    "setupTitle": "设置 {name}",
     "editConfig": "编辑配置",
     "editConfigTitle": "编辑扩展配置",
     "changeVersion": "变更版本",
