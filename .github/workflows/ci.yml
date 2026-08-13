@@ -213,12 +213,28 @@ jobs:
           --core-package packages/core/package.json
           --artifact-directory extensions/twitter/dist/client-web
 
+      - name: Build the read-only Twitter preview Release
+        run: >-
+          node scripts/verify-twitter-mf-distribution.mjs preview-release
+          --package extensions/twitter/package.json
+          --core-package packages/core/package.json
+          --artifact-directory extensions/twitter/dist/client-web
+          --output .preview-release/twitter.json
+
       - name: Upload the exact Twitter Module Federation snapshot
         id: twitter-mf-artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: twitter-mf-dist
           path: extensions/twitter/dist/client-web
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload the exact Twitter preview Release
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: twitter-mf-preview-release
+          path: .preview-release/twitter.json
           if-no-files-found: error
           retention-days: 7
 

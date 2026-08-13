@@ -284,6 +284,19 @@ export function prepareBody(local, provenance) {
   }
 }
 
+export function previewRelease(local) {
+  return {
+    name: local.name,
+    nickname: local.nickname,
+    version: local.version,
+    state: 'published',
+    module_federation: {
+      manifest_url: `/extensions/${local.name}/${local.version}/module-federation/mf-manifest.json`,
+      ...local.module_federation,
+    },
+  }
+}
+
 function parseArguments(argumentList) {
   const [command, ...remaining] = argumentList
   assert.ok(command, 'a command is required')
@@ -336,6 +349,10 @@ async function main() {
         ...(options['build-id'] === undefined ? {} : { build_id: options['build-id'] }),
       })
     )
+    return
+  }
+  if (command === 'preview-release') {
+    await writeResult(options.output, previewRelease(await inspectNativeModuleFederation(shared)))
     return
   }
   if (command === 'verify-public') {
