@@ -30,10 +30,6 @@ export class ZipResolver extends Resolver<Uint8Array, ZipSolvedContent> {
     throw new UnsupportedResolverCapability(ZipResolver.type, 'text')
   }
 
-  async getStrForEmbedding(_options: ProjectionOptions = {}): Promise<never> {
-    throw new UnsupportedResolverCapability(ZipResolver.type, 'embedding text')
-  }
-
   async dispose(): Promise<void> {
     this.actualContent.dispose()
   }

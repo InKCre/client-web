@@ -30,10 +30,6 @@ export class PdfResolver extends Resolver<Uint8Array, PdfSolvedContent> {
     throw new UnsupportedResolverCapability(PdfResolver.type, 'text')
   }
 
-  async getStrForEmbedding(_options: ProjectionOptions = {}): Promise<never> {
-    throw new UnsupportedResolverCapability(PdfResolver.type, 'embedding text')
-  }
-
   async dispose(): Promise<void> {
     this.actualContent.dispose()
   }

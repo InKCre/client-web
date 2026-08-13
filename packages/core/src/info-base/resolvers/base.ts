@@ -226,8 +226,6 @@ export abstract class Resolver<RawContentT = unknown, SolvedContentT = RawConten
 
   abstract getText(options?: ProjectionOptions): Promise<string | null>
 
-  abstract getStrForEmbedding(options?: ProjectionOptions): Promise<string | null>
-
   /**
    * Cleanup when resolver is no longer needed.
    * Override in subclasses if cleanup is required.

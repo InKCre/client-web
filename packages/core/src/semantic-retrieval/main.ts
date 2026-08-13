@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { Block, Relation } from '../info-base'
 import { type JsonValue, PeerManager, PeerProtocolResponseSchema, type PeerRef } from '../peer'
+import { zinstance } from '../utils'
 
 export const SEMANTIC_RETRIEVAL_CAPABILITY = 'core.semantic_retrieval.v1'
 
@@ -28,10 +29,14 @@ export const SemanticRetrievalResultSchema = z.object({
   metric: z.literal('cosine'),
   matches: z.array(
     z.discriminatedUnion('type', [
-      z.object({ type: z.literal('block'), entity: Block, score: z.number().min(-1).max(1) }),
+      z.object({
+        type: z.literal('block'),
+        entity: zinstance<Block>(Block),
+        score: z.number().min(-1).max(1),
+      }),
       z.object({
         type: z.literal('relation'),
-        entity: Relation,
+        entity: zinstance<Relation>(Relation),
         score: z.number().min(-1).max(1),
       }),
     ])

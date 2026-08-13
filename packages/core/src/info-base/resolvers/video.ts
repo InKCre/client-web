@@ -32,10 +32,6 @@ export class VideoResolver extends Resolver<Uint8Array, VideoSolvedContent> {
     throw new UnsupportedResolverCapability(VideoResolver.type, 'text')
   }
 
-  async getStrForEmbedding(_options: ProjectionOptions = {}): Promise<never> {
-    throw new UnsupportedResolverCapability(VideoResolver.type, 'embedding text')
-  }
-
   async dispose(): Promise<void> {
     this.actualContent.dispose()
   }

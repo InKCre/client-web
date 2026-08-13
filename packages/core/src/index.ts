@@ -69,6 +69,19 @@ export {
   type SemanticRetrievalResult,
 } from './semantic-retrieval'
 export {
+  LexicalRetrievalManager,
+  LexicalRetrievalDelegationError,
+  LexicalRetrievalRequestSchema,
+  LexicalRetrievalResultSchema,
+  LexicalRetrievalMatchSchema,
+  LexicalEvidenceSchema,
+  LEXICAL_RETRIEVAL_CAPABILITY,
+  type LexicalRetrievalRequest,
+  type LexicalRetrievalResult,
+  type LexicalRetrievalMatch,
+  type LexicalEvidence,
+} from './lexical-retrieval'
+export {
   OrganizationManager,
   OrganizationDelegationError,
   RUMINATION_CAPABILITY,
@@ -136,6 +149,7 @@ export {
   UnsupportedResolverCapability,
   type CoreResolverId,
   type ProjectionOptions,
+  type TextProjectionContext,
   TextResolver,
   AudioResolver,
   EpubResolver,

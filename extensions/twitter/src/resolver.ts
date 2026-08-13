@@ -100,8 +100,4 @@ export class TweetResolver extends Resolver<string, Tweet> {
   async getText(options: ProjectionOptions = {}): Promise<string> {
     return (await this.getSolvedContent(options)).text
   }
-
-  async getStrForEmbedding(options: ProjectionOptions = {}): Promise<string> {
-    return this.getText(options)
-  }
 }

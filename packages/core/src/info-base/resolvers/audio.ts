@@ -32,10 +32,6 @@ export class AudioResolver extends Resolver<Uint8Array, AudioSolvedContent> {
     throw new UnsupportedResolverCapability(AudioResolver.type, 'text')
   }
 
-  async getStrForEmbedding(_options: ProjectionOptions = {}): Promise<never> {
-    throw new UnsupportedResolverCapability(AudioResolver.type, 'embedding text')
-  }
-
   async dispose(): Promise<void> {
     this.actualContent.dispose()
   }

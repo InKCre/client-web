@@ -23,8 +23,4 @@ export class TextResolver extends Resolver<string | Uint8Array, string> {
   async getText(options: ProjectionOptions = {}): Promise<string> {
     return this.getSolvedContent(options)
   }
-
-  async getStrForEmbedding(options: ProjectionOptions = {}): Promise<string> {
-    return this.getText(options)
-  }
 }

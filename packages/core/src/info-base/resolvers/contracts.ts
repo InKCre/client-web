@@ -12,7 +12,10 @@ export const CORE_RESOLVER_IDS = [
 
 export type CoreResolverId = (typeof CORE_RESOLVER_IDS)[number]
 
+export type TextProjectionContext = 'default' | 'lexical'
+
 export type ProjectionOptions = {
+  context?: TextProjectionContext
   refresh?: boolean
   materializeMissing?: boolean
 }

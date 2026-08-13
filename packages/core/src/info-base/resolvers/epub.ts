@@ -36,10 +36,6 @@ export class EpubResolver extends Resolver<Uint8Array, EpubSolvedContent> {
     throw new UnsupportedResolverCapability(EpubResolver.type, 'text')
   }
 
-  async getStrForEmbedding(_options: ProjectionOptions = {}): Promise<never> {
-    throw new UnsupportedResolverCapability(EpubResolver.type, 'embedding text')
-  }
-
   async dispose(): Promise<void> {
     this.actualContent.dispose()
   }

@@ -16,6 +16,7 @@ export {
   UnsupportedResolverCapability,
   type CoreResolverId,
   type ProjectionOptions,
+  type TextProjectionContext,
 } from './contracts'
 
 // Cache system

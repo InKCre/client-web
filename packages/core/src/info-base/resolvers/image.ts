@@ -28,10 +28,6 @@ export class ImageResolver extends Resolver<Uint8Array, ImageSolvedContent> {
     throw new UnsupportedResolverCapability(ImageResolver.type, 'text')
   }
 
-  async getStrForEmbedding(_options: ProjectionOptions = {}): Promise<never> {
-    throw new UnsupportedResolverCapability(ImageResolver.type, 'embedding text')
-  }
-
   async dispose(): Promise<void> {
     this.actualContent.dispose()
   }

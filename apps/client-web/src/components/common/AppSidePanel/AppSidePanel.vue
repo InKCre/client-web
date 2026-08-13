@@ -30,13 +30,9 @@ const onExploreClick = () => {
 
 watch(
   () => route.name,
-  (newRouteName) => {
-    // Expand sidebar on start view, collapse on others
-    if (newRouteName === 'InKCre') {
-      emit('update:expanded', true)
-    } else {
-      emit('update:expanded', false)
-    }
+  () => {
+    // Navigation destinations own the primary surface; the menu opens only on explicit request.
+    emit('update:expanded', false)
   }
 )
 </script>

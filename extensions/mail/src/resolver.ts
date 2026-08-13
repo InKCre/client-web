@@ -179,12 +179,11 @@ export class EmailResolver extends Resolver<string, SolvedEmail> {
 
   async getText(options: ProjectionOptions = {}): Promise<string> {
     const email = await this.getSolvedContent(options)
+    if (options.context === 'lexical') {
+      return email.root.subject || email.root.message_id || 'email'
+    }
     const body = email.bodies.find((item) => item.block.resolver === 'core.text.v1')
     return [email.root.subject, body?.solvedContent].filter(Boolean).join('\n\n') || 'email'
-  }
-
-  async getStrForEmbedding(options: ProjectionOptions = {}): Promise<string> {
-    return this.getText(options)
   }
 }
 
@@ -197,10 +196,6 @@ abstract class JsonMailResolver<Content> extends Resolver<string, Content> {
 
   async getText(options: ProjectionOptions = {}): Promise<string> {
     return JSON.stringify(await this.getSolvedContent(options))
-  }
-
-  async getStrForEmbedding(options: ProjectionOptions = {}): Promise<string> {
-    return this.getText(options)
   }
 }
 
@@ -270,9 +265,5 @@ export class MailMimePartResolver extends Resolver<string, SolvedMimePart> {
   async getText(options: ProjectionOptions = {}): Promise<string> {
     const { root } = await this.getSolvedContent({ ...options, materializeMissing: false })
     return [root.filename, root.description, root.media_type].filter(Boolean).join('\n')
-  }
-
-  async getStrForEmbedding(options: ProjectionOptions = {}): Promise<string> {
-    return this.getText(options)
   }
 }

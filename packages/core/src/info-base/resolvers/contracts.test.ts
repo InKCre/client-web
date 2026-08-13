@@ -19,10 +19,6 @@ class ProjectionResolver extends Resolver<string, string> {
     const content = await this.getSolvedContent(options)
     return content === 'supported-null' ? null : content
   }
-
-  async getStrForEmbedding(options: ProjectionOptions = {}): Promise<string | null> {
-    return this.getText(options)
-  }
 }
 
 function block(content: string, resolver = ProjectionResolver.type): Block {

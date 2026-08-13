@@ -30,8 +30,4 @@ export class HtmlResolver extends Resolver<HtmlRawContent, string> {
         : (new DOMParser().parseFromString(source, 'text/html').body.textContent ?? '')
     return text.replace(/\s+/g, ' ').trim()
   }
-
-  async getStrForEmbedding(options: ProjectionOptions = {}): Promise<string> {
-    return this.getText(options)
-  }
 }

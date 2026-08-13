@@ -117,6 +117,23 @@
     "editConfig": "Edit Config"
   },
   "infoBase": {
+    "list": {
+      "eyebrow": "Lexical recall",
+      "title": "Find the information you remember.",
+      "searchLabel": "Search the info base",
+      "searchPlaceholder": "A phrase, name, filename, or remembered detail…",
+      "search": "Search",
+      "idle": "Search exact phrases, continuous fragments, labels, and terms across the info base.",
+      "empty": "No indexed blocks matched “{query}”.",
+      "error": "The search could not be completed.",
+      "retry": "Try again",
+      "evidence": {
+        "label_exact": "Exact label",
+        "label_substring": "Label fragment",
+        "text_substring": "Text fragment",
+        "terms": "Matching terms"
+      }
+    },
     "blockInspector": {
       "title": "Block Inspector",
       "id": "ID",

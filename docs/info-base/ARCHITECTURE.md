@@ -112,8 +112,11 @@ Every concrete resolver implements:
 
 ```ts
 getText(options?: ProjectionOptions): Promise<string | null>
-getStrForEmbedding(options?: ProjectionOptions): Promise<string | null>
 ```
+
+`context: 'default' | 'lexical'` selects a named, resolver-owned projection. The lexical
+projection is Block-local and non-recursive; semantic indexing uses the default projection rather
+than owning a second text-extraction contract.
 
 - `UnknownResolverError`: no exact decoder is registered;
 - `UnsupportedResolverCapability`: the decoder does not provide that projection;

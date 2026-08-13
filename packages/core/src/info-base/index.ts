@@ -29,6 +29,7 @@ export {
   UnsupportedResolverCapability,
   type CoreResolverId,
   type ProjectionOptions,
+  type TextProjectionContext,
   type AudioSolvedContent,
   type ByteSolvedContent,
   type EpubSolvedContent,

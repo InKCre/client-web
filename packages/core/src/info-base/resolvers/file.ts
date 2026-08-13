@@ -16,10 +16,6 @@ export class FileResolver extends Resolver<Uint8Array, FileSolvedContent> {
     throw new UnsupportedResolverCapability(FileResolver.type, 'text')
   }
 
-  async getStrForEmbedding(_options: ProjectionOptions = {}): Promise<never> {
-    throw new UnsupportedResolverCapability(FileResolver.type, 'embedding text')
-  }
-
   async dispose(): Promise<void> {
     this.actualContent.dispose()
   }
