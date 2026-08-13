@@ -229,6 +229,8 @@ test('retains exact-main checked-artifact governance without generic target deli
   ])
 
   assert.match(ci, /push:\n\s+branches:\n\s+- main/)
+  assert.match(ci, /database-contract:\n\s+name: Database contract\n\s+needs: core-release/)
+  assert.match(ci, /workspace:\n\s+name: Workspace contract\n\s+runs-on:/)
   assert.match(ci, /name: twitter-mf-dist/)
   assert.match(ci, /verify-twitter-mf-distribution\.mjs inspect-local/)
   assert.doesNotMatch(ci, /INKCRE_EXTENSION_REGISTRY_TOKEN/)
@@ -260,6 +262,10 @@ test('retains exact-main checked-artifact governance without generic target deli
   assert.match(delivery, /verify-twitter-mf-distribution\.mjs verify-public/)
   assert.match(delivery, /INKCRE_EXTENSION_REGISTRY_TOKEN/)
   assert.doesNotMatch(delivery, /target-publish|build-target|publish-target|target_digest/)
+  assert.doesNotMatch(preview, /workflow_run\.conclusion == 'success'/)
+  assert.match(preview, /job\.name === 'Workspace contract'/)
+  assert.match(preview, /workspace\.conclusion !== 'success'/)
+  assert.match(preview, /artifact\.name === 'client-web-dist' && !artifact\.expired/)
   assert.doesNotMatch(preview, /INKCRE_EXTENSION_REGISTRY_TOKEN/)
 
   const nativePublish = delivery.indexOf('Prepare the exact native Twitter Release')

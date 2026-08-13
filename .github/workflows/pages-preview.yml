@@ -16,7 +16,6 @@ jobs:
   identity:
     name: Resolve trusted preview identity
     if: >-
-      github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
@@ -41,12 +40,39 @@ jobs:
               core.setFailed('Preview artifact must come from the trusted Client checks workflow.')
               return
             }
-            if (run.conclusion !== 'success' || run.event !== 'pull_request') {
-              core.setFailed('Preview delivery requires a successful pull-request check run.')
+            if (run.status !== 'completed' || run.event !== 'pull_request') {
+              core.setFailed('Preview delivery requires a completed pull-request check run.')
               return
             }
             if (run.head_repository?.full_name !== `${context.repo.owner}/${context.repo.repo}`) {
               core.setFailed('Fork pull requests are not eligible for preview delivery.')
+              return
+            }
+
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+              filter: 'latest',
+              per_page: 100,
+            })
+            const workspace = jobs.find((job) => job.name === 'Workspace contract')
+            if (!workspace || workspace.status !== 'completed' || workspace.conclusion !== 'success') {
+              core.setFailed('Preview delivery requires the Workspace contract job to pass.')
+              return
+            }
+
+            const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+              per_page: 100,
+            })
+            const previewArtifact = artifacts.find(
+              (artifact) => artifact.name === 'client-web-dist' && !artifact.expired
+            )
+            if (!previewArtifact) {
+              core.setFailed('The successful Workspace contract job produced no live preview artifact.')
               return
             }
 

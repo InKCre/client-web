@@ -51,7 +51,7 @@ if (await exists('.node-version')) {
   errors.push('.node-version must remain absent; pnpm devEngines.runtime owns Node')
 }
 for (const [path, expectedNodeFiles] of [
-  ['.github/workflows/ci.yml', Array(5).fill('package.json')],
+  ['.github/workflows/ci.yml', Array(6).fill('package.json')],
   ['.github/workflows/pages-cleanup.yml', ['controller/package.json']],
   ['.github/workflows/pages-preview.yml', ['controller/package.json']],
   ['.github/workflows/pages-deploy.yml', ['controller/package.json']],
