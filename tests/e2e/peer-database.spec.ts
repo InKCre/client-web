@@ -116,7 +116,7 @@ test('core Peer publishes and serves its exact capability inbounds', async ({ pa
       const execution = await fetch(management.inbound.parameters.url, {
         method: management.inbound.parameters.method,
         headers: { Authorization: authorization, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'disable', extension: 'not-installed-e2e-extension' }),
+        body: JSON.stringify({ action: 'disable', extension: 'e2e/not-installed' }),
       })
       return {
         peersStatus: peersResponse.status,
@@ -136,6 +136,13 @@ test('core Peer publishes and serves its exact capability inbounds', async ({ pa
       inbound: {
         protocol: 'core.peer.protocol.http.v1',
         parameters: { method: 'POST', url: `${coreUrl}extension-management` },
+      },
+    },
+    {
+      id: 'core.feature_retrieval.lexical.v1',
+      inbound: {
+        protocol: 'core.peer.protocol.http.v1',
+        parameters: { method: 'POST', url: `${coreUrl}lexical-retrieval` },
       },
     },
     {
