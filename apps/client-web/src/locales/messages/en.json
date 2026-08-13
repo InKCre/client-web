@@ -59,6 +59,8 @@
     "newJobDescription": "Create a new collect job for this source. The job will be queued and executed as soon as possible.",
     "createJob": "Create Job",
     "editConfig": "Edit Config",
+    "setup": "Setup",
+    "setupTitle": "Set up {name}",
     "delete": "Delete",
     "noJobs": "No collect jobs found",
     "nicknamePlaceholder": "Click to edit nickname",

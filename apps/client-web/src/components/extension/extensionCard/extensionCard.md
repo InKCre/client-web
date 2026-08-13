@@ -17,6 +17,8 @@ A component that displays extension information and provides controls for toggli
 
 - Display canonical Extension Name, exact version, and optional nickname
 - Toggle enable/disable status with a switch
+- Mount the setup component contributed by the already-running local Web Extension in a host-owned dialog
+- Unmount setup content before disabling and disposing the Extension runtime
 - Edit extension configuration via JSON editor in a dialog
 - Change the exact shared version only while every Peer is disabled
 - Auto-formats configuration as JSON for easier editing

@@ -42,6 +42,8 @@ Extensions can register:
 - Custom Resolvers for new content types
 - Custom Storages for data retrieval
 - UI components
+- An optional deployment-wide setup wizard component. `client-web` owns only the popup shell;
+  the Extension owns the stepper, Core coordination, provider flow, and completion semantics.
 
 ## Related
 

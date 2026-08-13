@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'vitest'
 
 import {
+  inspectCoreRelease,
   selectImmutableDigest,
   validateCoreReleaseConfig,
   validateRuntimeContract,
@@ -81,6 +82,28 @@ test('binds runtime identity to the schema manifest', () => {
       },
       validated
     ).revision,
+    manifest.contract_revision
+  )
+})
+
+test('accepts an immutable local image id for feature-contract synchronization', () => {
+  const runtimeContract = {
+    format: 1,
+    revision: manifest.contract_revision,
+    source_revision: sourceRevision,
+    protocol: { schema: 'inkcre' },
+    jwt: { algorithm: 'HS256', role: 'authenticated' },
+  }
+  const runDocker = (args) => {
+    if (args.includes('schema')) return JSON.stringify(manifest)
+    if (args.includes('/app/database-contract/runtime-contract.json')) {
+      return JSON.stringify(runtimeContract)
+    }
+    throw new Error(`unexpected Docker command: ${args.join(' ')}`)
+  }
+
+  assert.equal(
+    inspectCoreRelease(runDocker, `sha256:${digest}`).runtime_contract.revision,
     manifest.contract_revision
   )
 })

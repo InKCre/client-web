@@ -46,6 +46,8 @@ Make use of Vue reactivity thorughout-ly.
   native manifest URL with Module Federation.
 - Preserve `initialize`, `activate`, `deactivate`, and `dispose`, including durable-state failure
   compensation.
+- A running Extension may contribute an optional setup Vue component. The Host exposes that
+  component only while the exact runtime is active; it does not own setup steps or provider logic.
 
 ### Info-Base Content Contract
 

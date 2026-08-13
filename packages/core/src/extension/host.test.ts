@@ -131,6 +131,7 @@ function createHarness(
     resolveManifestUrl: vi.fn((url) => new URL(url, 'https://registry.example').href),
   }
   const extensionModule = {
+    setup: { component: { name: 'TestSetup' } },
     initialize: vi.fn(async () => {
       events.push('initialize')
     }),
@@ -196,6 +197,20 @@ describe('WebExtensionHost', () => {
     )
     expect(harness.events).toEqual(['register-manifest', 'load-remote', 'initialize', 'activate'])
     expect(harness.state.events).toEqual(['persist-enable'])
+    expect(harness.host.isRunning(installed.name)).toBe(true)
+    expect(harness.host.getSetupContribution(installed.name)?.component).toEqual({
+      name: 'TestSetup',
+    })
+  })
+
+  it('withdraws the setup contribution with the running Extension', async () => {
+    const harness = createHarness()
+    await harness.host.enable(installed.name)
+
+    await harness.host.disable(installed.name)
+
+    expect(harness.host.isRunning(installed.name)).toBe(false)
+    expect(harness.host.getSetupContribution(installed.name)).toBeNull()
   })
 
   it('rejects an incompatible @inkcre/core range before MF can fetch executable bytes', async () => {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, nextTick, shallowRef, watch, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { InkButton, InkSwitch, InkDialog, InkInput, InkJsonEditor } from '@inkcre/ui-web'
 import { getExtensionHost } from '@/core'
@@ -12,6 +12,8 @@ const { t } = useI18n()
 // --- data ---
 const configPopupOpen = ref<boolean | Promise<boolean>>(false)
 const versionPopupOpen = ref<boolean | Promise<boolean>>(false)
+const setupPopupOpen = ref(false)
+const setupComponent = shallowRef<Component | null>(null)
 const togglePromise = ref<Promise<boolean> | null>(null)
 const isUninstalling = ref(false)
 const operationError = ref<string | null>(null)
@@ -28,6 +30,15 @@ watch(
 )
 
 const canUninstall = computed(() => props.extension.enabled.length === 0 && !isUninstalling.value)
+const setupContribution = computed(() =>
+  props.enabled ? getExtensionHost().getSetupContribution(props.extension.name) : null
+)
+
+const closeSetup = async () => {
+  setupPopupOpen.value = false
+  setupComponent.value = null
+  await nextTick()
+}
 
 const toggleModel = computed({
   get: () => (togglePromise.value ? togglePromise.value : props.enabled),
@@ -38,6 +49,7 @@ const toggleModel = computed({
         if (enabled) {
           await getExtensionHost().enable(props.extension.name)
         } else {
+          await closeSetup()
           await getExtensionHost().disable(props.extension.name)
         }
         emit('changed')
@@ -54,6 +66,13 @@ const toggleModel = computed({
 
 const onEditConfigClick = () => {
   configPopupOpen.value = true
+}
+
+const onSetupClick = () => {
+  const contribution = setupContribution.value
+  if (!contribution) return
+  setupComponent.value = contribution.component
+  setupPopupOpen.value = true
 }
 
 const onChangeVersionClick = () => {
@@ -123,6 +142,13 @@ const onUninstall = async () => {
     </div>
 
     <div class="extension-card__actions">
+      <InkButton
+        v-if="setupContribution"
+        @click="onSetupClick"
+        :text="t('extension.setup')"
+        theme="primary"
+        size="sm"
+      />
       <InkButton @click="onEditConfigClick" :text="t('extension.editConfig')" size="sm" />
       <InkButton
         @click="onChangeVersionClick"
@@ -145,6 +171,17 @@ const onUninstall = async () => {
       {{ t('extension.uninstallDisabled') }}
     </p>
     <p v-if="operationError" class="extension-card__error">{{ operationError }}</p>
+
+    <InkDialog
+      v-model="setupPopupOpen"
+      :title="t('extension.setupTitle', { name: extension.nickname ?? extension.name })"
+      :show-cancel="false"
+      :show-confirm="false"
+      :close-on-scrim="false"
+      @update:model-value="(open) => !open && closeSetup()"
+    >
+      <component :is="setupComponent" v-if="setupComponent" @close="closeSetup" />
+    </InkDialog>
 
     <InkDialog
       v-model="configPopupOpen"

@@ -124,9 +124,10 @@ export class Client extends Z.class({
     path: string
     body?: any
     query?: Record<string, any>
-    resBodySchema?: { parse<T>(input: unknown): T }
+    resBodySchema?: { parse(input: unknown): T }
+    signal?: AbortSignal
   }): Promise<T> {
-    const { method, path, body, query, resBodySchema } = options
+    const { method, path, body, query, resBodySchema, signal } = options
     const parseSuccessfulResponse = async (response: Response): Promise<T> => {
       if (response.status === 204) {
         return undefined as T
@@ -145,6 +146,7 @@ export class Client extends Z.class({
     const config: RequestInit = {
       method,
       headers,
+      signal,
     }
 
     if (body !== undefined) {
@@ -179,10 +181,15 @@ export class Client extends Z.class({
 
         try {
           responseData = await response.json()
-          if (responseData.message) {
+          if (typeof responseData.message === 'string') {
             errorMessage = responseData.message
-          } else if (responseData.error) {
+          } else if (typeof responseData.error === 'string') {
             errorMessage = responseData.error
+          } else if (
+            typeof responseData.detail === 'string' &&
+            responseData.detail.length <= 1000
+          ) {
+            errorMessage = responseData.detail
           }
         } catch {
           // If response is not JSON, use status text
@@ -194,7 +201,7 @@ export class Client extends Z.class({
             await authStore.refreshToken()
             const retryResponse = await fetch(url, {
               ...config,
-              headers: { ...(await this.getAuthHeaders()) },
+              headers: { ...headers, ...(await this.getAuthHeaders()) },
             })
 
             if (retryResponse.ok) {
@@ -223,7 +230,7 @@ export class Client extends Z.class({
   async get<T = any>(
     path: string,
     query?: Record<string, any>,
-    resBodySchema?: { parse<T>(input: unknown): T }
+    resBodySchema?: { parse(input: unknown): T }
   ): Promise<T> {
     return this.request<T>({ method: 'GET', path, query, resBodySchema })
   }
@@ -234,7 +241,7 @@ export class Client extends Z.class({
   async post<T = any>(
     path: string,
     body?: any,
-    resBodySchema?: { parse<T>(input: unknown): T }
+    resBodySchema?: { parse(input: unknown): T }
   ): Promise<T> {
     return this.request<T>({ method: 'POST', path, body, resBodySchema })
   }
@@ -245,7 +252,7 @@ export class Client extends Z.class({
   async put<T = any>(
     path: string,
     body?: any,
-    resBodySchema?: { parse<T>(input: unknown): T }
+    resBodySchema?: { parse(input: unknown): T }
   ): Promise<T> {
     return this.request<T>({ method: 'PUT', path, body, resBodySchema })
   }
@@ -256,7 +263,7 @@ export class Client extends Z.class({
   async patch<T = any>(
     path: string,
     body?: any,
-    resBodySchema?: { parse<T>(input: unknown): T }
+    resBodySchema?: { parse(input: unknown): T }
   ): Promise<T> {
     return this.request<T>({ method: 'PATCH', path, body, resBodySchema })
   }
@@ -264,7 +271,7 @@ export class Client extends Z.class({
   /**
    * Convenience method for DELETE requests
    */
-  async delete<T = any>(path: string, resBodySchema?: { parse<T>(input: unknown): T }): Promise<T> {
+  async delete<T = any>(path: string, resBodySchema?: { parse(input: unknown): T }): Promise<T> {
     return this.request<T>({ method: 'DELETE', path, resBodySchema })
   }
 

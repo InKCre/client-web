@@ -59,6 +59,8 @@
     "newJobDescription": "为此数据源创建新的采集任务。该任务将被加入队列并尽快执行。",
     "createJob": "创建任务",
     "editConfig": "编辑配置",
+    "setup": "设置",
+    "setupTitle": "设置 {name}",
     "delete": "删除",
     "noJobs": "未找到采集任务",
     "nicknamePlaceholder": "点击编辑昵称",

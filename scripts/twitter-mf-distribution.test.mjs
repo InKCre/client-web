@@ -45,7 +45,7 @@ async function createFixture() {
     shared: [
       {
         name: '@inkcre/core',
-        requiredVersion: '^0.1.0',
+        requiredVersion: '^0.1.1',
         assets: {
           js: { sync: ['assets/shared.js'], async: [] },
           css: { sync: [], async: [] },
@@ -64,13 +64,13 @@ async function createFixture() {
   }
   const extensionPackage = {
     name: '@inkcre/ext-twitter',
-    version: '0.1.1',
+    version: '0.2.0',
     inkcre: {
       name: 'inkcre/twitter',
       nickname: 'Twitter',
       module_federation: {
         host_sdk: '@inkcre/core',
-        host_sdk_version: '>=0.1.0 <0.2.0',
+        host_sdk_version: '>=0.1.1 <0.2.0',
       },
     },
   }
@@ -82,7 +82,7 @@ async function createFixture() {
     ),
     writeFile(path.join(artifactDirectory, 'mf-manifest.json'), `${JSON.stringify(manifest)}\n`),
     writeFile(packagePath, `${JSON.stringify(extensionPackage)}\n`),
-    writeFile(corePackagePath, `${JSON.stringify({ name: '@inkcre/core', version: '0.1.0' })}\n`),
+    writeFile(corePackagePath, `${JSON.stringify({ name: '@inkcre/core', version: '0.1.1' })}\n`),
   ])
 
   return {
@@ -104,10 +104,10 @@ test('Twitter produces a native manifest with a Registry-relocatable base and ty
 
   assert.equal(extensionPackage.inkcre.name, 'inkcre/twitter')
   assert.equal(extensionPackage.inkcre.nickname, 'Twitter')
-  assert.equal(extensionPackage.version, '0.1.1')
+  assert.equal(extensionPackage.version, '0.2.0')
   assert.deepEqual(extensionPackage.inkcre.module_federation, {
     host_sdk: '@inkcre/core',
-    host_sdk_version: '>=0.1.0 <0.2.0',
+    host_sdk_version: '>=0.1.1 <0.2.0',
   })
   assert.equal(twitterFederationOptions.manifest, true)
   assert.equal(twitterArtifactBase, './')
@@ -145,10 +145,10 @@ test('builds the frozen native prepare payload with distribution-owned provenanc
       }),
       {
         nickname: 'Twitter',
-        version: '0.1.1',
+        version: '0.2.0',
         module_federation: {
           host_sdk: '@inkcre/core',
-          host_sdk_version: '>=0.1.0 <0.2.0',
+          host_sdk_version: '>=0.1.1 <0.2.0',
           source_repository: 'https://github.com/inkcre/client-web',
           source_revision: 'a'.repeat(40),
           build_id: 'client-web-mf-build-123',
@@ -174,7 +174,7 @@ test('verifies Registry publicPath materialization and exact native public bytes
   const fixture = await createFixture()
   try {
     const publicPrefix =
-      'https://registry.example/extensions/inkcre/twitter/0.1.1/module-federation/'
+      'https://registry.example/extensions/inkcre/twitter/0.2.0/module-federation/'
     const publicManifest = structuredClone(fixture.manifest)
     publicManifest.metaData.publicPath = publicPrefix
     const fetchImplementation = async (input) => {
@@ -184,17 +184,17 @@ test('verifies Registry publicPath materialization and exact native public bytes
         'cache-control': 'public, max-age=31536000, immutable',
         etag: '"snapshot"',
       }
-      if (url.pathname.endsWith('/v1/extensions/inkcre/twitter/releases/0.1.1')) {
+      if (url.pathname.endsWith('/v1/extensions/inkcre/twitter/releases/0.2.0')) {
         return Response.json(
           {
             name: 'inkcre/twitter',
             nickname: 'Twitter',
-            version: '0.1.1',
+            version: '0.2.0',
             state: 'published',
             module_federation: {
-              manifest_url: '/extensions/inkcre/twitter/0.1.1/module-federation/mf-manifest.json',
+              manifest_url: '/extensions/inkcre/twitter/0.2.0/module-federation/mf-manifest.json',
               host_sdk: '@inkcre/core',
-              host_sdk_version: '>=0.1.0 <0.2.0',
+              host_sdk_version: '>=0.1.1 <0.2.0',
             },
           },
           { headers }

@@ -101,6 +101,7 @@ export type Database = {
           enabled: string[]
           name: string
           nickname: string | null
+          state: Json
           version: string
         }
         Insert: {
@@ -109,6 +110,7 @@ export type Database = {
           enabled?: string[]
           name: string
           nickname?: string | null
+          state?: Json
           version: string
         }
         Update: {
@@ -117,6 +119,7 @@ export type Database = {
           enabled?: string[]
           name?: string
           nickname?: string | null
+          state?: Json
           version?: string
         }
         Relationships: []
@@ -373,6 +376,7 @@ export type Database = {
           enabled: string[]
           name: string
           nickname: string | null
+          state: Json
           version: string
         }[]
         SetofOptions: {

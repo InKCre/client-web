@@ -271,6 +271,14 @@
               "kind": "string"
             }
           },
+          "state": {
+            "generated": false,
+            "has_default": true,
+            "nullable": false,
+            "type": {
+              "kind": "json"
+            }
+          },
           "version": {
             "generated": false,
             "has_default": false,
@@ -702,6 +710,6 @@
     },
     "schema": "inkcre"
   },
-  "revision": "peer-database-runtime-v2",
-  "source_revision": "34914b6deed4768237508fdb02e033655feb8073"
+  "revision": "peer-database-runtime-v3",
+  "source_revision": "63f57b26ed8685fa34a74516ade39e2af72218d9"
 }

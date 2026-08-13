@@ -21,6 +21,7 @@ export {
   InstalledExtensionSchema,
   InstallExtensionInputSchema,
   type ExtensionModule,
+  type ExtensionSetupContribution,
   type InstalledExtension,
   type InstallExtensionInput,
   setMFImplementation,
