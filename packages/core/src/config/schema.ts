@@ -50,7 +50,9 @@ export type MetaConfig = z.infer<typeof MetaConfigSchema>
  * Contains extension registry URL, AI settings, and runtime app configuration
  */
 export const PeerConfigSchema = z.object({
-  extension_registry_url: z.url().default(''),
+  // Deployment-owned Peer configuration supplies this URL. Static artifacts
+  // deliberately keep the unconfigured state instead of embedding an origin.
+  extension_registry_url: UnconfiguredUrlSchema.default(''),
   peer_http_timeout_ms: z.number().int().positive().default(30_000),
   ai: AIConfigSchema.default(() => AIConfigSchema.parse({})),
 })

@@ -8,11 +8,15 @@
 export interface RemoteConfig {
   name: string
   entry: string
-  type: 'module' | 'script'
+  type?: 'module' | 'script'
+}
+
+export interface RegisterRemotesOptions {
+  force?: boolean
 }
 
 export interface MFImplementation {
-  registerRemotes: (remotes: RemoteConfig[]) => void
+  registerRemotes: (remotes: RemoteConfig[], options?: RegisterRemotesOptions) => void
   loadRemote: <T>(remoteName: string) => Promise<T | null>
 }
 
@@ -51,8 +55,8 @@ export function getMFImplementation(): MFImplementation {
  * @param remotes - Array of remote configuration objects
  * @throws Error if MF not initialized
  */
-export function registerRemotes(remotes: RemoteConfig[]): void {
-  getMFImplementation().registerRemotes(remotes)
+export function registerRemotes(remotes: RemoteConfig[], options?: RegisterRemotesOptions): void {
+  getMFImplementation().registerRemotes(remotes, options)
 }
 
 /**

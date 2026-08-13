@@ -1,6 +1,9 @@
 // Shared dependencies for Module Federation remote (extensions).
 
 import packageJson from '../apps/client-web/package.json'
+import corePackageJson from '../packages/core/package.json'
+
+export const coreSharedVersion = `^${corePackageJson.version}`
 
 export default {
   vue: { singleton: true, requiredVersion: packageJson.dependencies.vue },
@@ -16,7 +19,7 @@ export default {
   zod: { singleton: true, requiredVersion: packageJson.dependencies.zod },
   '@inkcre/core': {
     singleton: true,
-    requiredVersion: '0.0.0',
+    requiredVersion: coreSharedVersion,
     import: false,
   },
 } as const

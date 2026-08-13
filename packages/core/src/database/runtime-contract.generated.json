@@ -19,7 +19,7 @@
     "required_claims": ["role", "iss", "aud", "iat", "exp"],
     "role": "authenticated"
   },
-  "migration_heads": ["77cd53ad8080"],
+  "migration_heads": ["3f7a9c2d5e1b"],
   "profiles": ["runtime", "development"],
   "protocol": {
     "format": 1,
@@ -53,6 +53,29 @@
           "kind": "string"
         },
         "returns_set": false,
+        "volatility": "volatile"
+      },
+      "set_extension_peer_enabled": {
+        "arguments": [
+          {
+            "name": "p_name",
+            "type": { "kind": "string" }
+          },
+          {
+            "name": "p_peer_id",
+            "type": { "format": "uuid", "kind": "string" }
+          },
+          {
+            "name": "p_enabled",
+            "type": { "kind": "boolean" }
+          }
+        ],
+        "returns": {
+          "database_type": "inkcre.extensions",
+          "kind": "relation",
+          "relation": "extensions"
+        },
+        "returns_set": true,
         "volatility": "volatile"
       }
     },
@@ -313,6 +336,55 @@
           }
         ]
       },
+      "block_lexical_records": {
+        "columns": {
+          "block": {
+            "generated": true,
+            "has_default": true,
+            "nullable": false,
+            "type": { "kind": "number" }
+          },
+          "created_at": {
+            "generated": false,
+            "has_default": true,
+            "nullable": false,
+            "type": { "format": "date-time", "kind": "string" }
+          },
+          "label": {
+            "generated": false,
+            "has_default": false,
+            "nullable": false,
+            "type": { "kind": "string" }
+          },
+          "search_vector": {
+            "generated": false,
+            "has_default": false,
+            "nullable": false,
+            "type": { "format": "tsvector", "kind": "string" }
+          },
+          "text": {
+            "generated": false,
+            "has_default": false,
+            "nullable": true,
+            "type": { "kind": "string" }
+          },
+          "updated_at": {
+            "generated": false,
+            "has_default": true,
+            "nullable": false,
+            "type": { "format": "date-time", "kind": "string" }
+          }
+        },
+        "relationships": [
+          {
+            "columns": ["block"],
+            "foreign_key_name": "block_lexical_records_block_fkey",
+            "one_to_one": false,
+            "referenced_columns": ["id"],
+            "referenced_relation": "blocks"
+          }
+        ]
+      },
       "blocks": {
         "columns": {
           "content": {
@@ -531,7 +603,7 @@
           "config": {
             "generated": false,
             "has_default": true,
-            "nullable": true,
+            "nullable": false,
             "type": { "kind": "json" }
           },
           "config_schema": {
@@ -546,7 +618,7 @@
             "nullable": false,
             "type": { "items": { "format": "uuid", "kind": "string" }, "kind": "array" }
           },
-          "id": {
+          "name": {
             "generated": false,
             "has_default": false,
             "nullable": false,
@@ -1080,6 +1152,6 @@
     },
     "schema": "inkcre"
   },
-  "revision": "mail-source-job-runtime-v1",
-  "source_revision": "unknown"
+  "revision": "extension-registry-feature-retrieval-v1",
+  "source_revision": "92dc3c68a2088b7e4e025c2ea9fe30c4a7f7ff15"
 }

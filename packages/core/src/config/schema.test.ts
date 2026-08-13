@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { MetaConfigSchema } from './schema'
+import { MetaConfigSchema, PeerConfigSchema } from './schema'
 
 describe('MetaConfigSchema', () => {
   it('represents an unconfigured persisted state without environment defaults', () => {
@@ -28,5 +28,18 @@ describe('MetaConfigSchema', () => {
         INKCRE_PEER_ID: 'not-a-uuid',
       }).success
     ).toBe(false)
+  })
+})
+
+describe('PeerConfigSchema', () => {
+  it('keeps Registry configuration unconfigured until deployment provides it', () => {
+    expect(PeerConfigSchema.parse({})).toMatchObject({
+      extension_registry_url: '',
+    })
+    expect(
+      PeerConfigSchema.parse({
+        extension_registry_url: 'https://registry.operator.example/',
+      }).extension_registry_url
+    ).toBe('https://registry.operator.example/')
   })
 })

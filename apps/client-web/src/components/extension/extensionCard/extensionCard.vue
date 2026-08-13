@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { InkButton, InkSwitch, InkDialog, InkJsonEditor } from '@inkcre/ui-web'
+import { InkButton, InkSwitch, InkDialog, InkInput, InkJsonEditor } from '@inkcre/ui-web'
+import { getExtensionHost } from '@/core'
 import { extensionCardProps, extensionCardEmits } from './extensionCard'
 
 const props = defineProps(extensionCardProps)
@@ -10,34 +11,43 @@ const { t } = useI18n()
 
 // --- data ---
 const configPopupOpen = ref<boolean | Promise<boolean>>(false)
+const versionPopupOpen = ref<boolean | Promise<boolean>>(false)
 const togglePromise = ref<Promise<boolean> | null>(null)
+const isUninstalling = ref(false)
+const operationError = ref<string | null>(null)
+const configModel = ref(JSON.stringify(props.extension.config, null, 2))
+const versionModel = ref(props.extension.version)
 
 // --- computed ---
-const configModel = computed({
-  get: () => {
-    return JSON.stringify(props.extension.config ?? {}, null, 2)
+watch(
+  () => props.extension.config,
+  (config) => {
+    configModel.value = JSON.stringify(config, null, 2)
   },
-  set: (newValue: string) => {
-    props.extension.config = JSON.parse(newValue)
-  },
-})
+  { deep: true }
+)
+
+const canUninstall = computed(() => props.extension.enabled.length === 0 && !isUninstalling.value)
 
 const toggleModel = computed({
-  get: () => {
-    return togglePromise.value
-      ? togglePromise.value
-      : props.extension.isEnabledForPeer(props.peerId)
-  },
-  set: async (newValue: boolean) => {
+  get: () => (togglePromise.value ? togglePromise.value : props.enabled),
+  set: (enabled: boolean) => {
+    operationError.value = null
     togglePromise.value = (async () => {
-      if (props.extension.isEnabledForPeer(props.peerId)) {
-        await props.extension.disableForPeer(props.peerId)
-      } else {
-        await props.extension.enableForPeer(props.peerId)
+      try {
+        if (enabled) {
+          await getExtensionHost().enable(props.extension.name)
+        } else {
+          await getExtensionHost().disable(props.extension.name)
+        }
+        emit('changed')
+        return enabled
+      } catch (error) {
+        operationError.value = error instanceof Error ? error.message : String(error)
+        return props.enabled
+      } finally {
+        togglePromise.value = null
       }
-      emit('toggle', props.extension)
-      togglePromise.value = null
-      return props.extension.isEnabledForPeer(props.peerId)
     })()
   },
 })
@@ -46,41 +56,95 @@ const onEditConfigClick = () => {
   configPopupOpen.value = true
 }
 
+const onChangeVersionClick = () => {
+  versionModel.value = props.extension.version
+  versionPopupOpen.value = true
+}
+
+const onConfirmVersion = () => {
+  versionPopupOpen.value = (async () => {
+    try {
+      operationError.value = null
+      const updatedExtension = await getExtensionHost().changeVersion(
+        props.extension.name,
+        versionModel.value
+      )
+      emit('updated', updatedExtension)
+      return false
+    } catch (error) {
+      operationError.value = error instanceof Error ? error.message : String(error)
+      return true
+    }
+  })()
+}
+
 const onConfirmConfig = () => {
-  if (props.extension) {
-    configPopupOpen.value = (async () => {
-      try {
-        const updatedExtension = await props.extension.updateConfig(props.peerId)
-        emit('edit-config', updatedExtension)
-        return false // close dialog
-      } catch (error) {
-        // JSON parsing error - keep dialog open
-        console.error('Invalid JSON config:', error)
-        return true // keep dialog open on error
-      }
-    })()
+  configPopupOpen.value = (async () => {
+    try {
+      operationError.value = null
+      const config = JSON.parse(configModel.value) as Record<string, unknown>
+      const updatedExtension = await getExtensionHost().updateConfig(props.extension.name, config)
+      emit('updated', updatedExtension)
+      return false
+    } catch (error) {
+      operationError.value = error instanceof Error ? error.message : String(error)
+      return true
+    }
+  })()
+}
+
+const onUninstall = async () => {
+  operationError.value = null
+  isUninstalling.value = true
+  try {
+    await getExtensionHost().uninstall(props.extension.name)
+    emit('uninstalled')
+  } catch (error) {
+    operationError.value = error instanceof Error ? error.message : String(error)
+  } finally {
+    isUninstalling.value = false
   }
 }
 </script>
 
 <template>
-  <div v-if="extension" class="extension-card">
+  <div class="extension-card">
     <div class="extension-card__header">
       <div class="flex flex-col">
-        <div v-if="extension.nickname" class="extension-card__nickname">
-          {{ extension.nickname }}
-        </div>
         <div class="flex flex-row items-center gap-2">
-          <span class="extension-card__id">{{ extension.id }}</span>
+          <span class="extension-card__id">{{ extension.name }}</span>
           <span class="extension-card__version">v{{ extension.version }}</span>
         </div>
+        <span v-if="extension.nickname" class="extension-card__nickname">
+          {{ extension.nickname }}
+        </span>
       </div>
       <InkSwitch v-model="toggleModel" size="xs" />
     </div>
 
     <div class="extension-card__actions">
       <InkButton @click="onEditConfigClick" :text="t('extension.editConfig')" size="sm" />
+      <InkButton
+        @click="onChangeVersionClick"
+        :text="t('extension.changeVersion')"
+        size="sm"
+        :disabled="extension.enabled.length > 0"
+      />
+      <InkButton
+        @click="onUninstall"
+        :text="t('extension.uninstall')"
+        theme="danger"
+        size="sm"
+        :disabled="!canUninstall"
+        :loading="isUninstalling"
+      />
     </div>
+
+    <p v-if="extension.enabled.length > 0" class="extension-card__hint">
+      {{ t('extension.enabledPeerCount', { count: extension.enabled.length }) }}
+      {{ t('extension.uninstallDisabled') }}
+    </p>
+    <p v-if="operationError" class="extension-card__error">{{ operationError }}</p>
 
     <InkDialog
       v-model="configPopupOpen"
@@ -88,6 +152,19 @@ const onConfirmConfig = () => {
       @confirm="onConfirmConfig"
     >
       <InkJsonEditor v-model="configModel" :schema="extension.config_schema ?? undefined" />
+    </InkDialog>
+
+    <InkDialog
+      v-model="versionPopupOpen"
+      :title="t('extension.changeVersionTitle')"
+      @confirm="onConfirmVersion"
+    >
+      <InkInput
+        v-model="versionModel"
+        :label="t('extension.version')"
+        :placeholder="t('extension.versionPlaceholder')"
+        required
+      />
     </InkDialog>
   </div>
 </template>

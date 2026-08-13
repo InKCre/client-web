@@ -18,13 +18,8 @@
     overflow-y: auto;
   }
 
-  &__header {
-    width: 100%;
-    max-width: 380px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: sys-var(space, md);
-    padding: sys-var(space, sm) 0;
+  &__error {
+    @include apply-font(body-sm);
+    color: sys-var(color, danger, base);
   }
 }

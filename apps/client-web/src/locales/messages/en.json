@@ -74,11 +74,17 @@
   "extension": {
     "installNew": "Install Extension",
     "installExtensionTitle": "Install New Extension",
-    "extensionId": "Extension ID",
+    "name": "Extension Name",
+    "namePlaceholder": "namespace/name, for example inkcre/twitter",
     "version": "Version",
+    "versionPlaceholder": "exact version, for example 0.1.0",
     "editConfig": "Edit Config",
     "editConfigTitle": "Edit Extension Configuration",
-    "versionPlaceholder": "like 0.1.0 or optional for latest"
+    "changeVersion": "Change Version",
+    "changeVersionTitle": "Change Exact Extension Version",
+    "uninstall": "Uninstall",
+    "enabledPeerCount": "Enabled on {count} Peer(s).",
+    "uninstallDisabled": "Disable every Peer before uninstalling or changing the shared version."
   },
   "job": {
     "title": "Job Details",

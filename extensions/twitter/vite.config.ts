@@ -15,27 +15,33 @@ import {
 const extensionRoot = fileURLToPath(new URL('.', import.meta.url))
 const extensionComponents = fileURLToPath(new URL('./src/components', import.meta.url))
 
+export const twitterArtifactBase = './'
+export const twitterBuildTarget = 'es2022'
+export const twitterBuildOptions = {
+  target: twitterBuildTarget,
+  outDir: 'dist/client-web',
+  sourcemap: true,
+}
+export const twitterFederationOptions = {
+  name: `extension.twitter`,
+  filename: 'remoteEntry.js',
+  manifest: true,
+  exposes: {
+    '.': path.resolve(__dirname, './src/index.ts'),
+    './components/ContentTweet': path.resolve(
+      __dirname,
+      './src/components/contentTweet/contentTweet.vue'
+    ),
+  },
+  shared: mfShared,
+}
+
 export default defineConfig(async ({ command }) => {
   const uiSource = await resolveUiSourceForVite(command)
   const uiSourceComponents = uiSource ? path.resolve(uiSource.root, 'src/components') : null
 
   return {
-    plugins: [
-      vue(),
-      vueJsx(),
-      federation({
-        name: `extension.twitter`,
-        filename: 'remoteEntry.js',
-        exposes: {
-          '.': path.resolve(__dirname, './src/index.ts'),
-          './components/ContentTweet': path.resolve(
-            __dirname,
-            './src/components/contentTweet/contentTweet.vue'
-          ),
-        },
-        shared: mfShared,
-      }),
-    ],
+    plugins: [vue(), vueJsx(), federation(twitterFederationOptions)],
     resolve: {
       alias: uiSource ? createUiSourceAliases(uiSource) : [],
       ...(uiSource ? { dedupe: uiSourceDedupe } : {}),
@@ -52,12 +58,8 @@ export default defineConfig(async ({ command }) => {
           },
         }
       : {}),
-    base: '/twitter/client-web/',
-    build: {
-      target: 'esnext',
-      outDir: 'dist/client-web',
-      sourcemap: true,
-    },
+    base: twitterArtifactBase,
+    build: twitterBuildOptions,
     css: {
       preprocessorOptions: {
         scss: {

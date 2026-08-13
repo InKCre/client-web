@@ -56,7 +56,7 @@ uses its isolated profile only when an explicit browser binary is configured.
 ├── base/           # DBAPIClient, base utilities
 ├── config/         # Configuration adapters & schema
 ├── database/       # Supabase relation types plus stable database/runtime-contract adapters
-├── extension/      # Extension lifecycle, Module Federation
+├── extension/      # Canonical Extension model/state port, Web Host, Module Federation
 ├── info-base/      # Block, Relation, Storage, Resolvers
 ├── libs/           # Third-party integrations (AI)
 ├── obsrv/          # Observability (logging)
@@ -118,7 +118,7 @@ uses its isolated profile only when an explicit browser binary is configured.
 │   ├── index.ts    # Federation module entry
 │   └── main.ts     # Dev playground entry
 ├── package.json
-├── vite.config.ts  # Module Federation config
+├── vite.config.ts  # Native Module Federation manifest config
 └── tsconfig.json
 ```
 

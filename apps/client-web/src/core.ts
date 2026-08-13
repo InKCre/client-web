@@ -7,7 +7,10 @@
 
 import {
   configStore,
+  getMFImplementation,
   localStorageAdapter,
+  PostgrestExtensionStatePort,
+  RegistryExtensionReleaseReader,
   setMFImplementation,
   registerCoreResolvers,
   TextResolver,
@@ -21,6 +24,8 @@ import {
   ZipResolver,
   PeerManager,
   JobManager,
+  WebExtensionHost,
+  type ExtensionStatePort,
 } from '@inkcre/core'
 import { createInstance } from '@module-federation/enhanced/runtime'
 import * as InKCreCore from '@inkcre/core'
@@ -30,6 +35,7 @@ import * as Pinia from 'pinia'
 import * as VueRouter from 'vue-router'
 import * as VueUse from '@vueuse/core'
 import packageJson from '../package.json'
+import corePackageJson from '../../../packages/core/package.json'
 import ContentText from '@/components/info-base/resolvers/ContentText.vue'
 import ContentImage from '@/components/info-base/resolvers/ContentImage.vue'
 import ContentVideo from '@/components/info-base/resolvers/ContentVideo.vue'
@@ -61,6 +67,28 @@ export function setupResolvers(): void {
 }
 // Configuration
 // ============================================================================
+
+let extensionHost: WebExtensionHost | null = null
+
+export function initializeExtensionHost(state: ExtensionStatePort): WebExtensionHost {
+  extensionHost = new WebExtensionHost({
+    state,
+    releases: new RegistryExtensionReleaseReader(
+      () => configStore.peerConfig.extension_registry_url
+    ),
+    moduleFederation: getMFImplementation,
+    currentPeerId: () => configStore.metaConfig.INKCRE_PEER_ID,
+    hostSdkVersion: corePackageJson.version,
+  })
+  return extensionHost
+}
+
+export function getExtensionHost(): WebExtensionHost {
+  if (!extensionHost) {
+    throw new Error('Web Extension Host state port has not been initialized.')
+  }
+  return extensionHost
+}
 
 // ============================================================================
 // Module Federation
@@ -116,7 +144,7 @@ export function initializeModuleFederation(): void {
         },
       },
       '@inkcre/core': {
-        version: '0.0.0',
+        version: corePackageJson.version,
         lib: () => InKCreCore,
         shareConfig: {
           singleton: true,
@@ -128,8 +156,11 @@ export function initializeModuleFederation(): void {
 
   // Inject MF implementation into core
   const mfImpl = {
-    registerRemotes: (remotes: Array<{ name: string; entry: string; type: string }>) => {
-      mfInstance.registerRemotes(remotes)
+    registerRemotes: (
+      remotes: Array<{ name: string; entry: string; type?: 'module' | 'script' }>,
+      options?: { force?: boolean }
+    ) => {
+      mfInstance.registerRemotes(remotes, options)
     },
     loadRemote: async <T>(remoteName: string): Promise<T | null> => {
       return mfInstance.loadRemote<T>(remoteName)
@@ -149,13 +180,20 @@ export function initializeModuleFederation(): void {
  * Initialize all core systems.
  * Call this in main.ts before creating the Vue app.
  */
-export async function initializeCore(): Promise<void> {
+export function shouldLoadPeerConfigAtBootstrap(pathname: string): boolean {
+  return !/^\/settings(?:\/|$)/.test(pathname)
+}
+
+export async function initializeCore(options: { loadPeerConfig?: boolean } = {}): Promise<void> {
   await configStore.initializeMeta(localStorageAdapter)
-  await configStore.loadPeerConfig()
+  if (options.loadPeerConfig ?? true) {
+    await configStore.loadPeerConfig()
+  }
   PeerManager.setupBuiltinOutbounds()
   JobManager.startWorker()
   setupResolvers()
   initializeModuleFederation()
+  initializeExtensionHost(new PostgrestExtensionStatePort())
   console.log('[Core] Initialization complete')
 }
 

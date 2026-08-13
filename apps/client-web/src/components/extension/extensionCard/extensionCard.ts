@@ -1,14 +1,15 @@
-import { Extension, makeExtensionProp } from '@inkcre/core'
-import { makePeerRefProp } from '@inkcre/core'
+import { type PropType } from 'vue'
+import type { InstalledExtension } from '@inkcre/core'
 
 // --- Props ---
 export const extensionCardProps = {
-  extension: makeExtensionProp(),
-  peerId: makePeerRefProp(),
-}
+  extension: { type: Object as PropType<InstalledExtension>, required: true },
+  enabled: { type: Boolean, required: true },
+} as const
 
 // --- Emits ---
 export const extensionCardEmits = {
-  toggle: (_extension: Extension) => true,
-  'edit-config': (_extension: Extension) => true,
+  changed: () => true,
+  updated: (_extension: InstalledExtension) => true,
+  uninstalled: () => true,
 } as const

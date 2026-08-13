@@ -26,7 +26,8 @@
 - BusinessClass (`core/src/`) - Zod schema + TS class + static API
 - Peer access (`core/src/base`, `core/src/peer`) - DBAPIClient for shared database facts plus
   PeerManager for exact capability delegation
-- Module Federation (`core/src/extension`) - Dynamic plugin loading
+- Web Extension Host (`core/src/extension`) - canonical state port, exact Registry Release
+  preflight, native Module Federation loading, and lifecycle compensation
 - Registry (`core/src/info-base/`) - Pluggable Storage & Resolver
 - Config (`core/src/config`) - environment-neutral schema plus runtime-owned browser or extension
   storage
@@ -40,7 +41,8 @@
 1. Protocol read/write: Component → BusinessClass → DBAPIClient → PostgREST → PostgreSQL
 2. Delegated command: Component → domain manager → PeerManager → advertised inbound → provider's
    non-delegating local implementation
-3. Extension: Activate → Load remote → Register handlers → Features ready
+3. Extension: canonical enabled intent → exact Release/Host-range preflight → native manifest →
+   initialize/activate; disable reverses lifecycle before atomically removing Peer intent
 4. Content: Block.getHydratedContent() → exact Resolver → safe local handle/component → Render
 
 ## Package Responsibilities
@@ -49,7 +51,7 @@
 
 - Domain models (Block, Relation, Source, Peer, Extension)
 - Shared-database access through DBAPIClient and exact capability routing through PeerManager
-- Extension lifecycle & Module Federation
+- Native Web Extension Host, semantic deployment-state port, and Module Federation lifecycle
 - Storage & Resolver abstractions
 - Peer-local PostgreSQL binary C/R/U/D and bounded HTTP byte hydration
 - Exact `core.<kind>.v1` semantic resolver contracts and typed capability failures
@@ -77,7 +79,7 @@
 
 ### extensions/*
 
-- Module Federation remotes
+- Native Module Federation Remotes and producer association metadata
 - Custom resolvers & storages
 - Extend business logic
 

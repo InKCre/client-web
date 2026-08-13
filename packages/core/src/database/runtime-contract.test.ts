@@ -6,7 +6,7 @@ describe('database runtime contract', () => {
   it('contains only environment-neutral protocol and JWT metadata', () => {
     expect(databaseRuntimeContract).toEqual({
       format: 1,
-      revision: 'mail-source-job-runtime-v1',
+      revision: 'extension-registry-feature-retrieval-v1',
       protocol: {
         format: 1,
         schema: 'inkcre',

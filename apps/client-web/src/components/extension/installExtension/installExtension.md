@@ -8,7 +8,7 @@ A component that provides a form interface for installing new extensions.
 
 ## Features
 
-- Inline form to enter extension ID and optional version
+- Inline form for one canonical `namespace/name` and exact version
 - Install button with loading state
-- Form validation (extension ID is required)
+- Host preflight requires a published native Web Distribution before state insertion
 - Automatic form reset after successful installation

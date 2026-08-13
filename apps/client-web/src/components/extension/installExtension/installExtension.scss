@@ -36,4 +36,10 @@
     box-sizing: border-box;
     width: 100%;
   }
+
+  &__error {
+    @include apply-font(body-sm);
+    color: sys-var(color, danger, base);
+    margin: 0;
+  }
 }

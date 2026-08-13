@@ -1,18 +1,13 @@
-// Extension lifecycle and model
 export {
-  ExtensionState,
+  ExtensionNameSchema,
+  ExtensionVersionSchema,
+  InstalledExtensionSchema,
+  InstallExtensionInputSchema,
   type ExtensionModule,
-  type ExtensionRuntimeState,
-  Extension,
-  EXTENSION_MANAGEMENT_CAPABILITY,
-  InstallExtensionForm,
-  type ExtensionRef,
-  ExtensionRefZ,
-  makeExtensionProp,
-  makeExtensionRefProp,
-} from './base'
+  type InstalledExtension,
+  type InstallExtensionInput,
+} from './model'
 
-// Module Federation
 export {
   setMFImplementation,
   getMFImplementation,
@@ -20,5 +15,27 @@ export {
   loadRemote,
   isMFInitialized,
   type RemoteConfig,
+  type RegisterRemotesOptions,
   type MFImplementation,
 } from './module-federation'
+
+export {
+  ExtensionReleaseSchema,
+  RegistryExtensionReleaseReader,
+  type ExtensionRelease,
+  type ModuleFederationDistribution,
+  type ExtensionReleaseReader,
+} from './registry'
+
+export type { ExtensionStatePort } from './state'
+
+export { PostgrestExtensionStatePort, ExtensionStatePersistenceError } from './postgrest-state'
+
+export {
+  WebExtensionHost,
+  WebExtensionHostError,
+  WebExtensionIncompatibleError,
+  WebExtensionEnabledError,
+  webExtensionRemoteName,
+  type WebExtensionHostOptions,
+} from './host'

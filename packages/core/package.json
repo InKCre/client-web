@@ -27,11 +27,13 @@
     "graphology-shortest-path": "^2.1.0",
     "jose": "^5.0.0",
     "ml-matrix": "^6.12.1",
+    "semver": "7.8.5",
     "zod": "^4.1.12",
     "zod-class": "^0.0.18",
     "zod-config": "^1.4.0"
   },
   "devDependencies": {
+    "@types/semver": "7.5.8",
     "@vueuse/core": "^14.1.0",
     "pinia": "^3.0.3",
     "tsdown": "0.22.13",

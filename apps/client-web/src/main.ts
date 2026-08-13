@@ -19,16 +19,21 @@ setInfoBaseRouter(createInfoBaseRouterAdapter(router))
 
 // Initialize core package
 import { initializeCore, shutdownCore } from './core'
-await initializeCore()
+import { shouldLoadPeerConfigAtBootstrap } from './core'
+await initializeCore({
+  // Settings is the recovery surface for invalid or incomplete bootstrap
+  // credentials. It must mount without first contacting the configured Peer.
+  loadPeerConfig: shouldLoadPeerConfigAtBootstrap(window.location.pathname),
+})
 app.mount('#app')
 
-// Initialize Extension
-import { Extension } from '@inkcre/core'
-Extension.startup().catch((error) => {
-  console.error('[Extension] Startup failed:', error)
+import { getExtensionHost } from './core'
+const extensionHost = getExtensionHost()
+extensionHost.startup().catch((error) => {
+  console.error('[Web Extension Host] Startup failed:', error)
 })
 
 window.addEventListener('beforeunload', () => {
   shutdownCore()
-  void Extension.shutdown()
+  void extensionHost.shutdown()
 })

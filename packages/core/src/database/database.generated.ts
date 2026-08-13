@@ -178,6 +178,40 @@ export type Database = {
           },
         ]
       }
+      block_lexical_records: {
+        Row: {
+          block: number
+          created_at: string
+          label: string
+          search_vector: unknown
+          text: string | null
+          updated_at: string
+        }
+        Insert: {
+          block: number
+          created_at?: string
+          label: string
+          search_vector: unknown
+          text?: string | null
+          updated_at?: string
+        }
+        Update: {
+          block?: number
+          created_at?: string
+          label?: string
+          search_vector?: unknown
+          text?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'block_lexical_records_block_fkey'
+            columns: ['block']
+            referencedRelation: 'blocks'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       blocks: {
         Row: {
           content: string
@@ -324,26 +358,26 @@ export type Database = {
       }
       extensions: {
         Row: {
-          config: Json | null
+          config: Json
           config_schema: Json | null
           enabled: string[]
-          id: string
+          name: string
           nickname: string | null
           version: string
         }
         Insert: {
-          config?: Json | null
+          config?: Json
           config_schema?: Json | null
           enabled?: string[]
-          id: string
+          name: string
           nickname?: string | null
           version: string
         }
         Update: {
-          config?: Json | null
+          config?: Json
           config_schema?: Json | null
           enabled?: string[]
-          id?: string
+          name?: string
           nickname?: string | null
           version?: string
         }
@@ -708,6 +742,23 @@ export type Database = {
       renew_peer_lease: {
         Args: { peer: string; ttl_seconds: number }
         Returns: string
+      }
+      set_extension_peer_enabled: {
+        Args: { p_enabled: boolean; p_name: string; p_peer_id: string }
+        Returns: {
+          config: Json
+          config_schema: Json | null
+          enabled: string[]
+          name: string
+          nickname: string | null
+          version: string
+        }[]
+        SetofOptions: {
+          from: '*'
+          to: 'extensions'
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
     }
     Enums: {

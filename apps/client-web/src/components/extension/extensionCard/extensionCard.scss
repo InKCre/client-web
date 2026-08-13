@@ -25,13 +25,25 @@
   }
 
   &__nickname {
-    @include apply-font(body-lg);
-    color: sys-var(color, text, base);
+    @include apply-font(body-sm);
+    color: sys-var(color, text, subtle);
   }
 
   &__actions {
     display: flex;
     gap: sys-var(space, sm);
+  }
+
+  &__hint {
+    @include apply-font(body-sm);
+    color: sys-var(color, text, subtle);
+    margin: 0;
+  }
+
+  &__error {
+    @include apply-font(body-sm);
+    color: sys-var(color, danger, base);
+    margin: 0;
   }
 }
 

@@ -14,26 +14,37 @@ export { store } from './store'
 // Base layer
 export { APIError, DBAPIClient } from './base'
 
-// Extension System (protocols + Module Federation + Extension model)
+// Native Web Extension Host and Module Federation lifecycle
 export {
-  // Extension lifecycle
-  ExtensionState,
+  ExtensionNameSchema,
+  ExtensionVersionSchema,
+  InstalledExtensionSchema,
+  InstallExtensionInputSchema,
   type ExtensionModule,
-  type ExtensionRuntimeState,
-  // Extension model
-  Extension,
-  EXTENSION_MANAGEMENT_CAPABILITY,
-  InstallExtensionForm,
-  type ExtensionRef,
-  // Module Federation
+  type InstalledExtension,
+  type InstallExtensionInput,
   setMFImplementation,
   getMFImplementation,
   registerRemotes,
   loadRemote,
   isMFInitialized,
   type RemoteConfig,
+  type RegisterRemotesOptions,
   type MFImplementation,
-  makeExtensionProp,
+  ExtensionReleaseSchema,
+  RegistryExtensionReleaseReader,
+  type ExtensionRelease,
+  type ModuleFederationDistribution,
+  type ExtensionReleaseReader,
+  type ExtensionStatePort,
+  PostgrestExtensionStatePort,
+  ExtensionStatePersistenceError,
+  WebExtensionHost,
+  WebExtensionHostError,
+  WebExtensionIncompatibleError,
+  WebExtensionEnabledError,
+  webExtensionRemoteName,
+  type WebExtensionHostOptions,
 } from './extension'
 
 // Peer discovery and delegation

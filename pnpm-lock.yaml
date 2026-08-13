@@ -41,6 +41,9 @@ importers:
       '@playwright/test':
         specifier: 1.61.1
         version: 1.61.1
+      '@types/semver':
+        specifier: 7.5.8
+        version: 7.5.8
       '@typescript/native':
         specifier: npm:typescript@7.0.2
         version: typescript@7.0.2
@@ -71,6 +74,9 @@ importers:
       portless:
         specifier: 0.12.0
         version: 0.12.0
+      semver:
+        specifier: 7.8.5
+        version: 7.8.5
       supabase:
         specifier: 2.112.0
         version: 2.112.0
@@ -474,6 +480,9 @@ importers:
       ml-matrix:
         specifier: ^6.12.1
         version: 6.14.0
+      semver:
+        specifier: 7.8.5
+        version: 7.8.5
       zod:
         specifier: ^4.1.12
         version: 4.4.3
@@ -484,6 +493,9 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0(dotenv@17.4.2)(json5@2.2.3)(zod@4.4.3)
     devDependencies:
+      '@types/semver':
+        specifier: 7.5.8
+        version: 7.5.8
       '@vueuse/core':
         specifier: ^14.1.0
         version: 14.3.0(vue@3.5.40(typescript@5.9.3))
