@@ -15,8 +15,10 @@ import {
 import {
   inspectNativeModuleFederation,
   prepareBody,
+  previewRelease,
   verifyPublicModuleFederation,
 } from './verify-twitter-mf-distribution.mjs'
+import { assembleTwitterPreview } from './assemble-twitter-preview.mjs'
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url))
 
@@ -160,6 +162,58 @@ test('builds the frozen native prepare payload with distribution-owned provenanc
   }
 })
 
+test('builds and assembles a read-only native Twitter preview projection', async () => {
+  const fixture = await createFixture()
+  const pagesDirectory = path.join(fixture.root, 'pages')
+  const releasePath = path.join(fixture.root, 'release.json')
+  try {
+    await mkdir(pagesDirectory)
+    await writeFile(path.join(pagesDirectory, 'index.html'), '<!doctype html>\n')
+    const release = previewRelease(await inspectNativeModuleFederation(fixture))
+    await writeFile(releasePath, `${JSON.stringify(release)}\n`)
+    await assembleTwitterPreview({
+      pagesDirectory,
+      snapshotDirectory: fixture.artifactDirectory,
+      releasePath,
+      publicOrigin: 'https://preview.example/',
+    })
+
+    const publicRelease = JSON.parse(
+      await readFile(
+        path.join(pagesDirectory, 'v1/extensions/inkcre/twitter/releases/0.1.1'),
+        'utf8'
+      )
+    )
+    assert.deepEqual(publicRelease, release)
+    assert.equal(
+      await readFile(
+        path.join(
+          pagesDirectory,
+          'extensions/inkcre/twitter/0.1.1/module-federation/remoteEntry.js'
+        ),
+        'utf8'
+      ),
+      fixture.files.get('remoteEntry.js').toString()
+    )
+    const publicManifest = JSON.parse(
+      await readFile(
+        path.join(
+          pagesDirectory,
+          'extensions/inkcre/twitter/0.1.1/module-federation/mf-manifest.json'
+        ),
+        'utf8'
+      )
+    )
+    assert.equal(
+      publicManifest.metaData.publicPath,
+      'https://preview.example/extensions/inkcre/twitter/0.1.1/module-federation/'
+    )
+    assert.match(await readFile(path.join(pagesDirectory, '_headers'), 'utf8'), /no-store/)
+  } finally {
+    await rm(fixture.root, { recursive: true, force: true })
+  }
+})
+
 test('rejects a native manifest whose referenced closure is missing', async () => {
   const fixture = await createFixture()
   try {
@@ -229,7 +283,11 @@ test('retains exact-main checked-artifact governance without generic target deli
   ])
 
   assert.match(ci, /push:\n\s+branches:\n\s+- main/)
+  assert.match(ci, /database-contract:\n\s+name: Database contract\n\s+needs: core-release/)
+  assert.match(ci, /workspace:\n\s+name: Workspace contract\n\s+runs-on:/)
   assert.match(ci, /name: twitter-mf-dist/)
+  assert.match(ci, /name: twitter-mf-preview-release/)
+  assert.match(ci, /verify-twitter-mf-distribution\.mjs preview-release/)
   assert.match(ci, /verify-twitter-mf-distribution\.mjs inspect-local/)
   assert.doesNotMatch(ci, /INKCRE_EXTENSION_REGISTRY_TOKEN/)
 
@@ -260,6 +318,14 @@ test('retains exact-main checked-artifact governance without generic target deli
   assert.match(delivery, /verify-twitter-mf-distribution\.mjs verify-public/)
   assert.match(delivery, /INKCRE_EXTENSION_REGISTRY_TOKEN/)
   assert.doesNotMatch(delivery, /target-publish|build-target|publish-target|target_digest/)
+  assert.doesNotMatch(preview, /workflow_run\.conclusion == 'success'/)
+  assert.match(preview, /job\.name === 'Workspace contract'/)
+  assert.match(preview, /workspace\.conclusion !== 'success'/)
+  assert.match(preview, /candidate\.name === artifactName && !candidate\.expired/)
+  assert.match(preview, /'twitter-mf-dist'/)
+  assert.match(preview, /'twitter-mf-preview-release'/)
+  assert.match(preview, /assemble-twitter-preview\.mjs/)
+  assert.match(preview, /--public-origin https:\/\/preview-client-web-pr-/)
   assert.doesNotMatch(preview, /INKCRE_EXTENSION_REGISTRY_TOKEN/)
 
   const nativePublish = delivery.indexOf('Prepare the exact native Twitter Release')
