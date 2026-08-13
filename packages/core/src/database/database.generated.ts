@@ -41,6 +41,7 @@ export type Database = {
           {
             foreignKeyName: 'agents_model_fkey'
             columns: ['model']
+            isOneToOne: false
             referencedRelation: 'ai_models'
             referencedColumns: ['id']
           },
@@ -99,6 +100,7 @@ export type Database = {
           {
             foreignKeyName: 'ai_models_provider_fkey'
             columns: ['provider']
+            isOneToOne: false
             referencedRelation: 'ai_providers'
             referencedColumns: ['id']
           },
@@ -136,6 +138,7 @@ export type Database = {
           {
             foreignKeyName: 'ai_providers_dialect_fkey'
             columns: ['dialect']
+            isOneToOne: false
             referencedRelation: 'ai_dialects'
             referencedColumns: ['id']
           },
@@ -167,12 +170,14 @@ export type Database = {
           {
             foreignKeyName: 'block_embeddings_block_fkey'
             columns: ['block']
+            isOneToOne: false
             referencedRelation: 'blocks'
             referencedColumns: ['id']
           },
           {
             foreignKeyName: 'block_embeddings_profile_fkey'
             columns: ['profile']
+            isOneToOne: false
             referencedRelation: 'embedding_profiles'
             referencedColumns: ['id']
           },
@@ -207,6 +212,7 @@ export type Database = {
           {
             foreignKeyName: 'block_lexical_records_block_fkey'
             columns: ['block']
+            isOneToOne: true
             referencedRelation: 'blocks'
             referencedColumns: ['id']
           },
@@ -241,6 +247,7 @@ export type Database = {
           {
             foreignKeyName: 'blocks_storage_fkey'
             columns: ['storage']
+            isOneToOne: false
             referencedRelation: 'storages'
             referencedColumns: ['id']
           },
@@ -311,12 +318,14 @@ export type Database = {
           {
             foreignKeyName: 'crons_job_type_fkey'
             columns: ['job_type']
+            isOneToOne: false
             referencedRelation: 'job_types'
             referencedColumns: ['id']
           },
           {
             foreignKeyName: 'crons_last_job_fkey'
             columns: ['last_job']
+            isOneToOne: false
             referencedRelation: 'jobs'
             referencedColumns: ['id']
           },
@@ -351,6 +360,7 @@ export type Database = {
           {
             foreignKeyName: 'embedding_profiles_ai_model_fkey'
             columns: ['ai_model']
+            isOneToOne: false
             referencedRelation: 'ai_models'
             referencedColumns: ['id']
           },
@@ -442,6 +452,7 @@ export type Database = {
           {
             foreignKeyName: 'jobs_type_fkey'
             columns: ['type']
+            isOneToOne: false
             referencedRelation: 'job_types'
             referencedColumns: ['id']
           },
@@ -542,12 +553,14 @@ export type Database = {
           {
             foreignKeyName: 'relation_embeddings_profile_fkey'
             columns: ['profile']
+            isOneToOne: false
             referencedRelation: 'embedding_profiles'
             referencedColumns: ['id']
           },
           {
             foreignKeyName: 'relation_embeddings_relation_fkey'
             columns: ['relation']
+            isOneToOne: false
             referencedRelation: 'relations'
             referencedColumns: ['id']
           },
@@ -579,12 +592,14 @@ export type Database = {
           {
             foreignKeyName: 'relations_from__fkey'
             columns: ['from_']
+            isOneToOne: false
             referencedRelation: 'blocks'
             referencedColumns: ['id']
           },
           {
             foreignKeyName: 'relations_to__fkey'
             columns: ['to_']
+            isOneToOne: false
             referencedRelation: 'blocks'
             referencedColumns: ['id']
           },
@@ -628,18 +643,21 @@ export type Database = {
           {
             foreignKeyName: 'sources_block_fkey'
             columns: ['block']
+            isOneToOne: true
             referencedRelation: 'blocks'
             referencedColumns: ['id']
           },
           {
             foreignKeyName: 'sources_storage_fkey'
             columns: ['storage']
+            isOneToOne: false
             referencedRelation: 'storages'
             referencedColumns: ['id']
           },
           {
             foreignKeyName: 'sources_type_fkey'
             columns: ['type']
+            isOneToOne: false
             referencedRelation: 'sources_types'
             referencedColumns: ['id']
           },
@@ -728,6 +746,7 @@ export type Database = {
           {
             foreignKeyName: 'storages_type_fkey'
             columns: ['type']
+            isOneToOne: false
             referencedRelation: 'storage_types'
             referencedColumns: ['id']
           },

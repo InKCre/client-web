@@ -25,14 +25,33 @@
     "format": 1,
     "functions": {
       "create_storage_blob": {
-        "arguments": [{ "name": null, "type": { "format": "bytea", "kind": "string" } }],
+        "arguments": [
+          {
+            "name": null,
+            "type": {
+              "format": "bytea",
+              "kind": "string"
+            }
+          }
+        ],
         "request_media_type": "application/octet-stream",
-        "returns": { "format": "uuid", "kind": "string" },
+        "returns": {
+          "format": "uuid",
+          "kind": "string"
+        },
         "returns_set": false,
         "volatility": "volatile"
       },
       "read_storage_blob": {
-        "arguments": [{ "name": "blob_id", "type": { "format": "uuid", "kind": "string" } }],
+        "arguments": [
+          {
+            "name": "blob_id",
+            "type": {
+              "format": "uuid",
+              "kind": "string"
+            }
+          }
+        ],
         "response_media_type": "application/octet-stream",
         "returns": {
           "database_type": "inkcre.\"application/octet-stream\"",
@@ -44,8 +63,20 @@
       },
       "renew_peer_lease": {
         "arguments": [
-          { "name": "peer", "type": { "format": "uuid", "kind": "string" } },
-          { "name": "ttl_seconds", "type": { "format": "integer", "kind": "number" } }
+          {
+            "name": "peer",
+            "type": {
+              "format": "uuid",
+              "kind": "string"
+            }
+          },
+          {
+            "name": "ttl_seconds",
+            "type": {
+              "format": "integer",
+              "kind": "number"
+            }
+          }
         ],
         "returns": {
           "database_type": "timestamp with time zone",
@@ -59,15 +90,22 @@
         "arguments": [
           {
             "name": "p_name",
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           {
             "name": "p_peer_id",
-            "type": { "format": "uuid", "kind": "string" }
+            "type": {
+              "format": "uuid",
+              "kind": "string"
+            }
           },
           {
             "name": "p_enabled",
-            "type": { "kind": "boolean" }
+            "type": {
+              "kind": "boolean"
+            }
           }
         ],
         "returns": {
@@ -86,55 +124,78 @@
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           },
           "id": {
             "generated": true,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "max_model_calls_per_turn": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "model": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "name": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "system_prompt": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "tool_choice": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "tools": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "items": { "kind": "string" }, "kind": "array" }
+            "type": {
+              "items": {
+                "kind": "string"
+              },
+              "kind": "array"
+            }
           },
           "updated_at": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           }
         },
         "relationships": [
@@ -153,19 +214,25 @@
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "description": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "id": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           }
         },
         "relationships": []
@@ -176,49 +243,67 @@
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "created_at": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           },
           "enabled": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "boolean" }
+            "type": {
+              "kind": "boolean"
+            }
           },
           "id": {
             "generated": true,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "name": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "native_model_id": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "provider": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "updated_at": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           }
         },
         "relationships": [
@@ -237,43 +322,59 @@
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "created_at": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           },
           "dialect": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "enabled": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "boolean" }
+            "type": {
+              "kind": "boolean"
+            }
           },
           "id": {
             "generated": true,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "name": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "updated_at": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           }
         },
         "relationships": [
@@ -292,31 +393,46 @@
             "generated": true,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "created_at": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           },
           "embedding": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "items": { "kind": "number" }, "kind": "array" }
+            "type": {
+              "items": {
+                "kind": "number"
+              },
+              "kind": "array"
+            }
           },
           "profile": {
             "generated": true,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "updated_at": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           }
         },
         "relationships": [
@@ -342,37 +458,52 @@
             "generated": true,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "created_at": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           },
           "label": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "search_vector": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "format": "tsvector", "kind": "string" }
+            "type": {
+              "format": "tsvector",
+              "kind": "string"
+            }
           },
           "text": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "updated_at": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           }
         },
         "relationships": [
@@ -391,37 +522,51 @@
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "created_at": {
             "generated": false,
             "has_default": true,
             "nullable": true,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           },
           "id": {
             "generated": true,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "resolver": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "storage": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "updated_at": {
             "generated": false,
             "has_default": true,
             "nullable": true,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           }
         },
         "relationships": [
@@ -440,31 +585,43 @@
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           },
           "key": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "schema": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "updated_at": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           },
           "value": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           }
         },
         "relationships": []
@@ -475,61 +632,84 @@
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           },
           "enabled": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "boolean" }
+            "type": {
+              "kind": "boolean"
+            }
           },
           "id": {
             "generated": true,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "job_parameters": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "job_timeout_seconds": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "job_type": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "last_job": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "last_scheduled_for": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           },
           "schedule": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "updated_at": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           }
         },
         "relationships": [
@@ -555,37 +735,51 @@
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "created_at": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           },
           "dimensions": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "id": {
             "generated": true,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "name": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "updated_at": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           }
         },
         "relationships": [
@@ -604,37 +798,53 @@
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "config_schema": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "enabled": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "items": { "format": "uuid", "kind": "string" }, "kind": "array" }
+            "type": {
+              "items": {
+                "format": "uuid",
+                "kind": "string"
+              },
+              "kind": "array"
+            }
           },
           "name": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "nickname": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "version": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           }
         },
         "relationships": []
@@ -645,25 +855,33 @@
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "description": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "id": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "parameters_schema": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           }
         },
         "relationships": []
@@ -674,37 +892,52 @@
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           },
           "created_at": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           },
           "id": {
             "generated": true,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "parameters": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "started_at": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           },
           "state": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "status": {
             "generated": false,
@@ -719,13 +952,17 @@
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "type": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           }
         },
         "relationships": [
@@ -744,49 +981,66 @@
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "body": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "id": {
             "generated": true,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "severity_number": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "severity_text": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "span_id": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "timestamp": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           },
           "trace_id": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           }
         },
         "relationships": []
@@ -797,55 +1051,80 @@
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "config": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "config_schema": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "created_at": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           },
           "id": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "uuid", "kind": "string" }
+            "type": {
+              "format": "uuid",
+              "kind": "string"
+            }
           },
           "labels": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "items": { "kind": "string" }, "kind": "array" }
+            "type": {
+              "items": {
+                "kind": "string"
+              },
+              "kind": "array"
+            }
           },
           "lease_expires_at": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           },
           "name": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "updated_at": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           }
         },
         "relationships": []
@@ -856,31 +1135,46 @@
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           },
           "embedding": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "items": { "kind": "number" }, "kind": "array" }
+            "type": {
+              "items": {
+                "kind": "number"
+              },
+              "kind": "array"
+            }
           },
           "profile": {
             "generated": true,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "relation": {
             "generated": true,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "updated_at": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           }
         },
         "relationships": [
@@ -906,31 +1200,42 @@
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "from_": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "id": {
             "generated": true,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "to_": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "updated_at": {
             "generated": false,
             "has_default": true,
             "nullable": true,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           }
         },
         "relationships": [
@@ -956,55 +1261,75 @@
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "config": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "created_at": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           },
           "id": {
             "generated": true,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "nickname": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "state": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "storage": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "type": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "updated_at": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "date-time", "kind": "string" }
+            "type": {
+              "format": "date-time",
+              "kind": "string"
+            }
           }
         },
         "relationships": [
@@ -1037,31 +1362,41 @@
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "collect_config_schema": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "config_schema": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "description": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "id": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           }
         },
         "relationships": []
@@ -1072,13 +1407,19 @@
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "format": "bytea", "kind": "string" }
+            "type": {
+              "format": "bytea",
+              "kind": "string"
+            }
           },
           "id": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "format": "uuid", "kind": "string" }
+            "type": {
+              "format": "uuid",
+              "kind": "string"
+            }
           }
         },
         "relationships": []
@@ -1089,25 +1430,33 @@
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "description": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "id": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "writable": {
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "boolean" }
+            "type": {
+              "kind": "boolean"
+            }
           }
         },
         "relationships": []
@@ -1118,25 +1467,33 @@
             "generated": false,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "json" }
+            "type": {
+              "kind": "json"
+            }
           },
           "id": {
             "generated": true,
             "has_default": true,
             "nullable": false,
-            "type": { "kind": "number" }
+            "type": {
+              "kind": "number"
+            }
           },
           "nickname": {
             "generated": false,
             "has_default": false,
             "nullable": true,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           },
           "type": {
             "generated": false,
             "has_default": false,
             "nullable": false,
-            "type": { "kind": "string" }
+            "type": {
+              "kind": "string"
+            }
           }
         },
         "relationships": [
@@ -1153,5 +1510,5 @@
     "schema": "inkcre"
   },
   "revision": "extension-registry-feature-retrieval-v1",
-  "source_revision": "92dc3c68a2088b7e4e025c2ea9fe30c4a7f7ff15"
+  "source_revision": "ca5684bbdb9117e2288563db3c6fb544fae0e893"
 }
