@@ -24,9 +24,9 @@ await initializeCore({
 })
 app.mount('#app')
 
-import { getExtensionHost } from './core'
+import { getExtensionHost, startExtensionHost } from './core'
 const extensionHost = getExtensionHost()
-extensionHost.startup().catch((error) => {
+startExtensionHost().catch((error) => {
   console.error('[Web Extension Host] Startup failed:', error)
 })
 

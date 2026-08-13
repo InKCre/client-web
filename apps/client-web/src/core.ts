@@ -53,8 +53,10 @@ export function setupResolvers(): void {
 // ============================================================================
 
 let extensionHost: WebExtensionHost | null = null
+let extensionHostStartup: Promise<void> | null = null
 
 export function initializeExtensionHost(state: ExtensionStatePort): WebExtensionHost {
+  extensionHostStartup = null
   extensionHost = new WebExtensionHost({
     state,
     releases: new RegistryExtensionReleaseReader(
@@ -72,6 +74,18 @@ export function getExtensionHost(): WebExtensionHost {
     throw new Error('Web Extension Host state port has not been initialized.')
   }
   return extensionHost
+}
+
+/** Share one initial runtime restore across the app shell and Extension management view. */
+export function startExtensionHost(): Promise<void> {
+  if (extensionHostStartup) return extensionHostStartup
+
+  const startup = getExtensionHost().startup()
+  extensionHostStartup = startup.catch((error: unknown) => {
+    extensionHostStartup = null
+    throw error
+  })
+  return extensionHostStartup
 }
 
 // ============================================================================

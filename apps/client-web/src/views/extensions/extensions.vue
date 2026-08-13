@@ -4,7 +4,7 @@ import extensionCard from '@/components/extension/extensionCard/extensionCard.vu
 import installExtension from '@/components/extension/installExtension/installExtension.vue'
 import { InkLoading } from '@inkcre/ui-web'
 import { configStore, type InstalledExtension } from '@inkcre/core'
-import { getExtensionHost } from '@/core'
+import { getExtensionHost, startExtensionHost } from '@/core'
 import { useI18n } from 'vue-i18n'
 
 // --- data ---
@@ -29,7 +29,15 @@ const refreshExtensions = async () => {
   }
 }
 
-onMounted(() => void refreshExtensions())
+onMounted(async () => {
+  try {
+    await startExtensionHost()
+  } catch {
+    // The app shell owns runtime-startup reporting. The installed list remains a
+    // useful recovery surface even when one enabled Extension fails to start.
+  }
+  await refreshExtensions()
+})
 
 // --- methods ---
 const onInstallExtension = () => {
