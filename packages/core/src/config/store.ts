@@ -46,11 +46,6 @@ export const useConfigStore = defineStore('inkcre-config', () => {
   }
 
   async function loadClientConfig(): Promise<void> {
-    if (!metaConfig.value.INKCRE_CLIENT_ID) {
-      clientConfig.value = ClientConfigSchema.parse({})
-      return
-    }
-
     const Client = await lazyClient()
     try {
       const loaded = await Client.getSelf()
@@ -72,6 +67,26 @@ export const useConfigStore = defineStore('inkcre-config', () => {
     }
   }
 
+  async function connectAndSave(
+    metaCandidate: MetaConfig,
+    clientCandidate: ClientConfig
+  ): Promise<void> {
+    error.value = null
+    const nextMeta = MetaConfigSchema.parse(metaCandidate)
+    const nextClient = ClientConfigSchema.parse(clientCandidate)
+
+    try {
+      const Client = await lazyClient()
+      await Client.connect(nextMeta, nextClient)
+      await metaAdapter.value.write(nextMeta)
+      metaConfig.value = nextMeta
+      clientConfig.value = nextClient
+    } catch (err) {
+      error.value = err as Error
+      throw err
+    }
+  }
+
   async function resetMeta(): Promise<void> {
     metaConfig.value = MetaConfigSchema.parse({})
     clientConfig.value = ClientConfigSchema.parse({})
@@ -86,6 +101,7 @@ export const useConfigStore = defineStore('inkcre-config', () => {
     error,
     initializeMeta,
     loadClientConfig,
+    connectAndSave,
     saveMeta,
     resetMeta,
   }

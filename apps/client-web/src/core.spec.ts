@@ -20,8 +20,8 @@ describe('client configuration bootstrap', () => {
 
 describe('Extension Host bootstrap', () => {
   it('shares the initial runtime restore with the Extension management view', async () => {
-    const previousPeerId = configStore.metaConfig.INKCRE_CLIENT_ID
-    configStore.metaConfig.INKCRE_CLIENT_ID = '00000000-0000-4000-8000-000000000002'
+    const previousPeerId = configStore.metaConfig.client_id
+    configStore.metaConfig.client_id = '00000000-0000-4000-8000-000000000002'
     const list = vi.fn().mockResolvedValue([])
     const unused = vi.fn(() => {
       throw new Error('not used')
@@ -44,7 +44,7 @@ describe('Extension Host bootstrap', () => {
       await viewStartup
       expect(list).toHaveBeenCalledOnce()
     } finally {
-      configStore.metaConfig.INKCRE_CLIENT_ID = previousPeerId
+      configStore.metaConfig.client_id = previousPeerId
     }
   })
 })

@@ -25,6 +25,7 @@
   }
 
   &__secret,
+  &__identity,
   &__locale {
     display: flex;
     flex-direction: column;
@@ -41,6 +42,14 @@
     small {
       color: sys-var('color', 'text', 'muted');
     }
+  }
+
+  &__identity code {
+    padding: sys-var('space', 'sm');
+    overflow-wrap: anywhere;
+    color: sys-var('color', 'text', 'base');
+    background: sys-var('color', 'surface', 'subtle');
+    border: 1px solid sys-var('color', 'border', 'base');
   }
 
   &__actions {

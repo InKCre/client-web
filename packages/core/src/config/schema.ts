@@ -35,13 +35,31 @@ export const AIConfigSchema = z.object({
  * Contains URLs and secrets needed to fetch and initialize app config
  */
 const UnconfiguredUrlSchema = z.union([z.literal(''), z.url()])
-const UnconfiguredClientIdSchema = z.union([z.literal(''), z.uuid()])
+const GeneratedClientIdSchema = z.preprocess(
+  (value) => (value === '' ? undefined : value),
+  z.uuid().default(() => crypto.randomUUID())
+)
 
-export const MetaConfigSchema = z.object({
+const CurrentMetaConfigSchema = z.object({
   INKCRE_PGREST_URL: UnconfiguredUrlSchema.default(''),
   INKCRE_JWT_SECRET: z.string().default(''),
-  INKCRE_CLIENT_ID: UnconfiguredClientIdSchema.default(''),
+  client_id: GeneratedClientIdSchema,
 })
+
+/**
+ * Browser bootstrap configuration.
+ *
+ * `INKCRE_CLIENT_ID` was once a manually supplied environment-style value. A
+ * browser now owns its stable identity, while this preprocessor preserves an
+ * already configured origin during migration.
+ */
+export const MetaConfigSchema = z.preprocess((value) => {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return value
+
+  const input = value as Record<string, unknown>
+  if (input.client_id !== undefined || input.INKCRE_CLIENT_ID === undefined) return input
+  return { ...input, client_id: input.INKCRE_CLIENT_ID }
+}, CurrentMetaConfigSchema)
 
 export type MetaConfig = z.infer<typeof MetaConfigSchema>
 

@@ -23,7 +23,7 @@ test.beforeEach(async ({ page }) => {
         JSON.stringify({
           INKCRE_PGREST_URL: postgrestUrl,
           INKCRE_JWT_SECRET: jwtSecret,
-          INKCRE_CLIENT_ID: '00000000-0000-4000-8000-000000000002',
+          client_id: '00000000-0000-4000-8000-000000000002',
         })
       )
     },

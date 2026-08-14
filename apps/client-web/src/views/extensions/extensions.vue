@@ -9,7 +9,7 @@ import { useI18n } from 'vue-i18n'
 
 // --- data ---
 const { t } = useI18n()
-const currentPeerId = configStore.metaConfig.INKCRE_CLIENT_ID
+const currentPeerId = configStore.metaConfig.client_id
 const extensions = ref<InstalledExtension[]>([])
 const extensionsLoading = ref(false)
 const error = ref<string | null>(null)

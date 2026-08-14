@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { authStore } from '../auth'
+import { ClientConfigSchema, MetaConfigSchema } from '../config'
 import { Client } from './client'
 
 afterEach(() => {
@@ -105,5 +106,75 @@ describe('Client.request', () => {
     })
 
     await expect(client.get('/twitter/setup')).rejects.toThrow('Connect a Twitter account first')
+  })
+})
+
+describe('Client.connect', () => {
+  it('validates the candidate database before registering a missing browser Client', async () => {
+    const clientId = '00000000-0000-4000-8000-000000000002'
+    const fetch = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      if (init?.method === 'GET') {
+        return Response.json([], {
+          headers: { 'Content-Range': '*/0' },
+        })
+      }
+      if (init?.method === 'POST') {
+        return Response.json(
+          {
+            id: clientId,
+            name: 'client-web',
+            labels: ['web'],
+            rest_api_url: null,
+            config: { extension_registry_url: 'https://registry.inkcre.dev/' },
+            config_schema: {},
+            created_at: '2026-08-14T00:00:00Z',
+          },
+          { status: 201 }
+        )
+      }
+      return Response.json({ message: 'unexpected request' }, { status: 500 })
+    })
+    vi.stubGlobal('fetch', fetch)
+
+    const connected = await Client.connect(
+      MetaConfigSchema.parse({
+        INKCRE_PGREST_URL: 'https://database.example.test/',
+        INKCRE_JWT_SECRET: 'test-secret',
+        client_id: clientId,
+      }),
+      ClientConfigSchema.parse({
+        extension_registry_url: 'https://registry.inkcre.dev/',
+      })
+    )
+
+    expect(connected.id).toBe(clientId)
+    expect(fetch).toHaveBeenCalledTimes(2)
+    const registration = fetch.mock.calls[1]?.[1]
+    expect(registration?.method).toBe('POST')
+    expect(JSON.parse(String(registration?.body))).toMatchObject({
+      id: clientId,
+      name: 'client-web',
+      labels: ['web'],
+      config: { extension_registry_url: 'https://registry.inkcre.dev/' },
+    })
+  })
+
+  it('surfaces a candidate database authentication failure', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        Response.json({ code: 'PGRST301', message: 'JWT verification failed' }, { status: 401 })
+      )
+    )
+
+    await expect(
+      Client.connect(
+        MetaConfigSchema.parse({
+          INKCRE_PGREST_URL: 'https://database.example.test/',
+          INKCRE_JWT_SECRET: 'wrong-secret',
+        }),
+        ClientConfigSchema.parse({})
+      )
+    ).rejects.toThrow('Client database connection failed: JWT verification failed')
   })
 })

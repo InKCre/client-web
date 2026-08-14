@@ -3,6 +3,20 @@ import { SignJWT } from 'jose'
 import { configStore } from '../config'
 import { peerJwtContract } from '../database'
 
+export async function signDatabaseToken(jwtSecret: string): Promise<string> {
+  if (!jwtSecret) throw new Error('JWT_SECRET not configured')
+
+  const secret = new TextEncoder().encode(jwtSecret)
+  const issuedAt = Math.floor(Date.now() / 1000)
+  return new SignJWT({ role: peerJwtContract.role })
+    .setProtectedHeader({ alg: peerJwtContract.algorithm })
+    .setIssuedAt(issuedAt)
+    .setExpirationTime(issuedAt + peerJwtContract.maximum_lifetime_seconds)
+    .setIssuer(peerJwtContract.issuer)
+    .setAudience(peerJwtContract.audience)
+    .sign(secret)
+}
+
 /**
  * Create an auth store instance.
  * Returns reactive token and token management functions.
@@ -11,22 +25,8 @@ export function createAuthStore(configStoreIns = configStore) {
   const token = ref<string | undefined>(undefined)
 
   async function newToken(): Promise<string> {
-    if (!configStoreIns.metaConfig.INKCRE_JWT_SECRET) {
-      throw new Error('JWT_SECRET not configured')
-    }
-
     try {
-      const secret = new TextEncoder().encode(configStoreIns.metaConfig.INKCRE_JWT_SECRET)
-      const issuedAt = Math.floor(Date.now() / 1000)
-      const signedToken = await new SignJWT({
-        role: peerJwtContract.role,
-      })
-        .setProtectedHeader({ alg: peerJwtContract.algorithm })
-        .setIssuedAt(issuedAt)
-        .setExpirationTime(issuedAt + peerJwtContract.maximum_lifetime_seconds)
-        .setIssuer(peerJwtContract.issuer)
-        .setAudience(peerJwtContract.audience)
-        .sign(secret)
+      const signedToken = await signDatabaseToken(configStoreIns.metaConfig.INKCRE_JWT_SECRET)
 
       token.value = signedToken
       return signedToken

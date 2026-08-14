@@ -151,7 +151,7 @@ export {
 } from './database'
 
 // Authentication
-export { authStore } from './auth'
+export { authStore, signDatabaseToken } from './auth'
 
 // Utils
 export {

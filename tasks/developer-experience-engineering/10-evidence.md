@@ -31,7 +31,7 @@ This file records observed facts only. Decisions and desired state live in adjac
 
 ## Configuration and JWT Data Flow
 
-- `MetaConfig` contains `INKCRE_PGREST_URL`, `INKCRE_JWT_SECRET`, and `INKCRE_CLIENT_ID`: `packages/core/src/config/schema.ts:33`.
+- `MetaConfig` contains browser-local database coordinates plus an automatically generated `client_id`; saving Settings proves the candidate database and registers that browser Client before persisting MetaConfig: `packages/core/src/config/schema.ts`, `packages/core/src/config/store.ts`, and `packages/core/src/client/client.ts`.
 - The default meta adapter is `envAdapter`. Client-web sets it to the same adapter in development and does not automatically select `httpAdapter`: `packages/core/src/config/store.ts:16`, `apps/client-web/src/core.ts:139`.
 - The settings page lets a user manually select `localStorage`, `http`, or `env`: `apps/client-web/src/views/settings/settings.vue:42`.
 - The selected adapter name is written to `inkcre_config_adapter`, but no current code restores that choice on reload: `apps/client-web/src/views/settings/settings.vue:59`.

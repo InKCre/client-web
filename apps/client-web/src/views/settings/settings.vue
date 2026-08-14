@@ -1,8 +1,14 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { InkForm, InkInput, InkButton, InkDoubleCheck } from '@inkcre/ui-web'
-import { configStore, MetaConfigSchema, type MetaConfig } from '@inkcre/core'
+import {
+  ClientConfigSchema,
+  configStore,
+  MetaConfigSchema,
+  type ClientConfig,
+  type MetaConfig,
+} from '@inkcre/core'
 import { setLocale, SUPPORT_LOCALES, LOCALE_NAMES, type SupportLocale } from '@/locales'
 import i18n from '@/locales'
 
@@ -10,6 +16,7 @@ const { t } = useI18n()
 
 // Local reactive copy of metaConfig for form editing
 const metaFormConfig = reactive<MetaConfig>({ ...configStore.metaConfig })
+const clientFormConfig = reactive<ClientConfig>(ClientConfigSchema.parse(configStore.clientConfig))
 
 // Synchronize metaFormConfig with configStore.metaConfig
 watch(
@@ -19,6 +26,21 @@ watch(
   },
   { deep: true }
 )
+watch(
+  () => configStore.clientConfig,
+  (newClientConfig) => {
+    Object.assign(clientFormConfig, ClientConfigSchema.parse(newClientConfig))
+  },
+  { deep: true }
+)
+
+onMounted(async () => {
+  if (!configStore.metaConfig.INKCRE_PGREST_URL || !configStore.metaConfig.INKCRE_JWT_SECRET) {
+    return
+  }
+  await configStore.loadClientConfig()
+  Object.assign(clientFormConfig, ClientConfigSchema.parse(configStore.clientConfig))
+})
 
 // Current locale (computed for v-model)
 const currentLocale = computed({
@@ -31,14 +53,15 @@ const currentLocale = computed({
 // Save config
 const onSave = async () => {
   try {
-    const validated = MetaConfigSchema.parse(metaFormConfig)
-    Object.assign(configStore.metaConfig, validated)
-    await configStore.saveMeta()
-    await configStore.loadClientConfig()
+    const validatedMeta = MetaConfigSchema.parse(metaFormConfig)
+    const validatedClient = ClientConfigSchema.parse(clientFormConfig)
+    await configStore.connectAndSave(validatedMeta, validatedClient)
+    Object.assign(metaFormConfig, configStore.metaConfig)
+    Object.assign(clientFormConfig, ClientConfigSchema.parse(configStore.clientConfig))
     alert(t('settings.saveSuccess'))
   } catch (error) {
     console.error('Failed to save config:', error)
-    alert('Failed to save configuration')
+    alert(error instanceof Error ? error.message : t('settings.saveError'))
   }
 }
 
@@ -46,6 +69,7 @@ const onSave = async () => {
 const onReset = async () => {
   await configStore.resetMeta()
   Object.assign(metaFormConfig, configStore.metaConfig)
+  Object.assign(clientFormConfig, ClientConfigSchema.parse(configStore.clientConfig))
 }
 
 // Export config
@@ -55,7 +79,7 @@ const onExport = () => {
     containsCredential: false,
     metaConfig: {
       INKCRE_PGREST_URL: configStore.metaConfig.INKCRE_PGREST_URL,
-      INKCRE_CLIENT_ID: configStore.metaConfig.INKCRE_CLIENT_ID,
+      client_id: configStore.metaConfig.client_id,
     },
   }
   const configJson = JSON.stringify(portableConfig, null, 2)
@@ -89,10 +113,9 @@ const onFileSelected = async (event: Event) => {
         ...configStore.metaConfig,
         ...imported.metaConfig,
       })
-      Object.assign(configStore.metaConfig, validated)
-      await configStore.saveMeta()
-      await configStore.loadClientConfig()
+      await configStore.connectAndSave(validated, ClientConfigSchema.parse(clientFormConfig))
       Object.assign(metaFormConfig, configStore.metaConfig)
+      Object.assign(clientFormConfig, ClientConfigSchema.parse(configStore.clientConfig))
       alert(t('settings.saveSuccess'))
     } catch (error) {
       console.error('Failed to import config:', error)
@@ -133,10 +156,21 @@ const onFileSelected = async (event: Event) => {
         <small>{{ t('settings.jwtStoredLocally') }}</small>
       </label>
 
+      <div class="settings-view__identity">
+        <span>{{ t('settings.clientId') }}</span>
+        <code>{{ metaFormConfig.client_id }}</code>
+        <small>{{ t('settings.clientIdGenerated') }}</small>
+      </div>
+
+      <!-- Client Configuration -->
+      <h2 class="settings-view__section-title">
+        {{ t('settings.clientConfig') }}
+      </h2>
+      <p class="settings-view__notice">{{ t('settings.clientConfigNotice') }}</p>
       <InkInput
-        v-model="metaFormConfig.INKCRE_CLIENT_ID"
-        :label="t('settings.clientId')"
-        placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        v-model="clientFormConfig.extension_registry_url"
+        :label="t('settings.extensionRegistryUrl')"
+        placeholder="https://..."
       />
 
       <!-- Language Selection -->

@@ -7,7 +7,7 @@
  * **MetaConfig** (State: `metaConfig`): Contains bootstrap configuration needed to initialize the app
  * - INKCRE_PGREST_URL: PostgreSQL/PostgREST base URL
  * - INKCRE_JWT_SECRET: JWT signing secret
- * - INKCRE_CLIENT_ID: Current client UUID
+ * - client_id: Browser-owned Client UUID generated on first initialization
  *
  * **ClientConfig** (State: `config`): Contains runtime application configuration
  * - extension_registry_url: Extension registry URL

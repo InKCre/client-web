@@ -63,7 +63,7 @@ export function initializeExtensionHost(state: ExtensionStatePort): WebExtension
       () => configStore.clientConfig.extension_registry_url
     ),
     moduleFederation: getMFImplementation,
-    currentPeerId: () => configStore.metaConfig.INKCRE_CLIENT_ID,
+    currentPeerId: () => configStore.metaConfig.client_id,
     hostSdkVersion: corePackageJson.version,
   })
   return extensionHost

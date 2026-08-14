@@ -2,8 +2,8 @@ import { z } from 'zod'
 import { Z } from 'zod-class'
 import { DBAPIClient, APIError } from '../base/db-api'
 import { makeStringProp, makeObjectProp } from '../utils/vue-props'
-import { authStore } from '../auth'
-import { configStore } from '../config'
+import { authStore, signDatabaseToken } from '../auth'
+import { ClientConfigSchema, configStore, type ClientConfig, type MetaConfig } from '../config'
 
 export type ClientRef = string
 export const makeClientProp = (v?: any) => makeObjectProp<Client>(v)
@@ -64,16 +64,72 @@ export class Client extends Z.class({
     }))
   }
 
-  /**
-   * Get the self/core client from config (INKCRE_CLIENT_ID).
-   * This client is used for Core API requests.
-   */
+  /** Get the browser-owned Client from bootstrap configuration. */
   static async getSelf(): Promise<Client> {
-    const clientId = configStore.metaConfig.INKCRE_CLIENT_ID
-    if (!clientId) {
-      throw new Error('INKCRE_CLIENT_ID is not configured')
+    return Client.get(configStore.metaConfig.client_id)
+  }
+
+  /**
+   * Prove one candidate bootstrap configuration and persist this browser's
+   * typed Client configuration. The candidate connection is isolated from the
+   * currently active application configuration.
+   */
+  static async connect(meta: MetaConfig, config: ClientConfig): Promise<Client> {
+    const candidate = new DBAPIClient<'clients', Client>(
+      'clients',
+      Client,
+      'inkcre',
+      meta.INKCRE_PGREST_URL,
+      () => signDatabaseToken(meta.INKCRE_JWT_SECRET)
+    )
+    const existingResponse = await candidate.from().select().eq('id', meta.client_id).maybeSingle()
+    if (existingResponse.error) {
+      throw new APIError(
+        `Client database connection failed: ${existingResponse.error.message}`,
+        existingResponse.status,
+        existingResponse.error
+      )
     }
-    return Client.get(clientId)
+
+    const parsedConfig = ClientConfigSchema.parse(config)
+    if (existingResponse.data) {
+      const updateResponse = await candidate
+        .update({
+          config: parsedConfig,
+          config_schema: z.toJSONSchema(ClientConfigSchema),
+        })
+        .eq('id', meta.client_id)
+        .select()
+        .single()
+      if (updateResponse.error) {
+        throw new APIError(
+          `Client configuration save failed: ${updateResponse.error.message}`,
+          updateResponse.status,
+          updateResponse.error
+        )
+      }
+      return Client.parse(updateResponse.data)
+    }
+
+    const createResponse = await candidate
+      .insert({
+        id: meta.client_id,
+        name: 'client-web',
+        labels: ['web'],
+        rest_api_url: null,
+        config: parsedConfig,
+        config_schema: z.toJSONSchema(ClientConfigSchema),
+      })
+      .select()
+      .single()
+    if (createResponse.error) {
+      throw new APIError(
+        `Client registration failed: ${createResponse.error.message}`,
+        createResponse.status,
+        createResponse.error
+      )
+    }
+    return Client.parse(createResponse.data)
   }
 
   /**
@@ -279,7 +335,18 @@ export class Client extends Z.class({
    * Save only the config field to the database
    */
   async saveConfig(): Promise<void> {
-    await Client.dbApi.upsert({ id: this.id, config: this.config }).select().single()
+    const response = await Client.dbApi
+      .update({ config: this.config, config_schema: this.config_schema })
+      .eq('id', this.id)
+      .select()
+      .single()
+    if (response.error) {
+      throw new APIError(
+        `Client configuration save failed: ${response.error.message}`,
+        response.status,
+        response.error
+      )
+    }
   }
 }
 
