@@ -2,11 +2,11 @@
 
 ## Rationale
 
-Display and edit a single client in the client list.
+Display and edit a registered Client in the deployment Client list.
 
 ## Goals
 
-Allow users to view client details and edit client name and URL.
+Allow users to view Client details and explicitly save its name, management URL, or configuration.
 
 ## Key Concepts
 
@@ -14,11 +14,11 @@ Client management, health status.
 
 ## Specification
 
-Shows client name, ID, URL, and status. Has edit mode with inputs for name and URL, save/cancel buttons.
+Shows Client name, ID, management URL, and health status. Name and URL changes use an explicit save action. Configuration changes use a JSON dialog.
 
 ## Implementation
 
-Uses reactive editing state, emits updated on save.
+Updates only an existing Client and emits `updated` after a successful save.
 
 ### Props
 

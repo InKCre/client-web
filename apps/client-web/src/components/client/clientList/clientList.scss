@@ -1,7 +1,10 @@
 .client-list {
   display: flex;
   flex-direction: column;
-  gap: sys-var(space, md);
+  gap: sys-var(space, lg);
+  padding: sys-var(space, lg);
+  background-color: sys-var(color, surface, base);
+  border: 1px solid sys-var(color, border, base);
 
   &__header {
     display: flex;
@@ -15,6 +18,11 @@
     @include apply-font(title-lg);
     margin: 0;
     color: sys-var(color, text, base);
+  }
+
+  &__notice {
+    margin: sys-var(space, xs) 0 0;
+    color: sys-var(color, text, subtle);
   }
 
   &__actions {
@@ -84,5 +92,12 @@
     color: sys-var(color, text, subtle);
     text-align: center;
     padding: sys-var(space, xl);
+  }
+
+  &__error {
+    padding: sys-var(space, md);
+    color: sys-var(color, danger, base);
+    background-color: sys-var(color, danger, surface);
+    border: 1px solid sys-var(color, danger, base);
   }
 }

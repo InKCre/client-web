@@ -23,6 +23,9 @@
   },
   "settings": {
     "title": "设置",
+    "currentBrowserScope": "当前浏览器",
+    "allClientsScope": "Deployment 中的 Clients",
+    "allClientsNotice": "管理此 Deployment 中已注册的 Client，包括管理端点及其声明的配置。",
     "metaConfig": "运行配置",
     "coreUrl": "核心 API 地址",
     "pgrestUrl": "PostgreSQL REST 地址",
@@ -91,8 +94,14 @@
     "changeVersion": "变更版本",
     "changeVersionTitle": "变更扩展的精确版本",
     "uninstall": "卸载",
-    "enabledPeerCount": "已在 {count} 个 Peer 上启用。",
-    "uninstallDisabled": "卸载或变更共享版本前，必须先禁用所有 Peer。"
+    "clientSelector": "Client",
+    "clientSelectorPlaceholder": "选择 Client",
+    "currentBrowser": "当前浏览器",
+    "clientNotFound": "所选 Client 已不存在，请刷新 Client 列表。",
+    "clientListUnavailable": "无法加载其他 Client，当前浏览器仍可管理。{error}",
+    "desiredStateOnly": "此 Client 没有管理端点；开关只更新其持久化期望状态，已运行的实例可能持续到该 Client 刷新。",
+    "enabledPeerCount": "已在 {count} 个 Client 上启用。",
+    "uninstallDisabled": "卸载或变更共享版本前，必须先禁用所有 Client。"
   },
   "collectJob": {
     "title": "采集任务详情",

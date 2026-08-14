@@ -3,7 +3,7 @@
   padding: sys-var('space', 'lg');
   display: flex;
   flex-direction: column;
-  gap: sys-var('space', 'lg');
+  gap: sys-var('space', 'xl');
   overflow-y: auto;
 
   &__title {
@@ -12,10 +12,33 @@
     color: sys-var('color', 'text', 'base');
   }
 
+  &__scope {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var('space', 'lg');
+    padding: sys-var('space', 'lg');
+    background: sys-var('color', 'surface', 'base');
+    border: 1px solid sys-var('color', 'border', 'base');
+  }
+
+  &__scope-title {
+    @include apply-font('title', 'lg');
+    margin: 0;
+    padding-bottom: sys-var('space', 'md');
+    color: sys-var('color', 'text', 'base');
+    border-bottom: 1px solid sys-var('color', 'border', 'base');
+  }
+
   &__form {
     display: flex;
     flex-direction: column;
     gap: sys-var('space', 'md');
+  }
+
+  &__section-title {
+    @include apply-font('title', 'md');
+    margin: sys-var('space', 'sm') 0 0;
+    color: sys-var('color', 'text', 'base');
   }
 
   &__notice,

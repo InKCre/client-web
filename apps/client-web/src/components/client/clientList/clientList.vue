@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAsyncState } from '@vueuse/core'
 import { InkButton, InkLoading } from '@inkcre/ui-web'
@@ -11,50 +11,60 @@ const { t } = useI18n()
 // --- data ---
 const {
   state: clients,
-  execute: refreshClients,
+  execute: loadClients,
   isLoading: clientsLoading,
+  error: clientsError,
 } = useAsyncState(() => Client.list(), [], { immediate: true })
 
 const clientHealthStatus = ref<Record<string, 'online' | 'offline' | 'unknown'>>({})
 const healthCheckLoading = ref(false)
 
 // --- methods ---
+const refreshClients = async () => {
+  clientHealthStatus.value = {}
+  await loadClients()
+}
+
 const checkAllHealth = async () => {
   healthCheckLoading.value = true
   const results: Record<string, 'online' | 'offline' | 'unknown'> = {}
-  await Promise.all(
-    clients.value.map(async (client) => {
-      results[client.id] = client.rest_api_url ? await client.ping() : 'unknown'
-    })
-  )
-  clientHealthStatus.value = results
-  healthCheckLoading.value = false
-}
-
-const getStatusText = (status: 'online' | 'offline' | 'unknown') => {
-  const statusMap = {
-    online: t('client.statusOnline'),
-    offline: t('client.statusOffline'),
-    unknown: t('client.statusUnknown'),
+  try {
+    await Promise.all(
+      clients.value.map(async (client) => {
+        results[client.id] = client.rest_api_url ? await client.ping() : 'unknown'
+      })
+    )
+    clientHealthStatus.value = results
+  } finally {
+    healthCheckLoading.value = false
   }
-  return statusMap[status]
 }
 
 const getClientStatus = (clientId: string) => {
   return clientHealthStatus.value[clientId] || 'unknown'
 }
+
+const clientsErrorMessage = computed(() => {
+  if (!clientsError.value) return ''
+  return clientsError.value instanceof Error
+    ? clientsError.value.message
+    : String(clientsError.value)
+})
 </script>
 
 <template>
   <section class="client-list">
     <div class="client-list__header">
-      <h2 class="client-list__title">{{ t('client.listTitle') }}</h2>
+      <div>
+        <h2 class="client-list__title">{{ t('settings.allClientsScope') }}</h2>
+        <p class="client-list__notice">{{ t('settings.allClientsNotice') }}</p>
+      </div>
       <div class="client-list__actions">
         <InkButton
           :text="t('client.refresh')"
           size="sm"
           :loading="clientsLoading"
-          @click="() => refreshClients()"
+          @click="refreshClients"
         />
         <InkButton
           :text="t('client.checkHealth')"
@@ -66,6 +76,10 @@ const getClientStatus = (clientId: string) => {
     </div>
 
     <InkLoading v-if="clientsLoading && clients.length === 0" />
+
+    <div v-else-if="clientsError" class="client-list__error" role="alert">
+      {{ clientsErrorMessage }}
+    </div>
 
     <div v-else-if="clients.length === 0" class="client-list__empty">
       {{ t('client.noClients') }}

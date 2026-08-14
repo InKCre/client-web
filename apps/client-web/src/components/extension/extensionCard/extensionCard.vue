@@ -31,7 +31,7 @@ watch(
 
 const canUninstall = computed(() => props.extension.enabled.length === 0 && !isUninstalling.value)
 const setupContribution = computed(() =>
-  props.enabled ? getExtensionHost().getSetupContribution(props.extension.name) : null
+  getExtensionHost().getSetupContribution(props.extension.name)
 )
 
 const closeSetup = async () => {
@@ -46,13 +46,11 @@ const toggleModel = computed({
     operationError.value = null
     togglePromise.value = (async () => {
       try {
-        if (enabled) {
-          await getExtensionHost().enable(props.extension.name)
-        } else {
+        if (!enabled && props.controlsCurrentWebRuntime) {
           await closeSetup()
-          await getExtensionHost().disable(props.extension.name)
         }
-        emit('changed')
+        const updated = await props.setEnabled(enabled)
+        emit('updated', updated)
         return enabled
       } catch (error) {
         operationError.value = error instanceof Error ? error.message : String(error)

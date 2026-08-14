@@ -7,9 +7,9 @@ const SetupComponent = defineComponent({
   template: '<p data-test="twitter-setup">Twitter setup</p>',
 })
 const host = {
-  getSetupContribution: vi.fn(() => ({ component: SetupComponent })),
-  enable: vi.fn(),
-  disable: vi.fn(),
+  getSetupContribution: vi.fn((): { component: typeof SetupComponent } | null => ({
+    component: SetupComponent,
+  })),
   changeVersion: vi.fn(),
   updateConfig: vi.fn(),
   uninstall: vi.fn(),
@@ -46,9 +46,14 @@ const stubs = {
 describe('ExtensionCard setup contribution', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('mounts setup only for an enabled, running Web Extension contribution', async () => {
+  it('mounts setup from the current Web runtime independently of selected Client state', async () => {
     const wrapper = mount(extensionCard, {
-      props: { extension, enabled: true },
+      props: {
+        extension,
+        enabled: false,
+        controlsCurrentWebRuntime: false,
+        setEnabled: vi.fn(async () => ({ ...extension, enabled: [] })),
+      },
       global: { stubs },
     })
 
@@ -60,31 +65,54 @@ describe('ExtensionCard setup contribution', () => {
     expect(wrapper.get('[data-test="twitter-setup"]').text()).toBe('Twitter setup')
   })
 
-  it('does not offer setup while this Web Peer is disabled', () => {
+  it('does not offer setup without a running Web contribution', () => {
+    host.getSetupContribution.mockReturnValueOnce(null)
     const wrapper = mount(extensionCard, {
-      props: { extension: { ...extension, enabled: [] }, enabled: false },
+      props: {
+        extension: { ...extension, enabled: [] },
+        enabled: false,
+        controlsCurrentWebRuntime: false,
+        setEnabled: vi.fn(async () => ({ ...extension, enabled: [] })),
+      },
       global: { stubs },
     })
 
     expect(wrapper.text()).not.toContain('extension.setup')
-    expect(host.getSetupContribution).not.toHaveBeenCalled()
+    expect(host.getSetupContribution).toHaveBeenCalledWith('inkcre/twitter')
   })
 
   it('unmounts contributed setup before disabling its Remote runtime', async () => {
+    const setEnabled = vi.fn(async () => {
+      expect(wrapper.find('[data-test="twitter-setup"]').exists()).toBe(false)
+      return { ...extension, enabled: [] }
+    })
     const wrapper = mount(extensionCard, {
-      props: { extension, enabled: true },
+      props: { extension, enabled: true, controlsCurrentWebRuntime: true, setEnabled },
       global: { stubs },
     })
     const setup = wrapper.findAll('button').find((button) => button.text() === 'extension.setup')
     await setup?.trigger('click')
     expect(wrapper.find('[data-test="twitter-setup"]').exists()).toBe(true)
-    host.disable.mockImplementationOnce(async () => {
-      expect(wrapper.find('[data-test="twitter-setup"]').exists()).toBe(false)
+    await wrapper.get('[data-test="switch"]').trigger('click')
+    await flushPromises()
+
+    expect(setEnabled).toHaveBeenCalledWith(false)
+    expect(wrapper.emitted('updated')?.[0]).toEqual([{ ...extension, enabled: [] }])
+  })
+
+  it('does not close current Web setup when disabling another selected Client', async () => {
+    const setEnabled = vi.fn(async () => ({ ...extension, enabled: [] }))
+    const wrapper = mount(extensionCard, {
+      props: { extension, enabled: true, controlsCurrentWebRuntime: false, setEnabled },
+      global: { stubs },
     })
+    const setup = wrapper.findAll('button').find((button) => button.text() === 'extension.setup')
+    await setup?.trigger('click')
 
     await wrapper.get('[data-test="switch"]').trigger('click')
     await flushPromises()
 
-    expect(host.disable).toHaveBeenCalledWith('inkcre/twitter')
+    expect(wrapper.find('[data-test="twitter-setup"]').exists()).toBe(true)
+    expect(setEnabled).toHaveBeenCalledWith(false)
   })
 })

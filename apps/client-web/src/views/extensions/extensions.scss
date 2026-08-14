@@ -18,6 +18,18 @@
     overflow-y: auto;
   }
 
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, sm);
+  }
+
+  &__notice {
+    @include apply-font(body-sm);
+    margin: 0;
+    color: sys-var(color, text, muted);
+  }
+
   &__error {
     @include apply-font(body-sm);
     color: sys-var(color, danger, base);

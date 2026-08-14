@@ -11,12 +11,20 @@ import {
 } from '@inkcre/core'
 import { setLocale, SUPPORT_LOCALES, LOCALE_NAMES, type SupportLocale } from '@/locales'
 import i18n from '@/locales'
+import ClientList from '@/components/client/clientList/clientList.vue'
 
 const { t } = useI18n()
 
 // Local reactive copy of metaConfig for form editing
 const metaFormConfig = reactive<MetaConfig>({ ...configStore.metaConfig })
 const clientFormConfig = reactive<ClientConfig>(ClientConfigSchema.parse(configStore.clientConfig))
+const allClientsRevision = ref(0)
+
+const hasConnectedConfig = computed(
+  () =>
+    Boolean(configStore.metaConfig.INKCRE_PGREST_URL) &&
+    Boolean(configStore.metaConfig.INKCRE_JWT_SECRET)
+)
 
 // Synchronize metaFormConfig with configStore.metaConfig
 watch(
@@ -58,6 +66,7 @@ const onSave = async () => {
     await configStore.connectAndSave(validatedMeta, validatedClient)
     Object.assign(metaFormConfig, configStore.metaConfig)
     Object.assign(clientFormConfig, ClientConfigSchema.parse(configStore.clientConfig))
+    allClientsRevision.value += 1
     alert(t('settings.saveSuccess'))
   } catch (error) {
     console.error('Failed to save config:', error)
@@ -116,6 +125,7 @@ const onFileSelected = async (event: Event) => {
       await configStore.connectAndSave(validated, ClientConfigSchema.parse(clientFormConfig))
       Object.assign(metaFormConfig, configStore.metaConfig)
       Object.assign(clientFormConfig, ClientConfigSchema.parse(configStore.clientConfig))
+      allClientsRevision.value += 1
       alert(t('settings.saveSuccess'))
     } catch (error) {
       console.error('Failed to import config:', error)
@@ -133,83 +143,95 @@ const onFileSelected = async (event: Event) => {
   <main class="settings-view">
     <h1 class="settings-view__title">{{ t('settings.title') }}</h1>
 
-    <InkForm layout="col" class="settings-view__form">
-      <!-- Meta Configuration -->
-      <h2 class="settings-view__section-title">
-        {{ t('settings.metaConfig') }}
+    <section
+      class="settings-view__scope settings-view__scope--current-browser"
+      data-test="current-browser-scope"
+      aria-labelledby="current-browser-scope-title"
+    >
+      <h2 id="current-browser-scope-title" class="settings-view__scope-title">
+        {{ t('settings.currentBrowserScope') }}
       </h2>
-      <p class="settings-view__notice">{{ t('settings.storageNotice') }}</p>
-      <InkInput
-        v-model="metaFormConfig.INKCRE_PGREST_URL"
-        :label="t('settings.pgrestUrl')"
-        placeholder="https://..."
-      />
 
-      <label class="settings-view__secret">
-        <span>{{ t('settings.jwtSecret') }}</span>
-        <input
-          v-model="metaFormConfig.INKCRE_JWT_SECRET"
-          type="password"
-          autocomplete="off"
-          placeholder="••••••••"
+      <InkForm layout="col" class="settings-view__form">
+        <!-- Meta Configuration -->
+        <h3 class="settings-view__section-title">
+          {{ t('settings.metaConfig') }}
+        </h3>
+        <p class="settings-view__notice">{{ t('settings.storageNotice') }}</p>
+        <InkInput
+          v-model="metaFormConfig.INKCRE_PGREST_URL"
+          :label="t('settings.pgrestUrl')"
+          placeholder="https://..."
         />
-        <small>{{ t('settings.jwtStoredLocally') }}</small>
-      </label>
 
-      <div class="settings-view__identity">
-        <span>{{ t('settings.clientId') }}</span>
-        <code>{{ metaFormConfig.client_id }}</code>
-        <small>{{ t('settings.clientIdGenerated') }}</small>
+        <label class="settings-view__secret">
+          <span>{{ t('settings.jwtSecret') }}</span>
+          <input
+            v-model="metaFormConfig.INKCRE_JWT_SECRET"
+            type="password"
+            autocomplete="off"
+            placeholder="••••••••"
+          />
+          <small>{{ t('settings.jwtStoredLocally') }}</small>
+        </label>
+
+        <div class="settings-view__identity">
+          <span>{{ t('settings.clientId') }}</span>
+          <code>{{ metaFormConfig.client_id }}</code>
+          <small>{{ t('settings.clientIdGenerated') }}</small>
+        </div>
+
+        <!-- Client Configuration -->
+        <h3 class="settings-view__section-title">
+          {{ t('settings.clientConfig') }}
+        </h3>
+        <p class="settings-view__notice">{{ t('settings.clientConfigNotice') }}</p>
+        <InkInput
+          v-model="clientFormConfig.extension_registry_url"
+          :label="t('settings.extensionRegistryUrl')"
+          placeholder="https://..."
+        />
+
+        <!-- Language Selection -->
+        <h3 class="settings-view__section-title">{{ t('settings.language') }}</h3>
+        <label class="settings-view__locale">
+          <span>{{ t('settings.languageLabel') }}</span>
+          <select v-model="currentLocale">
+            <option v-for="locale in SUPPORT_LOCALES" :key="locale" :value="locale">
+              {{ LOCALE_NAMES[locale] }}
+            </option>
+          </select>
+        </label>
+      </InkForm>
+
+      <!-- Action Buttons -->
+      <div class="settings-view__actions">
+        <InkButton :text="t('settings.saveConfig')" theme="primary" @click="onSave" />
+
+        <InkDoubleCheck
+          :title="t('settings.resetConfirmTitle')"
+          :message="t('settings.resetConfirmMessage')"
+          @confirm="onReset"
+        >
+          <InkButton :text="t('settings.resetConfig')" theme="danger" />
+        </InkDoubleCheck>
+
+        <InkButton :text="t('settings.exportConfig')" @click="onExport" />
+        <InkButton :text="t('settings.importConfig')" @click="onImport" />
       </div>
+      <p class="settings-view__export-note">{{ t('settings.exportExcludesSecret') }}</p>
 
-      <!-- Client Configuration -->
-      <h2 class="settings-view__section-title">
-        {{ t('settings.clientConfig') }}
-      </h2>
-      <p class="settings-view__notice">{{ t('settings.clientConfigNotice') }}</p>
-      <InkInput
-        v-model="clientFormConfig.extension_registry_url"
-        :label="t('settings.extensionRegistryUrl')"
-        placeholder="https://..."
+      <!-- Hidden file input for import -->
+      <input
+        ref="fileInput"
+        type="file"
+        accept=".json"
+        style="display: none"
+        @change="onFileSelected"
       />
+    </section>
 
-      <!-- Language Selection -->
-      <h2 class="settings-view__section-title">{{ t('settings.language') }}</h2>
-      <label class="settings-view__locale">
-        <span>{{ t('settings.languageLabel') }}</span>
-        <select v-model="currentLocale">
-          <option v-for="locale in SUPPORT_LOCALES" :key="locale" :value="locale">
-            {{ LOCALE_NAMES[locale] }}
-          </option>
-        </select>
-      </label>
-    </InkForm>
-
-    <!-- Action Buttons -->
-    <div class="settings-view__actions">
-      <InkButton :text="t('settings.saveConfig')" theme="primary" @click="onSave" />
-
-      <InkDoubleCheck
-        :title="t('settings.resetConfirmTitle')"
-        :message="t('settings.resetConfirmMessage')"
-        @confirm="onReset"
-      >
-        <InkButton :text="t('settings.resetConfig')" theme="danger" />
-      </InkDoubleCheck>
-
-      <InkButton :text="t('settings.exportConfig')" @click="onExport" />
-      <InkButton :text="t('settings.importConfig')" @click="onImport" />
-    </div>
-    <p class="settings-view__export-note">{{ t('settings.exportExcludesSecret') }}</p>
-
-    <!-- Hidden file input for import -->
-    <input
-      ref="fileInput"
-      type="file"
-      accept=".json"
-      style="display: none"
-      @change="onFileSelected"
-    />
+    <ClientList v-if="hasConnectedConfig" :key="allClientsRevision" />
   </main>
 </template>
 

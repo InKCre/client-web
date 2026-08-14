@@ -23,6 +23,9 @@
   },
   "settings": {
     "title": "Settings",
+    "currentBrowserScope": "This Browser",
+    "allClientsScope": "Deployment Clients",
+    "allClientsNotice": "Manage the registered Clients connected to this deployment, including their management endpoint and declared configuration.",
     "metaConfig": "Meta Configuration",
     "coreUrl": "Core API URL",
     "pgrestUrl": "PostgreSQL REST URL",
@@ -91,8 +94,14 @@
     "changeVersion": "Change Version",
     "changeVersionTitle": "Change Exact Extension Version",
     "uninstall": "Uninstall",
-    "enabledPeerCount": "Enabled on {count} Peer(s).",
-    "uninstallDisabled": "Disable every Peer before uninstalling or changing the shared version."
+    "clientSelector": "Client",
+    "clientSelectorPlaceholder": "Select a Client",
+    "currentBrowser": "this browser",
+    "clientNotFound": "The selected Client no longer exists. Refresh the Client list.",
+    "clientListUnavailable": "Other Clients could not be loaded. This browser remains manageable. {error}",
+    "desiredStateOnly": "This Client has no management endpoint. The switch updates its saved desired state only; a running instance may continue until that Client reloads.",
+    "enabledPeerCount": "Enabled on {count} Client(s).",
+    "uninstallDisabled": "Disable every Client before uninstalling or changing the shared version."
   },
   "collectJob": {
     "title": "Collect Job Details",
