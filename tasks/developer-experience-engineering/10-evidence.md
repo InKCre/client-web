@@ -524,3 +524,20 @@ wrangler@4.114.0` invocation has a healthy OAuth session with Pages write access
 - Frozen installation, the complete 11-file / 40-test workspace check, the
   3-file / 19-test UI source-mode suite, and the cross-repository source type
   graph pass under the pnpm-managed Node 22.22.3 runtime.
+
+## 2026-08-14 Connected Client Settings Follow-up
+
+- Browser MetaConfig now owns a generated Client UUID. Runtime ClientConfig is
+  loaded only after both the PostgREST URL and JWT secret are configured, so a
+  fresh browser never treats the Pages origin as a database endpoint.
+- Saving Settings validates the candidate database connection and registers or
+  updates the browser Client before persisting MetaConfig; a failed connection
+  leaves the prior local configuration unchanged.
+- The Workspace contract remained the only prerequisite for Pages preview
+  delivery. Database-contract and browser/database E2E failures against the
+  Peer-based stable Core remain independent evidence while this feature branch
+  intentionally validates the Client-based Core PR 52 baseline.
+- The `nanoid` 3.x security override moved to 3.3.18 after GHSA-2v37-7h3g-55p8;
+  `pnpm audit --audit-level high` now reports no high-severity finding.
+- `pnpm check` passes with 22 test files and 96 tests, all workspace builds and
+  package contracts; `git diff --check` also passes.

@@ -11,6 +11,21 @@ afterEach(() => {
 })
 
 describe('connected configuration save', () => {
+  it('does not query the database before its bootstrap settings exist', async () => {
+    const adapter: ConfigAdapterWithWrite = {
+      name: 'test',
+      read: async () => ({}),
+      write: vi.fn(),
+    }
+    await configStore.initializeMeta(adapter)
+    const getSelf = vi.spyOn(Client, 'getSelf')
+
+    await configStore.loadClientConfig()
+
+    expect(getSelf).not.toHaveBeenCalled()
+    expect(configStore.clientConfig.extension_registry_url).toBe('')
+  })
+
   it('does not persist or activate MetaConfig when database validation fails', async () => {
     const write = vi.fn()
     const adapter: ConfigAdapterWithWrite = {

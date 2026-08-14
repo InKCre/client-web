@@ -46,6 +46,11 @@ export const useConfigStore = defineStore('inkcre-config', () => {
   }
 
   async function loadClientConfig(): Promise<void> {
+    if (!metaConfig.value.INKCRE_PGREST_URL || !metaConfig.value.INKCRE_JWT_SECRET) {
+      clientConfig.value = ClientConfigSchema.parse({})
+      return
+    }
+
     const Client = await lazyClient()
     try {
       const loaded = await Client.getSelf()
