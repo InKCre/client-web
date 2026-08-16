@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 
 import {
   inspectCoreRelease,
+  projectDatabaseCompatibilityContract,
   readJson,
   resolveCoreRelease,
   stableJson,
@@ -103,7 +104,7 @@ try {
   )
   const generatedRuntimeContract = Buffer.from(
     output(workspaceBinary('oxfmt'), ['--stdin-filepath', 'runtime-contract.generated.json'], {
-      input: stableJson(release.runtime_contract),
+      input: stableJson(projectDatabaseCompatibilityContract(release.runtime_contract)),
     })
   )
   await writeOrCompare(

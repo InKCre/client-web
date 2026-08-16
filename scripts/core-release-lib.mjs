@@ -77,6 +77,54 @@ export function validateRuntimeContract(contract, manifest) {
   return contract
 }
 
+/**
+ * Project the image-owned runtime document into the compatibility facts consumed
+ * by browser peers. Image provenance remains execution evidence, not a checked-in
+ * client interface.
+ */
+export function projectDatabaseCompatibilityContract(contract) {
+  const compatibility = {
+    format: contract?.format,
+    revision: contract?.revision,
+    protocol: {
+      format: contract?.protocol?.format,
+      schema: contract?.protocol?.schema,
+    },
+    jwt: contract?.jwt,
+  }
+  const validFormat = Number.isInteger(compatibility.format)
+  const validRevision = typeof compatibility.revision === 'string' && compatibility.revision
+  const validProtocol =
+    Number.isInteger(compatibility.protocol.format) &&
+    typeof compatibility.protocol.schema === 'string' &&
+    compatibility.protocol.schema
+  const validJwt =
+    compatibility.jwt &&
+    typeof compatibility.jwt.algorithm === 'string' &&
+    typeof compatibility.jwt.role === 'string' &&
+    typeof compatibility.jwt.issuer === 'string' &&
+    typeof compatibility.jwt.audience === 'string'
+  if (!validFormat || !validRevision || !validProtocol || !validJwt) {
+    throw new Error('core database compatibility contract is invalid')
+  }
+  return compatibility
+}
+
+export function validateDatabaseCompatibilityContract(contract) {
+  const compatibility = projectDatabaseCompatibilityContract(contract)
+  const hasExactKeys = (value, expected) => {
+    if (!value || typeof value !== 'object') return false
+    const keys = Object.keys(value)
+    return keys.length === expected.length && expected.every((key) => keys.includes(key))
+  }
+  const hasExpectedFields = hasExactKeys(contract, ['format', 'revision', 'protocol', 'jwt'])
+  const hasExpectedProtocol = hasExactKeys(contract.protocol, ['format', 'schema'])
+  if (!hasExpectedFields || !hasExpectedProtocol) {
+    throw new Error('database compatibility contract contains non-client fields')
+  }
+  return compatibility
+}
+
 export function selectImmutableDigest(repoDigests) {
   const canonicalDigests = [
     ...new Set(repoDigests.filter((candidate) => digestPattern.test(candidate))),

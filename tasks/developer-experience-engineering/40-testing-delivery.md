@@ -28,10 +28,11 @@ Failures retain traces, screenshots, browser logs, and service logs with credent
 
 ## Merge Admission
 
-- `Workspace contract` restores the raw schema carried by the selected core release, regenerates
-  the working-tree types with pinned Supabase CLI, and lets TypeScript plus consumer tests decide
-  compatibility. The checked generated snapshot supports local development; byte-for-byte drift is
-  not itself a merge failure.
+- `Database contract` restores the raw schema carried by the selected core release, regenerates
+  both the working-tree types with pinned Supabase CLI and the compact client compatibility
+  projection, then rejects byte-for-byte drift in those two client-owned interfaces. The selected
+  image's source revision remains run provenance: a delivery-only core change must not create
+  checked client drift.
 - `client-web E2E` starts the selected immutable core service against fresh pgvector PostgreSQL,
   restores the same schema artifact, runs core-owned initialization, and exercises PostgREST
   read/write/deny behavior through the browser.

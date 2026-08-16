@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import {
   readJson,
   validateCoreReleaseConfig,
-  validateRuntimeContract,
+  validateDatabaseCompatibilityContract,
 } from './core-release-lib.mjs'
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url))
@@ -27,10 +27,7 @@ for (const alias of ['Database', 'Json', 'InkcreSchema', 'RelationName', 'Relati
   if (!adapter.includes(alias)) errors.push(`database type adapter must expose ${alias}`)
 }
 try {
-  validateRuntimeContract(runtimeContract, {
-    contract_revision: runtimeContract.revision,
-    source_revision: runtimeContract.source_revision,
-  })
+  validateDatabaseCompatibilityContract(runtimeContract)
 } catch (error) {
   errors.push(error.message)
 }

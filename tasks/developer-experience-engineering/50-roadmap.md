@@ -155,8 +155,8 @@ Exit proof:
 Current proof:
 
 - production/legacy profiles and their public core exports are absent;
-- generated runtime/JWT metadata is environment-neutral and byte-for-byte checked against the
-  core-py contract snapshot;
+- generated runtime/JWT compatibility metadata is environment-neutral and byte-for-byte checked
+  against its client projection; selected core image provenance remains CI/E2E evidence;
 - fresh web and webext builds pass the expanded artifact scan;
 - `pnpm check`, both shadow lanes, dependency audit, doctor, YAML/actionlint, and diff checks pass;
 - consolidated Action SHAs, grouping, private-registry reference, and single GitHub deployment

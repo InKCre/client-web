@@ -85,7 +85,7 @@ pnpm dev:status      # Observe capability health without starting anything
 pnpm dev:stop        # Stop only this worktree's routes and database runtime
 pnpm db:ready        # Emit machine-readable development database readiness
 pnpm db:reset        # Explicitly reset only this worktree's guarded development database
-pnpm contract:sync   # Regenerate checked database types from the current stable core release
+pnpm contract:sync   # Regenerate database types and client compatibility facts from stable core
 pnpm test:e2e        # Own and remove an ephemeral database plus built-browser test runtime
 pnpm dev:all         # Start the web client with local remotes
 pnpm format          # Apply the Oxfmt baseline
