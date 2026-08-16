@@ -129,7 +129,7 @@ try {
 }
 
 const coreRelease = JSON.parse(await readFile(`${repoRoot}/contracts/core-release.json`, 'utf8'))
-const coreContract = JSON.parse(
+const databaseCompatibility = JSON.parse(
   await readFile(`${repoRoot}/packages/core/src/database/runtime-contract.generated.json`, 'utf8')
 )
 record(
@@ -139,13 +139,8 @@ record(
 )
 record(
   'database-contract',
-  coreContract.protocol?.schema === 'inkcre' ? 'ok' : 'error',
-  `${coreContract.revision}; schema ${coreContract.protocol?.schema}; Supabase-generated types checked in`
-)
-record(
-  'database-readiness-profile',
-  coreContract.profiles?.includes('development') ? 'ok' : 'error',
-  'development'
+  databaseCompatibility.protocol?.schema === 'inkcre' ? 'ok' : 'error',
+  `${databaseCompatibility.revision}; schema ${databaseCompatibility.protocol?.schema}; Supabase-generated types checked in`
 )
 record('config-provenance', 'ok', 'browser-local; no checked-in environment profile')
 

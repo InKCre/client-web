@@ -3,26 +3,215 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   inkcre: {
     Tables: {
-      block_embeddings: {
+      agents: {
         Row: {
-          embedding: string
+          created_at: string
           id: number
-          updated_at: string | null
+          max_model_calls_per_turn: number
+          model: number
+          name: string
+          system_prompt: string
+          tool_choice: Json | null
+          tools: string[]
+          updated_at: string
         }
         Insert: {
-          embedding: string
-          id: number
-          updated_at?: string | null
+          created_at?: string
+          id?: number
+          max_model_calls_per_turn: number
+          model: number
+          name: string
+          system_prompt: string
+          tool_choice?: Json | null
+          tools?: string[]
+          updated_at?: string
         }
         Update: {
-          embedding?: string
+          created_at?: string
           id?: number
-          updated_at?: string | null
+          max_model_calls_per_turn?: number
+          model?: number
+          name?: string
+          system_prompt?: string
+          tool_choice?: Json | null
+          tools?: string[]
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: 'block_embeddings_id_fkey'
-            columns: ['id']
+            foreignKeyName: 'agents_model_fkey'
+            columns: ['model']
+            isOneToOne: false
+            referencedRelation: 'ai_models'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      ai_dialects: {
+        Row: {
+          config_schema: Json
+          description: string
+          id: string
+        }
+        Insert: {
+          config_schema?: Json
+          description: string
+          id: string
+        }
+        Update: {
+          config_schema?: Json
+          description?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      ai_models: {
+        Row: {
+          capabilities: Json
+          created_at: string
+          enabled: boolean
+          id: number
+          name: string | null
+          native_model_id: string
+          provider: number
+          updated_at: string
+        }
+        Insert: {
+          capabilities: Json
+          created_at?: string
+          enabled?: boolean
+          id?: number
+          name?: string | null
+          native_model_id: string
+          provider: number
+          updated_at?: string
+        }
+        Update: {
+          capabilities?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: number
+          name?: string | null
+          native_model_id?: string
+          provider?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'ai_models_provider_fkey'
+            columns: ['provider']
+            isOneToOne: false
+            referencedRelation: 'ai_providers'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      ai_providers: {
+        Row: {
+          config: Json
+          created_at: string
+          dialect: string
+          enabled: boolean
+          id: number
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          dialect: string
+          enabled?: boolean
+          id?: number
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          dialect?: string
+          enabled?: boolean
+          id?: number
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'ai_providers_dialect_fkey'
+            columns: ['dialect']
+            isOneToOne: false
+            referencedRelation: 'ai_dialects'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      block_embeddings: {
+        Row: {
+          block: number
+          created_at: string
+          embedding: string
+          profile: number
+          updated_at: string
+        }
+        Insert: {
+          block: number
+          created_at?: string
+          embedding: string
+          profile: number
+          updated_at?: string
+        }
+        Update: {
+          block?: number
+          created_at?: string
+          embedding?: string
+          profile?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'block_embeddings_block_fkey'
+            columns: ['block']
+            isOneToOne: false
+            referencedRelation: 'blocks'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'block_embeddings_profile_fkey'
+            columns: ['profile']
+            isOneToOne: false
+            referencedRelation: 'embedding_profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      block_lexical_records: {
+        Row: {
+          block: number
+          created_at: string
+          label: string
+          search_vector: unknown
+          text: string | null
+          updated_at: string
+        }
+        Insert: {
+          block: number
+          created_at?: string
+          label: string
+          search_vector: unknown
+          text?: string | null
+          updated_at?: string
+        }
+        Update: {
+          block?: number
+          created_at?: string
+          label?: string
+          search_vector?: unknown
+          text?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'block_lexical_records_block_fkey'
+            columns: ['block']
             isOneToOne: true
             referencedRelation: 'blocks'
             referencedColumns: ['id']
@@ -64,35 +253,118 @@ export type Database = {
           },
         ]
       }
-      clients: {
+      configs: {
         Row: {
-          config: Json
-          config_schema: Json
-          created_at: string | null
-          id: string
-          labels: string[] | null
-          name: string
-          rest_api_url: string | null
+          created_at: string
+          key: string
+          schema: string
+          updated_at: string
+          value: Json
         }
         Insert: {
-          config?: Json
-          config_schema: Json
-          created_at?: string | null
-          id: string
-          labels?: string[] | null
-          name: string
-          rest_api_url?: string | null
+          created_at?: string
+          key: string
+          schema: string
+          updated_at?: string
+          value: Json
         }
         Update: {
-          config?: Json
-          config_schema?: Json
-          created_at?: string | null
-          id?: string
-          labels?: string[] | null
-          name?: string
-          rest_api_url?: string | null
+          created_at?: string
+          key?: string
+          schema?: string
+          updated_at?: string
+          value?: Json
         }
         Relationships: []
+      }
+      crons: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: number
+          job_parameters: Json
+          job_timeout_seconds: number | null
+          job_type: string
+          last_job: number | null
+          last_scheduled_for: string | null
+          schedule: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: number
+          job_parameters?: Json
+          job_timeout_seconds?: number | null
+          job_type: string
+          last_job?: number | null
+          last_scheduled_for?: string | null
+          schedule: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: number
+          job_parameters?: Json
+          job_timeout_seconds?: number | null
+          job_type?: string
+          last_job?: number | null
+          last_scheduled_for?: string | null
+          schedule?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'crons_job_type_fkey'
+            columns: ['job_type']
+            isOneToOne: false
+            referencedRelation: 'job_types'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'crons_last_job_fkey'
+            columns: ['last_job']
+            isOneToOne: false
+            referencedRelation: 'jobs'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      embedding_profiles: {
+        Row: {
+          ai_model: number
+          created_at: string
+          dimensions: number
+          id: number
+          name: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_model: number
+          created_at?: string
+          dimensions: number
+          id?: number
+          name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_model?: number
+          created_at?: string
+          dimensions?: number
+          id?: number
+          name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'embedding_profiles_ai_model_fkey'
+            columns: ['ai_model']
+            isOneToOne: false
+            referencedRelation: 'ai_models'
+            referencedColumns: ['id']
+          },
+        ]
       }
       extensions: {
         Row: {
@@ -120,6 +392,71 @@ export type Database = {
           version?: string
         }
         Relationships: []
+      }
+      job_types: {
+        Row: {
+          default_timeout_seconds: number
+          description: string
+          id: string
+          parameters_schema: Json
+        }
+        Insert: {
+          default_timeout_seconds: number
+          description: string
+          id: string
+          parameters_schema?: Json
+        }
+        Update: {
+          default_timeout_seconds?: number
+          description?: string
+          id?: string
+          parameters_schema?: Json
+        }
+        Relationships: []
+      }
+      jobs: {
+        Row: {
+          closed_at: string | null
+          created_at: string
+          id: number
+          parameters: Json
+          started_at: string | null
+          state: Json
+          status: Database['inkcre']['Enums']['jobstatus']
+          timeout_seconds: number
+          type: string
+        }
+        Insert: {
+          closed_at?: string | null
+          created_at?: string
+          id?: number
+          parameters?: Json
+          started_at?: string | null
+          state?: Json
+          status?: Database['inkcre']['Enums']['jobstatus']
+          timeout_seconds: number
+          type: string
+        }
+        Update: {
+          closed_at?: string | null
+          created_at?: string
+          id?: number
+          parameters?: Json
+          started_at?: string | null
+          state?: Json
+          status?: Database['inkcre']['Enums']['jobstatus']
+          timeout_seconds?: number
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'jobs_type_fkey'
+            columns: ['type']
+            isOneToOne: false
+            referencedRelation: 'job_types'
+            referencedColumns: ['id']
+          },
+        ]
       }
       logs: {
         Row: {
@@ -154,27 +491,76 @@ export type Database = {
         }
         Relationships: []
       }
-      relation_embeddings: {
+      peers: {
         Row: {
-          embedding: string
-          id: number
-          updated_at: string | null
+          capabilities: Json
+          config: Json
+          config_schema: Json
+          created_at: string
+          id: string
+          labels: string[]
+          lease_expires_at: string | null
+          name: string
+          updated_at: string
         }
         Insert: {
-          embedding: string
-          id: number
-          updated_at?: string | null
+          capabilities?: Json
+          config?: Json
+          config_schema: Json
+          created_at?: string
+          id: string
+          labels?: string[]
+          lease_expires_at?: string | null
+          name: string
+          updated_at?: string
         }
         Update: {
+          capabilities?: Json
+          config?: Json
+          config_schema?: Json
+          created_at?: string
+          id?: string
+          labels?: string[]
+          lease_expires_at?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      relation_embeddings: {
+        Row: {
+          created_at: string
+          embedding: string
+          profile: number
+          relation: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          embedding: string
+          profile: number
+          relation: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
           embedding?: string
-          id?: number
-          updated_at?: string | null
+          profile?: number
+          relation?: number
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: 'relation_embeddings_id_fkey'
-            columns: ['id']
-            isOneToOne: true
+            foreignKeyName: 'relation_embeddings_profile_fkey'
+            columns: ['profile']
+            isOneToOne: false
+            referencedRelation: 'embedding_profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'relation_embeddings_relation_fkey'
+            columns: ['relation']
+            isOneToOne: false
             referencedRelation: 'relations'
             referencedColumns: ['id']
           },
@@ -221,30 +607,53 @@ export type Database = {
       }
       sources: {
         Row: {
-          collect_at: Json | null
+          block: number | null
           config: Json
+          created_at: string
           id: number
           nickname: string | null
           state: Json
+          storage: number | null
           type: string | null
+          updated_at: string
         }
         Insert: {
-          collect_at?: Json | null
+          block?: number | null
           config?: Json
+          created_at?: string
           id?: number
           nickname?: string | null
           state?: Json
+          storage?: number | null
           type?: string | null
+          updated_at?: string
         }
         Update: {
-          collect_at?: Json | null
+          block?: number | null
           config?: Json
+          created_at?: string
           id?: number
           nickname?: string | null
           state?: Json
+          storage?: number | null
           type?: string | null
+          updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: 'sources_block_fkey'
+            columns: ['block']
+            isOneToOne: true
+            referencedRelation: 'blocks'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'sources_storage_fkey'
+            columns: ['storage']
+            isOneToOne: false
+            referencedRelation: 'storages'
+            referencedColumns: ['id']
+          },
           {
             foreignKeyName: 'sources_type_fkey'
             columns: ['type']
@@ -254,61 +663,41 @@ export type Database = {
           },
         ]
       }
-      sources_collect_jobs: {
-        Row: {
-          closed_at: string | null
-          config: Json | null
-          created_at: string | null
-          id: number
-          source: number | null
-          started_at: string | null
-          state: Json | null
-          status: Database['inkcre']['Enums']['sourcecollectjobstatus']
-        }
-        Insert: {
-          closed_at?: string | null
-          config?: Json | null
-          created_at?: string | null
-          id?: number
-          source?: number | null
-          started_at?: string | null
-          state?: Json | null
-          status?: Database['inkcre']['Enums']['sourcecollectjobstatus']
-        }
-        Update: {
-          closed_at?: string | null
-          config?: Json | null
-          created_at?: string | null
-          id?: number
-          source?: number | null
-          started_at?: string | null
-          state?: Json | null
-          status?: Database['inkcre']['Enums']['sourcecollectjobstatus']
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'sources_collect_jobs_source_fkey'
-            columns: ['source']
-            isOneToOne: false
-            referencedRelation: 'sources'
-            referencedColumns: ['id']
-          },
-        ]
-      }
       sources_types: {
         Row: {
+          backfill_config_schema: Json | null
+          collect_config_schema: Json
           config_schema: Json
           description: string | null
           id: string
         }
         Insert: {
+          backfill_config_schema?: Json | null
+          collect_config_schema?: Json
           config_schema?: Json
           description?: string | null
           id: string
         }
         Update: {
+          backfill_config_schema?: Json | null
+          collect_config_schema?: Json
           config_schema?: Json
           description?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      storage_blobs: {
+        Row: {
+          data: string
+          id: string
+        }
+        Insert: {
+          data: string
+          id?: string
+        }
+        Update: {
+          data?: string
           id?: string
         }
         Relationships: []
@@ -318,16 +707,19 @@ export type Database = {
           config_schema: Json
           description: string
           id: string
+          writable: boolean
         }
         Insert: {
           config_schema?: Json
           description: string
           id: string
+          writable?: boolean
         }
         Update: {
           config_schema?: Json
           description?: string
           id?: string
+          writable?: boolean
         }
         Relationships: []
       }
@@ -365,6 +757,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      read_storage_blob: { Args: { blob_id: string }; Returns: unknown }
+      renew_peer_lease: {
+        Args: { peer: string; ttl_seconds: number }
+        Returns: string
+      }
       set_extension_peer_enabled: {
         Args: { p_enabled: boolean; p_name: string; p_peer_id: string }
         Returns: {
@@ -384,7 +781,7 @@ export type Database = {
       }
     }
     Enums: {
-      sourcecollectjobstatus: 'pending' | 'running' | 'finished' | 'failed'
+      jobstatus: 'pending' | 'running' | 'finished' | 'failed' | 'timed_out' | 'aborted'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -510,7 +907,7 @@ export type CompositeTypes<
 export const Constants = {
   inkcre: {
     Enums: {
-      sourcecollectjobstatus: ['pending', 'running', 'finished', 'failed'],
+      jobstatus: ['pending', 'running', 'finished', 'failed', 'timed_out', 'aborted'],
     },
   },
 } as const

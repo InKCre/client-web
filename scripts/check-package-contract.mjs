@@ -25,6 +25,7 @@ await Promise.all(
     'apps/client-webext/.output/chrome-mv3/manifest.json',
     'apps/client-webext/.output/chrome-mv3/content-scripts/content.js',
     'apps/client-webext/.output/chrome-mv3/content-scripts/content.css',
+    'extensions/mail/dist/client-web/remoteEntry.js',
     'extensions/twitter/dist/client-web/remoteEntry.js',
   ].map((path) => requireFile(`${repoRoot}/${path}`))
 )

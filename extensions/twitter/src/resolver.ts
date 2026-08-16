@@ -12,7 +12,7 @@
  */
 
 import { markRaw } from 'vue'
-import { Resolver, ResolverCache } from '@inkcre/core'
+import { Resolver, ResolverCache, type ProjectionOptions } from '@inkcre/core'
 import {
   TweetSchema,
   type Tweet,
@@ -22,15 +22,15 @@ import {
 import ContentTweet from './components/contentTweet/contentTweet.vue'
 
 export class TweetResolver extends Resolver<string, Tweet> {
-  static readonly type = 'extensions.twitter.tweet'
-  static readonly contentComp = markRaw(ContentTweet)
+  static readonly type = 'extensions.twitter.tweet.v1'
+  static readonly solvedContentRenderer = markRaw(ContentTweet)
 
   static {
     Resolver.register(TweetResolver.type, TweetResolver)
   }
 
-  protected async _getSolvedContent(): Promise<Tweet> {
-    const rawContent = await this.getRawContent()
+  protected async _getSolvedContent(options: ProjectionOptions): Promise<Tweet> {
+    const rawContent = await this.getRawContent(options)
     const tweet = TweetSchema.parse(JSON.parse(rawContent))
 
     // If attachments are already populated, return as-is
@@ -42,6 +42,7 @@ export class TweetResolver extends Resolver<string, Tweet> {
     const attachmentRelations = await this.getRelations({
       includeOut: true,
       includeIn: false,
+      refresh: options.refresh,
     })
 
     const attachmentPatterns = [RELATION_ATTACHMENT_PHOTO, RELATION_ATTACHMENT_VIDEO]
@@ -65,11 +66,15 @@ export class TweetResolver extends Resolver<string, Tweet> {
 
           // Use ResolverCache to get resolver for attachment block
           const attachmentResolver = await ResolverCache.getResolver(attachmentBlock)
-          const attachmentContent = await attachmentResolver.getSolvedContent()
+          const attachmentContent = await attachmentResolver.getSolvedContent(options)
 
-          // Content should be ObjectURL string (from ImageResolver or VideoResolver)
-          if (typeof attachmentContent === 'string') {
-            attachments.push(attachmentContent)
+          if (
+            typeof attachmentContent === 'object' &&
+            attachmentContent !== null &&
+            'objectUrl' in attachmentContent &&
+            typeof attachmentContent.objectUrl === 'string'
+          ) {
+            attachments.push(attachmentContent.objectUrl)
           }
         } catch (error) {
           // Log error but continue with other attachments
@@ -90,5 +95,9 @@ export class TweetResolver extends Resolver<string, Tweet> {
     }
 
     return tweet
+  }
+
+  async getText(options: ProjectionOptions = {}): Promise<string> {
+    return (await this.getSolvedContent(options)).text
   }
 }

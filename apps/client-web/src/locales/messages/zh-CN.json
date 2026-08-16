@@ -53,7 +53,7 @@
     "id": "ID",
     "collectAt": "采集时间",
     "config": "配置",
-    "collectJobs": "采集任务",
+    "jobs": "任务",
     "newJob": "新建任务",
     "newJobTitle": "创建新采集任务",
     "newJobDescription": "为此数据源创建新的采集任务。该任务将被加入队列并尽快执行。",
@@ -86,8 +86,8 @@
     "enabledPeerCount": "已在 {count} 个 Peer 上启用。",
     "uninstallDisabled": "卸载或变更共享版本前，必须先禁用所有 Peer。"
   },
-  "collectJob": {
-    "title": "采集任务详情",
+  "job": {
+    "title": "任务详情",
     "jobId": "任务 ID",
     "status": "状态",
     "source": "数据源",
@@ -101,7 +101,7 @@
     "stop": "停止",
     "retry": "重试",
     "notAvailable": "不可用",
-    "notFound": "未找到采集任务",
+    "notFound": "未找到任务",
     "sourceNotFound": "未找到数据源"
   },
   "logs": {
@@ -122,15 +122,42 @@
     "noClients": "暂无注册客户端"
   },
   "infoBase": {
-    "blockDetails": {
-      "title": "区块详情",
+    "list": {
+      "eyebrow": "文本特征回忆",
+      "title": "找回你记得的信息。",
+      "searchLabel": "检索信息库",
+      "searchPlaceholder": "一句话、名称、文件名，或仍有印象的细节……",
+      "search": "检索",
+      "idle": "可按完整短语、连续片段、标签或词语检索信息库。",
+      "empty": "没有已建立记录的区块匹配“{query}”。",
+      "error": "本次检索未能完成。",
+      "retry": "重试",
+      "evidence": {
+        "label_exact": "标签完全匹配",
+        "label_substring": "标签片段匹配",
+        "text_substring": "正文片段匹配",
+        "terms": "词语匹配"
+      }
+    },
+    "blockInspector": {
+      "title": "区块检查器",
       "id": "ID",
       "resolver": "解析器",
       "created": "创建时间",
       "updated": "更新时间",
       "storage": "存储",
-      "content": "内容",
-      "noContent": "暂无内容"
+      "missing": "区块 #{block} 已不存在。",
+      "viewContent": "查看内容",
+      "ruminate": "反刍",
+      "rumination": {
+        "success": "已重新理解这条信息，并刷新信息图。",
+        "error": "反刍失败，没有得到可确认的图变更。",
+        "outcome-unknown": "提供方可能已经完成请求。再次执行前，请先刷新并检查信息图。"
+      }
+    },
+    "solvedContent": {
+      "title": "内容",
+      "missing": "区块 #{block} 已不存在。"
     },
     "graph": {
       "empty": "没有找到块",

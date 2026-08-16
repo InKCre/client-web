@@ -15,7 +15,8 @@ Shared logic package for InKCre applications and extensions.
 - `peer` - Peer Active Record, discovery, protocols, and exact capability delegation
 - `semantic-retrieval` - Semantic retrieval capability facade
 - `sink/graph` - Graph layouts & algorithms
-- `source` - Source, CollectJob, CollectAt
+- `source` - Source and Source runtime integration
+- `job` / `cron` - global asynchronous work and schedule models
 - `utils` - Vue prop helpers
 
 ## Key Patterns
@@ -102,5 +103,6 @@ repository root.
 - Shipped core runtime source and output must not contain an environment profile, service origin,
   or Peer identity. `database.generated.ts` is owned by pinned Supabase CLI type generation from
   core-py's raw schema artifact. `generated.ts` is the stable type adapter.
-  `runtime-contract.generated.json` preserves upstream evidence while `runtime-contract.ts`
-  projects only protocol and JWT claim metadata; tests may use explicit non-production fixtures.
+  `runtime-contract.generated.json` is the client compatibility projection, while image provenance
+  remains CI and runtime evidence. `runtime-contract.ts` projects only protocol and JWT claim
+  metadata; tests may use explicit non-production fixtures.

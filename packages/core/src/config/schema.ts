@@ -35,12 +35,12 @@ export const AIConfigSchema = z.object({
  * Contains URLs and secrets needed to fetch and initialize app config
  */
 const UnconfiguredUrlSchema = z.union([z.literal(''), z.url()])
-const UnconfiguredClientIdSchema = z.union([z.literal(''), z.uuid()])
+const UnconfiguredPeerIdSchema = z.union([z.literal(''), z.uuid()])
 
 export const MetaConfigSchema = z.object({
   INKCRE_PGREST_URL: UnconfiguredUrlSchema.default(''),
   INKCRE_JWT_SECRET: z.string().default(''),
-  INKCRE_CLIENT_ID: UnconfiguredClientIdSchema.default(''),
+  INKCRE_PEER_ID: UnconfiguredPeerIdSchema.default(''),
 })
 
 export type MetaConfig = z.infer<typeof MetaConfigSchema>
@@ -49,14 +49,15 @@ export type MetaConfig = z.infer<typeof MetaConfigSchema>
  * App configuration schema (runtime)
  * Contains extension registry URL, AI settings, and runtime app configuration
  */
-export const ClientConfigSchema = z.object({
-  // Deployment-owned client configuration supplies this URL. Static artifacts
+export const PeerConfigSchema = z.object({
+  // Deployment-owned Peer configuration supplies this URL. Static artifacts
   // deliberately keep the unconfigured state instead of embedding an origin.
   extension_registry_url: UnconfiguredUrlSchema.default(''),
+  peer_http_timeout_ms: z.number().int().positive().default(30_000),
   ai: AIConfigSchema.default(() => AIConfigSchema.parse({})),
 })
 
 /**
  * Config type
  */
-export type ClientConfig = z.infer<typeof ClientConfigSchema>
+export type PeerConfig = z.infer<typeof PeerConfigSchema>

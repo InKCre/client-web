@@ -357,8 +357,7 @@ export class WebExtensionHost {
 
   private requireCurrentPeerId(): string {
     const peerId = this.currentPeerId()
-    if (!peerId)
-      throw new WebExtensionHostError('INKCRE_CLIENT_ID is required for Extension state.')
+    if (!peerId) throw new WebExtensionHostError('INKCRE_PEER_ID is required for Extension state.')
     return peerId
   }
 

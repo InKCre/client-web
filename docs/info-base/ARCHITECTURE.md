@@ -1,354 +1,181 @@
-# Info-Base Architecture
+# Client-Web Info-Base Architecture
 
-## Table of Contents
+## Purpose
 
-- Overview
-- Block Architecture
-- Relation Architecture
-- Storage System
-- Resolver System
-- Graph Operations
-- Layout System
-- Extension Points
+Describe the peer-local info-base implementation shared by `@inkcre/core` and the browser
+applications. Shared product authority lives in the InKCre docs Hub; this document owns
+TypeScript models, PostgREST mechanics, resolver/runtime handles, and rendering boundaries.
 
----
+## Peer Topology
 
-## Overview
-
-The **info-base** is InKCre's knowledge graph subsystem, providing a flexible graph-based information model with pluggable content types and storage backends.
-
-### Core Concepts
-
-```
-┌──────────────────────────────────────────────┐
-│           Knowledge Graph                     │
-│                                               │
-│  ┌───────┐         ┌───────┐                │
-│  │ Block │────────→│ Block │                │
-│  │ (Node)│         │ (Node)│                │
-│  └───┬───┘         └───────┘                │
-│      │                                        │
-│      │ Relation (Edge)                       │
-│      ↓                                        │
-│  ┌───────┐                                   │
-│  │ Block │                                   │
-│  └───────┘                                   │
-└──────────────────────────────────────────────┘
-
-Block:    Information unit (node)
-Relation: Connection between blocks (edge)
-Storage:  Where block content is stored
-Resolver: How block content is displayed
+```text
+PostgreSQL / PostgREST protocol
+            |
+            v
+  Block + Relation models
+            |
+   Block.getHydratedContent()
+            |
+       exact Resolver
+            |
+ safe solved value / browser handle
+            |
+       Vue component
 ```
 
-### Key Features
+Client-web is a database-protocol peer, not a thin frontend that delegates every semantic
+operation to core-py. Schema/migration authority remains in core-py, while admitted read/write,
+storage hydration, resolver interpretation, and rendering execute locally.
 
-- **Graph-based**: Blocks as nodes, relations as edges
-- **Typed Content**: Resolver system for different content types
-- **Pluggable Storage**: Abstract storage layer (URL, Blob, Text, etc.)
-- **Lazy Loading**: On-demand content and relation fetching
-- **Extensible**: Extensions can add custom resolvers/storages
-- **Visualization**: Vue Flow integration with multiple layouts
+## Persisted Graph
 
-### Star Graph Pattern
+### Block
 
-Each block can be resolved with its **star graph** - the block plus all directly connected relations:
+| Field                       | Meaning                                               |
+| --------------------------- | ----------------------------------------------------- |
+| `id`                        | local graph identity                                  |
+| `created_at` / `updated_at` | block-row persistence time                            |
+| `resolver`                  | exact resolver contract version                       |
+| `storage`                   | selected storage record, or `null` for inline content |
+| `content`                   | inline string or opaque storage pointer               |
 
-```
-       ┌─────────┐
-       │ Block A │
-       └────┬────┘
-            │
-    ┌───────┼───────┐
-    │       │       │
-┌───▼───┐ ┌─▼─────┐ ┌▼───────┐
-│Block B│ │Block C│ │Block D │
-└───────┘ └───────┘ └────────┘
+Do not render `block.content` directly unless `storage === null` and the exact resolver contract
+uses that inline value. A storage pointer is mechanics, never authored text.
 
-Star Graph = {Block A, Relations to B/C/D}
-```
+### Relation
 
----
+Relations are directed graph authority with `from_`, `to_`, and contract-owned `content`.
+`includeIn` means the subject block is `to_`; `includeOut` means it is `from_`. These options
+filter direct relations and do not request recursive graph traversal.
 
-## Block Architecture
+Relation payload grammar belongs to its extension/canonical contract. The UI must not invent a
+universal relation-type registry or infer ownership from direction alone.
 
-### Data Model
+## Block Hydration
 
-Blocks represent information units with the following key fields:
+`Block.getHydratedContent({ refresh = false })` returns:
 
-| Field        | Type           | Purpose                                                     |
-| ------------ | -------------- | ----------------------------------------------------------- |
-| `id`         | number         | Unique identifier                                           |
-| `created_at` | Date           | Creation timestamp                                          |
-| `updated_at` | Date           | Last modification timestamp                                 |
-| `storage`    | number \| null | FK to Storage table (null = inline content)                 |
-| `resolver`   | string         | Resolver type identifier (e.g., "text", "image", "tweet")   |
-| `content`    | string         | Raw content if `storage` is null, otherwise storage key/URL |
+- `string` when the block is inline;
+- `Uint8Array` when a configured storage resolves the opaque pointer.
 
-### Content Resolution
-
-**Two-tier resolution**:
-
-1. **Storage Layer** (optional): Fetch actual content if `storage` is set
-2. **Resolver Layer**: Process and transform content for display
-
-```
-Block
-  ↓
-storage != null?
-  ├─ Yes → Storage.getRawContent()
-  └─ No  → Use block.content directly
-  ↓
-Resolver._getSolvedContent()
-  ↓
-ContentComponent (Vue)
-```
-
-### Lifecycle
-
-Blocks support standard CRUD operations: create, read, update, delete. Relations are cascade-deleted when blocks are removed.
-
----
-
-## Relation Architecture
-
-### Data Model
-
-Relations connect blocks with the following key fields:
-
-| Field        | Type     | Purpose                             |
-| ------------ | -------- | ----------------------------------- |
-| `id`         | number   | Unique identifier                   |
-| `created_at` | Date     | Creation timestamp                  |
-| `source`     | BlockRef | Source block (from)                 |
-| `target`     | BlockRef | Target block (to)                   |
-| `type`       | string   | Relation type/semantics (optional)  |
-| `metadata`   | Record   | Additional relation data (optional) |
-
-### Directionality
-
-Relations are **directed**: `source → target`
-
-Query patterns:
-
-- Outgoing: Relations from a block
-- Incoming: Relations to a block
-- Bidirectional: All relations involving a block
-
-### Relation Types
-
-Relation types are domain-specific:
-
-- `"references"` - Citations or links
-- `"childOf"` - Hierarchical parent-child
-- `"relatedTo"` - General association
-- `"derivedFrom"` - Transformation or derivation
-
-Extensions can define custom types.
-
----
+The private cache key is `(storage, content)`. Cache properties are non-enumerable so Zod/
+transport projections never persist them. A changed pointer misses naturally; `refresh` bypasses
+and replaces the current instance snapshot. No cross-instance or cross-peer invalidation is
+promised, and storage-backed bytes may change without changing `block.updated_at`.
 
 ## Storage System
 
-### Purpose
+Storage handlers turn a pointer into bytes. They do not decide MIME, filename, information kind,
+or resolver ID.
 
-The **Storage system** abstracts content retrieval, allowing blocks to reference content stored externally rather than inline.
+### Generic HTTP
 
-### Architecture
+`HttpStorage` accepts only HTTP(S), enforces timeout/redirect policy and both declared/received
+byte limits, then returns `Uint8Array`. It does not branch on `Content-Type`.
 
-```
-┌─────────────────────────────────────────┐
-│  Storage (Abstract Base Class)          │
-│  - id, type, config                     │
-│  - getRawContent() → Promise<string>    │
-└────────────┬────────────────────────────┘
-             │ extends
-      ┌──────┴──────┬──────────┬──────────┐
-      │             │          │          │
-┌─────▼──────┐ ┌───▼───┐ ┌────▼────┐ ┌───▼────┐
-│URLStorage  │ │Blob   │ │Text     │ │Custom  │
-│(HTTP)      │ │Storage│ │Storage  │ │(Ext)   │
-└────────────┘ └───────┘ └─────────┘ └────────┘
-```
+### PostgreSQL Binary
 
-### Storage Registry
+`PostgreSQLBinaryStorage` is a complete browser-peer byte capability:
 
-**Decorator-based registration** allows extensions to add new storage types. Each storage type implements `getRawContent()` for content retrieval.
+- create: raw `application/octet-stream` RPC returns UUID and storage-owned pointer JSON;
+- read: raw RPC returns `application/octet-stream`;
+- update: exact `storage_blobs` UUID row update, pointer remains stable;
+- delete: exact UUID row delete.
 
-### Key Differences
+`storage_blobs` is the backing relation, not a storage type or semantic block. The storage
+handler alone parses/serializes `{ "blob_id": "..." }`; callers persist only its opaque string.
+Storage C/R/U/D never queries or rewrites blocks.
 
-- **Inline vs External**: Null storage uses `block.content`; set storage delegates to storage handler
-- **Type-specific Config**: Each storage type has configurable parameters
-- **Error Handling**: Storage layer provides consistent error handling and logging
-
----
+Authentication and origins come from browser-owned runtime config. `rawPostgrestFetch()` reuses
+the current JWT/origin authority but exposes a byte-capable response rather than forcing JSON.
 
 ## Resolver System
 
-### Purpose
+Resolvers interpret hydrated content plus required relations. `Resolver.getClass(id)` is exact;
+there is no first/default fallback. Registration is idempotent only for the same class and rejects
+collisions.
 
-**Resolvers** define how block content is processed and displayed. Each resolver type handles a specific content format.
+The shared exact IDs are:
 
-### Architecture
-
-```
-┌─────────────────────────────────────────────┐
-│  BaseResolver (Abstract)                    │
-│  - type, contentComp                        │
-│  - getSolvedContent() → caching             │
-│  - _getSolvedContent() → subclass impl      │
-└───────────────┬─────────────────────────────┘
-                │ extends
-      ┌─────────┴─────┬───────────┬────────┐
-      │               │           │        │
-┌─────▼─────┐  ┌──────▼───┐ ┌────▼───┐  ┌─▼────────┐
-│Text       │  │Image     │ │HTML    │  │Tweet     │
-│Resolver   │  │Resolver  │ │Resolver│  │(Extension)
-└───────────┘  └──────────┘ └────────┘  └──────────┘
+```text
+core.text.v1   core.html.v1   core.image.v1
+core.audio.v1  core.video.v1  core.pdf.v1
+core.epub.v1   core.zip.v1    core.file.v1
 ```
 
-### Resolver Interface
+Core bootstrap registers all nine independently of Module Federation extension loading.
+Extensions register their own namespaced, versioned decoders.
 
-Resolvers provide:
+### Capability Outcomes
 
-- Content processing and caching
-- Lazy relation loading
-- Vue component integration
-- Loading state management
+Every concrete resolver implements:
 
-### Content Component Pattern
-
-Content components receive standardized props:
-
-- `resolver`: Resolver instance
-- `solvedContent`: Processed content
-
-### Resolver Registry
-
-The `Resolver` base class now hosts the registry itself using `Resolver.register`, `Resolver.registry`, and `Resolver.getClass` so implementations can self-register their `type` and the UI can resolve them by identifier.
-
-### Resolver Lifecycle
-
-1. Create resolver instance
-2. Fetch and process content (with caching)
-3. Display via Vue component
-4. Dispose on cleanup
-
----
-
-## Graph Operations
-
-### Graph Data Structure
-
-Uses **graphology** library for graph operations, converting blocks to nodes and relations to edges.
-
-### Community Detection
-
-**Louvain Algorithm** groups related blocks into communities for visualization and analysis.
-
-### Shortest Path
-
-Bidirectional search finds shortest paths between blocks.
-
-### Topology Detection
-
-Analyzes graph structure to identify:
-
-- DAG (Directed Acyclic Graph)
-- Tree
-- Star
-- General graphs
-
-### CRUD Operations
-
-- **Create**: Add blocks and relations
-- **Read**: Query by ID, recent, or relationships
-- **Update**: Modify block/relation properties
-- **Delete**: Remove with cascade handling
-
-### Performance
-
-- Lazy loading prevents unnecessary fetches
-- Caching reduces redundant processing
-- Batch operations for bulk updates
-- Pagination for large datasets
-
----
-
-## Layout System
-
-### Layout Manager Architecture
-
-The **Layout Manager** auto-detects graph topology and selects appropriate algorithms.
-
-```
-┌───────────────────────────────────────────┐
-│         useLayoutManager                  │
-│  - Auto-detect topology                   │
-│  - Select appropriate layout              │
-│  - Apply layout and update positions      │
-└───────────┬───────────────────────────────┘
-            │ uses
-    ┌───────┴───────┬──────────┬──────────┐
-    │               │          │          │
-┌───▼────┐  ┌──────▼───┐  ┌───▼───┐  ┌───▼────┐
-│Force   │  │Dagre     │  │Circular│  │Radial  │
-│Layout  │  │(Layered) │  │Layout  │  │Layout  │
-└────────┘  └──────────┘  └────────┘  └────────┘
+```ts
+getText(options?: ProjectionOptions): Promise<string | null>
 ```
 
-### Available Layouts
+`context: 'default' | 'lexical'` selects a named, resolver-owned projection. The lexical
+projection is Block-local and non-recursive; semantic indexing uses the default projection rather
+than owning a second text-extraction contract.
 
-| Layout       | Best For             | Description                      |
-| ------------ | -------------------- | -------------------------------- |
-| **Force**    | General graphs       | Physics simulation, organic feel |
-| **Dagre**    | DAGs, Trees          | Hierarchical layered layout      |
-| **Circular** | Cycles, Small graphs | Nodes arranged in circle         |
-| **Radial**   | Star, Hierarchies    | Concentric circles from root     |
-| **Grid**     | Large graphs         | Uniform grid arrangement         |
-| **Auto**     | Any                  | Auto-detect topology and choose  |
+- `UnknownResolverError`: no exact decoder is registered;
+- `UnsupportedResolverCapability`: the decoder does not provide that projection;
+- `null`: capability exists but the block has no meaningful value;
+- `''`: an actual empty value, not a generic fallback.
 
-### Key Differences
+Do not collapse these outcomes into an empty preview or reinterpret an unknown ID.
 
-- **Force-Directed**: Physics-based, good for organic layouts but computationally intensive
-- **Hierarchical (Dagre)**: Layered approach ideal for DAGs and trees
-- **Circular/Radial**: Space-efficient for dense or hierarchical graphs
-- **Grid**: Predictable positioning for large, uniform datasets
+### Effect Vocabulary
 
-### Vue Flow Integration
+- `refresh`: bypass and replace a local hydration/relation/solved snapshot;
+- `materializeMissing`: permit creation only when a required derivation is absent;
+- `recompute`: reserved for an explicit organization command that regenerates an existing
+  derivation;
+- `invalidate`: discard cache without loading replacement.
 
-Layouts update node positions in Vue Flow graphs, supporting manual and automatic modes.
+Do not add `force` or `reload` aliases for these effects.
 
----
+### Media Matching
 
-## Extension Points
+`Resolver.matchMediaType()` normalizes one candidate MIME and returns an installed exact core
+resolver ID or `null`. Source/protocol adapters own evidence order and explicit
+`core.file.v1` fallback; the manager does not own one universal classification ladder.
 
-### Custom Resolvers
+## Browser Runtime Handles
 
-Extensions register resolvers using decorators:
+Image/audio/video/PDF/EPUB/ZIP/file resolvers hydrate bytes locally and may expose safe Blob or
+Object URL handles. These handles are private runtime state, not solved graph authority, and are
+revoked on resolver refresh, disposal, and resolver-cache eviction.
 
-```typescript
-@BaseResolver.registry('customType')
-export class CustomResolver extends BaseResolver {
-  // Implement content processing
-}
-```
+HTML is rendered as a text preview/source action. It is not passed to `v-html` without a separate
+sanitizer contract. Parser-derived facts may remain `null` when the browser does not have a
+proportionate local parser; open/render/download remains a real capability.
 
-### Custom Storage
+`BlockContent.vue` resolves exact class setup errors visibly, loads solved content, passes it to
+the registered component, and disposes the resolver on unmount. Graph/editor surfaces must use
+this path rather than falling back to the persisted pointer string.
 
-Extensions add storage types:
+## Resolver Cache
 
-```typescript
-@Storage.registry('customStorage')
-export class CustomStorage extends Storage {
-  // Implement content retrieval
-}
-```
+`ResolverCache` owns reusable resolver instances by block identity/update snapshot. Eviction and
+replacement call `dispose()` so object URLs and other handles cannot leak. Resolver-internal solved
+content and relation caches still obey `refresh`; cache reuse does not change authority.
 
-### Extension Lifecycle
+## Extension Producer Rules
 
-Extensions initialize during startup, registering types that become available system-wide. Deactivation cleans up resources.
+- Emit exact, versioned resolver IDs.
+- Store protocol/source identity and declared metadata in canonical metadata/root blocks.
+- Put actual media/document bytes in an exact semantic content block, optionally storage-backed.
+- Keep associations in relations rather than copying attachment/reference IDs into root content.
+- Never choose a semantic storage type; storage is bytes-only mechanics.
 
----
+Twitter and browser-extension producers have been cut over to these exact semantic IDs. Retired
+bare IDs and media-specific HTTP storage handlers are not compatibility fallbacks.
 
-**Last Updated**: January 2, 2026
+## Verification
+
+- `packages/core` tests prove inline/storage hydration, refresh, exact registration, typed
+  capability outcomes, semantic resolver handles, object URL cleanup, HTTP limits, and PostgreSQL
+  binary C/R/U/D.
+- database-contract generation tests prove admitted relation/function projection.
+- repository `pnpm check` proves TypeScript, Vue, unit tests, formatting/lint, and production builds.

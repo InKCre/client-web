@@ -7,7 +7,7 @@
  *
  * Architecture:
  * - Resolver instances are created per-block with optional relations
- * - Each resolver has a contentComp Vue component for rendering
+ * - Each resolver has a presentation-neutral solvedContentRenderer
  * - Resolver stores resolver classes statically and provides factory methods
  * - This implementation integrates with Block, Relation, and Storage models
  */
@@ -15,10 +15,11 @@
 import { ref, type Component, type Ref } from 'vue'
 import type { Block } from '../block'
 import type { Relation } from '../relation'
-
-// DEBUG
-const instanceId = Math.random().toString(36).substring(7)
-console.log(`[Core Init] Loading Core module. Instance ID: ${instanceId}`)
+import {
+  DuplicateResolverRegistrationError,
+  type ProjectionOptions,
+  UnknownResolverError,
+} from './contracts'
 
 // ============================================================================
 // Resolver Content State
@@ -38,12 +39,15 @@ export interface ResolverContentState {
 // ============================================================================
 
 /**
- * Props passed to contentComp Vue components.
+ * Props passed to presentation-neutral solved-content renderers.
  * Components receive the resolver instance and pre-resolved content.
  */
-export interface ContentCompProps<SolvedContentT = any> {
+export interface SolvedContentRendererProps<
+  SolvedContentT = any,
+  ResolverT extends Resolver<any, SolvedContentT> = Resolver<any, SolvedContentT>,
+> {
   /** The resolver instance (provides access to block and relations) */
-  resolver: Resolver<any, SolvedContentT>
+  resolver: ResolverT
   solvedContent: SolvedContentT
 }
 
@@ -54,7 +58,7 @@ export interface ContentCompProps<SolvedContentT = any> {
 export interface ResolverClass {
   new (block: Block, relations?: Relation[]): Resolver
   readonly type: string
-  contentComp: Component
+  solvedContentRenderer: Component
 }
 
 /**
@@ -64,45 +68,77 @@ export interface ResolverClass {
  * This class merges the protocol-level BaseResolver with info-base-specific DB integration.
  *
  * Subclasses must:
- * - Set static `type` and `contentComp`
+ * - Set static `type` and `solvedContentRenderer`
  * - Override `_getSolvedContent()` for content transformation
  *
  * @template RawContentT - The type of raw content from storage
  * @template SolvedContentT - The type of content after processing
  */
-export class Resolver<RawContentT = any, SolvedContentT = RawContentT> {
+export abstract class Resolver<RawContentT = unknown, SolvedContentT = RawContentT> {
   /** Resolver type identifier */
   static readonly type: string
 
   /** Vue component for rendering - settable by applications */
-  static contentComp: Component
+  static solvedContentRenderer: Component
 
   private static resolverClasses: Map<string, ResolverClass> = new Map()
-  private static defaultResolverType: string | null = null
-
   static register(type: string, resolverClass: ResolverClass): void {
-    this.resolverClasses.set(type, resolverClass)
-    console.log('[Resolver] Registered resolver:', type)
-
-    if (!this.defaultResolverType) {
-      console.log('[Resolver] Set default resolver to:', type)
-      this.defaultResolverType = type
+    if (resolverClass.type !== type) {
+      throw new TypeError(
+        `Resolver class ${resolverClass.name} declares ${resolverClass.type}, not ${type}.`
+      )
     }
+    const existing = this.resolverClasses.get(type)
+    if (existing === resolverClass) return
+    if (existing) {
+      throw new DuplicateResolverRegistrationError(type, existing.name, resolverClass.name)
+    }
+    this.resolverClasses.set(type, resolverClass)
   }
 
   static getClass(type: string): ResolverClass {
-    return this.resolverClasses.get(type) || this.resolverClasses.get(this.defaultResolverType!)!
+    const resolverClass = this.resolverClasses.get(type)
+    if (!resolverClass) throw new UnknownResolverError(type)
+    return resolverClass
+  }
+
+  static matchMediaType(mediaType: string | null | undefined): string | null {
+    if (mediaType == null) return null
+    const normalized = mediaType.split(';', 1)[0]!.trim().toLowerCase()
+    if (
+      !normalized ||
+      ['application/octet-stream', 'binary/octet-stream', 'application/binary'].includes(normalized)
+    ) {
+      return null
+    }
+
+    const exact: Record<string, string> = {
+      'text/plain': 'core.text.v1',
+      'text/html': 'core.html.v1',
+      'application/xhtml+xml': 'core.html.v1',
+      'application/pdf': 'core.pdf.v1',
+      'application/epub+zip': 'core.epub.v1',
+      'application/zip': 'core.zip.v1',
+      'application/x-zip-compressed': 'core.zip.v1',
+    }
+    const family: Record<string, string> = {
+      image: 'core.image.v1',
+      audio: 'core.audio.v1',
+      video: 'core.video.v1',
+    }
+    const resolverId = exact[normalized] ?? family[normalized.split('/', 1)[0]!]
+    return resolverId && this.resolverClasses.has(resolverId) ? resolverId : null
   }
 
   readonly block: Block
   protected _relations: Relation[] | null
 
-  protected _rawContent: RawContentT | null = null
   readonly solvedContentState: Ref<ResolverContentState> = ref({
     status: 'idle',
     error: null,
   })
-  protected _solvedContent: SolvedContentT | null = null
+  declare protected _solvedContent: SolvedContentT
+  private _hasSolvedContent = false
 
   /**
    * Create a resolver instance for a block.
@@ -112,10 +148,6 @@ export class Resolver<RawContentT = any, SolvedContentT = RawContentT> {
   constructor(block: Block, relations?: Relation[]) {
     this.block = block as Block
     this._relations = relations ?? null // null means not loaded yet
-
-    if (block.storage === null) {
-      this._rawContent = block.content as RawContentT
-    }
   }
 
   /**
@@ -125,16 +157,11 @@ export class Resolver<RawContentT = any, SolvedContentT = RawContentT> {
    * @param options.includeOut - Include relations where block is from_ (outgoing relations)
    */
   async getRelations(
-    options?: { force?: boolean; includeIn?: boolean; includeOut?: boolean } | boolean
+    options: { refresh?: boolean; includeIn?: boolean; includeOut?: boolean } = {}
   ): Promise<Relation[]> {
-    // Handle backward compatibility: boolean parameter is force
-    const {
-      force = false,
-      includeIn = true,
-      includeOut = true,
-    } = typeof options === 'boolean' ? { force: options } : (options ?? {})
+    const { refresh = false, includeIn = true, includeOut = true } = options
 
-    if (this._relations === null || force) {
+    if (this._relations === null || refresh) {
       // Dynamic import to avoid circular dependency
       const { Relation } = await import('../relation')
       this._relations = (await Relation.getByBlock(this.block.id)) as Relation[]
@@ -158,26 +185,16 @@ export class Resolver<RawContentT = any, SolvedContentT = RawContentT> {
    * Get raw content (lazy-loaded).
    * Fetches from Storage if block.storage is set, otherwise returns block.content.
    */
-  async getRawContent(force = false): Promise<RawContentT> {
-    if (!this._rawContent || force) {
-      if (this.block.storage === null) {
-        this._rawContent = this.block.content as RawContentT
-      } else {
-        // Dynamic import to avoid circular dependency
-        const { Storage } = await import('../storages/base')
-        const storage = await Storage.get<RawContentT>(this.block.storage)
-        this._rawContent = await storage.getRawContent(this.block)
-      }
-    }
-    return this._rawContent
+  async getRawContent(options: Pick<ProjectionOptions, 'refresh'> = {}): Promise<RawContentT> {
+    return this.block.getHydratedContent(options) as Promise<RawContentT>
   }
 
   /**
    * Get solved content (lazy-loading).
    * Manages content state transitions.
    */
-  async getSolvedContent(force = false): Promise<SolvedContentT> {
-    if (this._solvedContent && !force) {
+  async getSolvedContent(options: ProjectionOptions = {}): Promise<SolvedContentT> {
+    if (this._hasSolvedContent && !options.refresh) {
       return this._solvedContent
     }
     if (this.solvedContentState.value.status === 'loading') {
@@ -187,7 +204,8 @@ export class Resolver<RawContentT = any, SolvedContentT = RawContentT> {
     try {
       this.solvedContentState.value.status = 'loading'
       this.solvedContentState.value.error = null
-      this._solvedContent = await this._getSolvedContent()
+      this._solvedContent = await this._getSolvedContent(options)
+      this._hasSolvedContent = true
       this.solvedContentState.value.status = 'success'
       return this._solvedContent
     } catch (error) {
@@ -202,9 +220,11 @@ export class Resolver<RawContentT = any, SolvedContentT = RawContentT> {
    * Transform raw content into solved content.
    * Override in subclasses to implement specific logic.
    */
-  protected _getSolvedContent(): Promise<SolvedContentT> {
-    return this.getRawContent() as unknown as Promise<SolvedContentT>
+  protected _getSolvedContent(options: ProjectionOptions): Promise<SolvedContentT> {
+    return this.getRawContent(options) as unknown as Promise<SolvedContentT>
   }
+
+  abstract getText(options?: ProjectionOptions): Promise<string | null>
 
   /**
    * Cleanup when resolver is no longer needed.

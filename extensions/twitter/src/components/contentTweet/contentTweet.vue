@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { type Tweet } from '../../schema'
-import type { ContentCompProps } from '@inkcre/core'
+import type { SolvedContentRendererProps } from '@inkcre/core'
 
-const props = defineProps<ContentCompProps<Tweet>>()
+const props = defineProps<SolvedContentRendererProps<Tweet>>()
 
 // Track failed image loads
 const failedAttachments = ref<Set<number>>(new Set())
@@ -49,7 +49,7 @@ const isAttachmentFailed = (index: number) => {
 <template>
   <div class="content-tweet__header">
     <span class="content-tweet__icon">𝕏</span>
-    <span class="content-tweet__user">@{{ props.solvedContent.user_id }}</span>
+    <span class="content-tweet__user">@{{ props.solvedContent.user_id ?? 'unknown' }}</span>
   </div>
   <div class="content-tweet__text">{{ displayText }}</div>
   <div v-if="attachmentCount > 0" class="content-tweet__media">

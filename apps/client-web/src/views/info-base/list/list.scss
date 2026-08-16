@@ -1,0 +1,132 @@
+.info-base-list-view {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  background: sys-var(color, surface, base);
+  color: sys-var(color, text, base);
+  padding: clamp(48px, 9vw, 112px) clamp(24px, 7vw, 96px);
+
+  &__hero,
+  &__results {
+    width: min(880px, 100%);
+    margin-inline: auto;
+  }
+
+  &__eyebrow {
+    @include apply-font(label-md);
+    color: sys-var(color, text, muted);
+    margin: 0 0 sys-var(space, sm);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    @include apply-font(headline-lg);
+    margin: 0 0 sys-var(space, lg);
+  }
+
+  &__search {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: sys-var(space, sm);
+
+    input {
+      min-width: 0;
+      height: 48px;
+      border: 1px solid sys-var(color, text, muted);
+      border-radius: 4px;
+      padding-inline: sys-var(space, md);
+      background: sys-var(color, surface, subtle);
+      color: inherit;
+      @include apply-font(body-lg);
+
+      &:focus {
+        outline: 2px solid sys-var(color, text, base);
+        outline-offset: 2px;
+      }
+    }
+  }
+
+  &__results {
+    margin-top: clamp(40px, 7vw, 72px);
+  }
+
+  &__state {
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: sys-var(space, sm);
+    text-align: center;
+    color: sys-var(color, text, muted);
+
+    p,
+    small {
+      margin: 0;
+    }
+  }
+
+  &__matches {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: sys-var(space, sm);
+  }
+
+  &__match {
+    width: 100%;
+    display: grid;
+    gap: sys-var(space, sm);
+    border: 1px solid sys-var(color, text, muted);
+    border-radius: 4px;
+    padding: sys-var(space, md);
+    background: sys-var(color, surface, subtle);
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      border-color: sys-var(color, text, base);
+      background: sys-var(color, surface, base);
+    }
+  }
+
+  &__match-heading,
+  &__evidence {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: sys-var(space, sm);
+  }
+
+  &__match-heading {
+    justify-content: space-between;
+
+    strong {
+      @include apply-font(title-sm);
+    }
+
+    span {
+      color: sys-var(color, text, muted);
+    }
+  }
+
+  &__excerpt {
+    @include apply-font(body-md);
+    white-space: pre-wrap;
+  }
+
+  &__evidence {
+    @include apply-font(label-sm);
+    color: sys-var(color, text, muted);
+  }
+
+  @media (max-width: 640px) {
+    &__search {
+      grid-template-columns: 1fr;
+    }
+  }
+}

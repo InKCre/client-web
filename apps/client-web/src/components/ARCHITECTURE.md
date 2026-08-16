@@ -87,10 +87,10 @@ Components are grouped by business domain:
 
 ```
 components/
-├── client/          # Client-related components
 ├── extension/       # Extension management
 ├── info-base/       # Information base (blocks, relations)
 ├── obsrv/           # Observation/logging
+├── peer/            # Technical Peer management; UI copy remains product-facing
 ├── source/          # Data sources
 └── common/          # Shared utilities
 ```

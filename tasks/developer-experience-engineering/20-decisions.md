@@ -150,3 +150,24 @@ These are proposed decisions, not implementation authorization.
     least-privilege.
 - Manual prerequisite: Sir creates the dedicated Dependabot secret; repository configuration may
   reference it only when the failure mode is explicit and reviewable.
+
+## D10 - Client Database Compatibility Versus Image Provenance
+
+- Status: accepted; implemented locally after core `stable` advanced without a database interface
+  change. Remote image-backed CI remains the final verifier.
+- Recommendation:
+  - generate checked Supabase relation types from the selected core image's raw schema;
+  - generate `runtime-contract.generated.json` as the compact client compatibility projection:
+    format, contract revision, protocol format/schema, and complete JWT claim contract;
+  - retain the selected immutable image, schema digest, and source revision in CI summary,
+    artifacts, and the E2E runtime state, not in checked client source;
+  - validate the image-owned raw runtime contract against its manifest before projecting it.
+- Rationale:
+  - a source revision identifies one delivered image, whereas the checked client contract identifies
+    the interface the browser actually consumes;
+  - combining them makes a core deployment-only change block unrelated client PRs and creates
+    cross-repository synchronization churn;
+  - the selected image still undergoes exact real-service validation, so removing provenance from
+    the checked projection does not weaken release traceability.
+- Rejected alternative: automatically commit a consumer synchronization after every core delivery.
+  It preserves the mistaken authority boundary and introduces cross-repository timing churn.

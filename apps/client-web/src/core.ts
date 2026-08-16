@@ -12,10 +12,18 @@ import {
   PostgrestExtensionStatePort,
   RegistryExtensionReleaseReader,
   setMFImplementation,
+  registerCoreResolvers,
   TextResolver,
+  AudioResolver,
+  EpubResolver,
+  FileResolver,
   ImageResolver,
+  PdfResolver,
   VideoResolver,
   HtmlResolver,
+  ZipResolver,
+  PeerManager,
+  JobManager,
   WebExtensionHost,
   type ExtensionStatePort,
 } from '@inkcre/core'
@@ -32,6 +40,8 @@ import ContentText from '@/components/info-base/resolvers/ContentText.vue'
 import ContentImage from '@/components/info-base/resolvers/ContentImage.vue'
 import ContentVideo from '@/components/info-base/resolvers/ContentVideo.vue'
 import ContentHtml from '@/components/info-base/resolvers/ContentHtml.vue'
+import ContentAudio from '@/components/info-base/resolvers/ContentAudio.vue'
+import ContentFile from '@/components/info-base/resolvers/ContentFile.vue'
 
 // ============================================================================
 // Resolver Component Registration
@@ -42,10 +52,16 @@ import ContentHtml from '@/components/info-base/resolvers/ContentHtml.vue'
  * Each resolver needs a Vue component to render content.
  */
 export function setupResolvers(): void {
-  TextResolver.contentComp = ContentText
-  ImageResolver.contentComp = ContentImage
-  VideoResolver.contentComp = ContentVideo
-  HtmlResolver.contentComp = ContentHtml
+  TextResolver.solvedContentRenderer = ContentText
+  AudioResolver.solvedContentRenderer = ContentAudio
+  EpubResolver.solvedContentRenderer = ContentFile
+  FileResolver.solvedContentRenderer = ContentFile
+  ImageResolver.solvedContentRenderer = ContentImage
+  PdfResolver.solvedContentRenderer = ContentFile
+  VideoResolver.solvedContentRenderer = ContentVideo
+  HtmlResolver.solvedContentRenderer = ContentHtml
+  ZipResolver.solvedContentRenderer = ContentFile
+  registerCoreResolvers()
 
   console.log('[Core] Resolver components registered')
 }
@@ -58,10 +74,10 @@ export function initializeExtensionHost(state: ExtensionStatePort): WebExtension
   extensionHost = new WebExtensionHost({
     state,
     releases: new RegistryExtensionReleaseReader(
-      () => configStore.clientConfig.extension_registry_url
+      () => configStore.peerConfig.extension_registry_url
     ),
     moduleFederation: getMFImplementation,
-    currentPeerId: () => configStore.metaConfig.INKCRE_CLIENT_ID,
+    currentPeerId: () => configStore.metaConfig.INKCRE_PEER_ID,
     hostSdkVersion: corePackageJson.version,
   })
   return extensionHost
@@ -164,17 +180,23 @@ export function initializeModuleFederation(): void {
  * Initialize all core systems.
  * Call this in main.ts before creating the Vue app.
  */
-export function shouldLoadClientConfigAtBootstrap(pathname: string): boolean {
+export function shouldLoadPeerConfigAtBootstrap(pathname: string): boolean {
   return !/^\/settings(?:\/|$)/.test(pathname)
 }
 
-export async function initializeCore(options: { loadClientConfig?: boolean } = {}): Promise<void> {
+export async function initializeCore(options: { loadPeerConfig?: boolean } = {}): Promise<void> {
   await configStore.initializeMeta(localStorageAdapter)
-  if (options.loadClientConfig ?? true) {
-    await configStore.loadClientConfig()
+  if (options.loadPeerConfig ?? true) {
+    await configStore.loadPeerConfig()
   }
+  PeerManager.setupBuiltinOutbounds()
+  JobManager.startWorker()
   setupResolvers()
   initializeModuleFederation()
   initializeExtensionHost(new PostgrestExtensionStatePort())
   console.log('[Core] Initialization complete')
+}
+
+export function shutdownCore(): void {
+  JobManager.stopWorker()
 }

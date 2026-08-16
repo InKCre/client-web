@@ -15,6 +15,10 @@ function encodeTransportValue<Value>(value: unknown): Value {
   return JSON.parse(encoded) as Value
 }
 
+function normalizePostgrestBaseUrl(value: string): string {
+  return value.replace(/\/+$/, '')
+}
+
 /**
  * API Error class for handling API request errors
  */
@@ -29,6 +33,55 @@ export class APIError extends Error {
   }
 }
 
+export type RawPostgrestRequestOptions = RequestInit & {
+  schema?: 'inkcre'
+  baseUrl?: string
+}
+
+/**
+ * Execute a PostgREST request whose body or response is not JSON.
+ *
+ * The regular PostgREST client remains the owner of relational/JSON queries;
+ * this seam exists for admitted media contracts such as raw bytea RPCs.
+ */
+export async function rawPostgrestFetch(
+  path: string,
+  options: RawPostgrestRequestOptions = {}
+): Promise<Response> {
+  const { schema = 'inkcre', baseUrl, ...init } = options
+  const configuredBaseUrl = baseUrl ?? sharedConfigStore.metaConfig.INKCRE_PGREST_URL
+  if (!configuredBaseUrl) {
+    throw new APIError('PostgREST URL is not configured.', 0)
+  }
+
+  const normalizedBaseUrl = configuredBaseUrl.endsWith('/')
+    ? configuredBaseUrl
+    : `${configuredBaseUrl}/`
+  const url = new URL(path.replace(/^\//, ''), normalizedBaseUrl)
+  const token = await authStore.getToken()
+  const headers = new Headers(init.headers)
+  headers.set('Authorization', `Bearer ${token}`)
+  headers.set('Accept-Profile', schema)
+  headers.set('Content-Profile', schema)
+
+  const response = await fetch(url, { ...init, headers })
+  if (!response.ok) {
+    const errorResponse = response.clone()
+    let details: unknown
+    try {
+      details = await errorResponse.json()
+    } catch {
+      details = await response.clone().text()
+    }
+    throw new APIError(
+      `PostgREST request failed with status ${response.status}.`,
+      response.status,
+      details
+    )
+  }
+  return response
+}
+
 /**
  * Database API Client - Pure PostgREST wrapper for database operations.
  *
@@ -37,7 +90,7 @@ export class APIError extends Error {
  * - Automatic authentication via authStore
  * - Reactive config updates via configStore
  *
- * For Core API requests (HTTP endpoints), use the Client active record instead.
+ * Business HTTP execution belongs to its domain facade and PeerManager, not this database seam.
  *
  * @template DT - Data type for the records in the specified relation
  */
@@ -59,7 +112,7 @@ export class DBAPIClient<
     public schemaName: 'inkcre' = 'inkcre',
     baseUrl: string = ''
   ) {
-    super(baseUrl, {
+    super(normalizePostgrestBaseUrl(baseUrl), {
       schema: schemaName,
       // Custom fetch to dynamically inject auth token on each request
       fetch: async (input, init) => {
@@ -75,7 +128,7 @@ export class DBAPIClient<
       watch(
         () => this.configStore.metaConfig.INKCRE_PGREST_URL,
         (newVal) => {
-          this.url = newVal
+          this.url = normalizePostgrestBaseUrl(newVal)
         },
         { immediate: true }
       )

@@ -2,7 +2,9 @@ import assert from 'node:assert/strict'
 import { test } from 'vitest'
 
 import {
+  projectDatabaseCompatibilityContract,
   selectImmutableDigest,
+  validateDatabaseCompatibilityContract,
   validateCoreReleaseConfig,
   validateRuntimeContract,
   validateSchemaManifest,
@@ -83,6 +85,28 @@ test('binds runtime identity to the schema manifest', () => {
     ).revision,
     manifest.contract_revision
   )
+})
+
+test('projects image provenance out of the checked client contract', () => {
+  const runtimeContract = {
+    format: 1,
+    revision: manifest.contract_revision,
+    migration_heads: ['3f7a9c2d5e1b'],
+    source_revision: sourceRevision,
+    protocol: { format: 1, schema: 'inkcre' },
+    jwt: {
+      algorithm: 'HS256',
+      audience: 'inkcre-api',
+      issuer: 'inkcre-peer',
+      role: 'authenticated',
+    },
+  }
+  const laterRelease = { ...runtimeContract, source_revision: '2'.repeat(40) }
+  const compatibility = projectDatabaseCompatibilityContract(runtimeContract)
+
+  assert.deepEqual(projectDatabaseCompatibilityContract(laterRelease), compatibility)
+  assert.deepEqual(validateDatabaseCompatibilityContract(compatibility), compatibility)
+  assert.throws(() => validateDatabaseCompatibilityContract(runtimeContract), /non-client fields/)
 })
 
 test('rejects artifact content that differs from the manifest', () => {

@@ -4,16 +4,17 @@ import { useI18n } from 'vue-i18n'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { MiniMap } from '@vue-flow/minimap'
-import { InkPopup, InkLoading, InkButton } from '@inkcre/ui-web'
+import { InkLoading, InkButton } from '@inkcre/ui-web'
 import { useElementSize } from '@vueuse/core'
 
 import BlockNodeComponent from '@/components/info-base/BlockNode/BlockNode.vue'
 import RelationEdgeComponent from '@/components/info-base/RelationEdge/RelationEdge.vue'
-import BlockDetailsPanel from '@/components/info-base/BlockDetailsPanel/BlockDetailsPanel.vue'
+import BlockInspectorPopup from '@/components/info-base/BlockInspectorPopup/BlockInspectorPopup.vue'
+import SolvedContentPopup from '@/components/info-base/SolvedContentPopup/SolvedContentPopup.vue'
 import CommunityNavigator from '@/components/info-base/CommunityNavigator/CommunityNavigator.vue'
 import LayoutSelector from '@/components/info-base/LayoutSelector/LayoutSelector.vue'
 
-import { Block } from '@inkcre/core'
+import { Block, getInfoBaseRouter } from '@inkcre/core'
 import { Relation } from '@inkcre/core'
 import { LayoutType } from '@inkcre/core'
 
@@ -30,6 +31,7 @@ import {
 } from '@inkcre/core'
 
 const { t } = useI18n()
+const infoBaseRouter = getInfoBaseRouter()
 
 // Container ref for sizing
 const containerRef = ref<HTMLElement | null>(null)
@@ -78,17 +80,10 @@ const filteredLinks = computed<SimulationLink[]>(() => {
   return links.value.filter((link) => nodeIds.has(link.source) && nodeIds.has(link.target))
 })
 
-// Selected block for details panel
-const selectedBlock = ref<Block | null>(null)
-const selectedBlockRelations = ref<Relation[]>([])
-const isPanelOpen = computed({
-  get: () => selectedBlock.value !== null,
-  set: (val) => {
-    if (!val) {
-      selectedBlock.value = null
-      selectedBlockRelations.value = []
-    }
-  },
+const currentInfoBaseRoute = computed(() => infoBaseRouter.current.value)
+const focalBlock = computed(() => {
+  const current = currentInfoBaseRoute.value
+  return current && current.name !== 'overview' ? current.block : null
 })
 
 // Vue Flow instance
@@ -149,9 +144,16 @@ const loadData = async () => {
     // Transform blocks to nodes with relations
     allNodes.value = blocks.map((block) => {
       const blockRelations = blockRelationsMap.get(block.id) ?? []
-      // Use block.content as preview (truncated)
-      const preview = block.content.length > 50 ? block.content.slice(0, 50) + '...' : block.content
-      return blockToNode(block, preview, blockRelations)
+      const preview =
+        block.storage === null
+          ? block.content.length > 50
+            ? block.content.slice(0, 50) + '...'
+            : block.content
+          : 'Stored content — select to open'
+      return {
+        ...blockToNode(block, preview, blockRelations),
+        selected: block.id === focalBlock.value,
+      }
     })
 
     // Transform relations to edges and links
@@ -169,17 +171,22 @@ const loadData = async () => {
 
 // Handle node selection
 const onNodeSelect = (blockId: number) => {
-  const node = allNodes.value.find((n: BlockNode) => n.data?.block.id === blockId)
-  if (node?.data) {
-    selectedBlock.value = node.data.block
-    selectedBlockRelations.value = node.data.relations
-  }
+  void infoBaseRouter.push({ name: 'block', block: blockId })
 }
 
-// Handle panel close
-const onPanelClose = () => {
-  selectedBlock.value = null
+const onRuminated = async () => {
+  await loadData()
 }
+
+watch(focalBlock, (blockRef) => {
+  allNodes.value = allNodes.value.map((node) => ({
+    ...node,
+    selected: node.data?.block.id === blockRef,
+  }))
+  if (blockRef !== null && allNodes.value.some((node) => node.data?.block.id === blockRef)) {
+    setTimeout(() => fitView({ ...fitViewOptions, nodes: [String(blockRef)] }), 100)
+  }
+})
 
 // Fit view options with max zoom limit to prevent over-zooming on small communities
 const fitViewOptions = { padding: 0.2, maxZoom: 1.5 }
@@ -334,17 +341,17 @@ onMounted(() => {
           :mask-color="'rgba(0, 0, 0, 0.1)'"
         />
       </VueFlow>
-
-      <InkPopup v-model:open="isPanelOpen" position="right">
-        <BlockDetailsPanel
-          v-if="selectedBlock"
-          :block="selectedBlock"
-          :relations="selectedBlockRelations"
-          style="width: 400px"
-          @close="onPanelClose"
-        />
-      </InkPopup>
     </template>
+
+    <BlockInspectorPopup
+      v-if="currentInfoBaseRoute?.name === 'block'"
+      :block="currentInfoBaseRoute.block"
+      @ruminated="onRuminated"
+    />
+    <SolvedContentPopup
+      v-else-if="currentInfoBaseRoute?.name === 'solved-content'"
+      :block="currentInfoBaseRoute.block"
+    />
   </div>
 </template>
 

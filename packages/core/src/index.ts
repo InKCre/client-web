@@ -47,30 +47,84 @@ export {
   type WebExtensionHostOptions,
 } from './extension'
 
-// Client
+// Peer discovery and delegation
 export {
-  Client,
-  CreateClientForm,
-  type ClientRef,
-  makeClientProp,
-  makeClientRefProp,
-} from './client'
+  Peer,
+  PeerManager,
+  PeerHTTPOutbound,
+  CapabilityDelegationUnavailable,
+  PeerOutcomeUnknown,
+  PeerProtocolError,
+  PeerRequestNotExecuted,
+  PEER_EXECUTION_HEADER,
+  PEER_HTTP_PROTOCOL,
+  type CapabilityID,
+  type JsonValue,
+  type PeerProtocolRequest,
+  type PeerProtocolResponse,
+  PeerProtocolResponseSchema,
+  type PeerRef,
+  makePeerProp,
+  makePeerRefProp,
+} from './peer'
+
+// Peer-delivered business capabilities
+export {
+  SemanticRetrievalManager,
+  SemanticRetrievalDelegationError,
+  SemanticRetrievalRequestSchema,
+  SemanticRetrievalResultSchema,
+  VectorRetrievalOptionsSchema,
+  SEMANTIC_RETRIEVAL_CAPABILITY,
+  type SemanticRetrievalRequest,
+  type SemanticRetrievalResult,
+} from './semantic-retrieval'
+export {
+  LexicalRetrievalManager,
+  LexicalRetrievalDelegationError,
+  LexicalRetrievalRequestSchema,
+  LexicalRetrievalResultSchema,
+  LexicalRetrievalMatchSchema,
+  LexicalEvidenceSchema,
+  LEXICAL_RETRIEVAL_CAPABILITY,
+  type LexicalRetrievalRequest,
+  type LexicalRetrievalResult,
+  type LexicalRetrievalMatch,
+  type LexicalEvidence,
+} from './lexical-retrieval'
+export {
+  OrganizationManager,
+  OrganizationDelegationError,
+  RUMINATION_CAPABILITY,
+} from './organization'
 
 // Source
 export {
   Source,
   SourceForm,
   SourceType,
-  CollectAt,
-  SourceCollectJob,
-  SourceCollectJobForm,
-  SourceCollectJobStatus,
+  SourceManager,
+  SOURCE_COLLECT_JOB_TYPE,
+  SOURCE_BACKFILL_JOB_TYPE,
+  type SourceImplementation,
   type SourceRef,
   type SourceTypeRef,
-  type SourceCollectJobRef,
   makeSourceProp,
   makeSourceRefProp,
 } from './source'
+
+// Durable background execution and recurring definitions
+export {
+  Job,
+  JobType,
+  JobManager,
+  JobStatus,
+  DuplicateJobHandlerError,
+  type JobHandler,
+  type JobRef,
+  type JobTypeRef,
+} from './job'
+export { Cron, CronForm } from './cron'
 
 // Observability
 export { Log, type LogRef } from './obsrv'
@@ -90,16 +144,45 @@ export {
   makeRelationRefProp,
   // Resolver protocols
   type ResolverContentState,
-  type ContentCompProps,
+  type SolvedContentRendererProps,
+  type InfoBaseRoute,
+  type InfoBaseRouter,
+  setInfoBaseRouter,
+  getInfoBaseRouter,
   // Resolver implementations
   Resolver,
   ResolverCache,
+  CORE_RESOLVER_IDS,
+  DuplicateResolverRegistrationError,
+  ResolverContractError,
+  ResolverContentError,
+  UnknownResolverError,
+  UnsupportedResolverCapability,
+  type CoreResolverId,
+  type ProjectionOptions,
+  type TextProjectionContext,
   TextResolver,
+  AudioResolver,
+  EpubResolver,
+  FileResolver,
   ImageResolver,
+  PdfResolver,
   VideoResolver,
   HtmlResolver,
+  ZipResolver,
+  registerCoreResolvers,
+  type AudioSolvedContent,
+  type ByteSolvedContent,
+  type EpubSolvedContent,
+  type FileSolvedContent,
+  type HtmlRawContent,
+  type ImageSolvedContent,
+  type PdfSolvedContent,
+  type VideoSolvedContent,
+  type ZipSolvedContent,
   // Storage protocols
   Storage,
+  WritableStorage,
   StorageType,
   type StorageTypeRef,
   StorageTypeRefZ,
@@ -107,13 +190,11 @@ export {
   StorageRefZ,
   type IStorageBlock,
   // HTTP storage implementations
-  HttpImageStorage,
-  HttpVideoStorage,
-  HttpTextStorage,
-  HttpHtmlStorage,
-  HttpJsonStorage,
-  type VideoContent,
-  type HtmlContent,
+  HttpStorage,
+  StorageContentTooLargeError,
+  PostgreSQLBinaryStorage,
+  type HttpStorageConfig,
+  type PostgreSQLBlobPointer,
 } from './info-base'
 
 // Sink (Output formatters)
@@ -122,14 +203,14 @@ export * from './sink/graph'
 // Configuration
 export {
   configStore,
-  ClientConfigSchema,
+  PeerConfigSchema,
   MetaConfigSchema,
   AIConfigSchema,
   LLMProviderConfigSchema,
   localStorageAdapter,
   createWebextAdapter,
   CONFIG_STORAGE_KEY,
-  type ClientConfig,
+  type PeerConfig,
   type MetaConfig,
   type ProviderType,
   type LLMProviderConfig,

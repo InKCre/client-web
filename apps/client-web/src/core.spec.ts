@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { shouldLoadClientConfigAtBootstrap } from './core'
+import { shouldLoadPeerConfigAtBootstrap } from './core'
 
-describe('client configuration bootstrap', () => {
+describe('Peer configuration bootstrap', () => {
   it('keeps Settings reachable without contacting a configured Peer', () => {
-    expect(shouldLoadClientConfigAtBootstrap('/settings')).toBe(false)
-    expect(shouldLoadClientConfigAtBootstrap('/settings/')).toBe(false)
+    expect(shouldLoadPeerConfigAtBootstrap('/settings')).toBe(false)
+    expect(shouldLoadPeerConfigAtBootstrap('/settings/')).toBe(false)
   })
 
   it('loads deployment configuration before ordinary application routes', () => {
-    expect(shouldLoadClientConfigAtBootstrap('/')).toBe(true)
-    expect(shouldLoadClientConfigAtBootstrap('/extensions')).toBe(true)
+    expect(shouldLoadPeerConfigAtBootstrap('/')).toBe(true)
+    expect(shouldLoadPeerConfigAtBootstrap('/extensions')).toBe(true)
   })
 })

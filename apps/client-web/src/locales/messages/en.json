@@ -53,7 +53,7 @@
     "id": "ID",
     "collectAt": "Collect At",
     "config": "Config",
-    "collectJobs": "Collect Jobs",
+    "jobs": "Jobs",
     "newJob": "New Job",
     "newJobTitle": "Create New Collect Job",
     "newJobDescription": "Create a new collect job for this source. The job will be queued and executed as soon as possible.",
@@ -86,8 +86,8 @@
     "enabledPeerCount": "Enabled on {count} Peer(s).",
     "uninstallDisabled": "Disable every Peer before uninstalling or changing the shared version."
   },
-  "collectJob": {
-    "title": "Collect Job Details",
+  "job": {
+    "title": "Job Details",
     "jobId": "Job ID",
     "status": "Status",
     "source": "Source",
@@ -101,7 +101,7 @@
     "stop": "Stop",
     "retry": "Retry",
     "notAvailable": "N/A",
-    "notFound": "Collect job not found",
+    "notFound": "Job not found",
     "sourceNotFound": "Source not found"
   },
   "logs": {
@@ -123,15 +123,42 @@
     "editConfig": "Edit Config"
   },
   "infoBase": {
-    "blockDetails": {
-      "title": "Block Details",
+    "list": {
+      "eyebrow": "Lexical recall",
+      "title": "Find the information you remember.",
+      "searchLabel": "Search the info base",
+      "searchPlaceholder": "A phrase, name, filename, or remembered detail…",
+      "search": "Search",
+      "idle": "Search exact phrases, continuous fragments, labels, and terms across the info base.",
+      "empty": "No indexed blocks matched “{query}”.",
+      "error": "The search could not be completed.",
+      "retry": "Try again",
+      "evidence": {
+        "label_exact": "Exact label",
+        "label_substring": "Label fragment",
+        "text_substring": "Text fragment",
+        "terms": "Matching terms"
+      }
+    },
+    "blockInspector": {
+      "title": "Block Inspector",
       "id": "ID",
       "resolver": "Resolver",
       "created": "Created At",
       "updated": "Updated At",
       "storage": "Storage",
-      "content": "Content",
-      "noContent": "No content"
+      "missing": "Block #{block} no longer exists.",
+      "viewContent": "View content",
+      "ruminate": "Ruminate",
+      "rumination": {
+        "success": "The info base was reconsidered and the graph was refreshed.",
+        "error": "Rumination failed. The graph was not changed by a confirmed result.",
+        "outcome-unknown": "The provider may have completed the request. Refresh and inspect the graph before trying again."
+      }
+    },
+    "solvedContent": {
+      "title": "Content",
+      "missing": "Block #{block} no longer exists."
     },
     "graph": {
       "empty": "No blocks to display",

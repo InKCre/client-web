@@ -3,7 +3,7 @@ import { reactive } from 'vue'
 import { InkButton } from '@inkcre/ui-web'
 import sourceForm from '../sourceForm/sourceForm.vue'
 import { createSourceEmits } from './createSource'
-import { CollectAt, SourceForm } from '@inkcre/core'
+import { SourceForm } from '@inkcre/core'
 import { refManualReset } from '@vueuse/core'
 
 const emit = defineEmits(createSourceEmits)
@@ -15,7 +15,8 @@ const form = refManualReset(() =>
       nickname: '',
       type: '',
       config: {},
-      collect_at: CollectAt.parse({}),
+      state: {},
+      storage: null,
     })
   )
 )

@@ -1,322 +1,121 @@
 # InKCre Client-Web Architecture
 
-## Table of Contents
+Client-Web is a static Vue application and an equal InKCre database Peer. “Client” remains the
+product-facing name; code and technical documentation use **Peer** for the deployment identity used
+by discovery and delegation.
 
-1. System Overview
-2. Technology Stack
-3. High-Level Architecture
-4. Architecture Patterns
-5. Directory Structure
-6. Core Systems
-7. Data Flow
+## Topology
 
----
-
-## System Overview
-
-InKCre Client-Web is a web-based application for information collection, organization, and visualization. It provides a GUI for managing the InKCre system, featuring graph-based storage, extensible plugins, and real-time visualization.
-
-**Core Capabilities:**
-
-- Automated data collection with scheduled jobs
-- Knowledge graph with blocks and relations
-- Module Federation-**based** extensions
-- Multi-client peer network
-- Interactive graph layouts
-- Pluggable content handling
-
-**Business Domains:**
-
-- **Source**: Data input pipeline
-- **Info-Base**: Graph-based knowledge system
-- **Extension**: Plugin architecture
-- **Client**: Multi-client management
-- **Obsrv**: Observability and logging
-
----
-
-## Technology Stack
-
-**Core Framework:**
-
-- Vue 3 (Composition API)
-- TypeScript (strict typing)
-- Vite (build tool)
-- SCSS + UnoCSS (styling)
-
-**State & Routing:**
-
-- Pinia (global state)
-- Vue Router (navigation)
-
-**Data Layer:**
-
-- Zod (validation and type inference)
-- PostgREST client (database access)
-
-**Extension System:**
-
-- Module Federation (dynamic loading)
-
-**Visualization:**
-
-- Vue Flow (graph rendering)
-- D3.js (layouts)
-
-**APIs:**
-
-- PostgREST and core-py (external services)
-- JOSE (authentication)
-
----
-
-## High-Level Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         InKCre Client-Web                            │
-│                                                                       │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │                         Vue App                               │  │
-│  │  ┌────────────────────────────────────────────────────────┐  │  │
-│  │  │                    Views Layer                          │  │  │
-│  │  │  (Settings, Sources, Extensions, Info-Base Graph)       │  │  │
-│  │  └────────────────────────────────────────────────────────┘  │  │
-│  │  ┌────────────────────────────────────────────────────────┐  │  │
-│  │  │                 Components Layer                        │  │  │
-│  │  │   ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌─────────┐  │  │  │
-│  │  │   │  Source  │ │ Info-Base│ │Extension │ │ Client  │  │  │  │
-│  │  │   │Components│ │Components│ │Components│ │ Comps   │  │  │  │
-│  │  │   └──────────┘ └──────────┘ └──────────┘ └─────────┘  │  │  │
-│  │  └────────────────────────────────────────────────────────┘  │  │
-│  │  ┌────────────────────────────────────────────────────────┐  │  │
-│  │  │               Business Logic Layer                      │  │  │
-│  │  │   ┌─────────────────────────────────────────────────┐  │  │  │
-│  │  │   │           BusinessClass Pattern                  │  │  │  │
-│  │  │   │  (Source, Client, Extension, Block, Relation)    │  │  │  │
-│  │  │   │  - Zod Schema + TypeScript Class                 │  │  │  │
-│  │  │   │  - Static API clients (DBAPIClient, CoreAPIClient)│ │  │  │
-│  │  │   │  - Static registries for instances               │  │  │  │
-│  │  │   └─────────────────────────────────────────────────┘  │  │  │
-│  │  │   ┌─────────────────────────────────────────────────┐  │  │  │
-│  │  │   │        Extension System (Module Federation)      │  │  │  │
-│  │  │   │  - Dynamic remote loading                        │  │  │  │
-│  │  │   │  - Lifecycle management (DISCOVERED → ACTIVE)    │  │  │  │
-│  │  │   │  - Registry pattern for Storages/Resolvers       │  │  │  │
-│  │  │   └─────────────────────────────────────────────────┘  │  │  │
-│  │  │   ┌─────────────────────────────────────────────────┐  │  │  │
-│  │  │   │         Info-Base Subsystems                     │  │  │  │
-│  │  │   │  - Storage: Content retrieval (http, local, etc) │  │  │  │
-│  │  │   │  - Resolver: Content rendering (text, image, etc)│  │  │  │
-│  │  │   │  - Graph: Force/Dagre/Circular layouts           │  │  │  │
-│  │  │   └─────────────────────────────────────────────────┘  │  │  │
-│  │  └────────────────────────────────────────────────────────┘  │  │
-│  └──────────────────────────────────────────────────────────────┘  │
-│                                                                       │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │                      API Layer (Dual)                         │  │
-│  │  ┌──────────────────────────┐  ┌────────────────────────┐    │  │
-│  │  │     DBAPIClient          │  │   CoreAPIClient        │    │  │
-│  │  │  (PostgREST via Supabase)│  │   (REST to core-py)    │    │  │
-│  │  │  - Direct DB queries      │  │   - Complex operations │    │  │
-│  │  │  - CRUD operations        │  │   - Business logic     │    │  │
-│  │  └──────────────────────────┘  └────────────────────────┘    │  │
-│  └──────────────────────────────────────────────────────────────┘  │
-│                                                                       │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │                  State Management (Pinia)                     │  │
-│  │   - Auth Store (JWT tokens, user state)                       │  │
-│  └──────────────────────────────────────────────────────────────┘  │
-│                                                                       │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │              Config System (zod-config)                        │  │
-│  │   - Browser-local validated bootstrap config                   │  │
-│  │   - Explicit application-owned initialization                  │  │
-│  └──────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-        ┌───────────────────────────────────────────────┐
-        │          Backend Services                      │
-        │  ┌──────────────────┐  ┌──────────────────┐   │
-        │  │  PostgreSQL DB   │  │   core-py API    │   │
-        │  │  (via PostgREST) │  │   (REST Server)  │   │
-        │  └──────────────────┘  └──────────────────┘   │
-        └───────────────────────────────────────────────┘
+```text
+Vue view/component
+  ├─ database fact/query ──> domain Active Record ──> DBAPIClient ──> PostgREST/PostgreSQL
+  └─ business capability ──> domain manager ──> PeerManager.delegate(exact capability)
+                                      │
+                                      └─ live Peer advertisement ──> protocol outbound
+                                                                       │
+                                                                       └─ provider inbound
+                                                                            └─ local domain execution
 ```
 
-### Data Flow Overview
+The database and capability paths are intentionally separate. Client-Web does not have a generic
+Core API client, a generic capability invoke endpoint, or a delegation job table.
 
-1. User interaction triggers Vue components
-2. Components invoke BusinessClass methods
-3. BusinessClass uses DBAPIClient or CoreAPIClient
-4. API clients communicate with backend
-5. Responses update reactive UI
+## Technical Domains
 
----
+- `info-base`: Block, Relation, Storage, Resolver, graph/list surfaces, and content hydration.
+- `source`: source facts and collection-job visibility.
+- `extension`: the native Web Extension Host, registry Release resolution, durable extension state,
+  and local Module Federation lifecycle.
+- `peer`: Peer Active Record, capability discovery, protocol outbounds, and one-shot delegation.
+- `semantic-retrieval`: typed facade for `core.semantic_retrieval.v1`.
+- `lexical-retrieval`: typed facade for `core.lexical_retrieval.v1`.
+- `organization`: typed facade for `core.organization.rumination.v1`.
+- `obsrv`: runtime logs and diagnostics.
 
-## Architecture Patterns
+## Peer Delegation
 
-### 1. BusinessClass Pattern
+`PeerManager.delegate(capability, payload, routeToPeer)` discovers unexpired advertisements using
+PostgreSQL time. An advertisement contains an exact capability ID plus one inbound interface:
 
-Combines Zod schemas with TypeScript classes for type-safe entities. Provides runtime validation, centralized API access, and instance registries.
-
-**Key Features:**
-
-- Single source of truth for types and validation
-- Static API clients per entity
-- Consistent CRUD operations
-
-### 2. Dual API Architecture
-
-Two separate API clients for different access patterns:
-
-**DBAPIClient (PostgREST):**
-
-- Direct database queries
-- Fast CRUD operations
-- Simple list and filter queries
-
-**CoreAPIClient (REST):**
-
-- Complex business logic
-- Validation and orchestration
-- Batch operations and workflows
-
-**Decision Criteria:**
-
-- Use DBAPIClient for simple, performance-critical operations
-- Use CoreAPIClient for complex logic requiring backend processing
-
-### 3. Module Federation Extension System
-
-One Web Extension Host reads the canonical deployment row through a semantic state port. Before
-Module Federation fetches executable bytes, it resolves the exact Registry Release and checks the
-producer's `@inkcre/core` range. The Registry-hosted native `mf-manifest.json` URL goes directly to
-the current MF Host.
-
-**Lifecycle:**
-initialize → activate → deactivate → dispose
-
-**Benefits:**
-
-- Runtime extensibility
-- Shared dependencies
-- Strong isolation
-
-### 4. Registry Pattern (Storage & Resolver)
-
-Decorator-based registration for pluggable content handling. Extensions can add new content types with custom retrieval and rendering logic.
-
-**Storage:** Handles content fetching (HTTP, local, external APIs)
-**Resolver:** Handles content transformation and rendering
-
-### 5. Config System
-
-The static web application explicitly initializes the shared config store with its localStorage
-adapter before mounting Vue. The browser origin owns the PostgREST URL, client ID, and user-provided
-JWT signing credential; an empty origin does not inherit a production or development environment.
-There is no HTTP config endpoint, environment adapter, runtime adapter switching, or compiled
-environment profile.
-
----
-
-## Directory Structure
-
-```
-client-web/
-├── docs/                 # Domain documentation
-├── public/               # Static assets
-├── src/
-│   ├── components/       # Vue components by domain
-│   │   ├── source/
-│   │   ├── info-base/
-│   │   ├── extension/
-│   │   └── common/
-│   ├── composables/      # Vue composition functions
-│   ├── locales/          # Internationalization
-│   ├── views/            # Routed views and settings
-│   ├── core.ts           # Explicit core/config initialization
-│   └── main.ts           # Vue entry
-├── package.json
-├── vite.config.ts
-└── tsconfig.json
+```text
+{
+  id,
+  inbound: {
+    protocol,
+    parameters
+  }
+}
 ```
 
----
+The protocol selects a registered outbound. `core.peer.protocol.http.v1` carries normalized query,
+headers, and optional JSON body; its static method and URL live only in inbound parameters. Peer JWT
+authentication is part of that protocol. `routeToPeer` is caller-local routing state and never
+enters the business payload.
 
-## Core Systems
+Automatic failover is allowed only after explicit
+`InkCre-Peer-Execution: not-executed`. Browser Fetch rejection cannot prove that dispatch did not
+occur, so it becomes `PeerOutcomeUnknown` and is never retried automatically. Exact-target routing
+never substitutes a different Peer.
 
-### Business Layer
+## Domain Inbounds and Outbounds
 
-Implements domain entities using BusinessClass pattern. Each entity has:
+Transport and business direction are different views of the same call:
 
-- Zod schema for validation
-- Static API clients
-- Instance registries
-- CRUD methods
+- SemanticRetrievalOutbound is the caller-side `SemanticRetrievalManager` plus the selected Peer
+  protocol outbound.
+- LexicalRetrievalOutbound follows the same shape through `LexicalRetrievalManager`.
+- Provider routes and their non-delegating local implementations form the matching domain inbounds.
+- Organization rumination and Extension management follow the same direction model.
 
-**Key Entities:**
+Domain managers own request and response models. PeerManager understands only exact capability
+delegation and transport construction; it does not understand retrieval, organization, or
+extensions.
 
-- **Source**: Data collection configurations
-- **Client**: InKCre client instances
-- **Extension**: Plugin modules
-- **Block**: Information units in graph
-- **Relation**: Connections between blocks
+## Configuration and Authentication
 
-### Extension System
+The static application initializes browser-local meta config before mounting Vue:
 
-Native Module Federation plugins use `@inkcre/core` directly and can:
+- PostgREST URL;
+- current technical Peer ID (presented as Client ID in the UI);
+- user-owned JWT signing secret.
 
-- Register custom resolvers for new content types
-- Register custom storages for data retrieval
-- Add UI components
-- Extend business logic
+The current Peer's deployment config is read from its database row and includes the Extension
+Registry URL and Peer HTTP timeout. Static artifacts contain no deployment origin, Peer identity,
+or JWT credential. JWTs are memory-only and use the generated Peer contract.
 
-### Component Architecture
+Local development runs core-py and PostgREST through the tracked database runtime. The deployment
+orchestrator writes the core-py Peer's `config.http_public_base_url` through PostgREST, then waits
+for exact capability advertisements and a live lease. The URL is not an environment-variable
+authority.
 
-Organized by business domain:
+## Native Web Extension Host
 
-- Domain-specific components for each business area
-- Shared common components
-- Type-safe props using prop factories
+The Web Extension Host reads canonical installed-extension state through `ExtensionStatePort`.
+Before Module Federation fetches executable bytes, it resolves the exact Registry Release and
+checks its `@inkcre/core` compatibility range. It then owns the local lifecycle:
 
-### State Management
+```text
+initialize -> activate -> deactivate -> dispose
+```
 
-Pinia stores for global state:
+The browser extension view manages the current Peer. Cross-Peer extension execution remains an
+exact delegated capability; it is not a generic Core API request path.
 
-- Auth store for JWT tokens and user state
-- Local reactive state for component-specific data
+## Info-Base Navigation Hosts
 
-### Configuration
+GraphSurface and InfoBaseListView are InfoBase route-destination outlets. The list surface owns
+lexical query/results and hosts BlockInspectorPopup and SolvedContentPopup without creating a
+second browser-history authority. `InfoBaseRouter` is an application-bound singleton mapping
+Block/Relation navigation to the current client's UI state.
 
-- localStorage is the web runtime authority.
-- Zod validates config before persistence and use.
-- Static artifacts and source maps contain no InKCre environment origin or client identity.
-- Portable export excludes the JWT signing credential.
-- JWTs remain memory-only and are signed from the user-owned browser credential.
+BlockInspector exposes explicit rumination. Success reloads the active surface and reselects the
+focal Block. `PeerOutcomeUnknown` is shown distinctly and is not retried or reported as success.
 
----
+## Build Contract
 
-## Data Flow
+- Vue 3, TypeScript, Vite, Pinia, Vue Router, Vue Flow, SCSS, and UnoCSS.
+- `@inkcre/core` is source-aliased in workspace development and built as ESM by tsdown.
+- The checked database contract generates relation types and Peer JWT/runtime metadata.
+- The deployable output is an environment-neutral static artifact.
 
-### Read Flow
-
-User action → View component → BusinessClass.list() → DBAPIClient → PostgREST → Database → Response → Zod validation → Reactive UI update
-
-### Write Flow
-
-User action → Component → BusinessClass instance → CoreAPIClient → core-py API → Validation & business logic → Database write → Response → UI update
-
-### Extension Flow
-
-Installed row enabled for this Peer → exact Release/Host-range preflight → register native manifest
-→ load module → initialize → activate → atomically persist Peer enabled intent
-
-### Content Resolution Flow
-
-Block display → Get resolver → Fetch storage content → Resolve content → Cache result → Render via content component
-
----
-
-**Last Updated**: July 23, 2026
+**Last Updated**: August 13, 2026
