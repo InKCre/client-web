@@ -153,8 +153,8 @@ These are proposed decisions, not implementation authorization.
 
 ## D10 - Client Database Compatibility Versus Image Provenance
 
-- Status: accepted; implemented locally after core `stable` advanced without a database interface
-  change. Remote image-backed CI remains the final verifier.
+- Status: accepted; implemented and verified by the exact image-backed PR and main CI after core
+  `stable` advanced without a database interface change.
 - Recommendation:
   - generate checked Supabase relation types from the selected core image's raw schema;
   - generate `runtime-contract.generated.json` as the compact client compatibility projection:
@@ -171,3 +171,21 @@ These are proposed decisions, not implementation authorization.
     the checked projection does not weaken release traceability.
 - Rejected alternative: automatically commit a consumer synchronization after every core delivery.
   It preserves the mistaken authority boundary and introduces cross-repository timing churn.
+
+## D11 - Extension Release Intent
+
+- Status: superseded by the dedicated Extension release-contract unit.
+- Recommendation:
+  - store one conflict-resistant Changesets fragment for each user-visible Extension change;
+  - let the automated Version PR own Extension changelog and package-version preparation;
+  - publish exact native artifacts through an independent Extension Release controller;
+  - keep Pages delivery limited to the client-web app artifact.
+- Rationale:
+  - the delivery controller correctly rejected Twitter source changes merged without a version
+    bump, but rejection alone does not provide an upstream workflow for expressing release intent;
+  - file-based fragments keep product-facing history independent of commit-message conventions and
+    remain merge-friendly;
+  - treating every workspace package as a Release would invent lifecycles that do not yet exist.
+- Rejected alternatives: manually bump Twitter from `0.1.1` to `0.1.2`, retain the Changie
+  same-commit preparation spike, or add a repository-owned release-plan state machine around
+  Changesets.

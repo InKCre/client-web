@@ -16,21 +16,27 @@ import {
 const extensionRoot = fileURLToPath(new URL('.', import.meta.url))
 const extensionComponents = fileURLToPath(new URL('./src/components', import.meta.url))
 
+export const mailArtifactBase = './'
+export const mailBuildTarget = 'es2022'
+export const mailBuildOptions = {
+  target: mailBuildTarget,
+  outDir: 'dist/client-web',
+  sourcemap: true,
+}
+export const mailFederationOptions = {
+  name: 'extension.mail',
+  filename: 'remoteEntry.js',
+  manifest: true,
+  exposes: { '.': path.resolve(__dirname, './src/index.ts') },
+  shared: mfShared,
+}
+
 export default defineConfig(async ({ command }) => {
   const uiSource = await resolveUiSourceForVite(command)
   const uiSourceComponents = uiSource ? path.resolve(uiSource.root, 'src/components') : null
 
   return {
-    plugins: [
-      vue(),
-      vueJsx(),
-      federation({
-        name: 'extension.mail',
-        filename: 'remoteEntry.js',
-        exposes: { '.': path.resolve(__dirname, './src/index.ts') },
-        shared: mfShared,
-      }),
-    ],
+    plugins: [vue(), vueJsx(), federation(mailFederationOptions)],
     resolve: {
       alias: uiSource ? createUiSourceAliases(uiSource) : [],
       ...(uiSource ? { dedupe: uiSourceDedupe } : {}),
@@ -43,12 +49,8 @@ export default defineConfig(async ({ command }) => {
           },
         }
       : {}),
-    base: '/mail/client-web/',
-    build: {
-      target: 'esnext',
-      outDir: 'dist/client-web',
-      sourcemap: true,
-    },
+    base: mailArtifactBase,
+    build: mailBuildOptions,
     css: {
       preprocessorOptions: {
         scss: {
