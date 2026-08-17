@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "@inkcre/ext-dev-utils": "workspace:*",
-    "@inkcre/ui-web": "1.2.2",
+    "@inkcre/ui-web": "1.3.1",
     "@module-federation/vite": "^1.1.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vitejs/plugin-vue-jsx": "^5.1.2",
