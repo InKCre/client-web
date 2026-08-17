@@ -20,13 +20,18 @@ UI-owned Sass prelude. Normal build, check, and CI paths consume the locked UI p
 ## Native Distribution
 
 - `package.json` declares canonical Extension Name/Nickname and the `@inkcre/core` Host range.
-- The package version is the exact Extension Release version and must change when Remote source or
-  shared-module input changes.
+- Add a release-intent fragment with `pnpm changeset` when a user-visible change affects an
+  independently releasable Extension.
+- The automated Changesets Version PR aggregates fragments and updates only affected Extension
+  package versions and changelogs. Do not edit either generated output separately.
 - `vite.config.ts` retains `base: './'` and `manifest: true`.
 - `pnpm check` builds the Remote and validates its native manifest, Remote entry, and referenced
   shared/exposed JS/CSS closure.
-- Protected-main CI retains the checked snapshot. Delivery uploads those exact files as one ZIP to
-  the Registry native Module Federation endpoint; local development never publishes.
+- With pending changesets, the independent Extension Release workflow creates or updates the
+  Version PR. Once it is merged, the workflow's idempotent custom publisher uploads the exact
+  snapshot built by that release workflow to the Registry native Module Federation endpoint. It
+  discovers every package declaring `inkcre.module_federation`; Pages delivery separately consumes
+  only the app artifact, and local development never publishes.
 
 See [`apps/client-web/docs/development.md`](../apps/client-web/docs/development.md) for the full
 joint-development boundary.

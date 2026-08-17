@@ -1,0 +1,184 @@
+name: Native Extension release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-extension-release-main
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    name: Reconcile Extension release plan
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    outputs:
+      has_changesets: ${{ steps.changesets.outputs.has-changesets }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Install the pinned pnpm release
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: 11.11.0
+
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: package.json
+          cache: pnpm
+          registry-url: https://npm.pkg.github.com
+          scope: '@inkcre'
+
+      - name: Install the frozen workspace
+        run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create or update the Extension Version PR
+        id: changesets
+        uses: changesets/action@198f833dd7d863100ea6e28967bc9a9fdefadb0a # v2.1.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          version-script: pnpm release:version
+          pr-title: 'chore(extensions): version pending releases'
+          commit-message: 'chore(extensions): version pending releases'
+          pr-base-branch: main
+          create-github-releases: false
+          push-git-tags: false
+
+  publish:
+    name: Build and publish native Extensions
+    needs: reconcile
+    if: needs.reconcile.outputs.has_changesets == 'false'
+    permissions:
+      contents: read
+      packages: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+    steps:
+      - name: Checkout the release revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Install the pinned pnpm release
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: 11.11.0
+
+      - name: Set up Node for release
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: package.json
+          cache: pnpm
+          registry-url: https://npm.pkg.github.com
+          scope: '@inkcre'
+
+      - name: Install the frozen release workspace
+        run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build native Extension release artifacts
+        run: |
+          pnpm --filter @inkcre/core build
+          pnpm --filter './extensions/*' build
+
+      - name: Publish missing native Extension Releases
+        env:
+          INKCRE_EXTENSION_REGISTRY_URL: >-
+            ${{ vars.INKCRE_EXTENSION_REGISTRY_URL || 'https://registry.inkcre.dev' }}
+          INKCRE_EXTENSION_REGISTRY_TOKEN: ${{ secrets.INKCRE_EXTENSION_REGISTRY_TOKEN }}
+          SOURCE_REPOSITORY: https://github.com/${{ github.repository }}
+          SOURCE_REVISION: ${{ github.sha }}
+        run: |
+          test -n "$INKCRE_EXTENSION_REGISTRY_TOKEN"
+          mkdir -p .extension-delivery
+
+          for package_path in extensions/*/package.json; do
+            descriptor="$(node --input-type=module --eval '
+              import { readFile } from "node:fs/promises"
+              import path from "node:path"
+              const packagePath = process.argv[1]
+              const manifest = JSON.parse(await readFile(packagePath, "utf8"))
+              if (!manifest.inkcre?.module_federation) process.exit(0)
+              process.stdout.write([path.basename(path.dirname(packagePath)), manifest.inkcre.name, manifest.version].join("\t"))
+            ' "$package_path")"
+            if [[ -z "$descriptor" ]]; then
+              continue
+            fi
+            IFS=$'\t' read -r extension_directory extension_path release_path <<< "$descriptor"
+
+            delivery_directory=".extension-delivery/$extension_directory"
+            artifact_directory="extensions/$extension_directory/dist/client-web"
+            mkdir -p "$delivery_directory"
+            public_descriptor="$delivery_directory/public-release.json"
+            status="$(curl --silent --show-error --output "$public_descriptor" --write-out '%{http_code}' \
+              "${INKCRE_EXTENSION_REGISTRY_URL%/}/v1/extensions/${extension_path}/releases/${release_path}")"
+            if [[ "$status" == '200' ]]; then
+              has_native_association="$(node --input-type=module --eval 'import { readFile } from "node:fs/promises"; const release = JSON.parse(await readFile(process.argv[1], "utf8")); process.stdout.write(String(release.module_federation !== null))' "$public_descriptor")"
+            elif [[ "$status" == '404' ]]; then
+              has_native_association=false
+            else
+              echo "Cannot determine $extension_path $release_path Registry state: HTTP $status." >&2
+              exit 1
+            fi
+            if [[ "$has_native_association" == 'true' ]]; then
+              echo "$extension_path $release_path is already published." >> "$GITHUB_STEP_SUMMARY"
+              continue
+            fi
+
+            node scripts/verify-native-extension-distribution.mjs prepare-body \
+              --package "$package_path" \
+              --core-package packages/core/package.json \
+              --artifact-directory "$artifact_directory" \
+              --source-repository "$SOURCE_REPOSITORY" \
+              --source-revision "$SOURCE_REVISION" \
+              --build-id "client-web-extension-release-${GITHUB_RUN_ID}" \
+              --output "$delivery_directory/prepare.json"
+            (
+              cd "$artifact_directory"
+              zip -q -r "$GITHUB_WORKSPACE/$delivery_directory/snapshot.zip" .
+            )
+
+            curl --fail-with-body --silent --show-error \
+              --request POST \
+              --header "Authorization: Bearer $INKCRE_EXTENSION_REGISTRY_TOKEN" \
+              --header 'Content-Type: application/json' \
+              --data-binary "@$delivery_directory/prepare.json" \
+              "${INKCRE_EXTENSION_REGISTRY_URL%/}/v1/extensions/${extension_path}/releases" \
+              > "$delivery_directory/prepared-release.json"
+            curl --fail-with-body --silent --show-error \
+              --request POST \
+              --header "Authorization: Bearer $INKCRE_EXTENSION_REGISTRY_TOKEN" \
+              --form "content=@$delivery_directory/snapshot.zip;type=application/zip" \
+              "${INKCRE_EXTENSION_REGISTRY_URL%/}/v1/extensions/${extension_path}/releases/${release_path}/module-federation" \
+              > "$delivery_directory/uploaded-release.json"
+            curl --fail-with-body --silent --show-error \
+              --request POST \
+              --header "Authorization: Bearer $INKCRE_EXTENSION_REGISTRY_TOKEN" \
+              "${INKCRE_EXTENSION_REGISTRY_URL%/}/v1/extensions/${extension_path}/releases/${release_path}/publish" \
+              > "$delivery_directory/published-release.json"
+            node scripts/verify-native-extension-distribution.mjs verify-public \
+              --registry-url "$INKCRE_EXTENSION_REGISTRY_URL" \
+              --package "$package_path" \
+              --core-package packages/core/package.json \
+              --artifact-directory "$artifact_directory" \
+              --output "$delivery_directory/verification.json"
+            echo "$extension_path $release_path published and verified." >> "$GITHUB_STEP_SUMMARY"
+          done
