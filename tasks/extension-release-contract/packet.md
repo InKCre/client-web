@@ -5,13 +5,14 @@
 - **Objective**: use Changesets as the version/changelog and release-plan owner for independently
   releasable client-web Extensions, then publish native Extension artifacts through a lifecycle
   independent from client-web app deployment.
-- **Status**: implementation has been rewritten around the official Changesets control flow and
-  local verification is complete.
+- **Status**: **Complete**。The official Changesets control flow、Version PR and independent
+  exact-main Registry publication have passed end-to-end production acceptance.
 - **Authority**: pending changeset files own release intent; the Changesets release plan owns
   aggregated SemVer decisions; each Extension `package.json` owns its prepared version; generated
   Extension changelogs own release history; the InKCre Registry owns publication state.
-- **Next step**: obtain commit/push authorization for the real Version PR and Registry publication
-  journey.
+- **Next step**: none for this unit。Using an independent GitHub App token or fine-grained PAT so a
+  bot-authored Version PR triggers PR Actions automatically is explicitly deferred by the Human；the
+  current fallback is a real Human reopen event before merge and does not reopen this unit.
 
 ## Product and Tool Model
 
@@ -126,3 +127,7 @@ main
 - 2026-08-17: the real local release-plan projection produced only Mail `0.1.1` and Twitter `0.1.2`
   with independent changelogs; both self-built artifacts passed the shared native manifest and
   Registry-association verifier.
+- 2026-08-17: PR #72 established the lifecycle，PR #73 restored private-package read permission for
+  the release reconciler，and Version PR #74 consumed both pending fragments。Main run `32017311088`
+  self-built both artifacts and published `inkcre/mail@0.1.1` and `inkcre/twitter@0.1.2`；both exact
+  public Release APIs and Module Federation manifests returned HTTP 200。
