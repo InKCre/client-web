@@ -132,7 +132,7 @@ export class DBAPIClient<
         (newVal) => {
           this.url = normalizePostgrestBaseUrl(newVal)
         },
-        { immediate: true }
+        { immediate: true, flush: 'sync' }
       )
     }
   }
