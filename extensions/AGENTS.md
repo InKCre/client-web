@@ -35,6 +35,18 @@ pnpm dev      # Dev server with HMR
 pnpm build    # Build for production
 ```
 
+## Release Intent
+
+- Add a conflict-resistant fragment with `pnpm changeset`; select only independently releasable
+  Extension packages affected by the change.
+- Pending changesets are the release plan input. The Extension Release workflow maintains one
+  Version PR that consumes them and updates affected package versions and changelogs.
+- Once that Version PR is merged and no pending changesets remain, the same workflow runs the
+  idempotent custom Registry publisher. The release workflow checks out the release revision and
+  builds native Extension artifacts itself; it never consumes CI workflow artifacts.
+- Do not edit generated version/changelog state separately. Pages deployment is an independent app
+  lifecycle and never publishes Extensions.
+
 ## Extension Capabilities
 
 Extensions can register:

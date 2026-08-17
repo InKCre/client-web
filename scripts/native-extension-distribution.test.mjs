@@ -7,6 +7,12 @@ import { test } from 'vitest'
 
 import mfShared, { coreSharedVersion } from '../extensions/mf-shared.ts'
 import {
+  mailArtifactBase,
+  mailBuildOptions,
+  mailBuildTarget,
+  mailFederationOptions,
+} from '../extensions/mail/vite.config.ts'
+import {
   twitterArtifactBase,
   twitterBuildOptions,
   twitterBuildTarget,
@@ -17,7 +23,7 @@ import {
   prepareBody,
   previewRelease,
   verifyPublicModuleFederation,
-} from './verify-twitter-mf-distribution.mjs'
+} from './verify-native-extension-distribution.mjs'
 import { assembleTwitterPreview } from './assemble-twitter-preview.mjs'
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url))
@@ -106,7 +112,6 @@ test('Twitter produces a native manifest with a Registry-relocatable base and ty
 
   assert.equal(extensionPackage.inkcre.name, 'inkcre/twitter')
   assert.equal(extensionPackage.inkcre.nickname, 'Twitter')
-  assert.equal(extensionPackage.version, '0.2.1')
   assert.deepEqual(extensionPackage.inkcre.module_federation, {
     host_sdk: '@inkcre/core',
     host_sdk_version: '>=0.1.2 <0.2.0',
@@ -117,6 +122,25 @@ test('Twitter produces a native manifest with a Registry-relocatable base and ty
   assert.equal(twitterBuildOptions.outDir, 'dist/client-web')
   assert.equal(coreSharedVersion, `^${corePackage.version}`)
   assert.equal(mfShared['@inkcre/core'].requiredVersion, coreSharedVersion)
+})
+
+test('Mail declares the same relocatable native Extension distribution contract', async () => {
+  const [extensionPackage, corePackage] = await Promise.all([
+    readJson('extensions/mail/package.json'),
+    readJson('packages/core/package.json'),
+  ])
+
+  assert.equal(extensionPackage.inkcre.name, 'inkcre/mail')
+  assert.equal(extensionPackage.inkcre.nickname, 'Mail')
+  assert.deepEqual(extensionPackage.inkcre.module_federation, {
+    host_sdk: '@inkcre/core',
+    host_sdk_version: '>=0.1.0 <0.2.0',
+  })
+  assert.equal(mailFederationOptions.manifest, true)
+  assert.equal(mailArtifactBase, './')
+  assert.equal(mailBuildTarget, 'es2022')
+  assert.equal(mailBuildOptions.outDir, 'dist/client-web')
+  assert.equal(coreSharedVersion, `^${corePackage.version}`)
 })
 
 test('validates native Remote entry and shared/exposed asset closure', async () => {
@@ -275,11 +299,12 @@ test('verifies Registry publicPath materialization and exact native public bytes
   }
 })
 
-test('retains exact-main checked-artifact governance without generic target delivery', async () => {
-  const [ci, delivery, preview] = await Promise.all([
+test('separates exact-main app delivery from the Changesets Extension release lifecycle', async () => {
+  const [ci, delivery, preview, release] = await Promise.all([
     readFile(path.join(repoRoot, '.github/workflows/ci.yml'), 'utf8'),
     readFile(path.join(repoRoot, '.github/workflows/pages-deploy.yml'), 'utf8'),
     readFile(path.join(repoRoot, '.github/workflows/pages-preview.yml'), 'utf8'),
+    readFile(path.join(repoRoot, '.github/workflows/extension-release.yml'), 'utf8'),
   ])
 
   assert.match(ci, /push:\n\s+branches:\n\s+- main/)
@@ -287,8 +312,8 @@ test('retains exact-main checked-artifact governance without generic target deli
   assert.match(ci, /workspace:\n\s+name: Workspace contract\n\s+runs-on:/)
   assert.match(ci, /name: twitter-mf-dist/)
   assert.match(ci, /name: twitter-mf-preview-release/)
-  assert.match(ci, /verify-twitter-mf-distribution\.mjs preview-release/)
-  assert.match(ci, /verify-twitter-mf-distribution\.mjs inspect-local/)
+  assert.match(ci, /verify-native-extension-distribution\.mjs preview-release/)
+  assert.match(ci, /verify-native-extension-distribution\.mjs inspect-local/)
   assert.doesNotMatch(ci, /INKCRE_EXTENSION_REGISTRY_TOKEN/)
 
   assert.match(delivery, /workflow_run:\n\s+workflows:\n\s+- Client checks/)
@@ -296,28 +321,35 @@ test('retains exact-main checked-artifact governance without generic target deli
   assert.match(delivery, /run\.event !== 'push'/)
   assert.match(delivery, /run\.head_branch !== 'main'/)
   assert.match(delivery, /currentMain\.data\.object\.sha !== run\.head_sha/)
-  assert.match(delivery, /name: twitter-mf-dist/)
+  assert.doesNotMatch(delivery, /name: twitter-mf-dist/)
   assert.match(delivery, /run-id: \$\{\{ needs\.identity\.outputs\.run_id \}\}/)
-  assert.match(delivery, /new package\.json version/)
-  assert.match(delivery, /Recovering missing native Twitter association/)
-  assert.match(delivery, /release\.module_federation !== null/)
-  assert.match(delivery, /Cannot determine native Release recovery state/)
-  assert.match(delivery, /verify-twitter-mf-distribution\.mjs prepare-body/)
-  assert.match(
-    delivery,
-    /--source-repository "https:\/\/github\.com\/\$\{\{ github\.repository \}\}"/
-  )
-  assert.match(delivery, /--source-revision "\$\{\{ needs\.identity\.outputs\.source_sha \}\}"/)
-  assert.match(
-    delivery,
-    /--build-id "client-web-mf-build-\$\{\{ needs\.identity\.outputs\.run_id \}\}"/
-  )
-  assert.match(delivery, /--form 'content=@\.twitter-mf-delivery\/snapshot\.zip/)
-  assert.match(delivery, /\/module-federation"/)
-  assert.match(delivery, /\/publish"/)
-  assert.match(delivery, /verify-twitter-mf-distribution\.mjs verify-public/)
-  assert.match(delivery, /INKCRE_EXTENSION_REGISTRY_TOKEN/)
-  assert.doesNotMatch(delivery, /target-publish|build-target|publish-target|target_digest/)
+  assert.doesNotMatch(delivery, /INKCRE_EXTENSION_REGISTRY_TOKEN/)
+  assert.doesNotMatch(delivery, /verify-native-extension-distribution\.mjs prepare-body/)
+  assert.doesNotMatch(delivery, /module-federation/)
+
+  assert.match(release, /push:\n\s+branches:\n\s+- main/)
+  assert.doesNotMatch(release, /workflow_run:/)
+  assert.doesNotMatch(release, /download-artifact/)
+  assert.match(release, /changesets\/action@198f833dd7d863100ea6e28967bc9a9fdefadb0a/)
+  assert.match(release, /github-token: \$\{\{ secrets\.GITHUB_TOKEN \}\}/)
+  assert.match(release, /version-script: pnpm release:version/)
+  assert.match(release, /pr-title: 'chore\(extensions\): version pending releases'/)
+  assert.match(release, /create-github-releases: false/)
+  assert.match(release, /push-git-tags: false/)
+  assert.match(release, /needs\.reconcile\.outputs\.has_changesets == 'false'/)
+  assert.match(release, /pnpm --filter '\.\/extensions\/\*' build/)
+  assert.match(release, /pnpm --filter @inkcre\/core build/)
+  assert.match(release, /for package_path in extensions\/\*\/package\.json/)
+  assert.match(release, /manifest\.inkcre\?\.module_federation/)
+  assert.match(release, /verify-native-extension-distribution\.mjs prepare-body/)
+  assert.match(release, /SOURCE_REPOSITORY: https:\/\/github\.com\/\$\{\{ github\.repository \}\}/)
+  assert.match(release, /SOURCE_REVISION: \$\{\{ github\.sha \}\}/)
+  assert.match(release, /--build-id "client-web-extension-release-\$\{GITHUB_RUN_ID\}"/)
+  assert.match(release, /--form "content=@\$delivery_directory\/snapshot\.zip/)
+  assert.match(release, /\/module-federation"/)
+  assert.match(release, /\/publish"/)
+  assert.match(release, /verify-native-extension-distribution\.mjs verify-public/)
+  assert.match(release, /INKCRE_EXTENSION_REGISTRY_TOKEN/)
   assert.doesNotMatch(preview, /workflow_run\.conclusion == 'success'/)
   assert.match(preview, /job\.name === 'Workspace contract'/)
   assert.match(preview, /workspace\.conclusion !== 'success'/)
@@ -328,7 +360,5 @@ test('retains exact-main checked-artifact governance without generic target deli
   assert.match(preview, /--public-origin https:\/\/preview-client-web-pr-/)
   assert.doesNotMatch(preview, /INKCRE_EXTENSION_REGISTRY_TOKEN/)
 
-  const nativePublish = delivery.indexOf('Prepare the exact native Twitter Release')
-  const pagesDeploy = delivery.indexOf('Deploy to Cloudflare Pages')
-  assert.ok(nativePublish >= 0 && nativePublish < pagesDeploy)
+  assert.doesNotMatch(release, /pages deploy/)
 })

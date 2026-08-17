@@ -208,14 +208,14 @@ jobs:
 
       - name: Validate the native Twitter Module Federation snapshot
         run: >-
-          node scripts/verify-twitter-mf-distribution.mjs inspect-local
+          node scripts/verify-native-extension-distribution.mjs inspect-local
           --package extensions/twitter/package.json
           --core-package packages/core/package.json
           --artifact-directory extensions/twitter/dist/client-web
 
       - name: Build the read-only Twitter preview Release
         run: >-
-          node scripts/verify-twitter-mf-distribution.mjs preview-release
+          node scripts/verify-native-extension-distribution.mjs preview-release
           --package extensions/twitter/package.json
           --core-package packages/core/package.json
           --artifact-directory extensions/twitter/dist/client-web
