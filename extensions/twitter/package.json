@@ -1,6 +1,6 @@
 {
   "name": "@inkcre/ext-twitter",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -36,7 +36,7 @@
     "nickname": "Twitter",
     "module_federation": {
       "host_sdk": "@inkcre/core",
-      "host_sdk_version": ">=0.1.1 <0.2.0"
+      "host_sdk_version": ">=0.1.2 <0.2.0"
     }
   }
 }

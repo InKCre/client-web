@@ -20,7 +20,7 @@
       display: flex;
       align-items: center;
       gap: 0.4rem;
-      color: #6b7280;
+      color: sys-var(color, text, muted);
       font-size: 0.8rem;
     }
 
@@ -35,7 +35,7 @@
 
     .is-current,
     .is-complete {
-      color: #2563eb;
+      color: sys-var(color, info, base);
       font-weight: 600;
     }
   }
@@ -58,20 +58,36 @@
     }
   }
 
+  &__section,
+  &__empty {
+    display: grid;
+    gap: sys-var(space, sm);
+    padding: sys-var(space, md);
+    border: 1px solid sys-var(color, border, base);
+    background: sys-var(color, surface, subtle);
+
+    h4,
+    p {
+      margin: 0;
+    }
+  }
+
+  &__hint {
+    color: sys-var(color, text, subtle);
+  }
+
   &__field,
   &__schedule label {
     display: grid;
     gap: 0.35rem;
   }
 
-  select,
-  input {
+  &__field input {
     min-height: 2.5rem;
-    padding: 0.5rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.35rem;
-    background: transparent;
-    color: inherit;
+    padding: sys-var(space, sm);
+    border: 1px solid sys-var(color, border, base);
+    background: sys-var(color, surface, base);
+    color: sys-var(color, text, base);
   }
 
   &__schedule,
@@ -94,7 +110,7 @@
 
   &__error {
     margin: 0;
-    color: #b91c1c;
+    color: sys-var(color, danger, base);
   }
 
   dl {
