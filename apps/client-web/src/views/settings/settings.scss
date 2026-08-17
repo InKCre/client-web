@@ -25,7 +25,8 @@
   }
 
   &__secret,
-  &__locale {
+  &__locale,
+  &__identity {
     display: flex;
     flex-direction: column;
     gap: sys-var('space', 'xs');
@@ -41,6 +42,10 @@
     small {
       color: sys-var('color', 'text', 'muted');
     }
+  }
+
+  &__identity code {
+    overflow-wrap: anywhere;
   }
 
   &__actions {

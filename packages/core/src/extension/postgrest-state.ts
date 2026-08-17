@@ -2,6 +2,9 @@ import { APIError, DBAPIClient } from '../base'
 import { InstalledExtensionSchema, type InstalledExtension } from './model'
 import type { ExtensionStatePort } from './state'
 
+const EXTENSION_MANAGEMENT_PROJECTION =
+  'name,version,enabled,nickname,config,config_schema' as const
+
 export class ExtensionStatePersistenceError extends Error {
   constructor(operation: string, cause?: unknown) {
     super(
@@ -16,13 +19,20 @@ export class PostgrestExtensionStatePort implements ExtensionStatePort {
   private readonly dbApi = new DBAPIClient<'extensions'>('extensions')
 
   async list(): Promise<InstalledExtension[]> {
-    const response = await this.dbApi.from().select().order('name', { ascending: true })
+    const response = await this.dbApi
+      .from()
+      .select(EXTENSION_MANAGEMENT_PROJECTION)
+      .order('name', { ascending: true })
     assertSuccess(response, 'list')
     return InstalledExtensionSchema.array().parse(response.data ?? [])
   }
 
   async get(name: string): Promise<InstalledExtension | null> {
-    const response = await this.dbApi.from().select().eq('name', name).maybeSingle()
+    const response = await this.dbApi
+      .from()
+      .select(EXTENSION_MANAGEMENT_PROJECTION)
+      .eq('name', name)
+      .maybeSingle()
     assertSuccess(response, 'read')
     return response.data === null ? null : InstalledExtensionSchema.parse(response.data)
   }
@@ -48,14 +58,18 @@ export class PostgrestExtensionStatePort implements ExtensionStatePort {
         config: exact.config,
         config_schema: exact.config_schema,
       })
-      .select()
+      .select(EXTENSION_MANAGEMENT_PROJECTION)
       .single()
     assertSuccess(response, 'install')
     return InstalledExtensionSchema.parse(response.data)
   }
 
   async updateConfig(name: string, config: Record<string, unknown>): Promise<InstalledExtension> {
-    const response = await this.dbApi.update({ config }).eq('name', name).select().single()
+    const response = await this.dbApi
+      .update({ config })
+      .eq('name', name)
+      .select(EXTENSION_MANAGEMENT_PROJECTION)
+      .single()
     assertSuccess(response, 'update config')
     return InstalledExtensionSchema.parse(response.data)
   }
@@ -69,7 +83,7 @@ export class PostgrestExtensionStatePort implements ExtensionStatePort {
       .update({ version, nickname, config_schema: null })
       .eq('name', name)
       .filter('enabled', 'eq', '{}')
-      .select()
+      .select(EXTENSION_MANAGEMENT_PROJECTION)
       .maybeSingle()
     assertSuccess(response, 'change version')
     if (response.data === null) {
@@ -86,11 +100,13 @@ export class PostgrestExtensionStatePort implements ExtensionStatePort {
     peerId: string,
     enabled: boolean
   ): Promise<InstalledExtension> {
-    const response = await this.dbApi.rpc('set_extension_peer_enabled', {
-      p_name: name,
-      p_peer_id: peerId,
-      p_enabled: enabled,
-    })
+    const response = await this.dbApi
+      .rpc('set_extension_peer_enabled', {
+        p_name: name,
+        p_peer_id: peerId,
+        p_enabled: enabled,
+      })
+      .select(EXTENSION_MANAGEMENT_PROJECTION)
     assertSuccess(response, enabled ? 'enable Peer' : 'disable Peer')
     const rows = InstalledExtensionSchema.array().parse(response.data ?? [])
     const updated = rows[0]

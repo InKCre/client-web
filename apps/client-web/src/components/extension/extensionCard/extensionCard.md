@@ -5,11 +5,12 @@ A component that displays extension information and provides controls for toggli
 ## Props
 
 - `extension` (InstalledExtension, required): the canonical installed row
-- `enabled` (boolean, required): whether the current Web Peer UUID is in `enabled[]`
+- `enabled` (boolean, required): whether the selected Client's Peer UUID is in `enabled[]`
+- `controlsCurrentWebRuntime` (boolean, required): whether the switch owns this browser's runtime
+- `setEnabled` (function, required): application-level selected-Client control operation
 
 ## Emits
 
-- `changed`: Emitted after current-Peer enablement changes and the list should be refreshed
 - `updated`: Emitted with the canonical row after configuration or version changes
 - `uninstalled`: Emitted after the canonical row is removed
 
@@ -17,6 +18,8 @@ A component that displays extension information and provides controls for toggli
 
 - Display canonical Extension Name, exact version, and optional nickname
 - Toggle enable/disable status with a switch
+- Mount an Extension-owned setup contribution from this browser's running Web Distribution
+- Keep setup availability independent of which Client is selected for enablement control
 - Edit extension configuration via JSON editor in a dialog
 - Change the exact shared version only while every Peer is disabled
 - Auto-formats configuration as JSON for easier editing

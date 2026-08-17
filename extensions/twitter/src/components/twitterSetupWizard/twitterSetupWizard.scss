@@ -1,0 +1,124 @@
+.twitter-setup {
+  display: grid;
+  gap: 1.25rem;
+  width: min(680px, 80vw);
+
+  &__toolbar {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  &__steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: #6b7280;
+      font-size: 0.8rem;
+    }
+
+    span {
+      display: inline-grid;
+      place-items: center;
+      width: 1.5rem;
+      height: 1.5rem;
+      border: 1px solid currentcolor;
+      border-radius: 50%;
+    }
+
+    .is-current,
+    .is-complete {
+      color: #2563eb;
+      font-weight: 600;
+    }
+  }
+
+  &__panel {
+    display: grid;
+    gap: 1rem;
+
+    h3,
+    p {
+      margin: 0;
+    }
+
+    code {
+      display: block;
+      margin-top: 0.5rem;
+      padding: 0.6rem;
+      overflow-wrap: anywhere;
+      background: rgb(0 0 0 / 5%);
+    }
+  }
+
+  &__field,
+  &__schedule label {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  select,
+  input {
+    min-height: 2.5rem;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.35rem;
+    background: transparent;
+    color: inherit;
+  }
+
+  &__schedule,
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  &__oauth-link {
+    width: fit-content;
+    font-weight: 600;
+  }
+
+  &__loading {
+    display: flex;
+    justify-content: center;
+    min-height: 10rem;
+  }
+
+  &__error {
+    margin: 0;
+    color: #b91c1c;
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.5rem 1rem;
+    margin: 0;
+  }
+
+  dt {
+    font-weight: 600;
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .twitter-setup {
+    width: min(88vw, 680px);
+
+    &__steps {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+}

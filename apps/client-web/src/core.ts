@@ -7,6 +7,7 @@
 
 import {
   configStore,
+  ExtensionRegistryOriginResolver,
   getMFImplementation,
   localStorageAdapter,
   PostgrestExtensionStatePort,
@@ -23,6 +24,7 @@ import {
   HtmlResolver,
   ZipResolver,
   PeerManager,
+  WebPeerRuntime,
   JobManager,
   WebExtensionHost,
   type ExtensionStatePort,
@@ -79,13 +81,19 @@ export function setupResolvers(): void {
 // ============================================================================
 
 let extensionHost: WebExtensionHost | null = null
+let extensionHostStartup: Promise<void> | null = null
+let extensionState: ExtensionStatePort | null = null
+let webPeerRuntime: WebPeerRuntime | null = null
 
 export function initializeExtensionHost(state: ExtensionStatePort): WebExtensionHost {
+  extensionHostStartup = null
+  extensionState = state
+  const registryOrigin = new ExtensionRegistryOriginResolver(
+    () => configStore.peerConfig.extension_registry_url
+  )
   extensionHost = new WebExtensionHost({
     state,
-    releases: new RegistryExtensionReleaseReader(
-      () => configStore.peerConfig.extension_registry_url
-    ),
+    releases: new RegistryExtensionReleaseReader(() => registryOrigin.resolve()),
     moduleFederation: getMFImplementation,
     currentPeerId: () => configStore.metaConfig.INKCRE_PEER_ID,
     hostSdkVersion: corePackageJson.version,
@@ -93,11 +101,51 @@ export function initializeExtensionHost(state: ExtensionStatePort): WebExtension
   return extensionHost
 }
 
+export function getExtensionState(): ExtensionStatePort {
+  if (!extensionState) throw new Error('Web Extension state port has not been initialized.')
+  return extensionState
+}
+
+/** Share one initial runtime restore across the app shell and management view. */
+export function startExtensionHost(): Promise<void> {
+  if (extensionHostStartup) return extensionHostStartup
+  const startup = getExtensionHost().startup()
+  extensionHostStartup = startup.catch((error: unknown) => {
+    extensionHostStartup = null
+    throw error
+  })
+  return extensionHostStartup
+}
+
 export function getExtensionHost(): WebExtensionHost {
   if (!extensionHost) {
     throw new Error('Web Extension Host state port has not been initialized.')
   }
   return extensionHost
+}
+
+/** Replace the browser-owned lease runtime after a validated Settings cutover. */
+export function adoptWebPeerRuntime(runtime: WebPeerRuntime): void {
+  webPeerRuntime?.stop()
+  webPeerRuntime = runtime
+}
+
+export function stopWebPeerRuntime(): void {
+  webPeerRuntime?.stop()
+  webPeerRuntime = null
+}
+
+/** Start the lease after Settings has mounted and loaded recovery configuration. */
+export async function startConfiguredWebPeerRuntime(): Promise<void> {
+  if (!configStore.metaConfig.INKCRE_PGREST_URL || !configStore.metaConfig.INKCRE_JWT_SECRET) return
+  const candidate = new WebPeerRuntime(configStore.metaConfig.INKCRE_PEER_ID)
+  try {
+    await candidate.start()
+    adoptWebPeerRuntime(candidate)
+  } catch (error) {
+    candidate.stop()
+    throw error
+  }
 }
 
 // ============================================================================
@@ -196,17 +244,34 @@ export function shouldLoadPeerConfigAtBootstrap(pathname: string): boolean {
 
 export async function initializeCore(options: { loadPeerConfig?: boolean } = {}): Promise<void> {
   await configStore.initializeMeta(localStorageAdapter)
-  if (options.loadPeerConfig ?? true) {
-    await configStore.loadPeerConfig()
+  await configStore.saveMeta()
+  const requirePeerConnection = options.loadPeerConfig ?? true
+  if (
+    requirePeerConnection &&
+    configStore.metaConfig.INKCRE_PGREST_URL &&
+    configStore.metaConfig.INKCRE_JWT_SECRET
+  ) {
+    const candidate = new WebPeerRuntime(configStore.metaConfig.INKCRE_PEER_ID)
+    try {
+      await candidate.register()
+      await configStore.loadPeerConfig()
+      await candidate.start()
+      adoptWebPeerRuntime(candidate)
+    } catch (error) {
+      candidate.stop()
+      throw error
+    }
   }
   PeerManager.setupBuiltinOutbounds()
   JobManager.startWorker()
   setupResolvers()
   initializeModuleFederation()
   initializeExtensionHost(new PostgrestExtensionStatePort())
+  if (webPeerRuntime) await webPeerRuntime.start()
   console.log('[Core] Initialization complete')
 }
 
 export function shutdownCore(): void {
+  stopWebPeerRuntime()
   JobManager.stopWorker()
 }
