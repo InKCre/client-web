@@ -1,108 +1,29 @@
-# @inkcre/core AGENTS.md
+# @inkcre/core
 
-Shared logic package for InKCre applications and extensions.
+Shared models, Peer protocols, storage/resolver mechanics, and native Extension Host contracts.
 
-## Exports Overview
+## Owners
 
-- `auth` - Authentication store
-- `base` - DBAPIClient, APIError
-- `config` - Configuration adapters & schema
-- `database` - Supabase-generated relation types and environment-neutral peer protocol/JWT contract
-- `extension` - Native Web Extension Host, semantic state port, Module Federation lifecycle
-- `info-base` - Block, Relation, Storage, Resolvers
-- `organization` - Organization capability facade
-- `obsrv` - Observability (Log)
-- `peer` - Peer Active Record, discovery, protocols, and exact capability delegation
-- `semantic-retrieval` - Semantic retrieval capability facade
-- `sink/graph` - Graph layouts & algorithms
-- `source` - Source and Source runtime integration
-- `job` / `cron` - global asynchronous work and schedule models
-- `utils` - Vue prop helpers
+- Package role and cross-package flows: `../../ARCHITECTURE.md`.
+- Client runtime and delegation: `../../docs/30-unit-tdd/client-runtime-and-delegation.md`.
+- Info-Base hydration, storage, Resolver outcomes, and browser handles: `../../docs/30-unit-tdd/info-base.md`.
+- Native Extension Host and lifecycle: `../../docs/30-unit-tdd/native-extension-runtime.md`.
+- Shared cross-unit contracts: `../../docs/_shared/20-product-tdd/`.
 
-## Key Patterns
+## Local Hazards
 
-### ActiveRecord Pattern
+- Keep one domain model and request/response authority. UI consumers import core contracts instead of reconstructing parallel shapes.
+- Keep Peer transport generic and capability managers domain-specific. Never retry ambiguous dispatch or silently substitute a different exact target.
+- Preserve exact, versioned Resolver IDs and the distinction between unknown, unsupported, supported-null, and authored-empty outcomes.
+- Treat storage content as opaque bytes/pointers; Resolver semantics and browser runtime handles remain separate.
+- `database.generated.ts` is generated from core-py's admitted schema artifact; `generated.ts` and runtime-contract adapters are the stable local boundary. Do not hand-edit generated projections.
+- Keep runtime source and ESM distribution free of environment profiles, service origins, Peer identity, and credentials. Do not add CommonJS without a named consumer and explicit contract change.
+- Preserve Extension lifecycle compensation across `initialize`, `activate`, `deactivate`, and `dispose`.
 
-Zod schema + TypeScript class + DB API client:
+## Checks
 
-```typescript
-// Schema defines shape
-const SourceSchema = z.object({ ... })
-// Class provides methods
-class Source extends ZodClass { static api = DBAPIClient }
-```
-
-### Coupled with Vue
-
-Make use of Vue reactivity thorughout-ly.
-
-### Web Extension Host Contract
-
-- `InstalledExtension` is the one deployment row: canonical Name, exact version, `enabled` Peer
-  UUIDs, Nickname, config, and config schema.
-- `WebExtensionHost` depends on `ExtensionStatePort`, never generated database/table types.
-- `PostgrestExtensionStatePort` owns transport details and uses the atomic
-  `set_extension_peer_enabled` database operation.
-- The Host checks the exact Release's `@inkcre/core` range before registering its Registry-hosted
-  native manifest URL with Module Federation.
-- Preserve `initialize`, `activate`, `deactivate`, and `dispose`, including durable-state failure
-  compensation.
-
-### Info-Base Content Contract
-
-- `Block.content` is inline text when `storage === null`; otherwise it is an opaque pointer.
-- Consumers call `Block.getHydratedContent({ refresh })` and receive `string | Uint8Array`.
-  The non-enumerable cache belongs to that block instance and never replaces the persisted
-  pointer.
-- Storage handlers own pointer/byte mechanics only. `http` is bounded read-only bytes;
-  `postgresql_binary` provides peer-local byte C/R/U/D through PostgREST.
-- Resolver selection is exact. The nine shared `core.<kind>.v1` IDs are registered explicitly;
-  unknown ID, unsupported capability, supported-null, and authored-empty remain distinct.
-- `refresh` replaces a local snapshot; `materializeMissing` only permits an absent derivation.
-  Do not add `force` or `reload` aliases.
-- Object URLs and browser handles are resolver-private runtime state and must be revoked on
-  refresh, dispose, and cache eviction.
-
-## Directory Structure
-
-```
-src/
-├── auth/           # Authentication
-├── base/           # API clients
-├── config/         # Configuration
-├── extension/      # Extensions
-├── info-base/      # Block, Relation, Storage, Resolver
-├── libs/           # Third-party (AI)
-├── obsrv/          # Logging
-├── organization/   # Organization capability facade
-├── peer/           # Peer discovery and delegation
-├── semantic-retrieval/ # Semantic retrieval capability facade
-├── sink/           # Output (graph layouts)
-├── source/         # Data collection
-├── utils/          # Prop helpers
-└── index.ts        # Exports
-```
-
-## Commands
-
-```bash
-pnpm build        # Build ESM output and declarations with tsdown
-pnpm type-check   # Required TypeScript 5.9 check
-```
-
-Run `pnpm format`, `pnpm lint`, `pnpm lint:type-aware`, and `pnpm type-check:ts7` from the
-repository root.
-
-## Source and Distribution Contract
-
-- Package consumers resolve `dist/index.js` and `dist/index.d.ts`.
-- Monorepo Vite and WXT applications alias `@inkcre/core` to `src/index.ts` for source-first
-  development.
-- The package is ESM-only. Do not add a CommonJS export without a named consumer and an explicit
-  contract change.
-- Shipped core runtime source and output must not contain an environment profile, service origin,
-  or Peer identity. `database.generated.ts` is owned by pinned Supabase CLI type generation from
-  core-py's raw schema artifact. `generated.ts` is the stable type adapter.
-  `runtime-contract.generated.json` is the client compatibility projection, while image provenance
-  remains CI and runtime evidence. `runtime-contract.ts` projects only protocol and JWT claim
-  metadata; tests may use explicit non-production fixtures.
+- `pnpm --filter @inkcre/core type-check`
+- `pnpm --filter @inkcre/core build`
+- `pnpm lint:type-aware`
+- `pnpm type-check:ts7`
+- `pnpm check`

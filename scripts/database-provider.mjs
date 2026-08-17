@@ -33,17 +33,16 @@ function optionalJson(path) {
   return JSON.parse(readFileSync(path, 'utf8'))
 }
 
-function provisionEnvironment(config, profile) {
-  return config.dev?.profiles?.[profile]?.targets?.database?.provision?.env ?? {}
+function provisionEnvironment(config) {
+  return config.dev?.targets?.database?.provision?.env ?? {}
 }
 
 function declaredProviderEnvironment() {
   const base = optionalJson(baseConfigFile)
   const local = optionalJson(localConfigFile)
-  const profile = local.dev?.profile ?? base.dev?.profile
   return {
-    ...provisionEnvironment(base, profile),
-    ...provisionEnvironment(local, profile),
+    ...provisionEnvironment(base),
+    ...provisionEnvironment(local),
   }
 }
 

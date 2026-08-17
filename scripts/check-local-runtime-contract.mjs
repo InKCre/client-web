@@ -189,9 +189,9 @@ for (const legacyExport of ['httpAdapter', 'envAdapter', 'createEnvAdapter']) {
   }
 }
 
-const localTargets = svcConfig.dev?.profiles?.local?.targets
-if (svcConfig.dev?.profile !== 'local' || !localTargets) {
-  errors.push('svc.json must declare the local development profile')
+const localTargets = svcConfig.dev?.targets
+if (!localTargets) {
+  errors.push('svc.json must declare development targets')
 } else {
   const expectedTargets = {
     database: {
@@ -300,7 +300,7 @@ for (const required of [
     errors.push(`external database attachment is missing safety contract "${required}"`)
   }
 }
-const committedDatabaseEnvironment = svcConfig.dev.profiles.local.targets.database.provision.env
+const committedDatabaseEnvironment = svcConfig.dev.targets.database.provision.env
 if (
   committedDatabaseEnvironment?.INKCRE_DATABASE_SSH_TARGET ||
   committedDatabaseEnvironment?.INKCRE_DATABASE_SSH_DOCKER_BIN ||

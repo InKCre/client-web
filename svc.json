@@ -1,91 +1,86 @@
 {
-  "schema_version": 2,
-  "svc_version": "10.0.1",
+  "corpus_version": "14.0.0",
   "dev": {
-    "profile": "local",
-    "profiles": {
-      "local": {
-        "targets": {
-          "database": {
-            "scope": "worktree",
-            "probe": {
-              "kind": "exec",
-              "argv": ["node", "scripts/probe-database.mjs", "${dev.instance}"],
-              "cwd": ".",
-              "timeout": 5,
-              "output_limit": 2048
-            },
-            "provision": {
-              "kind": "exec",
-              "mode": "run",
-              "argv": ["node", "scripts/database-runtime.mjs", "ensure", "${dev.instance}"],
-              "cwd": ".",
-              "env": {
-                "INKCRE_DATABASE_PROVIDER": "local"
-              }
-            },
-            "readiness_timeout": 180,
-            "poll_interval": 1
+    "targets": {
+      "database": {
+        "poll_interval": 1,
+        "probe": {
+          "argv": ["node", "scripts/probe-database.mjs", "${dev.instance}"],
+          "cwd": ".",
+          "kind": "exec",
+          "output_limit": 2048,
+          "timeout": 5
+        },
+        "provision": {
+          "argv": ["node", "scripts/database-runtime.mjs", "ensure", "${dev.instance}"],
+          "cwd": ".",
+          "env": {
+            "INKCRE_DATABASE_PROVIDER": "local"
           },
-          "web": {
-            "scope": "worktree",
-            "probe": {
-              "kind": "exec",
-              "argv": ["node", "scripts/probe-dev.mjs", "web", "${dev.instance}"],
-              "cwd": ".",
-              "timeout": 5,
-              "output_limit": 1024
-            },
-            "provision": {
-              "kind": "exec",
-              "mode": "run",
-              "argv": ["node", "scripts/dev.mjs", "web"],
-              "cwd": "."
-            },
-            "access": ["https://client-web-${dev.instance}.localhost/"],
-            "readiness_timeout": 90,
-            "poll_interval": 0.5
-          },
-          "web-ui": {
-            "scope": "worktree",
-            "probe": {
-              "kind": "exec",
-              "argv": ["node", "scripts/probe-dev.mjs", "web-ui", "${dev.instance}"],
-              "cwd": ".",
-              "timeout": 5,
-              "output_limit": 1024
-            },
-            "provision": {
-              "kind": "exec",
-              "mode": "run",
-              "argv": ["node", "scripts/dev.mjs", "web-ui"],
-              "cwd": "."
-            },
-            "access": ["https://client-web-ui-${dev.instance}.localhost/"],
-            "readiness_timeout": 90,
-            "poll_interval": 0.5
-          },
-          "webext": {
-            "scope": "worktree",
-            "probe": {
-              "kind": "exec",
-              "argv": ["node", "scripts/probe-dev.mjs", "webext", "${dev.instance}"],
-              "cwd": ".",
-              "timeout": 5,
-              "output_limit": 1024
-            },
-            "provision": {
-              "kind": "exec",
-              "mode": "run",
-              "argv": ["node", "scripts/dev.mjs", "webext"],
-              "cwd": "."
-            },
-            "access": ["https://webext-${dev.instance}.localhost/popup.html"],
-            "readiness_timeout": 120,
-            "poll_interval": 0.5
-          }
-        }
+          "kind": "exec",
+          "mode": "run"
+        },
+        "readiness_timeout": 180,
+        "scope": "worktree"
+      },
+      "web": {
+        "access": ["https://client-web-${dev.instance}.localhost/"],
+        "poll_interval": 0.5,
+        "probe": {
+          "argv": ["node", "scripts/probe-dev.mjs", "web", "${dev.instance}"],
+          "cwd": ".",
+          "kind": "exec",
+          "output_limit": 1024,
+          "timeout": 5
+        },
+        "provision": {
+          "argv": ["node", "scripts/dev.mjs", "web"],
+          "cwd": ".",
+          "kind": "exec",
+          "mode": "run"
+        },
+        "readiness_timeout": 90,
+        "scope": "worktree"
+      },
+      "web-ui": {
+        "access": ["https://client-web-ui-${dev.instance}.localhost/"],
+        "poll_interval": 0.5,
+        "probe": {
+          "argv": ["node", "scripts/probe-dev.mjs", "web-ui", "${dev.instance}"],
+          "cwd": ".",
+          "kind": "exec",
+          "output_limit": 1024,
+          "timeout": 5
+        },
+        "provision": {
+          "argv": ["node", "scripts/dev.mjs", "web-ui"],
+          "cwd": ".",
+          "kind": "exec",
+          "mode": "run"
+        },
+        "readiness_timeout": 90,
+        "scope": "worktree"
+      },
+      "webext": {
+        "access": ["https://webext-${dev.instance}.localhost/popup.html"],
+        "poll_interval": 0.5,
+        "probe": {
+          "argv": ["node", "scripts/probe-dev.mjs", "webext", "${dev.instance}"],
+          "cwd": ".",
+          "kind": "exec",
+          "output_limit": 1024,
+          "timeout": 5
+        },
+        "provision": {
+          "argv": ["node", "scripts/dev.mjs", "webext"],
+          "cwd": ".",
+          "kind": "exec",
+          "mode": "run"
+        },
+        "readiness_timeout": 120,
+        "scope": "worktree"
       }
     }
-  }
+  },
+  "schema_version": 3
 }

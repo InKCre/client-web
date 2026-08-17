@@ -1,136 +1,38 @@
-# Filesystem Structure
+# Filesystem
 
-## Root
+## Repository Roots
 
-```
-.
-├── .agents/              # AI agent prompts and assets
-│   ├── prompts/          # Reusable prompt templates
-│   └── skills/
-│       └── svc/          # Generated SVC CLI operating skill
-├── .github/
-│   ├── agents/           # GitHub Copilot agent definitions
-│   ├── instructions/     # Copilot instructions by context
-│   └── workflows/        # CI/CD workflows
-├── apps/
-│   ├── client-web/       # Main web application
-│   └── client-webext/    # Browser extension
-├── contracts/
-│   └── core-release.json # Stable upstream channel plus digest-pinned supporting images
-├── docs/
-│   ├── index.md          # Local documentation and SVC navigation
-│   ├── _shared/          # Read-only InKCre/docs Hub submodule
-│   └── ...               # Local architecture notes and historical plans
-├── extensions/           # Module Federation remotes
-├── packages/
-│   ├── core/             # Shared logic package
-│   └── ext-dev-utils/    # Extension dev utilities
-├── runtime/
-│   └── database.compose.yml # Portable local/SSH database topology
-├── scripts/              # Release resolver, schema typegen, providers, launchers, and cleanup
-├── tasks/                # Active agent-owned task packets
-├── .oxfmtrc.json         # Repository Oxfmt contract
-├── .oxlintrc.json        # Repository Oxlint contract
-├── AGENTS.md             # This repo's agent guide
-├── ARCHITECTURE.md       # System architecture
-├── FILESYSTEM.md         # This file
-└── svc.json              # Committed SVC adoption and dev-capability contract
-```
+- `.agents/` - Consumer-owned Agent prompts and shared-doc workflow bridge.
+- `.github/` - CI, release, deployment, and contextual coding instructions.
+- `apps/client-web/` - Static Vue application.
+- `apps/client-webext/` - WXT browser extension.
+- `contracts/` - Checked upstream release and compatibility inputs.
+- `docs/` - Local durable technical owners; `_shared/` is the read-only Hub reference.
+- `extensions/` - Independently versioned native Module Federation producers.
+- `packages/core/` - Shared models, protocols, storage/resolver mechanics, and Extension Host.
+- `packages/ext-dev-utils/` - Extension development utilities.
+- `runtime/` - Portable local and SSH database topology.
+- `scripts/` - Development orchestration, contract generation, verification, and release tooling.
+- `tasks/` - Active, disposable Task Packets.
 
-Ignored worktree-local state is partitioned by responsibility:
+## Primary Entrypoints
 
-```
-.runtime/
-├── database/<instance>/  # Runtime identity, Compose env, profile, and credentials
-├── dev/<instance>/       # Optional isolated Chromium profile
-└── ssh/<instance>        # OpenSSH control socket for the remote Docker provider
-```
+- `apps/client-web/src/main.ts` - Web bootstrap.
+- `apps/client-web/src/core.ts` - Core registration and initialization.
+- `apps/client-web/src/router.ts` - Web route authority.
+- `apps/client-webext/entrypoints/` - WXT-discovered extension surfaces.
+- `packages/core/src/index.ts` - Shared package exports.
+- `extensions/*/src/index.ts` - Host-consumed Extension exports.
+- `extensions/*/src/main.ts` - Local producer playgrounds.
+- `svc.json` - SVC Corpus baseline and portable development targets.
 
-The database files and SSH socket are mode-restricted and removed by the bounded stop path. WXT
-uses its isolated profile only when an explicit browser binary is configured.
+## Ignored Runtime State
 
-## packages/core/src/
+- `.runtime/database/<instance>/` - Database identity, Compose environment, and credentials.
+- `.runtime/dev/<instance>/` - Optional isolated Chromium profile.
+- `.runtime/ssh/<instance>/` - Instance-owned OpenSSH control socket.
+- `.runtime/ui-source/` - Ephemeral sibling UI type-check configuration.
+- `svc.local.json` - Machine-specific SVC development overlay.
+- `AGENTS.local.md` - Machine-local Agent guidance.
 
-```
-├── auth/           # Authentication store
-├── base/           # DBAPIClient, base utilities
-├── config/         # Configuration adapters & schema
-├── database/       # Supabase relation types plus stable database/runtime-contract adapters
-├── extension/      # Canonical Extension model/state port, Web Host, Module Federation
-├── info-base/      # Block, Relation, Storage, Resolvers
-├── libs/           # Third-party integrations (AI)
-├── obsrv/          # Observability (logging)
-├── organization/   # Organization capability entry points
-├── peer/           # Peer discovery, protocols, outbounds, and delegation
-├── semantic-retrieval/ # Semantic retrieval capability entry point
-├── sink/           # Output processing (graph layouts)
-├── source/         # Source, CollectJob, CollectAt
-├── utils/          # Vue prop helpers, utilities
-├── index.ts        # Package exports
-└── ../tsdown.config.ts # ESM library build and declaration contract
-```
-
-## apps/client-web/src/
-
-```
-├── components/     # Vue components by domain
-│   ├── common/     # Shared components
-│   ├── extension/  # Extension UI
-│   ├── info-base/  # Block, Relation, Graph
-│   ├── obsrv/      # Log viewer
-│   ├── peer/       # Technical Peer management (product UI says “client”)
-│   └── source/     # Source management
-├── composables/    # Vue composition functions
-├── locales/        # i18n translations
-├── static/         # Static assets
-├── storages/       # App-specific storage
-├── styles/         # Global SCSS
-├── utils/          # App utilities
-├── views/          # Route views
-├── App.vue         # Root component
-├── core.ts         # Core initialization
-├── main.ts         # Entry point
-└── router.ts       # Vue Router config
-```
-
-## apps/client-webext/
-
-```
-├── components/     # Shared Vue components
-├── composables/    # Composition functions
-├── entrypoints/    # WXT entry points
-│   ├── background.ts
-│   ├── content/
-│   ├── popup/
-│   ├── options/
-│   ├── sidepanel/
-│   ├── explain.sidepanel/
-│   └── taking-note.sidepanel/
-├── logic/          # Business logic
-├── styles/         # SCSS styles
-└── wxt.config.ts   # WXT configuration
-```
-
-## extensions/<id>/
-
-```
-├── src/
-│   ├── index.ts    # Federation module entry
-│   └── main.ts     # Dev playground entry
-├── package.json
-├── vite.config.ts  # Native Module Federation manifest config
-└── tsconfig.json
-```
-
-## Component File Convention
-
-Each component folder follows:
-
-```
-ComponentName/
-├── ComponentName.vue   # Component implementation
-├── ComponentName.ts    # Types/props
-├── ComponentName.scss  # Styles
-├── ComponentName.md    # Documentation (optional)
-└── ComponentName.spec.ts # Tests (optional)
-```
+The bounded stop path removes only resources owned by the current worktree. See `ARCHITECTURE.md` for responsibility boundaries and the nearest local `AGENTS.md` for subtree hazards.

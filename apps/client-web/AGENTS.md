@@ -1,61 +1,25 @@
-# Client-Web AGENTS.md
+# Client-Web
 
-Web client for InKCre - GUI for system management and visualization.
+Static Vue application and equal InKCre database Peer.
 
-## Tech Stack
+## Owners
 
-- Framework: Vue3 + TypeScript
-- Styling: SCSS + UnoCSS
-- UI Library: `@inkcre/ui-web`
-- Routing: vue-router
-- State: pinia
-- i18n: vue-i18n
-- Graphs: Vue Flow, D3, dagre
-- Runtime: static Vite SPA
-- Deploy target: Cloudflare Pages
+- Runtime, Peer delegation, configuration, and authentication: `../../docs/30-unit-tdd/client-runtime-and-delegation.md`.
+- Info-Base and Resolver contracts: `../../docs/30-unit-tdd/info-base.md`.
+- Native Extension Host: `../../docs/30-unit-tdd/native-extension-runtime.md`.
+- Local and sibling-UI development lanes: `../../docs/40-deployment/development-runtime.md`.
+- Component subtree hazards: `src/components/AGENTS.md`.
 
-## Business Domains
+## Local Hazards
 
-- source - Data collectors (input)
-- info-base - Graph: block, relation, storage, resolver
-- sink - Output/visualization
-- extension - Plugin system
-- peer - Technical Peer management; keep product-facing UI language as “client”
-- obsrv - Observability/logging
+- Keep deployable artifacts environment-neutral: no service origin, Peer identity, JWT secret, Worker runtime, or `/api/config` fallback.
+- Browser-owned settings are runtime authority. Keep the JWT signing secret masked, memory-only after use, absent from logs, and excluded from portable exports.
+- Use **Peer** in technical contracts; product-facing UI may say **client**.
+- Preserve exact capability delegation and typed unknown outcomes; do not replace them with a generic Core API path or automatic retry after ambiguous dispatch.
+- Start development through root commands so SVC and Portless preserve worktree identity. The sibling UI source lane is explicitly non-release evidence.
 
-## Directory Structure
+## Checks
 
-```
-src/
-├── components/<domain>/ # Vue components by domain
-├── composables/         # Composition functions
-├── locales/             # i18n
-├── views/<domain>/      # Route views
-├── storages/            # App storage
-├── styles/              # Global SCSS
-├── utils/               # Utilities
-├── core.ts              # Core initialization
-├── router.ts            # Routes
-└── main.ts              # Entry
-```
-
-## Runtime Contract
-
-- The application has no Hono/Worker runtime and no `/api/config` endpoint.
-- Bootstrap config is validated and persisted in this origin's localStorage.
-- A fresh origin has no environment default. Static output and source maps contain no InKCre
-  environment origin or Peer identity.
-- The user-supplied JWT signing credential is masked, never logged, and excluded from portable
-  config exports.
-- Start through the root `pnpm dev` command so SVC and Portless preserve worktree identity.
-- Use root `pnpm dev:ui --ui-source <package-root>` only for the opt-in sibling UI source loop.
-
-## Coding Guidelines
-
-- Search codebase before creating new types
-- [Write code for humans](/.agents/prompts/code-for-human.md)
-
-## Related Docs
-
-- [Development Guideline](./docs/development.md)
-- [Component AGENTS.md](./src/components/AGENTS.md)
+- `pnpm --filter @inkcre/client-web type-check`
+- `pnpm --filter @inkcre/client-web build`
+- `pnpm check`

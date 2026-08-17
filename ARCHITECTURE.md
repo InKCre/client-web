@@ -1,136 +1,61 @@
-# Architecture Overview
+# Repository Architecture
 
-## System Layers
+This monorepo implements three logical client-side units across shared packages, applications, and
+independently versioned Extension producers.
 
-```
-┌─────────────────────────────────────────────────────┐
-│                    Applications                      │
-│  ┌──────────────────┐  ┌─────────────────────────┐  │
-│  │  client-web      │  │  client-webext          │  │
-│  │  (Vue3 + Vite)   │  │  (WXT browser ext)      │  │
-│  └──────────────────┘  └─────────────────────────┘  │
-├─────────────────────────────────────────────────────┤
-│                   @inkcre/core                       │
-│  Models, APIs, Storage, Resolvers, Extensions       │
-├─────────────────────────────────────────────────────┤
-│                    Extensions                        │
-│  Module Federation remotes (e.g., twitter)          │
-├─────────────────────────────────────────────────────┤
-│                 Peer Transports                      │
-│  PostgreSQL/PostgREST protocol + core-py API        │
-└─────────────────────────────────────────────────────┘
+```text
+Vue web application -----------+
+WXT browser extension ---------+--> @inkcre/core --> Peer transports
+Module Federation producers ---+         |               |
+                                          +--> PostgREST/PostgreSQL
 ```
 
-## Core Patterns
+## Logical Units
 
-- BusinessClass (`core/src/`) - Zod schema + TS class + static API
-- Peer access (`core/src/base`, `core/src/peer`) - DBAPIClient for shared database facts plus
-  PeerManager for exact capability delegation
-- Web Extension Host (`core/src/extension`) - canonical state port, exact Registry Release
-  preflight, native Module Federation loading, and lifecycle compensation
-- Registry (`core/src/info-base/`) - Pluggable Storage & Resolver
-- Config (`core/src/config`) - environment-neutral schema plus runtime-owned browser or extension
-  storage
-- Database types (`core/src/database/database.generated.ts`) - Supabase CLI output generated from
-  core-py's neutral PostgreSQL schema artifact, behind a stable local type adapter
-- Peer runtime contract (`core/src/database/runtime-contract.generated.json`) - upstream protocol
-  and JWT metadata projected through a small environment-neutral adapter
+- [Client Runtime and Delegation](docs/30-unit-tdd/client-runtime-and-delegation.md) owns the
+  environment-neutral browser Peer, bootstrap/authentication authority, exact capability
+  delegation, and navigation hosts.
+- [Info-Base](docs/30-unit-tdd/info-base.md) owns graph models, hydration, byte storage, exact
+  Resolver semantics, browser handles, and rendering boundaries.
+- [Native Extension Runtime](docs/30-unit-tdd/native-extension-runtime.md) owns the Extension Host,
+  durable enabled intent, producer/Host compatibility, native Module Federation loading, and
+  compensated lifecycle.
 
-## Data Flow
+Shared product behavior and cross-unit contracts belong to the read-only
+[`docs/_shared/`](docs/_shared/) Hub reference. Package and application directories are realization
+locations, not Unit boundaries.
 
-1. Protocol read/write: Component → BusinessClass → DBAPIClient → PostgREST → PostgreSQL
-2. Delegated command: Component → domain manager → PeerManager → advertised inbound → provider's
-   non-delegating local implementation
-3. Extension: canonical enabled intent → exact Release/Host-range preflight → native manifest →
-   initialize/activate; disable reverses lifecycle before atomically removing Peer intent
-4. Content: Block.getHydratedContent() → exact Resolver → safe local handle/component → Render
+## Cross-Unit Flows
 
-## Package Responsibilities
+1. Database fact: Vue surface → domain model → `DBAPIClient` → PostgREST → PostgreSQL.
+2. Delegated command: domain manager → `PeerManager` → advertised protocol outbound → provider
+   inbound → non-delegating local implementation.
+3. Content: `Block.getHydratedContent()` → exact Resolver → solved value or safe browser handle →
+   registered renderer.
+4. Native Extension: durable enabled intent → exact Release and Host-range preflight → native
+   manifest → initialize/activate; disable reverses lifecycle before removing Peer intent.
 
-### @inkcre/core
+## Realization Surfaces
 
-- Domain models (Block, Relation, Source, Peer, Extension)
-- Shared-database access through DBAPIClient and exact capability routing through PeerManager
-- Native Web Extension Host, semantic deployment-state port, and Module Federation lifecycle
-- Storage & Resolver abstractions
-- Peer-local PostgreSQL binary C/R/U/D and bounded HTTP byte hydration
-- Exact `core.<kind>.v1` semantic resolver contracts and typed capability failures
-- Configuration management
-- Authentication store
-- ESM-only tsdown output with declarations and declaration maps
+- `packages/core/` - shared models, database access, Peer protocols, storage/Resolver mechanics,
+  configuration/authentication, and Extension Host.
+- `apps/client-web/` - Vue SPA, graph/list surfaces, settings, and static Vite artifact.
+- `apps/client-webext/` - WXT browser surfaces and content scripts.
+- `extensions/` - independently versioned native Module Federation producers.
+- `packages/ext-dev-utils/` - producer development support consumed by applications.
 
-### apps/client-web
+The package graph is ESM-first. Workspace Vite and WXT applications consume `@inkcre/core` source
+aliases, while external package consumers resolve its tsdown `dist` contract. Generated database
+types and runtime metadata project the admitted core-py contract through stable local adapters.
 
-- Vue3 SPA with routing
-- Graph visualization (Vue Flow)
-- UI components by domain
-- Static Vite output
-- Browser-local bootstrap configuration and JWT signing
-- Environment-neutral static artifact; no InKCre environment origin or Peer identity is compiled
-  in
-- No application Worker or runtime config endpoint
+## Runtime and Delivery
 
-### apps/client-webext
+- [Development Runtime](docs/40-deployment/development-runtime.md) owns SVC/Portless capabilities,
+  database providers, worktree ownership, and sibling-source lanes.
+- [Web Delivery](docs/40-deployment/web-delivery.md) owns checked static artifacts and Cloudflare
+  Pages preview/production.
+- [Native Extension Delivery](docs/40-deployment/native-extension-delivery.md) owns Changesets,
+  Registry publication, provenance, and release secret boundaries.
 
-- Browser extension (Chrome/Firefox)
-- Content scripts & sidepanels
-- AI-powered features (explain, notes)
-- WXT framework
-
-### extensions/*
-
-- Native Module Federation Remotes and producer association metadata
-- Custom resolvers & storages
-- Extend business logic
-
-## Tech Stack
-
-- Framework: Vue 3 (Composition API)
-- Build: Vite for applications/remotes, WXT for browser extensions, tsdown for `@inkcre/core`
-- Quality: Oxfmt and Oxlint at the repository root
-- Types: TypeScript 5.9 required, native TypeScript 7 shadow, Vue TSC, Zod
-- State: Pinia
-- Styling: SCSS, UnoCSS
-- Graphs: Vue Flow, D3, Graphology
-- Extensions: Module Federation
-- Deploy target: the static Vite artifact on Cloudflare Pages
-
-## Local Development Topology
-
-- Official SVC 10.0.1 resolves the current worktree identity and coordinates the declared `web`
-  `webext`, and `database` capabilities.
-- Portless maps each capability to an instance-specific HTTPS `.localhost` name while Vite and WXT
-  bind their assigned application ports to loopback.
-- Both servers expose an identity endpoint. The executable SVC probe discovers the registered
-  Portless route, connects through loopback, and accepts only the exact target/instance payload.
-- The optional `web-ui` capability consumes a validated sibling `@inkcre/ui-web` package root
-  through exact Vite/Vitest aliases. Its source identity participates in the readiness probe;
-  normal `web`, build, check, and CI remain registry-backed.
-- WXT keeps optional Chromium state under `.runtime/dev/<instance>` and never claims a fixed
-  debugging port or shared browser profile.
-- The database target uses one tracked Compose/runtime contract with two transports:
-  - `local` invokes the host Docker CLI and publishes collision-safe loopback ports;
-  - `ssh` sends a bounded Compose payload to one user-configured SSH alias, lets the remote engine
-    allocate loopback ports, and exposes them through an instance-owned OpenSSH control tunnel.
-- A new client-owned runtime resolves core-py's production-admitted `stable` channel once to an
-  immutable digest. Compose copies that image's raw schema bundle into an isolated volume, restores
-  it into fresh pgvector PostgreSQL, lets the same real core service reconcile runtime roles and
-  development data, then starts core-py and PostgREST against that database.
-- An optional `external` development attachment consumes one absolute, ignored core-py runtime
-  descriptor. It proves owner repository, database runtime instance, Compose project, Docker
-  daemon, contract revision, migration head, source fingerprint, and live endpoints before reuse.
-  Client-web remains a consumer and cannot reset, stop, or delete the core-py-owned volume/tunnel.
-- Provider selection and all SSH machine facts live in ignored `svc.local.json`; the committed
-  default remains portable local Docker.
-- Local/E2E launchers inject their isolated runtime into browser-owned state. The production and
-  preview artifacts remain byte-for-byte independent of any PostgREST/core-py instance.
-- PostgreSQL/PostgREST schema, migration, roles, seed, and reset semantics remain a
-  `core-py`-owned capability boundary.
-- Pull-request checks provide early evidence; the same workflow handles GitHub merge-group commits
-  and re-resolves `stable` immediately before final admission. There is no core/client PR linkage or
-  checked source/migration equality rule.
-- `client-web` remains an equivalent protocol peer: it hydrates inline/storage-backed blocks,
-  performs admitted PostgreSQL binary C/R/U/D through PostgREST, and resolves semantic content
-  locally. It does not call core-py merely to avoid implementing a peer capability.
-- Stopping a worktree removes only its Portless routes and client-owned database resources. An
-  external core-py runtime remains owned and reachable until core-py stops it.
+Executable configuration, scripts, tests, and workflows remain authoritative for exact commands
+and wire values.

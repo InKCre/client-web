@@ -66,8 +66,8 @@ record(
 const svcConfig = JSON.parse(await readFile(`${repoRoot}/svc.json`, 'utf8'))
 record(
   'svc-config',
-  svcConfig.schema_version === 2 && svcConfig.svc_version === '10.0.1' ? 'ok' : 'error',
-  `schema ${svcConfig.schema_version}, adopted ${svcConfig.svc_version}`
+  svcConfig.schema_version === 3 && svcConfig.corpus_version === '14.0.0' ? 'ok' : 'error',
+  `schema ${svcConfig.schema_version}, adopted ${svcConfig.corpus_version}`
 )
 record(
   'shared-docs',
@@ -75,11 +75,10 @@ record(
   'docs/_shared must be initialized'
 )
 
-const localTargets = svcConfig.dev?.profiles?.local?.targets
+const localTargets = svcConfig.dev?.targets
 record(
   'svc-dev-targets',
-  svcConfig.dev?.profile === 'local' &&
-    localTargets?.web?.scope === 'worktree' &&
+  localTargets?.web?.scope === 'worktree' &&
     localTargets?.['web-ui']?.scope === 'worktree' &&
     localTargets?.webext?.scope === 'worktree'
     ? 'ok'
@@ -103,7 +102,7 @@ if (svcVersion) {
     record('svc-runtime', 'error', `${svcVersion}; status failed`)
   }
 } else {
-  record('svc-runtime', 'warning', 'not on PATH; install sustainable-vibe-coding==10.0.1')
+  record('svc-runtime', 'warning', 'not on PATH; install sustainable-vibe-coding==14.0.0')
 }
 
 try {

@@ -1,62 +1,25 @@
-# Extensions AGENTS.md
+# Native Extensions
 
-Module Federation remotes extending InKCre functionality.
+Scope: `extensions/**`. Stable Release, Registry, and Module Federation delivery truth belongs to
+[`docs/40-deployment/native-extension-delivery.md`](../docs/40-deployment/native-extension-delivery.md).
 
-## Structure
+Host/producer runtime contracts belong to
+[`docs/30-unit-tdd/native-extension-runtime.md`](../docs/30-unit-tdd/native-extension-runtime.md).
 
-Each subfolder is a standalone extension. Folder name = extension ID.
+## Local Tripwires
 
-```
-extensions/
-├── twitter/              # Example extension
-│   ├── src/
-│   │   ├── index.ts      # Federation entry (exports)
-│   │   └── main.ts       # Dev playground entry
-│   ├── vite.config.ts    # MF config
-│   ├── tsconfig.json
-│   └── package.json
-└── mf-shared.ts          # Shared dependencies
-```
+- Keep each directory an independently versioned package. Its directory name is the local ID;
+  `package.json#inkcre.name`, version, nickname, and `module_federation` association are Registry
+  identity and compatibility inputs, not playground metadata.
+- Keep production remotes relocatable: `vite.config.ts` must retain `base: './'`, emit the native
+  `mf-manifest.json`, and write `dist/client-web`.
+- Export host-consumed capabilities from `src/index.ts`; keep `src/main.ts` limited to the local
+  playground. Do not make the Host depend on playground bootstrap behavior.
+- Changes to a native producer must preserve the asset-closure validation and select only affected
+  independently releasable packages in `pnpm changeset`.
 
-## Required Files
-
-- `src/index.ts` - Federation module entry, exports resolvers/storages
-- `src/main.ts` - Development playground
-- `vite.config.ts` - Module Federation configuration
-- `package.json` - Extension dependencies, identity, Release, and Host SDK association
-
-Production builds emit a native `mf-manifest.json`. Keep `base: './'`; Registry publication
-materializes its `metaData.publicPath` for the immutable public Release prefix.
-
-## Commands
+## Required Check
 
 ```bash
-pnpm dev      # Dev server with HMR
-pnpm build    # Build for production
+pnpm exec vitest run scripts/native-extension-distribution.test.mjs
 ```
-
-## Release Intent
-
-- Add a conflict-resistant fragment with `pnpm changeset`; select only independently releasable
-  Extension packages affected by the change.
-- Pending changesets are the release plan input. The Extension Release workflow maintains one
-  Version PR that consumes them and updates affected package versions and changelogs.
-- Once that Version PR is merged and no pending changesets remain, the same workflow runs the
-  idempotent custom Registry publisher. The release workflow checks out the release revision and
-  builds native Extension artifacts itself; it never consumes CI workflow artifacts.
-- Do not edit generated version/changelog state separately. Pages deployment is an independent app
-  lifecycle and never publishes Extensions.
-
-## Extension Capabilities
-
-Extensions can register:
-
-- Custom Resolvers for new content types
-- Custom Storages for data retrieval
-- UI components
-
-## Related
-
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - Extension architecture
-- [DEVELOPMENT.md](./DEVELOPMENT.md) - Development workflow
-- [.agents/assets/vite.config.ts.md](./.agents/assets/vite.config.ts.md) - Vite config example
