@@ -1,9 +1,13 @@
 import {
   InstalledExtensionSchema,
+  Cron,
+  CronForm,
   Peer,
   PeerManager,
   PeerProtocolResponseSchema,
   PostgrestExtensionStatePort,
+  Source,
+  SourceForm,
   type ExtensionStatePort,
   type InstalledExtension,
   type JsonValue,
@@ -12,7 +16,13 @@ import { z } from 'zod'
 
 const EXTENSION_NAME = 'inkcre/twitter'
 const EXTENSION_MANAGEMENT_CAPABILITY = 'core.extension.management.v1'
-const TWITTER_SETUP_CAPABILITY = 'inkcre.twitter.setup.v1'
+const TWITTER_SETUP_STATUS_CAPABILITY = 'inkcre.twitter.setup.status.v1'
+const TWITTER_OAUTH_APP_CONFIGURE_CAPABILITY = 'inkcre.twitter.oauth-app.configure.v1'
+const TWITTER_OAUTH_BEGIN_CAPABILITY = 'inkcre.twitter.oauth.begin.v1'
+const TWITTER_OAUTH_TRANSACTION_READ_CAPABILITY = 'inkcre.twitter.oauth.transaction.read.v1'
+const TWITTER_OAUTH_DISCONNECT_CAPABILITY = 'inkcre.twitter.oauth.disconnect.v1'
+const BOOKMARK_SOURCE_TYPE = 'extensions.twitter.bookmark.Source'
+const SOURCE_COLLECT_JOB_TYPE = 'core.source.collect.v1'
 
 function hasAuthorityUserInfo(value: string): boolean {
   return /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*@/i.test(value)
@@ -30,17 +40,6 @@ const HttpsUrlSchema = z
     'Authorization URL must use HTTPS without embedded credentials.'
   )
 
-const CollectAtSchema = z.object({
-  day_of_week: z.number().int().min(0).max(6).nullable(),
-  hour: z.number().int().min(0).max(23),
-  minute: z.number().int().min(0).max(59),
-})
-
-const BookmarkSourceSchema = z.object({
-  source_id: z.number().int().positive(),
-  nickname: z.string(),
-})
-
 export const TwitterSetupStatusSchema = z.object({
   backend: z.string(),
   callback_url: HttpUrlSchema,
@@ -51,12 +50,6 @@ export const TwitterSetupStatusSchema = z.object({
   handle: z.string().nullable(),
   scopes: z.array(z.string()),
   reconnect_required: z.boolean(),
-  bookmark_source_id: z.number().int().positive().nullable(),
-  bookmark_cron_id: z.number().int().positive().nullable(),
-  bookmark_sources: z.array(BookmarkSourceSchema),
-  collect_at: CollectAtSchema,
-  bookmark_source_ready: z.boolean(),
-  ready: z.boolean(),
 })
 
 export const OAuthTransactionSchema = z.object({
@@ -99,7 +92,7 @@ export async function discoverCoreCandidates(
       peer,
       extension,
       enabled: extension.enabled.includes(peer.id),
-      setupAvailable: advertises(peer, TWITTER_SETUP_CAPABILITY),
+      setupAvailable: advertises(peer, TWITTER_SETUP_STATUS_CAPABILITY),
     }))
 }
 
@@ -117,7 +110,13 @@ export class TwitterSetupAPI {
   }
 
   status(signal?: AbortSignal): Promise<TwitterSetupStatus> {
-    return this.setup({ action: 'get_status' }, TwitterSetupStatusSchema, signal)
+    return executeCapability(
+      this.peer,
+      TWITTER_SETUP_STATUS_CAPABILITY,
+      {},
+      TwitterSetupStatusSchema,
+      signal
+    )
   }
 
   saveOAuthApp(
@@ -126,9 +125,10 @@ export class TwitterSetupAPI {
     confirmAccountReset: boolean,
     signal?: AbortSignal
   ): Promise<TwitterSetupStatus> {
-    return this.setup(
+    return executeCapability(
+      this.peer,
+      TWITTER_OAUTH_APP_CONFIGURE_CAPABILITY,
       {
-        action: 'save_oauth_app',
         client_id: clientId,
         client_secret: clientSecret,
         confirm_account_reset: confirmAccountReset,
@@ -139,46 +139,92 @@ export class TwitterSetupAPI {
   }
 
   beginOAuth(signal?: AbortSignal): Promise<OAuthTransaction> {
-    return this.setup({ action: 'begin_oauth' }, OAuthTransactionSchema, signal)
+    return executeCapability(
+      this.peer,
+      TWITTER_OAUTH_BEGIN_CAPABILITY,
+      {},
+      OAuthTransactionSchema,
+      signal
+    )
   }
 
   oauthTransaction(transactionId: string, signal?: AbortSignal): Promise<OAuthTransaction> {
-    return this.setup(
-      { action: 'get_oauth_transaction', transaction_id: transactionId },
+    return executeCapability(
+      this.peer,
+      TWITTER_OAUTH_TRANSACTION_READ_CAPABILITY,
+      { transaction_id: transactionId },
       OAuthTransactionSchema,
       signal
     )
   }
 
   disconnect(signal?: AbortSignal): Promise<TwitterSetupStatus> {
-    return this.setup({ action: 'disconnect_account' }, TwitterSetupStatusSchema, signal)
-  }
-
-  configureBookmarkSource(
-    input: {
-      source_id?: number
-      nickname: string
-      collect_at: { day_of_week: number | null; hour: number; minute: number }
-    },
-    signal?: AbortSignal
-  ): Promise<TwitterSetupStatus> {
-    return this.setup(
-      { action: 'configure_bookmark_source', ...input },
+    return executeCapability(
+      this.peer,
+      TWITTER_OAUTH_DISCONNECT_CAPABILITY,
+      {},
       TwitterSetupStatusSchema,
       signal
     )
   }
+}
 
-  finish(signal?: AbortSignal): Promise<TwitterSetupStatus> {
-    return this.setup({ action: 'finish' }, TwitterSetupStatusSchema, signal)
+export interface BookmarkCollectionSetup {
+  sources: Source[]
+  source: Source | null
+  cron: Cron | null
+}
+
+export class TwitterBookmarkSetup {
+  static async read(sourceId?: number | null): Promise<BookmarkCollectionSetup> {
+    const sources = (await Source.getAll()).filter((source) => source.type === BOOKMARK_SOURCE_TYPE)
+    const source =
+      sources.find((candidate) => candidate.id === sourceId) ??
+      (sourceId == null && sources.length === 1 ? sources[0]! : null)
+    const crons = source ? await Cron.getBySource(source.id) : []
+    const cron =
+      crons.find(
+        (candidate) =>
+          candidate.job_type === SOURCE_COLLECT_JOB_TYPE &&
+          candidate.job_parameters.source === source?.id
+      ) ?? null
+    return { sources, source, cron }
   }
 
-  private setup<Result>(
-    command: JsonValue,
-    schema: z.ZodType<Result>,
-    signal?: AbortSignal
-  ): Promise<Result> {
-    return executeCapability(this.peer, TWITTER_SETUP_CAPABILITY, command, schema, signal)
+  static async createSource(nickname: string): Promise<Source> {
+    return new SourceForm({
+      type: BOOKMARK_SOURCE_TYPE,
+      nickname,
+      config: {},
+      state: {},
+      storage: null,
+    }).create()
+  }
+
+  static async saveSchedule(source: Source, hour: number, minute: number): Promise<Cron> {
+    const current = await this.read(source.id)
+    const form = new CronForm({
+      schedule: `${minute} ${hour} * * *`,
+      enabled: current.cron?.enabled ?? false,
+      job_type: SOURCE_COLLECT_JOB_TYPE,
+      job_parameters: { source: source.id, config: { full: false, result_limit: 40 } },
+      job_timeout_seconds: current.cron?.job_timeout_seconds ?? null,
+    })
+    return current.cron ? current.cron.update(form) : form.create()
+  }
+
+  static async finish(source: Source, cron: Cron): Promise<Cron> {
+    const enabled = await cron.update(
+      new CronForm({
+        schedule: cron.schedule,
+        enabled: true,
+        job_type: SOURCE_COLLECT_JOB_TYPE,
+        job_parameters: { source: source.id, config: { full: false, result_limit: 40 } },
+        job_timeout_seconds: cron.job_timeout_seconds,
+      })
+    )
+    await enabled.runNow()
+    return enabled
   }
 }
 
