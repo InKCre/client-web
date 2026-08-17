@@ -17,6 +17,7 @@ jobs:
     name: Reconcile Extension release plan
     permissions:
       contents: write
+      packages: read
       pull-requests: write
     runs-on: ubuntu-latest
     outputs:
