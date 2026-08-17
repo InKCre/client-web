@@ -42,6 +42,11 @@ Extensions can register:
 - Custom Resolvers for new content types
 - Custom Storages for data retrieval
 - UI components
+- An optional Extension-owned setup component through the Web Host contribution contract
+
+Setup contributions are runtime UI, not developer tooling or Host-owned wizard schemas. The
+application may provide a popup surface, but the Extension owns its steps, commands, durable-fact
+projection, and exit action.
 
 ## Related
 

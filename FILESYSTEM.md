@@ -61,7 +61,7 @@ uses its isolated profile only when an explicit browser binary is configured.
 ├── libs/           # Third-party integrations (AI)
 ├── obsrv/          # Observability (logging)
 ├── organization/   # Organization capability entry points
-├── peer/           # Peer discovery, protocols, outbounds, and delegation
+├── peer/           # Peer discovery, browser runtime/lease, protocols, outbounds, and delegation
 ├── semantic-retrieval/ # Semantic retrieval capability entry point
 ├── sink/           # Output processing (graph layouts)
 ├── source/         # Source, CollectJob, CollectAt
@@ -87,6 +87,7 @@ uses its isolated profile only when an explicit browser binary is configured.
 ├── styles/         # Global SCSS
 ├── utils/          # App utilities
 ├── views/          # Route views
+├── extension-peer-control.ts # Selected-Client runtime/delegation/desired-state coordinator
 ├── App.vue         # Root component
 ├── core.ts         # Core initialization
 ├── main.ts         # Entry point

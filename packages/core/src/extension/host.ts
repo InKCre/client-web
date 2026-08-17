@@ -84,6 +84,14 @@ export class WebExtensionHost {
     return this.runtimeErrors.get(name) ?? null
   }
 
+  isRunning(name: string): boolean {
+    return this.running.has(name)
+  }
+
+  getSetupContribution(name: string) {
+    return this.running.get(name)?.lifecycle.module?.setup ?? null
+  }
+
   async install(input: InstallExtensionInput): Promise<InstalledExtension> {
     const exact = InstallExtensionInputSchema.parse(input)
     return this.exclusively(async () => {
@@ -275,7 +283,7 @@ export class WebExtensionHost {
       )
     }
 
-    const manifestUrl = this.releases.resolveManifestUrl(distribution.manifest_url)
+    const manifestUrl = distribution.manifest_url
     const remoteName = webExtensionRemoteName(installed.name)
     const lifecycle = new WebExtensionLifecycle(async () => {
       const moduleFederation = this.moduleFederation()
@@ -381,6 +389,10 @@ class WebExtensionLifecycle {
   private active = false
 
   constructor(private readonly load: () => Promise<ExtensionModule>) {}
+
+  get module(): ExtensionModule | null {
+    return this.extensionModule
+  }
 
   async start(): Promise<void> {
     if (this.extensionModule) return

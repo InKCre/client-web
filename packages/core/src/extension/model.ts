@@ -1,4 +1,5 @@
 import { parse as parseSemVer } from 'semver'
+import type { Component } from 'vue'
 import { z } from 'zod'
 
 const EXTENSION_NAME_PATTERN =
@@ -36,10 +37,16 @@ export const InstallExtensionInputSchema = InstalledExtensionSchema.pick({
 export type InstalledExtension = z.infer<typeof InstalledExtensionSchema>
 export type InstallExtensionInput = z.infer<typeof InstallExtensionInputSchema>
 
+/** Setup UI contributed by one already-running Web Extension. */
+export interface ExtensionSetupContribution {
+  component: Component
+}
+
 /** Default export exposed by a Web Extension's native Module Federation Remote. */
 export interface ExtensionModule {
   initialize?(): Promise<void>
   activate?(): Promise<void>
   deactivate?(): Promise<void>
   dispose?(): Promise<void>
+  setup?: ExtensionSetupContribution
 }

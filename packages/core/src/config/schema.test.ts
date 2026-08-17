@@ -4,11 +4,21 @@ import { MetaConfigSchema, PeerConfigSchema } from './schema'
 
 describe('MetaConfigSchema', () => {
   it('represents an unconfigured persisted state without environment defaults', () => {
-    expect(MetaConfigSchema.parse({})).toEqual({
+    expect(MetaConfigSchema.parse({})).toMatchObject({
       INKCRE_PGREST_URL: '',
       INKCRE_JWT_SECRET: '',
-      INKCRE_PEER_ID: '',
     })
+    expect(MetaConfigSchema.parse({}).INKCRE_PEER_ID).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+    )
+  })
+
+  it('migrates one browser origin from the legacy Client identity', () => {
+    expect(
+      MetaConfigSchema.parse({
+        INKCRE_CLIENT_ID: '00000000-0000-4000-8000-000000000003',
+      }).INKCRE_PEER_ID
+    ).toBe('00000000-0000-4000-8000-000000000003')
   })
 
   it('accepts explicit runtime coordinates and rejects malformed non-empty values', () => {
@@ -41,5 +51,11 @@ describe('PeerConfigSchema', () => {
         extension_registry_url: 'https://registry.operator.example/',
       }).extension_registry_url
     ).toBe('https://registry.operator.example/')
+  })
+
+  it('preserves future owner-managed fields across an older Settings client', () => {
+    expect(
+      PeerConfigSchema.parse({ future_owner_setting: { enabled: true } }).future_owner_setting
+    ).toEqual({ enabled: true })
   })
 })

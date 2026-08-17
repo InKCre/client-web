@@ -102,7 +102,8 @@ function release(overrides: Partial<ExtensionRelease> = {}): ExtensionRelease {
     version: installed.version,
     state: 'published',
     module_federation: {
-      manifest_url: '/extensions/inkcre/twitter/0.1.0/module-federation/mf-manifest.json',
+      manifest_url:
+        'https://registry.example/extensions/inkcre/twitter/0.1.0/module-federation/mf-manifest.json',
       host_sdk: '@inkcre/core',
       host_sdk_version: '>=0.1.0,<0.2.0',
     },
@@ -128,9 +129,10 @@ function createHarness(
   })
   const releases: ExtensionReleaseReader = {
     get: getRelease,
-    resolveManifestUrl: vi.fn((url) => new URL(url, 'https://registry.example').href),
   }
+  const setupComponent = { name: 'TwitterSetupWizard' }
   const extensionModule = {
+    setup: { component: setupComponent },
     initialize: vi.fn(async () => {
       events.push('initialize')
     }),
@@ -171,12 +173,25 @@ function createHarness(
     registerRemotes,
     loadRemote,
     extensionModule,
+    setupComponent,
     warn,
     host,
   }
 }
 
 describe('WebExtensionHost', () => {
+  it('exposes setup only while the current Web Extension runtime is running', async () => {
+    const harness = createHarness()
+
+    expect(harness.host.getSetupContribution(installed.name)).toBeNull()
+    await harness.host.enable(installed.name)
+    expect(harness.host.getSetupContribution(installed.name)).toEqual({
+      component: harness.setupComponent,
+    })
+    await harness.host.disable(installed.name)
+    expect(harness.host.getSetupContribution(installed.name)).toBeNull()
+  })
+
   it('prechecks the exact Release and passes its native manifest URL directly to MF Host', async () => {
     const harness = createHarness()
 

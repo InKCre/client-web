@@ -47,6 +47,20 @@ Make use of Vue reactivity thorughout-ly.
   native manifest URL with Module Federation.
 - Preserve `initialize`, `activate`, `deactivate`, and `dispose`, including durable-state failure
   compensation.
+- An optional `ExtensionSetupContribution` belongs to the loaded Web Distribution. The Host exposes
+  it only while that runtime is active; the application owns the popup and the Extension owns its
+  setup flow and exit action.
+
+### Browser Peer Runtime
+
+- `WebPeerRuntime` upserts one browser-origin Peer identity with only runtime-owned `id`, `name`,
+  `config_schema`, and `capabilities`, renews its database-time lease, and never sends or
+  overwrites owner-managed `config` or `labels`.
+- Meta configuration generates and persists the technical Peer UUID. Saving Settings validates
+  database JWT connectivity, registration, Peer config persistence, and lease renewal before
+  replacing the working local bootstrap.
+- Registry origin resolution is per operation: current Peer override, deployment config, then the
+  public product Registry.
 
 ### Info-Base Content Contract
 

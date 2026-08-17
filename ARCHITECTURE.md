@@ -28,6 +28,8 @@
   PeerManager for exact capability delegation
 - Web Extension Host (`core/src/extension`) - canonical state port, exact Registry Release
   preflight, native Module Federation loading, and lifecycle compensation
+- Browser Peer runtime (`core/src/peer/runtime.ts`) - browser-origin identity registration,
+  database-time lease renewal, and owner-config preservation
 - Registry (`core/src/info-base/`) - Pluggable Storage & Resolver
 - Config (`core/src/config`) - environment-neutral schema plus runtime-owned browser or extension
   storage
@@ -43,7 +45,9 @@
    non-delegating local implementation
 3. Extension: canonical enabled intent → exact Release/Host-range preflight → native manifest →
    initialize/activate; disable reverses lifecycle before atomically removing Peer intent
-4. Content: Block.getHydratedContent() → exact Resolver → safe local handle/component → Render
+4. Setup: running Web contribution → Twitter stepper → exact Core Peer setup capability → shared
+   Extension config/state plus Source/Cron/Job authorities
+5. Content: Block.getHydratedContent() → exact Resolver → safe local handle/component → Render
 
 ## Package Responsibilities
 
@@ -66,6 +70,8 @@
 - UI components by domain
 - Static Vite output
 - Browser-local bootstrap configuration and JWT signing
+- Product-facing Client settings over the technical Peer relation, including generated browser
+  identity, Registry override, lease-backed discovery, and selected-Client Extension control
 - Environment-neutral static artifact; no InKCre environment origin or Peer identity is compiled
   in
 - No application Worker or runtime config endpoint
