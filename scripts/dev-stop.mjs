@@ -19,7 +19,7 @@ try {
   const identity = JSON.parse(output('svc', ['dev', 'identity', '--repo', repoRoot, '--json']))
   instance = identity.workspace.instance
 } catch {
-  console.error('[dev:stop] SVC 10.0.1 must be available on PATH.')
+  console.error('[dev:stop] SVC 14.0.0 must be available on PATH.')
   process.exit(1)
 }
 
