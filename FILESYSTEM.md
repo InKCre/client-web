@@ -21,6 +21,7 @@
 - `apps/client-web/src/main.ts` - Web bootstrap.
 - `apps/client-web/src/core.ts` - Core registration and initialization.
 - `apps/client-web/src/router.ts` - Web route authority.
+- `apps/client-web/src/extension-peer-control.ts` - Selected-client Extension runtime and desired-state coordinator.
 - `apps/client-webext/entrypoints/` - WXT-discovered extension surfaces.
 - `packages/core/src/index.ts` - Shared package exports.
 - `extensions/*/src/index.ts` - Host-consumed Extension exports.

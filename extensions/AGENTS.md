@@ -15,6 +15,8 @@ Host/producer runtime contracts belong to
   `mf-manifest.json`, and write `dist/client-web`.
 - Export host-consumed capabilities from `src/index.ts`; keep `src/main.ts` limited to the local
   playground. Do not make the Host depend on playground bootstrap behavior.
+- An optional setup contribution belongs to the active Extension. The application owns only the
+  popup surface; the Extension owns its steps, domain operations, fact projection, and exit action.
 - Changes to a native producer must preserve the asset-closure validation and select only affected
   independently releasable packages in `pnpm changeset`.
 

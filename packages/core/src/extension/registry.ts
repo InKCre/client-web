@@ -33,16 +33,15 @@ export type ModuleFederationDistribution = z.infer<typeof ModuleFederationDistri
 
 export interface ExtensionReleaseReader {
   get(name: string, version: string): Promise<ExtensionRelease>
-  resolveManifestUrl(manifestUrl: string): string
 }
 
 /** Public exact-Release reader for the Registry control plane. */
 export class RegistryExtensionReleaseReader implements ExtensionReleaseReader {
   private readonly fetchImplementation: typeof globalThis.fetch
-  private readonly registryOrigin: () => string
+  private readonly registryOrigin: () => string | Promise<string>
 
   constructor(
-    registryOrigin: string | (() => string),
+    registryOrigin: string | (() => string | Promise<string>),
     fetchImplementation: typeof globalThis.fetch = globalThis.fetch
   ) {
     this.registryOrigin =
@@ -53,7 +52,7 @@ export class RegistryExtensionReleaseReader implements ExtensionReleaseReader {
   async get(name: string, version: string): Promise<ExtensionRelease> {
     const [namespace, localName] = splitExtensionName(ExtensionNameSchema.parse(name))
     const exactVersion = ExtensionVersionSchema.parse(version)
-    const registryUrl = this.registryUrl()
+    const registryUrl = await this.registryUrl()
     const location = new URL(
       `/v1/extensions/${encodeURIComponent(namespace)}/${encodeURIComponent(localName)}/releases/${encodeURIComponent(exactVersion)}`,
       registryUrl
@@ -69,20 +68,20 @@ export class RegistryExtensionReleaseReader implements ExtensionReleaseReader {
     if (release.name !== name || release.version !== exactVersion) {
       throw new Error('Extension Registry returned a different exact Release coordinate.')
     }
-    return release
-  }
-
-  resolveManifestUrl(manifestUrl: string): string {
-    const registryUrl = this.registryUrl()
-    const resolved = new URL(manifestUrl, registryUrl)
-    if (resolved.origin !== registryUrl.origin) {
+    const distribution = release.module_federation
+    if (!distribution) return release
+    const manifest = new URL(distribution.manifest_url, registryUrl)
+    if (manifest.origin !== registryUrl.origin) {
       throw new Error('Module Federation manifest must be hosted by the configured Registry.')
     }
-    return resolved.href
+    return {
+      ...release,
+      module_federation: { ...distribution, manifest_url: manifest.href },
+    }
   }
 
-  private registryUrl(): URL {
-    const registryOrigin = this.registryOrigin()
+  private async registryUrl(): Promise<URL> {
+    const registryOrigin = await this.registryOrigin()
     if (!registryOrigin) {
       throw new Error('Extension Registry URL is not configured.')
     }

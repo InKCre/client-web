@@ -112,7 +112,7 @@ test('Twitter produces a native manifest with a Registry-relocatable base and ty
   assert.equal(extensionPackage.inkcre.nickname, 'Twitter')
   assert.deepEqual(extensionPackage.inkcre.module_federation, {
     host_sdk: '@inkcre/core',
-    host_sdk_version: '>=0.1.0 <0.2.0',
+    host_sdk_version: '>=0.1.2 <0.2.0',
   })
   assert.equal(twitterFederationOptions.manifest, true)
   assert.equal(twitterArtifactBase, './')

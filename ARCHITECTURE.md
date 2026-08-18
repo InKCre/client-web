@@ -34,6 +34,8 @@ locations, not Unit boundaries.
    registered renderer.
 4. Native Extension: durable enabled intent → exact Release and Host-range preflight → native
    manifest → initialize/activate; disable reverses lifecycle before removing Peer intent.
+5. Extension setup: active Web contribution → Extension-owned stepper → exact Core Peer capability
+   → shared Extension config/state plus Source/Cron/Job authorities.
 
 ## Realization Surfaces
 

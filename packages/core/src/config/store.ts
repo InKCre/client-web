@@ -7,6 +7,7 @@ import { loadConfig as zodLoadConfig } from 'zod-config'
 
 // Lazy import Peer to avoid circular imports
 const lazyPeer = async () => (await import('../peer/peer')).Peer
+const lazyWebPeerRuntime = async () => (await import('../peer/runtime')).WebPeerRuntime
 
 const unconfiguredAdapter: ConfigAdapterWithWrite = {
   name: 'unconfigured',
@@ -46,7 +47,7 @@ export const useConfigStore = defineStore('inkcre-config', () => {
   }
 
   async function loadPeerConfig(): Promise<void> {
-    if (!metaConfig.value.INKCRE_PEER_ID) {
+    if (!metaConfig.value.INKCRE_PGREST_URL || !metaConfig.value.INKCRE_JWT_SECRET) {
       peerConfig.value = PeerConfigSchema.parse({})
       return
     }
@@ -72,10 +73,39 @@ export const useConfigStore = defineStore('inkcre-config', () => {
     }
   }
 
+  async function connectAndSave(metaCandidate: MetaConfig, peerCandidate: PeerConfig) {
+    error.value = null
+    const nextMeta = MetaConfigSchema.parse(metaCandidate)
+    const nextPeer = PeerConfigSchema.parse(peerCandidate)
+    let candidateRuntime: InstanceType<Awaited<ReturnType<typeof lazyWebPeerRuntime>>> | null = null
+
+    try {
+      const WebPeerRuntime = await lazyWebPeerRuntime()
+      const connection = await WebPeerRuntime.connect(nextMeta, nextPeer)
+      candidateRuntime = connection.runtime
+      await metaAdapter.value.write(nextMeta)
+      metaConfig.value = nextMeta
+      peerConfig.value = nextPeer
+      return candidateRuntime
+    } catch (err) {
+      candidateRuntime?.stop()
+      error.value = err as Error
+      throw err
+    }
+  }
+
   async function resetMeta(): Promise<void> {
-    metaConfig.value = MetaConfigSchema.parse({})
-    peerConfig.value = PeerConfigSchema.parse({})
-    await saveMeta()
+    const resetMetaConfig = MetaConfigSchema.parse({})
+    const resetPeerConfig = PeerConfigSchema.parse({})
+    error.value = null
+    try {
+      await metaAdapter.value.write(resetMetaConfig)
+      metaConfig.value = resetMetaConfig
+      peerConfig.value = resetPeerConfig
+    } catch (err) {
+      error.value = err as Error
+      throw err
+    }
   }
 
   return {
@@ -86,6 +116,7 @@ export const useConfigStore = defineStore('inkcre-config', () => {
     error,
     initializeMeta,
     loadPeerConfig,
+    connectAndSave,
     saveMeta,
     resetMeta,
   }

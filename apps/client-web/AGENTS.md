@@ -14,6 +14,7 @@ Static Vue application and equal InKCre database Peer.
 
 - Keep deployable artifacts environment-neutral: no service origin, Peer identity, JWT secret, Worker runtime, or `/api/config` fallback.
 - Browser-owned settings are runtime authority. Keep the JWT signing secret masked, memory-only after use, absent from logs, and excluded from portable exports.
+- `https://registry.inkcre.dev` is the reviewed public Registry fallback; a deployment or Peer owner may override it at operation time.
 - Use **Peer** in technical contracts; product-facing UI may say **client**.
 - Preserve exact capability delegation and typed unknown outcomes; do not replace them with a generic Core API path or automatic retry after ambiguous dispatch.
 - Start development through root commands so SVC and Portless preserve worktree identity. The sibling UI source lane is explicitly non-release evidence.

@@ -19,6 +19,12 @@ Shared models, Peer protocols, storage/resolver mechanics, and native Extension 
 - `database.generated.ts` is generated from core-py's admitted schema artifact; `generated.ts` and runtime-contract adapters are the stable local boundary. Do not hand-edit generated projections.
 - Keep runtime source and ESM distribution free of environment profiles, service origins, Peer identity, and credentials. Do not add CommonJS without a named consumer and explicit contract change.
 - Preserve Extension lifecycle compensation across `initialize`, `activate`, `deactivate`, and `dispose`.
+- Expose an Extension-owned `ExtensionSetupContribution` only while its Web runtime is active; do
+  not turn setup into a Host-owned wizard schema.
+- Browser Peer registration writes runtime-owned identity/capability fields only, preserves
+  owner-managed config/labels, and renews its database-time lease.
+- Resolve Registry origin per operation: current Peer override, deployment config, then the public
+  product Registry.
 
 ## Checks
 

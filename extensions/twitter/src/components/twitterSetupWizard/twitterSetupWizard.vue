@@ -1,0 +1,444 @@
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import {
+  InkButton,
+  InkDatetimePickerView,
+  InkDropdown,
+  InkInput,
+  InkLoading,
+  InkPicker,
+  type DropdownOption,
+} from '@inkcre/ui-web'
+import type { Cron, Source } from '@inkcre/core'
+import {
+  discoverCoreCandidates,
+  TwitterBookmarkSetup,
+  TwitterSetupAPI,
+  type CorePeerCandidate,
+  type OAuthTransaction,
+  type TwitterSetupStatus,
+} from '../../setup-api'
+import { TWITTER_SETUP_STEPS, twitterSetupWizardEmits } from './twitterSetupWizard'
+
+const emit = defineEmits(twitterSetupWizardEmits)
+const candidates = ref<CorePeerCandidate[]>([])
+const selectedPeerId = ref<string | number | null>(null)
+const status = ref<TwitterSetupStatus | null>(null)
+const currentStep = ref(0)
+const loading = ref(true)
+const pending = ref<string | null>(null)
+const error = ref<string | null>(null)
+const clientId = ref('')
+const clientSecret = ref('')
+const transaction = ref<OAuthTransaction | null>(null)
+const sources = ref<Source[]>([])
+const selectedSourceId = ref<string | number | null>(null)
+const selectedSource = ref<Source | null>(null)
+const selectedCron = ref<Cron | null>(null)
+const creatingSource = ref(false)
+const sourceNickname = ref('Twitter Bookmarks')
+const scheduleTime = ref(new Date(2000, 0, 1, 0, 0))
+let polling: AbortController | null = null
+const lifecycle = new AbortController()
+
+const selectedCandidate = computed(
+  () => candidates.value.find((item) => item.peer.id === selectedPeerId.value) ?? null
+)
+const api = computed(() =>
+  selectedCandidate.value ? new TwitterSetupAPI(selectedCandidate.value.peer) : null
+)
+const selectedCoreEnabled = computed(() => selectedCandidate.value?.enabled ?? false)
+const busy = computed(() => pending.value !== null)
+const setupReady = computed(() =>
+  Boolean(status.value?.connected && selectedSource.value && selectedCron.value?.enabled)
+)
+const peerOptions = computed<DropdownOption[]>(() =>
+  candidates.value.map((item) => ({
+    value: item.peer.id,
+    label: `${item.peer.name}${item.enabled ? ' — enabled' : ''}`,
+  }))
+)
+const sourceOptions = computed<DropdownOption[]>(() => [
+  ...sources.value.map((source) => ({
+    value: source.id,
+    label: source.nickname || `Bookmark Source #${source.id}`,
+  })),
+  { value: 'create', label: 'Create a new Source' },
+])
+
+function message(cause: unknown): string {
+  return cause instanceof Error ? cause.message : String(cause)
+}
+function scheduleFromCron(cron: Cron | null): Date {
+  const [minute = '0', hour = '0'] = cron?.schedule.split(' ') ?? []
+  return new Date(2000, 0, 1, Number(hour), Number(minute))
+}
+async function run(operation: string, task: () => Promise<void>): Promise<void> {
+  if (busy.value) return
+  pending.value = operation
+  error.value = null
+  try {
+    await task()
+  } catch (cause) {
+    error.value = message(cause)
+  } finally {
+    pending.value = null
+  }
+}
+async function loadCollection(preferredSourceId?: number | null): Promise<void> {
+  const collection = await TwitterBookmarkSetup.read(preferredSourceId)
+  sources.value = collection.sources
+  selectedSource.value = collection.source
+  selectedSourceId.value = collection.source?.id ?? null
+  selectedCron.value = collection.cron
+  scheduleTime.value = scheduleFromCron(collection.cron)
+  creatingSource.value = collection.sources.length === 0
+}
+async function applyStatus(next: TwitterSetupStatus): Promise<void> {
+  status.value = next
+  clientId.value = next.client_id ?? ''
+  clientSecret.value = ''
+  if (next.connected) await loadCollection(selectedSource.value?.id)
+  currentStep.value = !next.oauth_app_configured || !next.connected ? 1 : setupReady.value ? 3 : 2
+}
+async function reloadStatus(): Promise<void> {
+  if (api.value && selectedCoreEnabled.value)
+    await applyStatus(await api.value.status(lifecycle.signal))
+}
+async function initialize(): Promise<void> {
+  loading.value = true
+  error.value = null
+  try {
+    candidates.value = await discoverCoreCandidates(lifecycle.signal)
+    const selected =
+      candidates.value.find((item) => item.enabled && item.setupAvailable) ??
+      candidates.value.find((item) => item.enabled) ??
+      candidates.value[0]
+    selectedPeerId.value = selected?.peer.id ?? null
+    if (selected?.enabled) await reloadStatus()
+  } catch (cause) {
+    error.value = message(cause)
+  } finally {
+    loading.value = false
+  }
+}
+watch(selectedPeerId, async (next, previous) => {
+  if (next === previous || loading.value) return
+  stopPolling()
+  status.value = null
+  transaction.value = null
+  currentStep.value = 0
+  error.value = null
+  if (selectedCoreEnabled.value) await run('status', reloadStatus)
+})
+watch(selectedSourceId, async (value) => {
+  if (value === 'create') {
+    creatingSource.value = true
+    selectedSource.value = null
+    selectedCron.value = null
+    return
+  }
+  if (typeof value !== 'number') return
+  creatingSource.value = false
+  const collection = await TwitterBookmarkSetup.read(value)
+  selectedSource.value = collection.source
+  selectedCron.value = collection.cron
+  scheduleTime.value = scheduleFromCron(collection.cron)
+})
+async function enableSelectedCore(): Promise<void> {
+  if (!api.value || !selectedCandidate.value) return
+  await run('enable-core', async () => {
+    const extension = await api.value!.enableCore(lifecycle.signal)
+    selectedCandidate.value!.extension = extension
+    selectedCandidate.value!.enabled = extension.enabled.includes(selectedCandidate.value!.peer.id)
+    await reloadStatus()
+  })
+}
+async function saveOAuthApp(): Promise<void> {
+  if (!api.value) return
+  await run('save-oauth-app', async () => {
+    try {
+      await applyStatus(
+        await api.value!.saveOAuthApp(clientId.value, clientSecret.value, false, lifecycle.signal)
+      )
+    } catch (cause) {
+      const text = message(cause)
+      if (!text.includes('requires confirmation')) throw cause
+      if (!window.confirm(`${text}\n\nDisconnect the current account and continue?`)) return
+      await applyStatus(
+        await api.value!.saveOAuthApp(clientId.value, clientSecret.value, true, lifecycle.signal)
+      )
+    }
+  })
+}
+function stopPolling(): void {
+  polling?.abort()
+  polling = null
+}
+function close(): void {
+  stopPolling()
+  emit('close')
+}
+async function wait(milliseconds: number, signal: AbortSignal): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    if (signal.aborted) return reject(new DOMException('Polling cancelled', 'AbortError'))
+    const onAbort = () => {
+      window.clearTimeout(timer)
+      reject(new DOMException('Polling cancelled', 'AbortError'))
+    }
+    const timer = window.setTimeout(() => {
+      signal.removeEventListener('abort', onAbort)
+      resolve()
+    }, milliseconds)
+    signal.addEventListener('abort', onAbort, { once: true })
+  })
+}
+async function pollTransaction(id: string): Promise<void> {
+  if (!api.value) return
+  stopPolling()
+  const controller = new AbortController()
+  polling = controller
+  try {
+    while (!controller.signal.aborted) {
+      await wait(2000, controller.signal)
+      const next = await api.value.oauthTransaction(id, controller.signal)
+      transaction.value = next
+      if (!['pending', 'exchanging'].includes(next.status)) {
+        if (next.status === 'succeeded') await reloadStatus()
+        else error.value = next.error ?? 'Twitter authorization did not complete.'
+        return
+      }
+    }
+  } catch (cause) {
+    if (!controller.signal.aborted) error.value = message(cause)
+  } finally {
+    if (polling === controller) polling = null
+  }
+}
+async function beginOAuth(): Promise<void> {
+  if (!api.value) return
+  await run('begin-oauth', async () => {
+    transaction.value = await api.value!.beginOAuth(lifecycle.signal)
+    void pollTransaction(transaction.value.id)
+  })
+}
+async function disconnect(): Promise<void> {
+  if (!api.value) return
+  await run('disconnect', async () => {
+    stopPolling()
+    transaction.value = null
+    await applyStatus(await api.value!.disconnect(lifecycle.signal))
+  })
+}
+async function createSource(): Promise<void> {
+  await run('create-source', async () => {
+    const source = await TwitterBookmarkSetup.createSource(sourceNickname.value)
+    creatingSource.value = false
+    await loadCollection(source.id)
+  })
+}
+async function saveSchedule(): Promise<void> {
+  if (!selectedSource.value) return
+  await run('save-schedule', async () => {
+    selectedCron.value = await TwitterBookmarkSetup.saveSchedule(
+      selectedSource.value!,
+      scheduleTime.value.getHours(),
+      scheduleTime.value.getMinutes()
+    )
+    currentStep.value = 3
+  })
+}
+async function finish(): Promise<void> {
+  if (!selectedSource.value || !selectedCron.value) return
+  await run('finish', async () => {
+    selectedCron.value = await TwitterBookmarkSetup.finish(
+      selectedSource.value!,
+      selectedCron.value!
+    )
+  })
+}
+onMounted(() => void initialize())
+onBeforeUnmount(() => {
+  lifecycle.abort()
+  stopPolling()
+})
+</script>
+
+<template>
+  <section class="twitter-setup">
+    <ol class="twitter-setup__steps" aria-label="Twitter setup progress">
+      <li
+        v-for="(step, index) in TWITTER_SETUP_STEPS"
+        :key="step"
+        :class="{ 'is-current': currentStep === index, 'is-complete': currentStep > index }"
+      >
+        <span>{{ index + 1 }}</span
+        >{{ step }}
+      </li>
+    </ol>
+    <div v-if="loading" class="twitter-setup__loading"><InkLoading /></div>
+    <template v-else>
+      <p v-if="error" class="twitter-setup__error" role="alert">{{ error }}</p>
+      <div v-if="currentStep === 0" class="twitter-setup__panel">
+        <h3>Choose a Core Peer</h3>
+        <p>The OAuth callback runs on a Core Peer, while setup applies to the deployment.</p>
+        <InkDropdown
+          v-if="candidates.length"
+          v-model="selectedPeerId"
+          :options="peerOptions"
+          label="Core Peer"
+        />
+        <p v-else>No live Core Peer can manage the installed Twitter Extension.</p>
+        <InkButton
+          v-if="selectedCandidate && !selectedCoreEnabled"
+          text="Enable Twitter on this Core Peer"
+          theme="primary"
+          :is-loading="pending === 'enable-core'"
+          :disabled="busy"
+          @click="enableSelectedCore"
+        />
+      </div>
+      <div v-else-if="currentStep === 1" class="twitter-setup__panel">
+        <h3>Connect an X account</h3>
+        <p>Register your own X OAuth 2.0 application with this callback URL:</p>
+        <code>{{ status?.callback_url }}</code>
+        <InkInput v-model="clientId" label="Client ID" required :disabled="busy" />
+        <label class="twitter-setup__field">
+          Client Secret
+          <input
+            v-model="clientSecret"
+            type="password"
+            autocomplete="off"
+            required
+            :disabled="busy"
+          />
+        </label>
+        <div class="twitter-setup__actions">
+          <InkButton
+            text="Save OAuth App"
+            :is-loading="pending === 'save-oauth-app'"
+            :disabled="busy || !clientId || !clientSecret"
+            @click="saveOAuthApp"
+          />
+          <InkButton
+            v-if="status?.oauth_app_configured"
+            text="Create authorization link"
+            theme="primary"
+            :is-loading="pending === 'begin-oauth'"
+            :disabled="busy"
+            @click="beginOAuth"
+          />
+          <InkButton
+            v-if="status?.connected"
+            text="Disconnect"
+            theme="danger"
+            :is-loading="pending === 'disconnect'"
+            :disabled="busy"
+            @click="disconnect"
+          />
+        </div>
+        <a
+          v-if="transaction?.authorize_url"
+          :href="transaction.authorize_url"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="twitter-setup__oauth-link"
+          >Open X authorization</a
+        >
+        <p v-if="transaction && ['pending', 'exchanging'].includes(transaction.status)">
+          Waiting for authorization to return to Core…
+        </p>
+        <p v-if="status?.connected">Connected as @{{ status.handle }}.</p>
+      </div>
+      <div v-else-if="currentStep === 2" class="twitter-setup__panel">
+        <div>
+          <h3>Set up bookmark collection</h3>
+          <p>Choose an existing Bookmark Source or create one for this deployment.</p>
+        </div>
+        <div v-if="sources.length" class="twitter-setup__section">
+          <h4>Bookmark Source</h4>
+          <InkDropdown
+            v-model="selectedSourceId"
+            :options="sourceOptions"
+            label="Bookmark Source"
+            :disabled="busy"
+          />
+        </div>
+        <div v-else class="twitter-setup__empty">
+          <h4>No Bookmark Sources yet</h4>
+          <p>Create one to store collection cursor and source-specific settings.</p>
+        </div>
+        <div v-if="creatingSource" class="twitter-setup__section">
+          <h4>New Bookmark Source</h4>
+          <p>Give the deployment resource a recognizable nickname.</p>
+          <InkInput v-model="sourceNickname" label="Source nickname" :disabled="busy" />
+          <InkButton
+            text="Create Bookmark Source"
+            :is-loading="pending === 'create-source'"
+            :disabled="busy || !sourceNickname.trim()"
+            @click="createSource"
+          />
+        </div>
+        <div v-if="selectedSource" class="twitter-setup__section">
+          <h4>Collection schedule</h4>
+          <p>Choose when Core should collect bookmarks each day.</p>
+          <InkPicker
+            v-model="scheduleTime"
+            type="time"
+            label="Collect bookmarks daily at"
+            :formatter="
+              (value: Date) => value.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            "
+          >
+            <template #default="{ closePopup }"
+              ><InkDatetimePickerView
+                v-model="scheduleTime"
+                mode="time"
+                hour-format="24" /><InkButton text="Done" theme="primary" @click="closePopup"
+            /></template>
+          </InkPicker>
+          <p class="twitter-setup__hint">Time uses the Core deployment timezone.</p>
+          <InkButton
+            text="Continue"
+            theme="primary"
+            :is-loading="pending === 'save-schedule'"
+            :disabled="busy"
+            @click="saveSchedule"
+          />
+        </div>
+      </div>
+      <div v-else class="twitter-setup__panel">
+        <h3>{{ setupReady ? 'Twitter is ready' : 'Review and start' }}</h3>
+        <p>Confirm the deployment resources before starting bookmark collection.</p>
+        <dl>
+          <dt>Account</dt>
+          <dd>@{{ status?.handle }}</dd>
+          <dt>Bookmark Source</dt>
+          <dd>{{ selectedSource?.nickname || `#${selectedSource?.id}` }}</dd>
+          <dt>Schedule</dt>
+          <dd>{{ selectedCron?.schedule }}</dd>
+        </dl>
+        <div class="twitter-setup__actions">
+          <InkButton
+            text="Back"
+            theme="subtle"
+            :disabled="busy"
+            @click="currentStep = 2"
+          /><InkButton
+            v-if="!setupReady"
+            text="Start collecting bookmarks"
+            theme="primary"
+            :is-loading="pending === 'finish'"
+            :disabled="busy || !selectedCron"
+            @click="finish"
+          />
+        </div>
+      </div>
+    </template>
+    <div class="twitter-setup__toolbar">
+      <InkButton text="Close" theme="subtle" @click="close" />
+    </div>
+  </section>
+</template>
+
+<style lang="scss" scoped src="./twitterSetupWizard.scss" />

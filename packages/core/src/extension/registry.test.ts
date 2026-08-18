@@ -30,15 +30,34 @@ describe('RegistryExtensionReleaseReader', () => {
     await expect(reader.get('inkcre/twitter', '0.1.0')).resolves.toMatchObject({
       name: 'inkcre/twitter',
       version: '0.1.0',
+      module_federation: {
+        manifest_url:
+          'https://registry.example/extensions/inkcre/twitter/0.1.0/module-federation/mf-manifest.json',
+      },
     })
 
     expect(fetchImplementation).toHaveBeenCalledOnce()
   })
 
-  it('rejects a manifest URL outside the configured Registry origin', () => {
-    const reader = new RegistryExtensionReleaseReader('https://registry.example/')
+  it('rejects a manifest URL outside the configured Registry origin', async () => {
+    const reader = new RegistryExtensionReleaseReader(
+      'https://registry.example/',
+      vi.fn(async () =>
+        Response.json({
+          name: 'inkcre/twitter',
+          nickname: 'Twitter',
+          version: '0.1.0',
+          state: 'published',
+          module_federation: {
+            manifest_url: 'https://attacker.example/mf-manifest.json',
+            host_sdk: '@inkcre/core',
+            host_sdk_version: '>=0.1.0,<0.2.0',
+          },
+        })
+      ) as typeof globalThis.fetch
+    )
 
-    expect(() => reader.resolveManifestUrl('https://attacker.example/mf-manifest.json')).toThrow(
+    await expect(reader.get('inkcre/twitter', '0.1.0')).rejects.toThrow(
       'hosted by the configured Registry'
     )
   })
@@ -58,7 +77,7 @@ describe('RegistryExtensionReleaseReader', () => {
     }) as typeof globalThis.fetch
     const reader = new RegistryExtensionReleaseReader(() => registryOrigin, fetchImplementation)
 
-    expect(() => reader.resolveManifestUrl('/mf-manifest.json')).toThrow('not configured')
+    await expect(reader.get('inkcre/twitter', '0.1.0')).rejects.toThrow('not configured')
 
     registryOrigin = 'https://registry.example/'
     await expect(reader.get('inkcre/twitter', '0.1.0')).resolves.toMatchObject({

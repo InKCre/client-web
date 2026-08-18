@@ -12,12 +12,14 @@ const transport = vi.hoisted(() => {
   const query = {
     eq: vi.fn(),
     filter: vi.fn(),
+    order: vi.fn(),
     select: vi.fn(),
     maybeSingle: vi.fn(),
     single: vi.fn(),
   }
   query.eq.mockReturnValue(query)
   query.filter.mockReturnValue(query)
+  query.order.mockResolvedValue({ data: [row], error: null })
   query.select.mockReturnValue(query)
   query.maybeSingle.mockResolvedValue({ data: row, error: null })
   query.single.mockResolvedValue({ data: row, error: null })
@@ -27,7 +29,10 @@ const transport = vi.hoisted(() => {
     rpc: vi.fn(),
     update: vi.fn((_values: Record<string, unknown>) => query),
   }
-  return { client, query, row }
+  const rpcQuery = {
+    select: vi.fn(),
+  }
+  return { client, query, row, rpcQuery }
 })
 
 vi.mock('../base', () => ({
@@ -46,13 +51,32 @@ describe('PostgrestExtensionStatePort', () => {
     vi.clearAllMocks()
     transport.query.eq.mockReturnValue(transport.query)
     transport.query.filter.mockReturnValue(transport.query)
+    transport.query.order.mockResolvedValue({ data: [transport.row], error: null })
     transport.query.select.mockReturnValue(transport.query)
     transport.query.maybeSingle.mockResolvedValue({ data: transport.row, error: null })
     transport.query.single.mockResolvedValue({ data: transport.row, error: null })
     transport.client.from.mockReturnValue(transport.query)
     transport.client.insert.mockReturnValue(transport.query)
-    transport.client.rpc.mockResolvedValue({ data: [transport.row], error: null })
+    transport.rpcQuery.select.mockResolvedValue({ data: [transport.row], error: null })
+    transport.client.rpc.mockReturnValue(transport.rpcQuery)
     transport.client.update.mockReturnValue(transport.query)
+  })
+
+  it('projects only generic management fields and never fetches Extension state', async () => {
+    const state = new PostgrestExtensionStatePort()
+
+    await expect(state.list()).resolves.toEqual([transport.row])
+    await expect(state.get('inkcre/twitter')).resolves.toEqual(transport.row)
+
+    expect(transport.query.select).toHaveBeenCalledTimes(2)
+    expect(transport.query.select).toHaveBeenNthCalledWith(
+      1,
+      'name,version,enabled,nickname,config,config_schema'
+    )
+    expect(transport.query.select).toHaveBeenNthCalledWith(
+      2,
+      'name,version,enabled,nickname,config,config_schema'
+    )
   })
 
   it('lets the database default enabled to an empty array during install', async () => {
@@ -115,6 +139,14 @@ describe('PostgrestExtensionStatePort', () => {
       p_peer_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
       p_enabled: false,
     })
+    expect(transport.rpcQuery.select).toHaveBeenNthCalledWith(
+      1,
+      'name,version,enabled,nickname,config,config_schema'
+    )
+    expect(transport.rpcQuery.select).toHaveBeenNthCalledWith(
+      2,
+      'name,version,enabled,nickname,config,config_schema'
+    )
     expect(transport.client.insert).not.toHaveBeenCalled()
     expect(transport.client.update).not.toHaveBeenCalled()
   })

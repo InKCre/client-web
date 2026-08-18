@@ -42,6 +42,25 @@ export class Cron extends Z.class({
     )
   }
 
+  async update(form: CronForm): Promise<Cron> {
+    return Cron.parse(
+      (
+        await Cron.dbApi
+          .from()
+          .update({
+            schedule: form.schedule,
+            enabled: form.enabled,
+            job_type: form.job_type,
+            job_parameters: form.job_parameters as never,
+            job_timeout_seconds: form.job_timeout_seconds,
+          })
+          .eq('id', this.id)
+          .select()
+          .single()
+      ).data
+    )
+  }
+
   async delete(): Promise<void> {
     await Cron.dbApi.from().delete().eq('id', this.id)
   }

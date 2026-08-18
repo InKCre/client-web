@@ -4,6 +4,7 @@ export {
   InstalledExtensionSchema,
   InstallExtensionInputSchema,
   type ExtensionModule,
+  type ExtensionSetupContribution,
   type InstalledExtension,
   type InstallExtensionInput,
 } from './model'
@@ -26,6 +27,13 @@ export {
   type ModuleFederationDistribution,
   type ExtensionReleaseReader,
 } from './registry'
+
+export {
+  DEFAULT_EXTENSION_REGISTRY_ORIGIN,
+  EXTENSION_REGISTRY_CONFIG_KEY,
+  EXTENSION_REGISTRY_CONFIG_SCHEMA,
+  ExtensionRegistryOriginResolver,
+} from './registry-origin'
 
 export type { ExtensionStatePort } from './state'
 
