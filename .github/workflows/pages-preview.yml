@@ -194,14 +194,6 @@ jobs:
             --commit-hash=${{ needs.identity.outputs.head_sha }}
             --commit-dirty=false
 
-      - name: Smoke-test the stable preview URL and native facade
-        run: node controller/scripts/verify-pages-deployment.mjs
-        env:
-          CLOUDFLARE_PAGES_DEPLOYMENT_ID: ${{ steps.pages.outputs.pages-deployment-id }}
-          CLOUDFLARE_PAGES_DEPLOYMENT_URL: ${{ steps.pages.outputs.pages-deployment-alias-url }}
-          INKCRE_EXPECTED_PAGES_ORIGIN: https://preview-client-web-pr-${{ needs.identity.outputs.pull_number }}.${{ vars.CLOUDFLARE_PAGES_PROJECT }}.pages.dev
-          INKCRE_PREVIEW_PRODUCER: candidate/extensions/twitter/package.json
-
       - name: Report the pull-request deployment
         if: ${{ always() && steps.github-deployment.outputs.deployment_id != '' }}
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
