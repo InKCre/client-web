@@ -197,59 +197,12 @@ jobs:
       - name: Reject high-severity dependency vulnerabilities
         run: pnpm audit:dependencies
 
-      - name: Upload the exact static artifact
-        id: client-web-artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: client-web-dist
-          path: apps/client-web/dist
-          if-no-files-found: error
-          retention-days: 7
-
       - name: Validate the native Twitter Module Federation snapshot
         run: >-
           node scripts/verify-native-extension-distribution.mjs inspect-local
           --package extensions/twitter/package.json
           --core-package packages/core/package.json
           --artifact-directory extensions/twitter/dist/client-web
-
-      - name: Build the read-only Twitter preview Release
-        run: >-
-          node scripts/verify-native-extension-distribution.mjs preview-release
-          --package extensions/twitter/package.json
-          --core-package packages/core/package.json
-          --artifact-directory extensions/twitter/dist/client-web
-          --output .preview-release/twitter.json
-
-      - name: Upload the exact Twitter Module Federation snapshot
-        id: twitter-mf-artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: twitter-mf-dist
-          path: extensions/twitter/dist/client-web
-          if-no-files-found: error
-          retention-days: 7
-
-      - name: Upload the exact Twitter preview Release
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: twitter-mf-preview-release
-          path: .preview-release/twitter.json
-          if-no-files-found: error
-          retention-days: 7
-
-      - name: Record checked artifact provenance
-        env:
-          CLIENT_WEB_ARTIFACT_DIGEST: ${{ steps.client-web-artifact.outputs['artifact-digest'] }}
-          TWITTER_MF_ARTIFACT_DIGEST: ${{ steps.twitter-mf-artifact.outputs['artifact-digest'] }}
-        run: |
-          {
-            echo '## Checked delivery artifacts'
-            echo
-            echo "- Source SHA: \`${GITHUB_SHA}\`"
-            echo "- Client web artifact digest: \`${CLIENT_WEB_ARTIFACT_DIGEST}\`"
-            echo "- Twitter MF snapshot digest: \`${TWITTER_MF_ARTIFACT_DIGEST}\`"
-          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload unit-test evidence on failure
         if: failure()
