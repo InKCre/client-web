@@ -1,66 +1,56 @@
 # InKCre Web Monorepo
 
-Web, browser-extension, shared-core, and Module Federation clients for the InKCre information management system.
+Vue web, WXT browser-extension, shared-core, and Module Federation clients for InKCre.
 
-## Repository Map
-
-- `packages/core/`: shared models, APIs, configuration, storage, resolvers, and extension contracts.
-- `packages/ext-dev-utils/`: extension development utilities.
-- `apps/client-web/`: Vue 3 static web client.
-- `apps/client-webext/`: WXT browser extension.
-- `extensions/`: Module Federation remotes.
-- `docs/`: local architecture notes and historical implementation material.
-- `tasks/`: active agent-owned collaboration state.
+Reason in English. Communicate with humans in Chinese.
 
 ## Knowledge Owners
 
-- SVC working protocol and implementation judgment: the adopted SVC corpus, queried through the generated navigation below.
-- Repository architecture: `ARCHITECTURE.md`.
-- Filesystem map: `FILESYSTEM.md`.
-- Shared InKCre product truth and cross-unit contracts: the `InKCre/docs` Hub; consume a published reference through `docs/_shared/` once present.
-- Shared-reference mutation workflow: `.agents/skills/edit-svc-shared-docs/SKILL.md`, which delegates to the canonical Hub skill.
-- Local component and package guidance: the nearest nested `AGENTS.md`.
-- Active developer-experience work: `tasks/developer-experience-engineering/packet.md`.
-- Task retention: keep packets while their work remains active; completed packets may be deleted without an archive or deletion-time promotion review.
+- Repository topology and package boundaries: `ARCHITECTURE.md`.
+- Physical layout: `FILESYSTEM.md`.
+- Logical Unit internals: `docs/30-unit-tdd/`.
+- Runtime, development capabilities, and delivery: `docs/40-deployment/`.
+- Shared product truth and cross-unit contracts: the read-only `docs/_shared/` Hub reference.
+- Physical-subtree hazards: the nearest local `AGENTS.md`.
+- Volatile work state: the active packet under `tasks/`.
 
-## Development Workflow
+## Working Protocol
 
-- Runtime: pnpm `devEngines.runtime` provides Node.js 22.22.3; the root
-  `packageManager` provides pnpm 11.11.0.
+- Run `svc status . --json`, then use `svc lookup --keyword` and `svc lookup --path` only for guidance required by the current pressure.
+- Read the active Task Packet, relevant durable owner, and nearest local `AGENTS.md` before editing.
+- Resolve one semantic owner before adding durable material. Prefer code, types, tests, configuration, and CI for mechanically enforceable truth.
+- Before a reference-sensitive, logic-altering, or non-obviously-local durable mutation, state the target, objective `From -> To`, operation, blast radius, invariants, verification, and uncertainty.
+- Search before creating a type, utility, document, or abstraction.
+- Keep Task Packets compact and disposable. Add supporting entries only when a distinct owner and coordination pressure exist.
+
+## Engineering Workflow
+
+- Runtime: Node.js 22.22.3; package manager: pnpm 11.11.0.
 - Install: `pnpm install --frozen-lockfile`.
-- Diagnose: `pnpm run doctor` (`pnpm doctor` is pnpm's unrelated built-in command).
-- Develop: `pnpm dev` or `pnpm dev:all`.
-- Required verification: `pnpm check`.
-- Build the required Phase 2 outputs: `pnpm build`.
+- Diagnose: `pnpm run doctor` (`pnpm doctor` is a different pnpm command).
+- Develop: `pnpm dev`, `pnpm dev:all`, or an explicit source lane documented in `docs/40-deployment/development-runtime.md`.
+- Required verification: `pnpm check`; required production outputs: `pnpm build`.
 - Shadow verification: `pnpm lint:type-aware` and `pnpm type-check:ts7`.
-- Browser artifacts are environment-neutral: InKCre environment origins, client identities, and
-  JWT credentials come only from browser/extension-owned storage or explicit local/E2E bootstrap.
-
-## Execution Rules
-
-- Reason in English and communicate with humans in Chinese.
-- Read the active task packet and the nearest `AGENTS.md` before editing a governed subtree.
-- Search before creating a type, utility, or abstraction.
-- Prefer code, configuration, tests, and automation for mechanically enforceable truth.
-- Follow `.agents/prompts/code-for-human.md` and `.agents/rules/writing-agent-document.md`.
-- Refresh relevant `AGENTS.md`, `ARCHITECTURE.md`, and `FILESYSTEM.md` after significant structural changes.
-- Require explicit human start before modifying code; task-packet maintenance is exempt.
-- Require explicit human authorization before commit, push, or external publication.
+- Follow `.agents/prompts/code-for-human.md` for source changes.
+- Require explicit Human authorization before modifying source code and before commit, push, or external publication. Task Packet maintenance is exempt from the source gate.
 
 ## Multi-Repo Boundary
 
-- This repository is a Spoke in the wider InKCre product topology and a monorepo internally.
-- Treat `docs/_shared/` as read-only when the Hub reference is present.
-- Read the shared-doc wrapper before changing Hub truth or the shared reference.
-- Capture missing shared truth in the active local packet, change `InKCre/docs` first, publish the Hub commit, then update the Spoke reference separately.
-- Never mix Hub content edits, shared-reference bumps, and Spoke-local implementation in one commit.
+- This repository is a Spoke and an internal monorepo. Treat `docs/_shared/` as read-only.
+- Capture missing shared truth in the active packet, then use `.agents/skills/edit-svc-shared-docs/SKILL.md` to change the Hub source and publish it before updating this reference.
+- Never mix Hub edits, a shared-reference bump, and Spoke-local work in one commit.
 
-<!-- svc:begin navigation sha256=01d8643023a40533a997a67c70e920bb0ff0056081d2d18bec59e47324318152 -->
+
+<!-- svc:begin -->
 ## SVC
 
-This project uses the local Sustainable Vibe Coding CLI. Query framework guidance when it is needed instead of copying framework documents into this repository.
+Use `svc --help` or `svc <command> --help`.
 
-- Use `svc lookup --keyword "<need>"` to find relevant guidance, then `svc lookup --name '<exact-path-regex>'` to read an authoritative document.
-- Use `svc status` before broad process changes. If the installed corpus is newer than the adopted version in `svc.json`, read its migration guidance before `svc adopt`.
-- Treat all unmarked project instructions and documentation as consumer-owned.
-<!-- svc:end navigation -->
+- `svc status`: inspect project state
+- `svc lookup`: read SVC guidance
+- `svc task init`: create a task packet
+- `svc task grow`: inspect packet shape without changing files
+- `svc dev`: manage declared development targets
+
+If `AGENTS.local.md` exists, read it after this file. It is ignored local guidance; shared rules belong here.
+<!-- svc:end -->

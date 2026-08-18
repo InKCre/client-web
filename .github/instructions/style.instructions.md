@@ -13,9 +13,8 @@ Use design tokens by (auto injected, no import needed):
 - using function `sys-var($path...)` for simple tokens (e.g. `background-color: sys-var(color, surface, base)`).
 - using mixins `apply-font($size)`, `apply-icon($size, $centered: false)`, `apply-elevation($level)` for composite tokens.
 
-Read token list [here](docs/tokens.md)
-
-Never use reference tokens directly.
+Use only token names exported by the installed `@inkcre/ui-web` package. Never use reference
+tokens directly.
 
 ### Naming
 
@@ -27,4 +26,4 @@ Never use reference tokens directly.
 
 - You can use icon by adding class `i-mdi-<icon-name>`.
 - Use `div` if not in a paragraph or text context, use `span` with `inline-block` if in a text context.
-- Configure icon size and layout using `@include pu-icon($size, $centered: false)` mixin.
+- Configure icon size and layout using `@include apply-icon($size, $centered: false)` mixin.
