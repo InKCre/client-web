@@ -306,7 +306,8 @@ test('separates exact-main app delivery from the Changesets Extension release li
   assert.match(preview, /pnpm build/)
   assert.match(preview, /pdm run inkcre-ext preview build/)
   assert.match(preview, /--public-origin "\$PREVIEW_ORIGIN"/)
-  assert.match(preview, /workingDirectory: candidate\/apps\/client-web\/dist/)
+  assert.match(preview, /cp -R apps\/client-web\/dist "\$GITHUB_WORKSPACE\/\.pages-preview"/)
+  assert.match(preview, /workingDirectory: \.pages-preview/)
   assert.match(preview, /pages deploy \./)
   assert.doesNotMatch(preview, /INKCRE_EXTENSION_REGISTRY_TOKEN/)
 
