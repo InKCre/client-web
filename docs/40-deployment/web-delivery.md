@@ -45,7 +45,9 @@ The Toolkit places read-only native Extension snapshots and preview Releases bes
 app build, using the stable alias branch `preview/client-web/pr-<number>`. This is a preview
 projection, not Registry publication: the workflow has no
 `INKCRE_EXTENSION_REGISTRY_TOKEN`. It registers a transient GitHub `preview` deployment, deploys
-through Pages, smoke-tests the stable alias, and reports success or failure.
+through Pages and reports the provider deployment result. It does not turn edge propagation,
+deep route traversal, cache behavior, or byte comparison into synchronous delivery gates; consumer
+acceptance is a separate black-box activity.
 
 When an eligible internal PR closes, [`.github/workflows/pages-cleanup.yml`](../../.github/workflows/pages-cleanup.yml)
 replaces only that exact preview alias with a closed-page tombstone. Manual cleanup accepts an
