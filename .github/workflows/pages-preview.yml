@@ -121,6 +121,7 @@ jobs:
             --public-origin "$PREVIEW_ORIGIN" \
             --output .preview-registry
           cp -R .preview-registry/. apps/client-web/dist/
+          cp -R apps/client-web/dist "$GITHUB_WORKSPACE/.pages-preview"
 
       - name: Reverify pull-request identity before delivery
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -185,7 +186,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           packageManager: npm
           wranglerVersion: 4.114.0
-          workingDirectory: candidate/apps/client-web/dist
+          workingDirectory: .pages-preview
           command: >-
             pages deploy .
             --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT }}
