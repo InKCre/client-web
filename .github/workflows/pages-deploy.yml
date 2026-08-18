@@ -8,77 +8,46 @@ on:
       - completed
 
 permissions:
-  actions: read
   contents: read
 
 jobs:
   identity:
-    name: Resolve exact checked main delivery
+    name: Resolve exact current-main delivery
     if: >-
+      github.repository == 'InKCre/client-web' &&
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'main' &&
       github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     outputs:
-      run_id: ${{ steps.identity.outputs.run_id }}
       source_sha: ${{ steps.identity.outputs.source_sha }}
     steps:
-      - name: Resolve the trusted checked main run
+      - name: Resolve the protected-main source
         id: identity
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
         with:
           script: |
-            const runId = context.payload.workflow_run.id
-            const { data: run } = await github.rest.actions.getWorkflowRun({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: runId,
-            })
-            if (
-              run.name !== 'Client checks' ||
-              run.path !== '.github/workflows/ci.yml' ||
-              run.conclusion !== 'success' ||
-              run.event !== 'push' ||
-              run.head_branch !== 'main' ||
-              run.head_repository?.full_name !== `${context.repo.owner}/${context.repo.repo}`
-            ) {
-              core.setFailed('Delivery requires a successful same-repository Client checks push run on main.')
-              return
-            }
-
-            const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: runId,
-              per_page: 100,
-            })
-            if (!artifacts.some((artifact) => artifact.name === 'client-web-dist')) {
-              core.setFailed('Checked main run is missing required artifact: client-web-dist')
-              return
-            }
-
             const currentMain = await github.rest.git.getRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: 'heads/main',
             })
-            if (currentMain.data.object.sha !== run.head_sha) {
-              core.setFailed('A newer main revision superseded the checked artifact run.')
+            if (currentMain.data.object.sha !== process.env.SOURCE_SHA) {
+              core.setFailed('A newer main revision superseded this delivery run.')
               return
             }
-
-            core.setOutput('run_id', String(runId))
-            core.setOutput('source_sha', run.head_sha)
+            core.setOutput('source_sha', process.env.SOURCE_SHA)
 
   deliver:
-    name: Deploy exact Pages artifact
+    name: Build and deploy exact Pages release
     needs: identity
     concurrency:
       group: pages-main
       cancel-in-progress: false
     permissions:
-      actions: read
       contents: read
       deployments: write
       packages: read
@@ -88,11 +57,11 @@ jobs:
       name: production
       url: https://app.inkcre.dev
     steps:
-      - name: Checkout the exact checked delivery controller
+      - name: Checkout the exact current-main source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.identity.outputs.source_sha }}
-          path: controller
+          path: release
           fetch-depth: 2
           persist-credentials: false
 
@@ -101,28 +70,24 @@ jobs:
         with:
           version: 11.11.0
 
-      - name: Set up Node for delivery verification
+      - name: Set up Node
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
-          node-version-file: controller/package.json
+          node-version-file: release/package.json
           cache: pnpm
-          cache-dependency-path: controller/pnpm-lock.yaml
+          cache-dependency-path: release/pnpm-lock.yaml
           registry-url: https://npm.pkg.github.com
           scope: '@inkcre'
 
-      - name: Install the frozen delivery controller
-        working-directory: controller
+      - name: Install the frozen release workspace
+        working-directory: release
         run: pnpm install --frozen-lockfile
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download the exact checked Pages artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: client-web-dist
-          path: .pages-delivery/dist
-          run-id: ${{ needs.identity.outputs.run_id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build the exact-main release
+        working-directory: release
+        run: pnpm build
 
       - name: Reverify main before Pages delivery
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -136,7 +101,7 @@ jobs:
               ref: 'heads/main',
             })
             if (currentMain.data.object.sha !== process.env.SOURCE_SHA) {
-              core.setFailed('Main changed after checked artifacts were selected; refusing Pages delivery.')
+              core.setFailed('Main changed after the release build; refusing Pages delivery.')
             }
 
       - name: Deploy to Cloudflare Pages
@@ -147,16 +112,16 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           packageManager: npm
           wranglerVersion: 4.114.0
-          workingDirectory: .pages-delivery
+          workingDirectory: release
           command: >-
-            pages deploy dist
+            pages deploy apps/client-web/dist
             --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT }}
             --branch=main
             --commit-hash=${{ needs.identity.outputs.source_sha }}
             --commit-dirty=false
 
       - name: Smoke-test Pages and app.inkcre.dev
-        run: node controller/scripts/verify-pages-deployment.mjs
+        run: node release/scripts/verify-pages-deployment.mjs
         env:
           CLOUDFLARE_PAGES_DEPLOYMENT_ID: ${{ steps.pages.outputs.pages-deployment-id }}
           CLOUDFLARE_PAGES_DEPLOYMENT_URL: ${{ steps.pages.outputs.deployment-url }}

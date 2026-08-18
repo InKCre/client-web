@@ -1,14 +1,15 @@
 name: Pages preview
 
 on:
-  workflow_run:
-    workflows:
-      - Client checks
+  pull_request_target:
+    branches:
+      - main
     types:
-      - completed
+      - opened
+      - reopened
+      - synchronize
 
 permissions:
-  actions: read
   contents: read
   pull-requests: read
 
@@ -16,94 +17,34 @@ jobs:
   identity:
     name: Resolve trusted preview identity
     if: >-
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.head_repository.full_name == github.repository
+      github.event.pull_request.base.ref == 'main' &&
+      github.event.pull_request.base.repo.full_name == github.repository &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     outputs:
       branch: ${{ steps.identity.outputs.branch }}
       head_sha: ${{ steps.identity.outputs.head_sha }}
       pull_number: ${{ steps.identity.outputs.pull_number }}
-      run_id: ${{ steps.identity.outputs.run_id }}
     steps:
       - name: Resolve exact internal pull request
         id: identity
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
-            const runId = context.payload.workflow_run.id
-            const { data: run } = await github.rest.actions.getWorkflowRun({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: runId,
-            })
-            if (run.name !== 'Client checks' || run.path !== '.github/workflows/ci.yml') {
-              core.setFailed('Preview artifact must come from the trusted Client checks workflow.')
+            const pull = context.payload.pull_request
+            const repository = `${context.repo.owner}/${context.repo.repo}`
+            if (
+              pull.state !== 'open' ||
+              pull.base.ref !== 'main' ||
+              pull.base.repo.full_name !== repository ||
+              pull.head.repo?.full_name !== repository
+            ) {
+              core.setFailed('Preview delivery only accepts an open same-repository PR targeting main.')
               return
             }
-            if (run.status !== 'completed' || run.event !== 'pull_request') {
-              core.setFailed('Preview delivery requires a completed pull-request check run.')
-              return
-            }
-            if (run.head_repository?.full_name !== `${context.repo.owner}/${context.repo.repo}`) {
-              core.setFailed('Fork pull requests are not eligible for preview delivery.')
-              return
-            }
-
-            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: runId,
-              filter: 'latest',
-              per_page: 100,
-            })
-            const workspace = jobs.find((job) => job.name === 'Workspace contract')
-            if (!workspace || workspace.status !== 'completed' || workspace.conclusion !== 'success') {
-              core.setFailed('Preview delivery requires the Workspace contract job to pass.')
-              return
-            }
-
-            const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: runId,
-              per_page: 100,
-            })
-            for (const artifactName of [
-              'client-web-dist',
-              'twitter-mf-dist',
-              'twitter-mf-preview-release',
-            ]) {
-              const artifact = artifacts.find(
-                (candidate) => candidate.name === artifactName && !candidate.expired
-              )
-              if (!artifact) {
-                core.setFailed(
-                  `The successful Workspace contract job produced no live ${artifactName} artifact.`
-                )
-                return
-              }
-            }
-
-            const pulls = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: run.head_sha,
-            })
-            const pull = pulls.data.find((candidate) =>
-              candidate.state === 'open' &&
-              candidate.base.ref === 'main' &&
-              candidate.head.sha === run.head_sha &&
-              candidate.head.repo?.full_name === `${context.repo.owner}/${context.repo.repo}`
-            )
-            if (!pull) {
-              core.setFailed('Run is not the exact head of an eligible internal pull request.')
-              return
-            }
-
             core.setOutput('branch', `preview/client-web/pr-${pull.number}`)
-            core.setOutput('head_sha', run.head_sha)
+            core.setOutput('head_sha', pull.head.sha)
             core.setOutput('pull_number', String(pull.number))
-            core.setOutput('run_id', String(runId))
 
   deploy:
     name: Deploy pull-request preview
@@ -112,12 +53,11 @@ jobs:
       group: pages-preview-client-web-${{ needs.identity.outputs.pull_number }}
       cancel-in-progress: true
     permissions:
-      actions: read
       contents: read
       deployments: write
       pull-requests: read
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     environment: preview
     steps:
       - name: Checkout the trusted preview controller
@@ -127,42 +67,58 @@ jobs:
           path: controller
           persist-credentials: false
 
+      - name: Checkout the exact pull-request head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.identity.outputs.head_sha }}
+          path: candidate
+          persist-credentials: false
+
+      - name: Install the pinned pnpm release
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: 11.11.0
+
       - name: Set up Node
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
-          node-version-file: controller/package.json
+          node-version-file: candidate/package.json
+          cache: pnpm
+          cache-dependency-path: candidate/pnpm-lock.yaml
+          registry-url: https://npm.pkg.github.com
+          scope: '@inkcre'
 
-      - name: Download the exact checked artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - name: Set up Python and PDM
+        uses: pdm-project/setup-pdm@973541a5febeafcfdadf8a51211435be6ecfd90f # v4.5
         with:
-          name: client-web-dist
-          path: .pages-preview/dist
-          run-id: ${{ needs.identity.outputs.run_id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          python-version-file: candidate/.python-version
+          version: 2.27.0
+          cache: true
+          cache-dependency-path: candidate/pdm.lock
 
-      - name: Download the exact checked Twitter snapshot
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: twitter-mf-dist
-          path: .pages-preview/twitter-mf
-          run-id: ${{ needs.identity.outputs.run_id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install frozen preview toolchains
+        working-directory: candidate
+        run: |
+          pnpm install --frozen-lockfile
+          pdm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PDM_CHECK_UPDATE: 'false'
 
-      - name: Download the exact checked Twitter preview Release
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: twitter-mf-preview-release
-          path: .pages-preview/twitter-release
-          run-id: ${{ needs.identity.outputs.run_id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build the exact-head SPA and Module Federation snapshots
+        working-directory: candidate
+        run: pnpm build
 
-      - name: Assemble the read-only native Extension preview
-        run: >-
-          node controller/scripts/assemble-twitter-preview.mjs
-          --pages-directory .pages-preview/dist
-          --snapshot-directory .pages-preview/twitter-mf
-          --release .pages-preview/twitter-release/twitter.json
-          --public-origin https://preview-client-web-pr-${{ needs.identity.outputs.pull_number }}.${{ vars.CLOUDFLARE_PAGES_PROJECT }}.pages.dev
+      - name: Build the same-origin Preview Registry facade
+        working-directory: candidate
+        env:
+          PREVIEW_ORIGIN: https://preview-client-web-pr-${{ needs.identity.outputs.pull_number }}.${{ vars.CLOUDFLARE_PAGES_PROJECT }}.pages.dev
+        run: |
+          pdm run inkcre-ext preview build \
+            --inventory .github/preview/extensions.json \
+            --public-origin "$PREVIEW_ORIGIN" \
+            --output .preview-registry
+          cp -R .preview-registry/. apps/client-web/dist/
 
       - name: Reverify pull-request identity before delivery
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -188,7 +144,7 @@ jobs:
               pull.head.sha !== process.env.PREVIEW_HEAD_SHA ||
               pull.head.repo?.full_name !== `${context.repo.owner}/${context.repo.repo}`
             ) {
-              core.setFailed('Pull-request identity changed after artifact selection.')
+              core.setFailed('Pull-request identity changed after the exact-head build.')
             }
 
       - name: Register the pull-request deployment
@@ -227,19 +183,21 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           packageManager: npm
           wranglerVersion: 4.114.0
-          workingDirectory: .pages-preview
+          workingDirectory: candidate
           command: >-
-            pages deploy dist
+            pages deploy apps/client-web/dist
             --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT }}
             --branch=${{ needs.identity.outputs.branch }}
             --commit-hash=${{ needs.identity.outputs.head_sha }}
             --commit-dirty=false
 
-      - name: Smoke-test the stable preview URL
+      - name: Smoke-test the stable preview URL and native facade
         run: node controller/scripts/verify-pages-deployment.mjs
         env:
           CLOUDFLARE_PAGES_DEPLOYMENT_ID: ${{ steps.pages.outputs.pages-deployment-id }}
           CLOUDFLARE_PAGES_DEPLOYMENT_URL: ${{ steps.pages.outputs.pages-deployment-alias-url }}
+          INKCRE_EXPECTED_PAGES_ORIGIN: https://preview-client-web-pr-${{ needs.identity.outputs.pull_number }}.${{ vars.CLOUDFLARE_PAGES_PROJECT }}.pages.dev
+          INKCRE_PREVIEW_PRODUCER: candidate/extensions/twitter/package.json
 
       - name: Report the pull-request deployment
         if: ${{ always() && steps.github-deployment.outputs.deployment_id != '' }}

@@ -21,10 +21,8 @@ import {
 import {
   inspectNativeModuleFederation,
   prepareBody,
-  previewRelease,
   verifyPublicModuleFederation,
 } from './verify-native-extension-distribution.mjs'
-import { assembleTwitterPreview } from './assemble-twitter-preview.mjs'
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url))
 
@@ -186,58 +184,6 @@ test('builds the frozen native prepare payload with distribution-owned provenanc
   }
 })
 
-test('builds and assembles a read-only native Twitter preview projection', async () => {
-  const fixture = await createFixture()
-  const pagesDirectory = path.join(fixture.root, 'pages')
-  const releasePath = path.join(fixture.root, 'release.json')
-  try {
-    await mkdir(pagesDirectory)
-    await writeFile(path.join(pagesDirectory, 'index.html'), '<!doctype html>\n')
-    const release = previewRelease(await inspectNativeModuleFederation(fixture))
-    await writeFile(releasePath, `${JSON.stringify(release)}\n`)
-    await assembleTwitterPreview({
-      pagesDirectory,
-      snapshotDirectory: fixture.artifactDirectory,
-      releasePath,
-      publicOrigin: 'https://preview.example/',
-    })
-
-    const publicRelease = JSON.parse(
-      await readFile(
-        path.join(pagesDirectory, 'v1/extensions/inkcre/twitter/releases/0.1.1'),
-        'utf8'
-      )
-    )
-    assert.deepEqual(publicRelease, release)
-    assert.equal(
-      await readFile(
-        path.join(
-          pagesDirectory,
-          'extensions/inkcre/twitter/0.1.1/module-federation/remoteEntry.js'
-        ),
-        'utf8'
-      ),
-      fixture.files.get('remoteEntry.js').toString()
-    )
-    const publicManifest = JSON.parse(
-      await readFile(
-        path.join(
-          pagesDirectory,
-          'extensions/inkcre/twitter/0.1.1/module-federation/mf-manifest.json'
-        ),
-        'utf8'
-      )
-    )
-    assert.equal(
-      publicManifest.metaData.publicPath,
-      'https://preview.example/extensions/inkcre/twitter/0.1.1/module-federation/'
-    )
-    assert.match(await readFile(path.join(pagesDirectory, '_headers'), 'utf8'), /no-store/)
-  } finally {
-    await rm(fixture.root, { recursive: true, force: true })
-  }
-})
-
 test('rejects a native manifest whose referenced closure is missing', async () => {
   const fixture = await createFixture()
   try {
@@ -310,19 +256,20 @@ test('separates exact-main app delivery from the Changesets Extension release li
   assert.match(ci, /push:\n\s+branches:\n\s+- main/)
   assert.match(ci, /database-contract:\n\s+name: Database contract\n\s+needs: core-release/)
   assert.match(ci, /workspace:\n\s+name: Workspace contract\n\s+runs-on:/)
-  assert.match(ci, /name: twitter-mf-dist/)
-  assert.match(ci, /name: twitter-mf-preview-release/)
-  assert.match(ci, /verify-native-extension-distribution\.mjs preview-release/)
+  assert.doesNotMatch(ci, /name: client-web-dist/)
+  assert.doesNotMatch(ci, /name: twitter-mf-dist/)
+  assert.doesNotMatch(ci, /name: twitter-mf-preview-release/)
+  assert.doesNotMatch(ci, /verify-native-extension-distribution\.mjs preview-release/)
   assert.match(ci, /verify-native-extension-distribution\.mjs inspect-local/)
   assert.doesNotMatch(ci, /INKCRE_EXTENSION_REGISTRY_TOKEN/)
 
   assert.match(delivery, /workflow_run:\n\s+workflows:\n\s+- Client checks/)
-  assert.doesNotMatch(delivery, /\n\s+push:/)
-  assert.match(delivery, /run\.event !== 'push'/)
-  assert.match(delivery, /run\.head_branch !== 'main'/)
-  assert.match(delivery, /currentMain\.data\.object\.sha !== run\.head_sha/)
+  assert.match(delivery, /workflow_run\.conclusion == 'success'/)
+  assert.match(delivery, /currentMain\.data\.object\.sha !== process\.env\.SOURCE_SHA/)
   assert.doesNotMatch(delivery, /name: twitter-mf-dist/)
-  assert.match(delivery, /run-id: \$\{\{ needs\.identity\.outputs\.run_id \}\}/)
+  assert.doesNotMatch(delivery, /download-artifact/)
+  assert.match(delivery, /pnpm install --frozen-lockfile/)
+  assert.match(delivery, /pnpm build/)
   assert.doesNotMatch(delivery, /INKCRE_EXTENSION_REGISTRY_TOKEN/)
   assert.doesNotMatch(delivery, /verify-native-extension-distribution\.mjs prepare-body/)
   assert.doesNotMatch(delivery, /module-federation/)
@@ -350,14 +297,16 @@ test('separates exact-main app delivery from the Changesets Extension release li
   assert.match(release, /\/publish"/)
   assert.match(release, /verify-native-extension-distribution\.mjs verify-public/)
   assert.match(release, /INKCRE_EXTENSION_REGISTRY_TOKEN/)
-  assert.doesNotMatch(preview, /workflow_run\.conclusion == 'success'/)
-  assert.match(preview, /job\.name === 'Workspace contract'/)
-  assert.match(preview, /workspace\.conclusion !== 'success'/)
-  assert.match(preview, /candidate\.name === artifactName && !candidate\.expired/)
-  assert.match(preview, /'twitter-mf-dist'/)
-  assert.match(preview, /'twitter-mf-preview-release'/)
-  assert.match(preview, /assemble-twitter-preview\.mjs/)
-  assert.match(preview, /--public-origin https:\/\/preview-client-web-pr-/)
+  assert.match(preview, /pull_request_target:/)
+  assert.doesNotMatch(preview, /workflow_run:/)
+  assert.doesNotMatch(preview, /download-artifact/)
+  assert.match(preview, /path: controller/)
+  assert.match(preview, /path: candidate/)
+  assert.match(preview, /pdm install --frozen-lockfile/)
+  assert.match(preview, /pnpm build/)
+  assert.match(preview, /pdm run inkcre-ext preview build/)
+  assert.match(preview, /--public-origin "\$PREVIEW_ORIGIN"/)
+  assert.match(preview, /pages deploy apps\/client-web\/dist/)
   assert.doesNotMatch(preview, /INKCRE_EXTENSION_REGISTRY_TOKEN/)
 
   assert.doesNotMatch(release, /pages deploy/)

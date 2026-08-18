@@ -53,8 +53,8 @@ if (await exists('.node-version')) {
 for (const [path, expectedNodeFiles] of [
   ['.github/workflows/ci.yml', Array(6).fill('package.json')],
   ['.github/workflows/pages-cleanup.yml', ['controller/package.json']],
-  ['.github/workflows/pages-preview.yml', ['controller/package.json']],
-  ['.github/workflows/pages-deploy.yml', ['controller/package.json']],
+  ['.github/workflows/pages-preview.yml', ['candidate/package.json']],
+  ['.github/workflows/pages-deploy.yml', ['release/package.json']],
 ]) {
   const workflow = await readFile(`${repoRoot}/${path}`, 'utf8')
   const configuredNodeFiles = [...workflow.matchAll(/node-version-file:\s*(\S+)/g)].map(

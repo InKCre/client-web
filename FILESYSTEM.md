@@ -3,7 +3,8 @@
 ## Repository Roots
 
 - `.agents/` - Consumer-owned Agent prompts and shared-doc workflow bridge.
-- `.github/` - CI, release, deployment, and contextual coding instructions.
+- `.github/` - CI, release, deployment, contextual coding instructions, and explicit preview
+  inventories under `.github/preview/`.
 - `apps/client-web/` - Static Vue application.
 - `apps/client-webext/` - WXT browser extension.
 - `contracts/` - Checked upstream release and compatibility inputs.
@@ -24,6 +25,7 @@
 - `packages/core/src/index.ts` - Shared package exports.
 - `extensions/*/src/index.ts` - Host-consumed Extension exports.
 - `extensions/*/src/main.ts` - Local producer playgrounds.
+- `pyproject.toml` / `pdm.lock` - Frozen repository-level Python preview tooling.
 - `svc.json` - SVC Corpus baseline and portable development targets.
 
 ## Ignored Runtime State

@@ -57,5 +57,12 @@ types and runtime metadata project the admitted core-py contract through stable 
 - [Native Extension Delivery](docs/40-deployment/native-extension-delivery.md) owns Changesets,
   Registry publication, provenance, and release secret boundaries.
 
+Pull-request preview authority is a trusted same-repository controller. It checks out the exact PR
+head separately, installs frozen pnpm/PDM environments, builds the SPA and selected Module
+Federation snapshots, uses `inkcre-ext preview build` to add a same-origin static Registry facade,
+and directly deploys the combined output to the deterministic PR alias. Protected `main` is the
+independent production authority and builds its own frozen exact-main artifact before direct Pages
+delivery. Validation checks upload no deployable SPA, MF, or Registry handoff artifacts.
+
 Executable configuration, scripts, tests, and workflows remain authoritative for exact commands
 and wire values.
