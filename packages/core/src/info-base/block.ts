@@ -53,6 +53,30 @@ export class Block extends Z.class({
     return ((await this.dbApi.from().select()).data ?? []).map((item) => Block.parse(item))
   }
 
+  static async getMany(ids: Iterable<BlockRef>): Promise<Block[]> {
+    const uniqueIds = [...new Set(ids)]
+    if (uniqueIds.length === 0) return []
+    const result = await this.dbApi.from().select().in('id', uniqueIds)
+    if (result.error) throw result.error
+    return (result.data ?? []).map((item) => Block.parse(item))
+  }
+
+  static async getRandom(): Promise<Block | null> {
+    const countResult = await this.dbApi.from().select('*', { count: 'exact', head: true })
+    if (countResult.error) throw countResult.error
+    const count = countResult.count ?? 0
+    if (count === 0) return null
+    const offset = Math.floor(Math.random() * count)
+    const result = await this.dbApi
+      .from()
+      .select()
+      .order('id', { ascending: true })
+      .range(offset, offset)
+      .maybeSingle()
+    if (result.error) throw result.error
+    return result.data ? Block.parse(result.data) : null
+  }
+
   static async getRecent(limit: number = 10): Promise<Block[]> {
     return (
       (

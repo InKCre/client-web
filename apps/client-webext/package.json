@@ -13,8 +13,7 @@
     "zip:firefox": "wxt zip -b firefox",
     "crx": "wxt build && crx3 -p .output/inkcre.pem -o .output/inkcre-$npm_package_version-chrome.crx .output/chrome-mv3",
     "postinstall": "wxt prepare",
-    "type-check": "vue-tsc --noEmit",
-    "test": "pnpm --dir ../.. exec vitest --project client-webext"
+    "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.38",

@@ -1,78 +1,122 @@
 @import '@vue-flow/core/dist/style.css';
 @import '@vue-flow/core/dist/theme-default.css';
-@import '@vue-flow/minimap/dist/style.css';
 
 .graph-view {
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 500px;
-  background: var(--ink-bg-primary, #ffffff);
+  min-height: 520px;
+  overflow: hidden;
+  background: sys-var(color, surface, base);
 
   &__flow {
     width: 100%;
     height: 100%;
   }
 
-  &__empty {
+  &__toolbar {
+    position: absolute;
+    top: sys-var(space, md);
+    left: 50%;
+    z-index: 5;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    gap: sys-var(space, sm);
+    transform: translateX(-50%);
+  }
+
+  &__control-group {
+    display: flex;
+    overflow: hidden;
+    border: 1px solid sys-var(color, border, subtle);
+    border-radius: sys-var(radius, none);
+    background: sys-var(color, surface, base);
+
+    button {
+      min-height: 30px;
+      padding: 0 sys-var(space, sm);
+      border: 0;
+      border-right: 1px solid sys-var(color, border, subtle);
+      color: sys-var(color, text, subtle);
+      background: transparent;
+      cursor: pointer;
+      @include apply-font(label-sm);
+
+      &:last-child {
+        border-right: 0;
+      }
+      &:hover {
+        color: sys-var(color, text, base);
+      }
+      &[aria-pressed='true'] {
+        color: sys-var(color, text, base);
+        background: sys-var(color, surface, subtle);
+      }
+      &:focus-visible {
+        outline: 1px solid sys-var(color, border, primary);
+        outline-offset: -2px;
+      }
+    }
+  }
+
+  &__state {
+    display: grid;
+    place-items: center;
     width: 100%;
     height: 100%;
-    color: var(--ink-text-tertiary, #9ca3af);
-    font-size: 16px;
-    font-style: italic;
+    color: sys-var(color, text, subtle);
+
+    p {
+      max-width: 420px;
+      margin: 0;
+      text-align: center;
+    }
   }
 
-  &__top-controls {
+  &__viewport-controls {
     position: absolute;
-    left: sys-var(space, md);
-    top: sys-var(space, md);
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: sys-var(space, sm);
-    z-index: 6; // Above controls (z-index: 5)
-  }
-
-  &__controls {
-    position: absolute;
-    left: sys-var(space, md);
+    right: sys-var(space, md);
     bottom: sys-var(space, md);
+    z-index: 4;
     display: flex;
-    flex-direction: column;
-    gap: sys-var(space, xs);
-    z-index: 5;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid sys-var(color, border, subtle);
+    background: sys-var(color, surface, base);
   }
 }
 
-// Vue Flow customizations
 .vue-flow {
-  .vue-flow__minimap {
-    background: var(--ink-bg-secondary, #f9fafb);
-    border: 1px solid var(--ink-border-primary, #e5e7eb);
-    border-radius: 8px;
+  .vue-flow__pane {
+    cursor: grab;
   }
-
+  .vue-flow__pane.dragging {
+    cursor: grabbing;
+  }
   .vue-flow__background {
-    background: var(--ink-bg-primary, #ffffff);
+    background: sys-var(color, surface, base);
   }
 }
 
-// Responsive adjustments
-@media (max-width: 768px) {
+@media (max-width: 720px) {
   .graph-view {
-    &__top-controls {
-      left: 8px;
-      top: 8px;
-      right: 8px;
-      flex-direction: column;
+    min-height: 440px;
+
+    &__toolbar {
+      top: sys-var(space, sm);
+      width: calc(100% - 2 * sys-var(space, sm));
+      justify-content: center;
+      flex-wrap: wrap;
     }
 
-    &__controls {
-      left: 8px;
-      bottom: 8px;
+    &__viewport-controls {
+      right: sys-var(space, sm);
+      bottom: sys-var(space, sm);
     }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .graph-view * {
+    scroll-behavior: auto !important;
   }
 }

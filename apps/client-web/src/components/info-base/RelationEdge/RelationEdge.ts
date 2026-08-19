@@ -1,4 +1,9 @@
 import type { EdgeProps } from '@vue-flow/core'
-import type { RelationEdgeData } from '@inkcre/core'
+import type { RelationEdgeData } from '@/views/info-base/graph/graph-model'
+
+export interface RelationEdgeEmits {
+  (event: 'focus', relation: number): void
+  (event: 'inspect', relation: number): void
+}
 
 export type RelationEdgeProps = EdgeProps<RelationEdgeData>

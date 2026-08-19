@@ -91,6 +91,37 @@ path and never fall back to the persisted pointer string.
 targeted invalidation, and clearing dispose old instances. Resolver-local hydration, relation, and
 solved-content caches still obey `refresh`; instance reuse does not change authority.
 
+Every registered Resolver provides both `previewRenderer` and `solvedContentRenderer`. They consume
+the same solved-content authority; there is no preview projection. Preview is bounded and
+interaction-free for dense InfoBase presentation, while solved content may support focused reading
+and domain actions. Graph/List orchestrators may request solved content with
+`materializeMissing=false`; retrieval results never carry labels, renderers, solved values, dimensions,
+or layout hints.
+
+## Graph Navigation
+
+`GraphNavigationRetrievalManager` is a peer-local TypeScript implementation over PostgREST. It returns
+endpoint-closed `GraphModel` reads for bounded Block neighborhoods, exact Relation neighborhoods and
+bounded shortest-by-hop paths. It does not call core-py, use Peer delegation, add a database RPC, or
+depend on Vue Flow. Incoming/outgoing pages are queried separately and merged inside the manager;
+frontier batching remains private query mechanics.
+
+The application Graph View is a navigation host and presentation realizer. Role-named query fields
+(`focal_block`, `focal_relation`, `path_from` + `path_to`, `q`) reconstruct the active scene; scale,
+direction emphasis, positions, camera and preview cache remain runtime state. Activating a canvas
+entity changes focal identity, while Inspect is an explicit secondary route. Block/Relation inspectors
+and solved content are modeless route outlets whose close action delegates to browser/router `back()`.
+
+Graph shells render before bounded Resolver previews. Intrinsic DOM dimensions inform deterministic
+local layout; shared positions survive scene changes and user drag is session-only. Direction is soft
+presentation state: muted entities remain present and interactive and changing direction performs no
+retrieval. Automatic camera movement follows explicit focal/path/refocus actions only; manual movement
+cancels pending ownership.
+
+Application Recall/Search is not part of an InfoBase View, but an active View may realize its selected
+destination. Recall defaults to List outside a View; Find path supplies two Block references to Graph.
+The retired `sink/graph` community/MDS layer is not a compatibility surface.
+
 ## Producer Guardrails
 
 Producers emit exact, versioned Resolver IDs; keep protocol/source identity and declared metadata

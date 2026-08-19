@@ -29,11 +29,42 @@ export class Relation extends Z.class({
   )
 
   static async get(id: RelationRef): Promise<Relation> {
-    return Relation.parse((await this.dbApi.from().select().eq('id', id)).data?.[0])
+    const relation = await this.find(id)
+    if (!relation) throw new Error(`Relation ${id} does not exist`)
+    return relation
+  }
+
+  static async find(id: RelationRef): Promise<Relation | null> {
+    const result = await this.dbApi.from().select().eq('id', id).maybeSingle()
+    if (result.error) throw result.error
+    return result.data ? Relation.parse(result.data) : null
   }
 
   static async getAll(): Promise<Relation[]> {
     return ((await this.dbApi.from().select()).data ?? []).map((item) => Relation.parse(item))
+  }
+
+  static async getEndpointPage(options: {
+    blockIds: Iterable<BlockRef>
+    endpoint: 'from_' | 'to_'
+    contents?: Iterable<string>
+    cursor?: RelationRef
+    limit: number
+  }): Promise<Relation[]> {
+    const blockIds = [...new Set(options.blockIds)]
+    if (blockIds.length === 0 || options.limit <= 0) return []
+    let query = this.dbApi
+      .from()
+      .select()
+      .in(options.endpoint, blockIds)
+      .order('id', { ascending: false })
+      .limit(options.limit)
+    const contents = [...new Set(options.contents ?? [])]
+    if (contents.length > 0) query = query.in('content', contents)
+    if (options.cursor !== undefined) query = query.lt('id', options.cursor)
+    const result = await query
+    if (result.error) throw result.error
+    return (result.data ?? []).map((item) => Relation.parse(item))
   }
 
   /**

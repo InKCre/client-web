@@ -42,6 +42,7 @@ import ContentVideo from '@/components/info-base/resolvers/ContentVideo.vue'
 import ContentHtml from '@/components/info-base/resolvers/ContentHtml.vue'
 import ContentAudio from '@/components/info-base/resolvers/ContentAudio.vue'
 import ContentFile from '@/components/info-base/resolvers/ContentFile.vue'
+import ContentPreview from '@/components/info-base/resolvers/ContentPreview.vue'
 
 // ============================================================================
 // Resolver Component Registration
@@ -52,6 +53,15 @@ import ContentFile from '@/components/info-base/resolvers/ContentFile.vue'
  * Each resolver needs a Vue component to render content.
  */
 export function setupResolvers(): void {
+  TextResolver.previewRenderer = ContentPreview
+  AudioResolver.previewRenderer = ContentPreview
+  EpubResolver.previewRenderer = ContentPreview
+  FileResolver.previewRenderer = ContentPreview
+  ImageResolver.previewRenderer = ContentPreview
+  PdfResolver.previewRenderer = ContentPreview
+  VideoResolver.previewRenderer = ContentPreview
+  HtmlResolver.previewRenderer = ContentPreview
+  ZipResolver.previewRenderer = ContentPreview
   TextResolver.solvedContentRenderer = ContentText
   AudioResolver.solvedContentRenderer = ContentAudio
   EpubResolver.solvedContentRenderer = ContentFile

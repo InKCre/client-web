@@ -18,7 +18,7 @@ Reason in English. Communicate with humans in Chinese.
 
 - Run `svc status . --json`, then use `svc lookup --keyword` and `svc lookup --path` only for guidance required by the current pressure.
 - Read the active Task Packet, relevant durable owner, and nearest local `AGENTS.md` before editing.
-- Resolve one semantic owner before adding durable material. Prefer code, types, tests, configuration, and CI for mechanically enforceable truth.
+- Resolve one semantic owner before adding durable material. Prefer code, types, configuration, and CI for mechanically enforceable truth.
 - Before a reference-sensitive, logic-altering, or non-obviously-local durable mutation, state the target, objective `From -> To`, operation, blast radius, invariants, verification, and uncertainty.
 - Search before creating a type, utility, document, or abstraction.
 - Keep Task Packets compact and disposable. Add supporting entries only when a distinct owner and coordination pressure exist.
@@ -31,6 +31,8 @@ Reason in English. Communicate with humans in Chinese.
 - Develop: `pnpm dev`, `pnpm dev:all`, or an explicit source lane documented in `docs/40-deployment/development-runtime.md`.
 - Required verification: `pnpm check`; required production outputs: `pnpm build`.
 - Shadow verification: `pnpm lint:type-aware` and `pnpm type-check:ts7`.
+- Follow the organization-wide [Verification and Test Policy](https://github.com/InKCre/.github/blob/main/TESTING.md).
+  The admitted Playwright E2E suites do not authorize new automation by analogy.
 - Follow `.agents/prompts/code-for-human.md` for source changes.
 - Require explicit Human authorization before modifying source code and before commit, push, or external publication. Task Packet maintenance is exempt from the source gate.
 

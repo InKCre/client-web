@@ -7,7 +7,7 @@
  *
  * Architecture:
  * - Resolver instances are created per-block with optional relations
- * - Each resolver has a presentation-neutral solvedContentRenderer
+ * - Each resolver has explicit preview and solved-content presentation contracts
  * - Resolver stores resolver classes statically and provides factory methods
  * - This implementation integrates with Block, Relation, and Storage models
  */
@@ -58,6 +58,7 @@ export interface SolvedContentRendererProps<
 export interface ResolverClass {
   new (block: Block, relations?: Relation[]): Resolver
   readonly type: string
+  previewRenderer: Component
   solvedContentRenderer: Component
 }
 
@@ -68,7 +69,7 @@ export interface ResolverClass {
  * This class merges the protocol-level BaseResolver with info-base-specific DB integration.
  *
  * Subclasses must:
- * - Set static `type` and `solvedContentRenderer`
+ * - Set static `type`, `previewRenderer`, and `solvedContentRenderer`
  * - Override `_getSolvedContent()` for content transformation
  *
  * @template RawContentT - The type of raw content from storage
@@ -81,11 +82,19 @@ export abstract class Resolver<RawContentT = unknown, SolvedContentT = RawConten
   /** Vue component for rendering - settable by applications */
   static solvedContentRenderer: Component
 
+  /** Interaction-free bounded renderer for InfoBase view previews. */
+  static previewRenderer: Component
+
   private static resolverClasses: Map<string, ResolverClass> = new Map()
   static register(type: string, resolverClass: ResolverClass): void {
     if (resolverClass.type !== type) {
       throw new TypeError(
         `Resolver class ${resolverClass.name} declares ${resolverClass.type}, not ${type}.`
+      )
+    }
+    if (!resolverClass.previewRenderer || !resolverClass.solvedContentRenderer) {
+      throw new TypeError(
+        `Resolver class ${resolverClass.name} must declare previewRenderer and solvedContentRenderer.`
       )
     }
     const existing = this.resolverClasses.get(type)

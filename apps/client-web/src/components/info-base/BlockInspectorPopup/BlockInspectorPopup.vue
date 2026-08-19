@@ -78,7 +78,7 @@ async function ruminate(): Promise<void> {
 </script>
 
 <template>
-  <InkPopup :open="open" position="right" @update:open="onOpenChange">
+  <InkPopup :open="open" :scrim="false" position="right" @update:open="onOpenChange">
     <section class="block-inspector-popup">
       <header class="block-inspector-popup__header">
         <h3>{{ t('infoBase.blockInspector.title') }}</h3>

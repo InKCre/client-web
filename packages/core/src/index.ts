@@ -93,6 +93,19 @@ export {
   type LexicalEvidence,
 } from './lexical-retrieval'
 export {
+  GraphNavigationRetrievalManager,
+  GraphDirectionSchema,
+  GraphModelSchema,
+  BlockNeighborhoodSchema,
+  RelationNeighborhoodSchema,
+  PathResultSchema,
+  type GraphDirection,
+  type GraphModel,
+  type BlockNeighborhood,
+  type RelationNeighborhood,
+  type PathResult,
+} from './graph-navigation-retrieval'
+export {
   OrganizationManager,
   OrganizationDelegationError,
   RUMINATION_CAPABILITY,
@@ -146,6 +159,7 @@ export {
   type ResolverContentState,
   type SolvedContentRendererProps,
   type InfoBaseRoute,
+  type InfoBaseSceneAddress,
   type InfoBaseRouter,
   setInfoBaseRouter,
   getInfoBaseRouter,
@@ -196,9 +210,6 @@ export {
   type HttpStorageConfig,
   type PostgreSQLBlobPointer,
 } from './info-base'
-
-// Sink (Output formatters)
-export * from './sink/graph'
 
 // Configuration
 export {

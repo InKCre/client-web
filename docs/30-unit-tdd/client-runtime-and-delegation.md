@@ -64,6 +64,10 @@ issuer, audience, role, and maximum lifetime from the generated Peer runtime con
 the token when the secret changes, and clears it when the secret is removed. PostgREST JSON access,
 raw byte access, and Peer HTTP delegation reuse this single authentication authority.
 
+The browser signer backdates `iat` by five seconds and derives `exp` from that adjusted value. This
+absorbs ordinary sub-second or small deployment clock skew at the authentication boundary without
+increasing the shared maximum lifetime or leaking retries into PostgREST/domain callers.
+
 ## Application Hosts
 
 `InfoBaseRouter` is an application-bound singleton translating Block and Relation navigation into
