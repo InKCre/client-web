@@ -179,10 +179,8 @@ test('Block Inspector delegates rumination through the discovered Peer', async (
   const [block] = await created.json()
 
   try {
-    await page.goto('/info-base/graph')
-    const node = page.locator('.block-node', { hasText: content })
-    await expect(node).toBeVisible()
-    await node.getByRole('button', { name: 'Inspect Block' }).click()
+    await page.goto(`/info-base/graph/blocks/${block.id}`)
+    await expect(page.getByRole('button', { name: 'Ruminate' })).toBeVisible()
 
     const requestPromise = page.waitForRequest(
       (request) =>
