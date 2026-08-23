@@ -34,15 +34,16 @@ const inspect = () => emit('inspect', props.data.block.id)
   >
     <header>
       <span class="block-node__resolver">{{ resolverName }}</span>
-      <InkButton
-        class="nodrag nopan block-node__inspect"
-        icon="i-mdi-information-outline"
-        theme="subtle"
-        type="square"
-        size="sm"
-        aria-label="Inspect Block"
-        @click.stop="inspect"
-      />
+      <span class="nodrag nopan block-node__inspect" @pointerdown.stop @click.stop>
+        <InkButton
+          icon="i-mdi-information-outline"
+          theme="subtle"
+          type="square"
+          size="sm"
+          aria-label="Inspect Block"
+          @click="inspect"
+        />
+      </span>
     </header>
     <div class="block-node__content">
       <InkLoading v-if="data.previewStatus === 'loading'" />

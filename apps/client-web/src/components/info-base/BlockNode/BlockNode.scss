@@ -54,7 +54,7 @@
   }
 
   &:hover &__inspect,
-  &__inspect:focus-visible {
+  &__inspect:focus-within {
     opacity: 1;
   }
 
