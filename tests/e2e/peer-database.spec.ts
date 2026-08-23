@@ -163,7 +163,7 @@ test('core Peer publishes and serves its exact capability inbounds', async ({ pa
   expect(result.executionStatus).toBe(404)
 })
 
-test('BlockDetailsPanel delegates rumination through the discovered Peer', async ({ page }) => {
+test('Block Inspector delegates rumination through the discovered Peer', async ({ page }) => {
   const authorization = `Bearer ${await token()}`
   const content = `E2E rumination focal block ${Date.now()}`
   const created = await fetch(`${postgrestUrl}blocks`, {
@@ -182,7 +182,7 @@ test('BlockDetailsPanel delegates rumination through the discovered Peer', async
     await page.goto('/info-base/graph')
     const node = page.locator('.block-node', { hasText: content })
     await expect(node).toBeVisible()
-    await node.click()
+    await node.getByRole('button', { name: 'Inspect Block' }).click()
 
     const requestPromise = page.waitForRequest(
       (request) =>
