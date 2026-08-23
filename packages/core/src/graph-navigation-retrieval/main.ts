@@ -183,6 +183,7 @@ export class GraphNavigationRetrievalManager {
     const backwardDepths = new Map<BlockRef, number>([[toBlock, 0]])
     let forwardFrontier = new Set([fromBlock])
     let backwardFrontier = new Set([toBlock])
+    const traversedRelations = new Map<RelationRef, Relation>()
 
     while (forwardFrontier.size > 0 && backwardFrontier.size > 0) {
       const forwardLevel = forwardDepths.get(forwardFrontier.values().next().value!)!
@@ -198,6 +199,7 @@ export class GraphNavigationRetrievalManager {
         ownDepths: expandForward ? forwardDepths : backwardDepths,
         otherDepths: expandForward ? backwardDepths : forwardDepths,
         maxHops,
+        traversedRelations,
       })
       if (expandForward) forwardFrontier = expanded.frontier
       else backwardFrontier = expanded.frontier
@@ -211,8 +213,7 @@ export class GraphNavigationRetrievalManager {
           meeting: expanded.meeting,
           forwardSteps,
           backwardSteps,
-          direction,
-          contents,
+          traversedRelations,
         })
       }
     }
@@ -228,6 +229,7 @@ export class GraphNavigationRetrievalManager {
     ownDepths: Map<BlockRef, number>
     otherDepths: Map<BlockRef, number>
     maxHops: number
+    traversedRelations: Map<RelationRef, Relation>
   }): Promise<{ frontier: Set<BlockRef>; meeting: BlockRef | null }> {
     const blocks = [...options.frontier]
     const nextFrontier = new Set<BlockRef>()
@@ -242,6 +244,7 @@ export class GraphNavigationRetrievalManager {
         options.reverse
       )
       for (const relation of relations) {
+        options.traversedRelations.set(relation.id, relation)
         for (const [current, neighbor] of this.relationSteps(
           relation,
           chunk,
@@ -328,8 +331,7 @@ export class GraphNavigationRetrievalManager {
     meeting: BlockRef
     forwardSteps: Map<BlockRef, PathStep>
     backwardSteps: Map<BlockRef, PathStep>
-    direction: GraphDirection
-    contents: string[]
+    traversedRelations: Map<RelationRef, Relation>
   }): Promise<PathResult> {
     const blockPath = [options.meeting]
     const relationPath: RelationRef[] = []
@@ -351,33 +353,17 @@ export class GraphNavigationRetrievalManager {
       blockPath.push(current)
       relationPath.push(step.relation)
     }
-    const [blocks, relations] = await Promise.all([
-      Block.getMany(blockPath),
-      Promise.all(relationPath.map((id) => Relation.find(id))),
-    ])
-    if (blocks.length !== new Set(blockPath).size || relations.some((item) => item === null)) {
-      throw new Error('Persisted path changed during retrieval.')
-    }
-    const persistedRelations = relations as Relation[]
-    for (const [index, relation] of persistedRelations.entries()) {
-      const from = blockPath[index]!
-      const to = blockPath[index + 1]!
-      const directionValid =
-        (options.direction === 'both' &&
-          new Set([relation.from_, relation.to_]).has(from) &&
-          new Set([relation.from_, relation.to_]).has(to)) ||
-        (options.direction === 'out' && relation.from_ === from && relation.to_ === to) ||
-        (options.direction === 'in' && relation.to_ === from && relation.from_ === to)
-      if (
-        !directionValid ||
-        (options.contents.length > 0 && !options.contents.includes(relation.content))
-      ) {
-        throw new Error('Persisted path changed during retrieval.')
-      }
+    const blocks = await Block.getMany(blockPath)
+    const relations = relationPath.flatMap((id) => {
+      const relation = options.traversedRelations.get(id)
+      return relation ? [relation] : []
+    })
+    if (blocks.length !== new Set(blockPath).size || relations.length !== relationPath.length) {
+      return { status: 'not_found' }
     }
     return PathFoundSchema.parse({
       status: 'found',
-      graph: { blocks, relations: persistedRelations },
+      graph: { blocks, relations },
       block_path: blockPath,
       relation_path: relationPath,
     }) as PathResult

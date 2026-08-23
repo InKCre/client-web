@@ -9,7 +9,6 @@ const props = defineProps<RelationInspectorPopupProps>()
 const router = getInfoBaseRouter()
 const status = ref<'loading' | 'success' | 'missing' | 'error'>('loading')
 const relation = shallowRef<Relation | null>(null)
-const error = shallowRef<Error | null>(null)
 let generation = 0
 
 watch(
@@ -18,7 +17,6 @@ watch(
     const current = ++generation
     status.value = 'loading'
     relation.value = null
-    error.value = null
     try {
       const loaded = await Relation.find(relationRef)
       if (current !== generation) return
@@ -26,7 +24,7 @@ watch(
       status.value = loaded ? 'success' : 'missing'
     } catch (cause) {
       if (current !== generation) return
-      error.value = cause instanceof Error ? cause : new Error(String(cause))
+      console.error('[InfoBase] Failed to inspect Relation.', cause)
       status.value = 'error'
     }
   },
@@ -47,7 +45,7 @@ function close(): void {
       </header>
       <InkLoading v-if="status === 'loading'" />
       <p v-else-if="status === 'missing'">This Relation no longer exists.</p>
-      <p v-else-if="status === 'error'">{{ error?.message }}</p>
+      <p v-else-if="status === 'error'">Unable to load this Relation.</p>
       <dl v-else-if="relation">
         <dt>From</dt>
         <dd>#{{ relation.from_ }}</dd>

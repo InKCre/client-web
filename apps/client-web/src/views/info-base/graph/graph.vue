@@ -38,7 +38,6 @@ const currentRoute = computed(() => infoBaseRouter.current.value)
 const nodes = shallowRef<BlockNode[]>([])
 const edges = shallowRef<RelationEdge[]>([])
 const status = ref<SceneStatus>('loading')
-const error = shallowRef<Error | null>(null)
 const scale = ref<SceneScale>('standard')
 const direction = ref<GraphDirection>('both')
 const previewReady = ref(false)
@@ -163,8 +162,9 @@ async function loadPreviews(
               }
             : node
         )
-      } catch {
+      } catch (cause) {
         if (current !== generation) return
+        console.error(`[InfoBase] Failed to resolve preview for Block ${block.id}.`, cause)
         nodes.value = nodes.value.map((node) =>
           node.data.block.id === block.id
             ? { ...node, data: { ...node.data, previewStatus: 'error' } }
@@ -180,7 +180,6 @@ async function loadPreviews(
 async function loadScene(): Promise<void> {
   const current = ++generation
   status.value = 'loading'
-  error.value = null
   previewReady.value = false
   pendingCamera.value = true
   try {
@@ -230,7 +229,7 @@ async function loadScene(): Promise<void> {
     }
   } catch (cause) {
     if (current !== generation) return
-    error.value = cause instanceof Error ? cause : new Error(String(cause))
+    console.error('[InfoBase] Failed to load Graph scene.', cause)
     nodes.value = []
     edges.value = []
     status.value = 'error'
@@ -363,7 +362,7 @@ function isRoute(route: InfoBaseRoute | null, name: InfoBaseRoute['name']): bool
       <p v-else-if="status === 'missing'">The addressed graph entity no longer exists.</p>
       <p v-else-if="status === 'not-found'">No path connects these Blocks.</p>
       <p v-else-if="status === 'limit'">The path exceeds the current exploration boundary.</p>
-      <p v-else>{{ error?.message ?? 'Graph retrieval failed.' }}</p>
+      <p v-else>Graph retrieval is temporarily unavailable.</p>
       <InkButton
         v-if="status === 'empty' || status === 'missing'"
         text="Recall information"

@@ -17,7 +17,6 @@ const mode = ref<'recall' | 'path'>('recall')
 const status = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
 const matches = shallowRef<LexicalRetrievalMatch[]>([])
 const selected = ref<BlockRef[]>([])
-const error = shallowRef<Error | null>(null)
 let generation = 0
 
 const isGraphActive = computed(() => String(route.name ?? '').startsWith('InfoBaseGraph'))
@@ -38,7 +37,6 @@ async function search(): Promise<void> {
   const current = ++generation
   status.value = 'loading'
   matches.value = []
-  error.value = null
   try {
     const result = await LexicalRetrievalManager.retrieve({ query: value, limit: 20 })
     if (current !== generation) return
@@ -53,7 +51,7 @@ async function search(): Promise<void> {
     }
   } catch (cause) {
     if (current !== generation) return
-    error.value = cause instanceof Error ? cause : new Error(String(cause))
+    console.error('[Recall] Search failed.', cause)
     status.value = 'error'
   }
 }
@@ -104,7 +102,7 @@ function setMode(value: 'recall' | 'path'): void {
       </form>
       <div v-if="mode === 'path'" class="recall-search__results" aria-live="polite">
         <InkLoading v-if="status === 'loading'" />
-        <p v-else-if="status === 'error'">{{ error?.message }}</p>
+        <p v-else-if="status === 'error'">Recall is temporarily unavailable.</p>
         <p v-else-if="selected.length === 1">Choose the destination Block.</p>
         <button
           v-for="match in matches"
