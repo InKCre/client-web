@@ -46,6 +46,7 @@ export {
   type CapabilityID,
   type JsonValue,
   type PeerProtocolRequest,
+  PeerProtocolRequestSchema,
   type PeerProtocolResponse,
   PeerProtocolResponseSchema,
   type PeerRef,

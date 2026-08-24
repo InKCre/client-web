@@ -5,6 +5,7 @@ import {
   ExtensionModel,
   Peer,
   PeerManager,
+  PeerProtocolRequestSchema,
   PeerProtocolResponseSchema,
   Source,
   SourceForm,
@@ -22,6 +23,7 @@ const TWITTER_OAUTH_TRANSACTION_READ_CAPABILITY = 'inkcre.twitter.oauth.transact
 const TWITTER_OAUTH_DISCONNECT_CAPABILITY = 'inkcre.twitter.oauth.disconnect.v1'
 const BOOKMARK_SOURCE_TYPE = 'extensions.twitter.bookmark.Source'
 const SOURCE_COLLECT_JOB_TYPE = 'core.source.collect.v1'
+type TwitterPeerRequest = z.input<typeof PeerProtocolRequestSchema>
 
 function hasAuthorityUserInfo(value: string): boolean {
   return /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*@/i.test(value)
@@ -99,17 +101,17 @@ export class TwitterSetupAPI {
   constructor(readonly peer: Peer) {}
 
   enableCore(signal?: AbortSignal): Promise<InstalledExtension> {
-    return executeCapability(
+    return delegateTwitterRequest(
       this.peer,
       EXTENSION_MANAGEMENT_CAPABILITY,
-      { action: 'enable', extension: EXTENSION_NAME },
+      { body: { action: 'enable', extension: EXTENSION_NAME } },
       InstalledExtensionSchema,
       signal
     )
   }
 
   status(signal?: AbortSignal): Promise<TwitterSetupStatus> {
-    return executeCapability(
+    return delegateTwitterRequest(
       this.peer,
       TWITTER_SETUP_STATUS_CAPABILITY,
       {},
@@ -124,13 +126,15 @@ export class TwitterSetupAPI {
     confirmAccountReset: boolean,
     signal?: AbortSignal
   ): Promise<TwitterSetupStatus> {
-    return executeCapability(
+    return delegateTwitterRequest(
       this.peer,
       TWITTER_OAUTH_APP_CONFIGURE_CAPABILITY,
       {
-        client_id: clientId,
-        client_secret: clientSecret,
-        confirm_account_reset: confirmAccountReset,
+        body: {
+          client_id: clientId,
+          client_secret: clientSecret,
+          confirm_account_reset: confirmAccountReset,
+        },
       },
       TwitterSetupStatusSchema,
       signal
@@ -138,7 +142,7 @@ export class TwitterSetupAPI {
   }
 
   beginOAuth(signal?: AbortSignal): Promise<OAuthTransaction> {
-    return executeCapability(
+    return delegateTwitterRequest(
       this.peer,
       TWITTER_OAUTH_BEGIN_CAPABILITY,
       {},
@@ -148,17 +152,17 @@ export class TwitterSetupAPI {
   }
 
   oauthTransaction(transactionId: string, signal?: AbortSignal): Promise<OAuthTransaction> {
-    return executeCapability(
+    return delegateTwitterRequest(
       this.peer,
       TWITTER_OAUTH_TRANSACTION_READ_CAPABILITY,
-      { transaction_id: transactionId },
+      { body: { transaction_id: transactionId } },
       OAuthTransactionSchema,
       signal
     )
   }
 
   disconnect(signal?: AbortSignal): Promise<TwitterSetupStatus> {
-    return executeCapability(
+    return delegateTwitterRequest(
       this.peer,
       TWITTER_OAUTH_DISCONNECT_CAPABILITY,
       {},
@@ -227,15 +231,15 @@ export class TwitterBookmarkSetup {
   }
 }
 
-async function executeCapability<Result>(
+async function delegateTwitterRequest<Result>(
   peer: Peer,
   capability: string,
-  command: JsonValue,
+  request: TwitterPeerRequest,
   schema: z.ZodType<Result>,
   signal?: AbortSignal
 ): Promise<Result> {
   signal?.throwIfAborted()
-  const delegated = await PeerManager.delegate(capability, { body: command }, peer.id)
+  const delegated = await PeerManager.delegate(capability, request as JsonValue, peer.id)
   signal?.throwIfAborted()
   const response = PeerProtocolResponseSchema.parse(delegated)
   if (response.status < 200 || response.status >= 300 || response.body === undefined) {
