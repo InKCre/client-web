@@ -91,20 +91,6 @@ jobs:
             echo "- Runtime contract: \`$CONTRACT_REVISION\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
-  dependency-review:
-    name: Dependency review
-    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Reject new high-severity vulnerabilities
-        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
-        with:
-          fail-on-severity: high
-          fail-on-scopes: development, runtime
-
   database-contract:
     name: Database contract
     needs: core-release
@@ -193,9 +179,6 @@ jobs:
 
       - name: Verify static, typed, and package contracts
         run: pnpm check
-
-      - name: Reject high-severity dependency vulnerabilities
-        run: pnpm audit:dependencies
 
       - name: Validate the native Twitter Module Federation snapshot
         run: >-

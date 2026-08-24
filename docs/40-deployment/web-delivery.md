@@ -26,6 +26,11 @@ no check artifact: it checks out the exact source, installs the frozen workspace
 release, reverifies `main`, and deploys those same-run bytes to the Cloudflare Pages `main` branch
 in the protected `production` environment.
 
+The workspace lock owns the exact Wrangler version, and Pages production/preview execute it through
+the pinned pnpm toolchain. Preview cleanup is intentionally different: its tombstone is a standalone
+static directory, so the cleanup action may use its isolated npm installation without entering the
+pnpm workspace.
+
 The Pages project is selected by `CLOUDFLARE_PAGES_PROJECT`; deployment uses the protected
 `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. After upload, the workflow smoke-tests both the
 Pages deployment URL and `https://app.inkcre.dev`. Production delivery has no Extension Registry
