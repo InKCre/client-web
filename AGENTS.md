@@ -17,6 +17,9 @@ Reason in English. Communicate with humans in Chinese.
 ## Working Protocol
 
 - Run `svc status . --json`, then use `svc lookup --keyword` and `svc lookup --path` only for guidance required by the current pressure.
+- Follow the organization-wide [Git and GitHub Governance](https://github.com/InKCre/.github/blob/main/GOVERNANCE.md)
+  and [contribution workflow](https://github.com/InKCre/.github/blob/main/CONTRIBUTING.md) for branches, pull requests,
+  release authority, and delivery boundaries; repository-local documents own exact commands.
 - Read the active Task Packet, relevant durable owner, and nearest local `AGENTS.md` before editing.
 - Resolve one semantic owner before adding durable material. Prefer code, types, configuration, and CI for mechanically enforceable truth.
 - Before a reference-sensitive, logic-altering, or non-obviously-local durable mutation, state the target, objective `From -> To`, operation, blast radius, invariants, verification, and uncertainty.
