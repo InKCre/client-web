@@ -1,358 +1,418 @@
 <script setup lang="ts">
-import { ref, shallowRef, computed, onMounted, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { VueFlow, useVueFlow } from '@vue-flow/core'
+import { computed, nextTick, ref, shallowRef, watch } from 'vue'
+import {
+  VueFlow,
+  useNodesInitialized,
+  useVueFlow,
+  type GraphNode,
+  type NodeDragEvent,
+} from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
-import { MiniMap } from '@vue-flow/minimap'
-import { InkLoading, InkButton } from '@inkcre/ui-web'
-import { useElementSize } from '@vueuse/core'
+import { InkButton, InkLoading } from '@inkcre/ui-web'
+import {
+  getInfoBaseRouter,
+  GraphNavigationRetrievalManager,
+  LexicalRetrievalManager,
+  ResolverCache,
+  type Block,
+  type GraphDirection,
+  type GraphModel,
+  type InfoBaseRoute,
+  type Relation,
+} from '@inkcre/core'
 
 import BlockNodeComponent from '@/components/info-base/BlockNode/BlockNode.vue'
 import RelationEdgeComponent from '@/components/info-base/RelationEdge/RelationEdge.vue'
 import BlockInspectorPopup from '@/components/info-base/BlockInspectorPopup/BlockInspectorPopup.vue'
+import RelationInspectorPopup from '@/components/info-base/RelationInspectorPopup/RelationInspectorPopup.vue'
 import SolvedContentPopup from '@/components/info-base/SolvedContentPopup/SolvedContentPopup.vue'
-import CommunityNavigator from '@/components/info-base/CommunityNavigator/CommunityNavigator.vue'
-import LayoutSelector from '@/components/info-base/LayoutSelector/LayoutSelector.vue'
+import { blockNode, relationEdge, type BlockNode, type RelationEdge } from './graph-model'
+import { openRecallSearch } from '@/components/recall/recall-search'
 
-import { Block, getInfoBaseRouter } from '@inkcre/core'
-import { Relation } from '@inkcre/core'
-import { LayoutType } from '@inkcre/core'
+type SceneScale = 'compact' | 'standard' | 'broad'
+type SceneStatus = 'loading' | 'ready' | 'empty' | 'missing' | 'not-found' | 'limit' | 'error'
 
-import { useLayoutManager } from '@/composables/useLayoutManager'
-import { useAllCommunitiesLayout } from '@/composables/useAllCommunitiesLayout'
-import { useCommunityDetection } from '@/composables/useCommunityDetection'
-import type { Node, Edge } from '@vue-flow/core'
-import {
-  blockToNode,
-  relationToEdge,
-  type BlockNode,
-  type BlockNodeData,
-  type SimulationLink,
-} from '@inkcre/core'
-
-const { t } = useI18n()
+const SCALE_LIMITS: Record<SceneScale, number> = { compact: 8, standard: 20, broad: 50 }
 const infoBaseRouter = getInfoBaseRouter()
+const currentRoute = computed(() => infoBaseRouter.current.value)
+const nodes = shallowRef<BlockNode[]>([])
+const edges = shallowRef<RelationEdge[]>([])
+const status = ref<SceneStatus>('loading')
+const scale = ref<SceneScale>('standard')
+const direction = ref<GraphDirection>('both')
+const previewReady = ref(false)
+const pendingCamera = ref(false)
+const positionCache = new Map<string, { x: number; y: number }>()
+let generation = 0
 
-// Container ref for sizing
-const containerRef = ref<HTMLElement | null>(null)
-const { width, height } = useElementSize(containerRef)
-
-// Data state
-const isLoading = ref(true)
-const allNodes = shallowRef<BlockNode[]>([])
-const allEdges = shallowRef<Edge[]>([])
-const links = ref<SimulationLink[]>([])
-const selectedCommunityId = ref<string>('all')
-
-// Community detection
-const {
-  communities,
-  communityMetadata,
-  isDetecting: isDetectingCommunities,
-  getCommunityNodes,
-} = useCommunityDetection({
-  nodes: allNodes,
-  edges: allEdges,
+const { fitView, zoomIn, zoomOut, getNodes, onMoveStart } = useVueFlow()
+const nodesInitialized = useNodesInitialized()
+onMoveStart(() => {
+  pendingCamera.value = false
 })
 
-// Filtered data based on selected community
-const filteredNodes = computed(() => {
-  if (selectedCommunityId.value === 'all') {
-    return allNodes.value
+const sceneAddress = computed(() => {
+  const route = currentRoute.value
+  if (!route) return null
+  if (route.path_from !== undefined && route.path_to !== undefined) {
+    return { type: 'path' as const, from: route.path_from, to: route.path_to }
   }
-  const nodeIds = new Set(getCommunityNodes(selectedCommunityId.value))
-  return allNodes.value.filter((node) => nodeIds.has(node.id))
-})
-
-const filteredEdges = computed(() => {
-  if (selectedCommunityId.value === 'all') {
-    return allEdges.value
+  if (route.focal_relation !== undefined) {
+    return { type: 'relation' as const, relation: route.focal_relation }
   }
-  const nodeIds = new Set(filteredNodes.value.map((n) => n.id))
-  return allEdges.value.filter((edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target))
-})
-
-const filteredLinks = computed<SimulationLink[]>(() => {
-  if (selectedCommunityId.value === 'all') {
-    return links.value
+  if (route.focal_block !== undefined) {
+    return { type: 'block' as const, block: route.focal_block }
   }
-  const nodeIds = new Set(filteredNodes.value.map((n) => n.id))
-  return links.value.filter((link) => nodeIds.has(link.source) && nodeIds.has(link.target))
+  if (route.q) return { type: 'recall' as const, query: route.q }
+  if (route.name === 'relation') return { type: 'relation' as const, relation: route.relation }
+  if (route.name === 'block' || route.name === 'solved-content') {
+    return { type: 'block' as const, block: route.block }
+  }
+  return { type: 'random' as const }
 })
 
-const currentInfoBaseRoute = computed(() => infoBaseRouter.current.value)
+const sceneKey = computed(() => JSON.stringify(sceneAddress.value))
 const focalBlock = computed(() => {
-  const current = currentInfoBaseRoute.value
-  return current && current.name !== 'overview' ? current.block : null
+  const address = sceneAddress.value
+  return address?.type === 'block' ? address.block : null
+})
+const focalRelation = computed(() => {
+  const address = sceneAddress.value
+  return address?.type === 'relation' ? address.relation : null
 })
 
-// Vue Flow instance
-const { onNodeDrag, onNodeDragStart, onNodeDragStop, fitView, zoomIn, zoomOut } = useVueFlow()
+function activeRelation(relation: Relation): boolean {
+  if (direction.value === 'both') return true
+  if (focalRelation.value === relation.id) return true
+  if (focalBlock.value === null) return true
+  return direction.value === 'out'
+    ? relation.from_ === focalBlock.value
+    : relation.to_ === focalBlock.value
+}
 
-// Handle position updates from layouts
-const handlePositionUpdate = (positions: Map<string, { x: number; y: number }>) => {
-  allNodes.value = allNodes.value.map((node) => {
-    const pos = positions.get(node.id)
-    if (pos) {
-      return { ...node, position: { x: pos.x, y: pos.y } }
+function applyPresentation(): void {
+  const activeBlocks = new Set<number>()
+  if (focalBlock.value !== null) activeBlocks.add(focalBlock.value)
+  for (const edge of edges.value) {
+    if (activeRelation(edge.data.relation)) {
+      activeBlocks.add(edge.data.relation.from_)
+      activeBlocks.add(edge.data.relation.to_)
     }
-    return node
+  }
+  edges.value = edges.value.map((edge) => ({
+    ...edge,
+    data: {
+      ...edge.data,
+      focal: edge.data.relation.id === focalRelation.value,
+      muted: !activeRelation(edge.data.relation),
+    },
+  }))
+  nodes.value = nodes.value.map((node) => ({
+    ...node,
+    data: {
+      ...node.data,
+      focal: node.data.block.id === focalBlock.value,
+      muted: direction.value !== 'both' && !activeBlocks.has(node.data.block.id),
+    },
+  }))
+}
+
+function setGraph(graph: GraphModel): void {
+  const incident = new Map<number, Relation[]>()
+  for (const relation of graph.relations) {
+    incident.set(relation.from_, [...(incident.get(relation.from_) ?? []), relation])
+    incident.set(relation.to_, [...(incident.get(relation.to_) ?? []), relation])
+  }
+  nodes.value = graph.blocks.map((block) =>
+    blockNode(block, {
+      focal: block.id === focalBlock.value,
+      muted: false,
+      position: positionCache.get(String(block.id)),
+    })
+  )
+  edges.value = graph.relations.map((relation) =>
+    relationEdge(relation, {
+      focal: relation.id === focalRelation.value,
+      muted: false,
+    })
+  )
+  applyPresentation()
+  void loadPreviews(graph.blocks, incident, generation)
+}
+
+async function loadPreviews(
+  blocks: Block[],
+  incident: Map<number, Relation[]>,
+  current: number
+): Promise<void> {
+  previewReady.value = false
+  let index = 0
+  async function worker(): Promise<void> {
+    while (index < blocks.length) {
+      const block = blocks[index++]!
+      try {
+        const resolver = await ResolverCache.getResolver(block, incident.get(block.id) ?? [])
+        const solvedContent = await resolver.getSolvedContent({ materializeMissing: false })
+        if (current !== generation) return
+        nodes.value = nodes.value.map((node) =>
+          node.data.block.id === block.id
+            ? {
+                ...node,
+                data: { ...node.data, resolver, solvedContent, previewStatus: 'success' },
+              }
+            : node
+        )
+      } catch (cause) {
+        if (current !== generation) return
+        console.error(`[InfoBase] Failed to resolve preview for Block ${block.id}.`, cause)
+        nodes.value = nodes.value.map((node) =>
+          node.data.block.id === block.id
+            ? { ...node, data: { ...node.data, previewStatus: 'error' } }
+            : node
+        )
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(4, blocks.length) }, () => worker()))
+  if (current === generation) previewReady.value = true
+}
+
+async function loadScene(): Promise<void> {
+  const current = ++generation
+  status.value = 'loading'
+  previewReady.value = false
+  pendingCamera.value = true
+  try {
+    const address = sceneAddress.value
+    if (!address) return
+    if (address.type === 'random') {
+      const block = await GraphNavigationRetrievalManager.getRandomBlock()
+      if (current !== generation) return
+      if (!block) {
+        nodes.value = []
+        edges.value = []
+        status.value = 'empty'
+        return
+      }
+      await infoBaseRouter.push({ name: 'overview', focal_block: block.id })
+      return
+    }
+
+    let graph: GraphModel | null = null
+    if (address.type === 'block') {
+      const result = await GraphNavigationRetrievalManager.getBlockNeighborhood(address.block, {
+        direction: 'both',
+        limit: SCALE_LIMITS[scale.value],
+      })
+      graph = result?.graph ?? null
+      if (!graph) status.value = 'missing'
+    } else if (address.type === 'relation') {
+      const result = await GraphNavigationRetrievalManager.getRelationNeighborhood(address.relation)
+      graph = result?.graph ?? null
+      if (!graph) status.value = 'missing'
+    } else if (address.type === 'path') {
+      const result = await GraphNavigationRetrievalManager.findPath(address.from, address.to)
+      if (result.status === 'found') graph = result.graph
+      else status.value = result.status === 'not_found' ? 'not-found' : 'limit'
+    } else {
+      const result = await LexicalRetrievalManager.retrieve({ query: address.query, limit: 20 })
+      graph = { blocks: result.matches.map((match) => match.block), relations: [] }
+      if (graph.blocks.length === 0) status.value = 'empty'
+    }
+    if (current !== generation) return
+    if (graph) {
+      setGraph(graph)
+      status.value = graph.blocks.length > 0 ? 'ready' : 'empty'
+    } else {
+      nodes.value = []
+      edges.value = []
+    }
+  } catch (cause) {
+    if (current !== generation) return
+    console.error('[InfoBase] Failed to load Graph scene.', cause)
+    nodes.value = []
+    edges.value = []
+    status.value = 'error'
+  }
+}
+
+function layoutMeasuredNodes(): void {
+  const measured = getNodes.value
+  if (measured.length === 0) return
+  const byId = new Map(measured.map((node) => [node.id, node]))
+  const focalId =
+    focalBlock.value !== null
+      ? String(focalBlock.value)
+      : (measured.find((node) => !positionCache.has(node.id))?.id ?? measured[0]!.id)
+  const focalPosition = positionCache.get(focalId) ?? { x: 0, y: 0 }
+  const neighbors = [...nodes.value]
+    .filter((node) => node.id !== focalId && !positionCache.has(node.id))
+    .sort((left, right) => Number(left.id) - Number(right.id))
+  const measuredWidth = (node: GraphNode): number => {
+    if (node.dimensions.width > 0) return node.dimensions.width
+    return typeof node.width === 'number' ? node.width : 180
+  }
+  const maxWidth = Math.max(180, ...measured.map(measuredWidth))
+  const radius = Math.max(280, (neighbors.length * (maxWidth + 80)) / (Math.PI * 2))
+  nodes.value = nodes.value.map((node) => {
+    const cached = positionCache.get(node.id)
+    if (cached) return { ...node, position: cached }
+    if (node.id === focalId) {
+      positionCache.set(node.id, focalPosition)
+      return { ...node, position: focalPosition }
+    }
+    const index = neighbors.findIndex((neighbor) => neighbor.id === node.id)
+    const angle = -Math.PI / 2 + (Math.PI * 2 * index) / Math.max(1, neighbors.length)
+    const measuredNode = byId.get(node.id)
+    const position = {
+      x: focalPosition.x + Math.cos(angle) * radius - (measuredNode?.dimensions.width ?? 0) / 2,
+      y: focalPosition.y + Math.sin(angle) * radius - (measuredNode?.dimensions.height ?? 0) / 2,
+    }
+    positionCache.set(node.id, position)
+    return { ...node, position }
   })
 }
 
-// Layout manager (use filtered data for single community)
-const layoutManager = useLayoutManager({
-  nodes: filteredNodes,
-  edges: filteredEdges,
-  links: filteredLinks,
-  width: 800,
-  height: 600,
-  onPositionUpdate: handlePositionUpdate,
-})
-
-// All-communities layout (use all data)
-const allCommunitiesLayout = useAllCommunitiesLayout({
-  nodes: allNodes,
-  edges: allEdges,
-  communities,
-  onPositionUpdate: handlePositionUpdate,
-})
-
-// Load data
-const loadData = async () => {
-  isLoading.value = true
-
-  try {
-    const [blocks, relations] = await Promise.all([Block.getAll(), Relation.getAll()])
-
-    // Build a map of block relations for quick lookup
-    const blockRelationsMap = new Map<number, Relation[]>()
-    relations.forEach((rel) => {
-      // Add to 'from_' block
-      if (!blockRelationsMap.has(rel.from_)) {
-        blockRelationsMap.set(rel.from_, [])
-      }
-      blockRelationsMap.get(rel.from_)!.push(rel)
-
-      // Add to 'to_' block
-      if (!blockRelationsMap.has(rel.to_)) {
-        blockRelationsMap.set(rel.to_, [])
-      }
-      blockRelationsMap.get(rel.to_)!.push(rel)
-    })
-
-    // Transform blocks to nodes with relations
-    allNodes.value = blocks.map((block) => {
-      const blockRelations = blockRelationsMap.get(block.id) ?? []
-      const preview =
-        block.storage === null
-          ? block.content.length > 50
-            ? block.content.slice(0, 50) + '...'
-            : block.content
-          : 'Stored content — select to open'
-      return {
-        ...blockToNode(block, preview, blockRelations),
-        selected: block.id === focalBlock.value,
-      }
-    })
-
-    // Transform relations to edges and links
-    allEdges.value = relations.map(relationToEdge)
-    links.value = relations.map((rel) => ({
-      source: String(rel.from_),
-      target: String(rel.to_),
-    }))
-  } catch (error) {
-    console.error('Failed to load graph data:', error)
-  } finally {
-    isLoading.value = false
-  }
+async function realizeScene(): Promise<void> {
+  await nextTick()
+  layoutMeasuredNodes()
+  await nextTick()
+  if (!pendingCamera.value) return
+  pendingCamera.value = false
+  await fitView({
+    nodes: nodes.value.map((node) => node.id),
+    padding: 0.18,
+    maxZoom: 1.25,
+    duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 260,
+  })
 }
 
-// Handle node selection
-const onNodeSelect = (blockId: number) => {
-  void infoBaseRouter.push({ name: 'block', block: blockId })
+watch([sceneKey, scale], () => void loadScene(), { immediate: true })
+watch(direction, applyPresentation)
+watch([nodesInitialized, previewReady], ([initialized, ready]) => {
+  if (initialized && ready) void realizeScene()
+})
+
+function focusBlock(block: number): void {
+  pendingCamera.value = true
+  void infoBaseRouter.push({ name: 'overview', focal_block: block })
 }
 
-const onRuminated = async () => {
-  await loadData()
+function focusRelation(relation: number): void {
+  pendingCamera.value = true
+  void infoBaseRouter.push({ name: 'overview', focal_relation: relation })
 }
 
-watch(focalBlock, (blockRef) => {
-  allNodes.value = allNodes.value.map((node) => ({
-    ...node,
-    selected: node.data?.block.id === blockRef,
-  }))
-  if (blockRef !== null && allNodes.value.some((node) => node.data?.block.id === blockRef)) {
-    setTimeout(() => fitView({ ...fitViewOptions, nodes: [String(blockRef)] }), 100)
-  }
-})
-
-// Fit view options with max zoom limit to prevent over-zooming on small communities
-const fitViewOptions = { padding: 0.2, maxZoom: 1.5 }
-
-// Handle community selection
-const onCommunitySelect = (communityId: string) => {
-  selectedCommunityId.value = communityId
-
-  // Apply appropriate layout
-  if (communityId === 'all') {
-    allCommunitiesLayout.applyLayout()
-  } else {
-    layoutManager.applyLayout()
-  }
-
-  // Auto fit-view after layout stabilizes
-  setTimeout(() => fitView(fitViewOptions), 500)
+function inspectBlock(block: number): void {
+  void infoBaseRouter.push({ name: 'block', block })
 }
 
-// Handle layout change from UI
-const onLayoutChange = (layoutType: LayoutType) => {
-  layoutManager.setLayout(layoutType)
-  setTimeout(() => fitView(fitViewOptions), 300)
+function inspectRelation(relation: number): void {
+  void infoBaseRouter.push({ name: 'relation', relation })
 }
 
-// Control handlers
-const onZoomIn = () => zoomIn()
-const onZoomOut = () => zoomOut()
-const onFitView = () => fitView(fitViewOptions)
+function onNodeDragStop(event: NodeDragEvent): void {
+  positionCache.set(event.node.id, { ...event.node.position })
+}
 
-// Track if user is dragging to prevent auto-fitView
-const isDragging = ref(false)
+function refocus(): void {
+  pendingCamera.value = true
+  void realizeScene()
+}
 
-// Handle node dragging - update simulation position during drag
-onNodeDragStart(() => {
-  isDragging.value = true
-  layoutManager.forceLayout.stop()
-})
+function onRuminated(): void {
+  void loadScene()
+}
 
-onNodeDrag(({ node }) => {
-  // Continuously update the simulation node position during drag
-  layoutManager.forceLayout.fixNode(node.id, node.position.x, node.position.y)
-})
-
-onNodeDragStop(({ node }) => {
-  // Keep node fixed at final position and restart simulation
-  layoutManager.forceLayout.fixNode(node.id, node.position.x, node.position.y)
-  // Only restart if using force layout
-  if (layoutManager.effectiveLayout.value === LayoutType.Force) {
-    layoutManager.forceLayout.restart()
-  }
-  isDragging.value = false
-})
-
-// Fit view after simulation stabilizes (but not during manual dragging)
-watch(
-  () => layoutManager.forceLayout.isRunning.value,
-  (running, wasRunning) => {
-    if (!running && wasRunning && !isDragging.value) {
-      setTimeout(() => fitView(fitViewOptions), 100)
-    }
-  }
-)
-
-// Apply layout when data loading completes
-watch(isLoading, (loading, wasLoading) => {
-  if (!loading && wasLoading && allNodes.value.length > 0) {
-    if (selectedCommunityId.value === 'all') {
-      allCommunitiesLayout.applyLayout()
-    } else {
-      layoutManager.applyLayout()
-    }
-    setTimeout(() => fitView(fitViewOptions), 500)
-  }
-})
-
-// Set first community as default when communities are detected
-watch(communityMetadata, (metadata) => {
-  if (metadata.length > 0 && selectedCommunityId.value === 'all') {
-    const firstCommunity = metadata[0]
-    selectedCommunityId.value = firstCommunity.id
-    layoutManager.applyLayout()
-    setTimeout(() => fitView(fitViewOptions), 500)
-  }
-})
-
-onMounted(() => {
-  loadData()
-})
+function isRoute(route: InfoBaseRoute | null, name: InfoBaseRoute['name']): boolean {
+  return route?.name === name
+}
 </script>
 
 <template>
-  <div ref="containerRef" class="graph-view">
-    <div v-if="isLoading" class="flex items-center justify-center w-full h-full">
-      <InkLoading />
+  <main class="graph-view">
+    <div class="graph-view__toolbar" aria-label="Graph navigation controls">
+      <div class="graph-view__control-group" aria-label="Exploration scale">
+        <button
+          v-for="option in ['compact', 'standard', 'broad'] as SceneScale[]"
+          :key="option"
+          type="button"
+          :aria-pressed="scale === option"
+          @click="scale = option"
+        >
+          {{ option }}
+        </button>
+      </div>
+      <div class="graph-view__control-group" aria-label="Relation direction emphasis">
+        <button
+          v-for="option in ['in', 'both', 'out'] as GraphDirection[]"
+          :key="option"
+          type="button"
+          :aria-pressed="direction === option"
+          @click="direction = option"
+        >
+          {{ option }}
+        </button>
+      </div>
     </div>
 
-    <template v-else>
-      <!-- Top controls: Community Navigator and Layout Selector -->
-      <div v-if="allNodes.length > 0" class="graph-view__top-controls">
-        <CommunityNavigator
-          :communities="communityMetadata"
-          :current-community-id="selectedCommunityId"
-          @community-select="onCommunitySelect"
+    <div v-if="status === 'loading'" class="graph-view__state"><InkLoading /></div>
+    <div v-else-if="status !== 'ready'" class="graph-view__state">
+      <p v-if="status === 'empty'">No graph entities are available here.</p>
+      <p v-else-if="status === 'missing'">The addressed graph entity no longer exists.</p>
+      <p v-else-if="status === 'not-found'">No path connects these Blocks.</p>
+      <p v-else-if="status === 'limit'">The path exceeds the current exploration boundary.</p>
+      <p v-else>Graph retrieval is temporarily unavailable.</p>
+      <InkButton
+        v-if="status === 'empty' || status === 'missing'"
+        text="Recall information"
+        theme="subtle"
+        @click="openRecallSearch"
+      />
+    </div>
+
+    <VueFlow
+      v-else
+      v-model:nodes="nodes"
+      v-model:edges="edges"
+      class="graph-view__flow"
+      :min-zoom="0.18"
+      :max-zoom="2.4"
+      :nodes-draggable="true"
+      @node-drag-stop="onNodeDragStop"
+    >
+      <template #node-block="nodeProps">
+        <BlockNodeComponent v-bind="nodeProps" @focus="focusBlock" @inspect="inspectBlock" />
+      </template>
+      <template #edge-relation="edgeProps">
+        <RelationEdgeComponent
+          v-bind="edgeProps"
+          @focus="focusRelation"
+          @inspect="inspectRelation"
         />
-        <LayoutSelector
-          v-if="selectedCommunityId !== 'all'"
-          :selection="layoutManager.layoutSelection.value"
-          @layout-change="onLayoutChange"
-        />
+      </template>
+      <Background :gap="24" pattern-color="var(--ink-border-subtle, #d9dde3)" />
+      <div class="graph-view__viewport-controls">
+        <InkButton icon="i-mdi-plus" type="square" theme="subtle" @click="zoomIn" />
+        <InkButton icon="i-mdi-minus" type="square" theme="subtle" @click="zoomOut" />
+        <InkButton icon="i-mdi-crosshairs-gps" type="square" theme="subtle" @click="refocus" />
       </div>
-
-      <div v-if="allNodes.length === 0" class="graph-view__empty">
-        {{ t('infoBase.graph.empty', 'No blocks to display') }}
-      </div>
-
-      <VueFlow
-        v-else
-        :nodes="filteredNodes"
-        :edges="filteredEdges"
-        class="graph-view__flow"
-        :default-viewport="{ zoom: 1, x: 0, y: 0 }"
-        :min-zoom="0.1"
-        :max-zoom="4"
-        :nodes-draggable="true"
-        fit-view-on-init
-      >
-        <template #node-block="nodeProps">
-          <BlockNodeComponent v-bind="nodeProps" @select="onNodeSelect" />
-        </template>
-
-        <template #edge-relation="edgeProps">
-          <RelationEdgeComponent v-bind="edgeProps" />
-        </template>
-
-        <Background pattern-color="#e5e7eb" :gap="20" />
-        <div class="graph-view__controls">
-          <InkButton icon="i-mdi-plus" type="square" theme="subtle" size="md" @click="onZoomIn" />
-          <InkButton icon="i-mdi-minus" type="square" theme="subtle" size="md" @click="onZoomOut" />
-          <InkButton
-            icon="i-mdi-fit-to-screen"
-            type="square"
-            theme="subtle"
-            size="md"
-            @click="onFitView"
-          />
-        </div>
-        <MiniMap
-          v-if="filteredNodes.length > 20"
-          :node-color="() => '#3b82f6'"
-          :node-stroke-color="() => '#1e40af'"
-          :mask-color="'rgba(0, 0, 0, 0.1)'"
-        />
-      </VueFlow>
-    </template>
+    </VueFlow>
 
     <BlockInspectorPopup
-      v-if="currentInfoBaseRoute?.name === 'block'"
-      :block="currentInfoBaseRoute.block"
+      v-if="isRoute(currentRoute, 'block') && currentRoute?.name === 'block'"
+      :block="currentRoute.block"
       @ruminated="onRuminated"
     />
-    <SolvedContentPopup
-      v-else-if="currentInfoBaseRoute?.name === 'solved-content'"
-      :block="currentInfoBaseRoute.block"
+    <RelationInspectorPopup
+      v-else-if="isRoute(currentRoute, 'relation') && currentRoute?.name === 'relation'"
+      :relation="currentRoute.relation"
     />
-  </div>
+    <SolvedContentPopup
+      v-else-if="isRoute(currentRoute, 'solved-content') && currentRoute?.name === 'solved-content'"
+      :block="currentRoute.block"
+    />
+  </main>
 </template>
 
-<style lang="scss" scoped src="./graph.scss" />
+<style scoped lang="scss" src="./graph.scss" />

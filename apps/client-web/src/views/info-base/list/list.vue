@@ -12,6 +12,7 @@ import {
 import router from '@/router'
 import BlockInspectorPopup from '@/components/info-base/BlockInspectorPopup/BlockInspectorPopup.vue'
 import SolvedContentPopup from '@/components/info-base/SolvedContentPopup/SolvedContentPopup.vue'
+import RelationInspectorPopup from '@/components/info-base/RelationInspectorPopup/RelationInspectorPopup.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -134,6 +135,10 @@ function refresh(): void {
     <SolvedContentPopup
       v-else-if="currentInfoBaseRoute?.name === 'solved-content'"
       :block="currentInfoBaseRoute.block"
+    />
+    <RelationInspectorPopup
+      v-else-if="currentInfoBaseRoute?.name === 'relation'"
+      :relation="currentInfoBaseRoute.relation"
     />
   </main>
 </template>

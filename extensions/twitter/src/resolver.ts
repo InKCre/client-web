@@ -20,9 +20,11 @@ import {
   RELATION_ATTACHMENT_VIDEO,
 } from './schema'
 import ContentTweet from './components/contentTweet/contentTweet.vue'
+import ContentTweetPreview from './components/contentTweet/contentTweetPreview.vue'
 
 export class TweetResolver extends Resolver<string, Tweet> {
   static readonly type = 'extensions.twitter.tweet.v1'
+  static readonly previewRenderer = markRaw(ContentTweetPreview)
   static readonly solvedContentRenderer = markRaw(ContentTweet)
 
   static {

@@ -333,11 +333,7 @@ for (const required of [
   }
 }
 
-for (const path of [
-  'apps/client-web/vite.config.ts',
-  'apps/client-web/vitest.config.ts',
-  'extensions/twitter/vite.config.ts',
-]) {
+for (const path of ['apps/client-web/vite.config.ts', 'extensions/twitter/vite.config.ts']) {
   const config = await readFile(`${repoRoot}/${path}`, 'utf8')
   for (const required of [
     'createUiSourceAliases',

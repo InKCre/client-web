@@ -74,7 +74,7 @@ function onOpenChange(value: boolean): void {
 </script>
 
 <template>
-  <InkPopup :open="open" position="center" @update:open="onOpenChange">
+  <InkPopup :open="open" :scrim="false" position="center" @update:open="onOpenChange">
     <section class="solved-content-popup">
       <header class="solved-content-popup__header">
         <h3>{{ t('infoBase.solvedContent.title') }}</h3>

@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@inkcre/core": "workspace:*",
-    "@inkcre/ui-web": "1.2.2"
+    "@inkcre/ui-web": "1.4.0"
   },
   "devDependencies": {
     "pinia": "^3.0.3",

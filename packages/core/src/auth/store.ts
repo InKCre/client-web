@@ -3,6 +3,8 @@ import { SignJWT } from 'jose'
 import { configStore } from '../config'
 import { peerJwtContract } from '../database'
 
+const JWT_CLOCK_SKEW_SECONDS = 5
+
 /**
  * Create an auth store instance.
  * Returns reactive token and token management functions.
@@ -17,7 +19,9 @@ export function createAuthStore(configStoreIns = configStore) {
 
     try {
       const secret = new TextEncoder().encode(configStoreIns.metaConfig.INKCRE_JWT_SECRET)
-      const issuedAt = Math.floor(Date.now() / 1000)
+      // A Peer and its PostgREST boundary may not share an exact wall clock.
+      // Backdate the bounded token instead of leaking clock-skew handling into callers.
+      const issuedAt = Math.floor(Date.now() / 1000) - JWT_CLOCK_SKEW_SECONDS
       const signedToken = await new SignJWT({
         role: peerJwtContract.role,
       })

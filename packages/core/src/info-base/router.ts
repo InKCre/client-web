@@ -1,11 +1,21 @@
 import type { DeepReadonly, Ref } from 'vue'
 
 import type { BlockRef } from './block'
+import type { RelationRef } from './relation'
+
+export interface InfoBaseSceneAddress {
+  focal_block?: BlockRef
+  focal_relation?: RelationRef
+  path_from?: BlockRef
+  path_to?: BlockRef
+  q?: string
+}
 
 export type InfoBaseRoute =
-  | { name: 'overview' }
-  | { name: 'block'; block: BlockRef }
-  | { name: 'solved-content'; block: BlockRef }
+  | ({ name: 'overview' } & InfoBaseSceneAddress)
+  | ({ name: 'block'; block: BlockRef } & InfoBaseSceneAddress)
+  | ({ name: 'relation'; relation: RelationRef } & InfoBaseSceneAddress)
+  | ({ name: 'solved-content'; block: BlockRef } & InfoBaseSceneAddress)
 
 export interface InfoBaseRouter {
   readonly current: DeepReadonly<Ref<InfoBaseRoute | null>>

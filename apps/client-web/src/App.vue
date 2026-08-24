@@ -6,6 +6,7 @@ import router from './router'
 import { createInkRouterAdapter } from './router'
 import { INK_ROUTER_KEY } from '@inkcre/ui-web'
 import { useRoute } from 'vue-router'
+import RecallSearch from './components/recall/RecallSearch.vue'
 
 provide(INK_ROUTER_KEY, createInkRouterAdapter(router, useRoute()))
 
@@ -25,6 +26,7 @@ const sidebarExpanded = ref(false)
       <router-view />
       <AppSidePanel v-model:expanded="sidebarExpanded" />
     </div>
+    <RecallSearch />
   </div>
 </template>
 

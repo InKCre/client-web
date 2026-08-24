@@ -10,8 +10,11 @@ import {
 } from '@inkcre/core'
 
 import ContentEmail from './components/contentEmail/contentEmail.vue'
+import ContentEmailPreview from './components/contentEmail/contentEmailPreview.vue'
 import ContentMailFact from './components/contentMailFact/contentMailFact.vue'
+import ContentMailFactPreview from './components/contentMailFact/contentMailFactPreview.vue'
 import ContentMimePart from './components/contentMimePart/contentMimePart.vue'
+import ContentMimePartPreview from './components/contentMimePart/contentMimePartPreview.vue'
 import {
   CanonicalEmailAddressSchema,
   CanonicalEmailSchema,
@@ -47,7 +50,7 @@ async function solveBlock<Content>(
   }
 }
 
-function parseRelation(content: string): unknown | null {
+function parseRelation(content: string): unknown {
   try {
     return parseJson(content)
   } catch {
@@ -67,6 +70,7 @@ async function relatedBlocks(relations: Relation[], focal: number): Promise<Map<
 
 export class EmailResolver extends Resolver<string, SolvedEmail> {
   static readonly type = 'extensions.mail.email.v1'
+  static readonly previewRenderer = markRaw(ContentEmailPreview)
   static readonly solvedContentRenderer = markRaw(ContentEmail)
 
   static {
@@ -201,6 +205,7 @@ abstract class JsonMailResolver<Content> extends Resolver<string, Content> {
 
 export class MailboxResolver extends JsonMailResolver<CanonicalMailbox> {
   static readonly type = 'extensions.mail.mailbox.v1'
+  static readonly previewRenderer = markRaw(ContentMailFactPreview)
   static readonly solvedContentRenderer = markRaw(ContentMailFact)
   readonly schema = CanonicalMailboxSchema
 
@@ -211,6 +216,7 @@ export class MailboxResolver extends JsonMailResolver<CanonicalMailbox> {
 
 export class EmailAddressResolver extends JsonMailResolver<CanonicalEmailAddress> {
   static readonly type = 'extensions.mail.email_address.v1'
+  static readonly previewRenderer = markRaw(ContentMailFactPreview)
   static readonly solvedContentRenderer = markRaw(ContentMailFact)
   readonly schema = CanonicalEmailAddressSchema
 
@@ -221,6 +227,7 @@ export class EmailAddressResolver extends JsonMailResolver<CanonicalEmailAddress
 
 export class MailFlagResolver extends JsonMailResolver<CanonicalMailFlag> {
   static readonly type = 'extensions.mail.flag.v1'
+  static readonly previewRenderer = markRaw(ContentMailFactPreview)
   static readonly solvedContentRenderer = markRaw(ContentMailFact)
   readonly schema = CanonicalMailFlagSchema
 
@@ -231,6 +238,7 @@ export class MailFlagResolver extends JsonMailResolver<CanonicalMailFlag> {
 
 export class MailMimePartResolver extends Resolver<string, SolvedMimePart> {
   static readonly type = 'extensions.mail.mime_part.v1'
+  static readonly previewRenderer = markRaw(ContentMimePartPreview)
   static readonly solvedContentRenderer = markRaw(ContentMimePart)
 
   static {
