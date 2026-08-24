@@ -91,6 +91,19 @@ export class PeerManager {
     return (result.data ?? []).map((row) => Peer.parse(row))
   }
 
+  static async checkHealth(peers: Peer[]): Promise<Peer[]> {
+    await Promise.allSettled(
+      peers.map((peer) => {
+        const publicBaseURL = peer.config.http_public_base_url
+        if (typeof publicBaseURL !== 'string') return Promise.resolve()
+        return fetch(new URL('/readyz', publicBaseURL), {
+          signal: AbortSignal.timeout(configStore.peerConfig.peer_http_timeout_ms),
+        })
+      })
+    )
+    return PeerManager.listLive()
+  }
+
   private static async candidates(
     capability: CapabilityID,
     routeToPeer: PeerRef | null

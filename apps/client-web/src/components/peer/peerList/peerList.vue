@@ -18,7 +18,7 @@ const healthCheckLoading = ref(false)
 const checkAllHealth = async () => {
   healthCheckLoading.value = true
   try {
-    livePeers.value = new Set((await PeerManager.listLive()).map((peer) => peer.id))
+    livePeers.value = new Set((await PeerManager.checkHealth(peers.value)).map((peer) => peer.id))
   } finally {
     healthCheckLoading.value = false
   }
