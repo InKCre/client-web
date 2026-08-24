@@ -93,10 +93,11 @@ export class PeerManager {
 
   static async checkHealth(peers: Peer[]): Promise<Peer[]> {
     await Promise.allSettled(
-      peers.map((peer) => {
+      peers.map(async (peer) => {
         const publicBaseURL = peer.config.http_public_base_url
-        if (typeof publicBaseURL !== 'string') return Promise.resolve()
-        return fetch(new URL('/readyz', publicBaseURL), {
+        if (typeof publicBaseURL !== 'string') return
+        const baseURL = publicBaseURL.endsWith('/') ? publicBaseURL : `${publicBaseURL}/`
+        await fetch(new URL('readyz', baseURL), {
           signal: AbortSignal.timeout(configStore.peerConfig.peer_http_timeout_ms),
         })
       })
