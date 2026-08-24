@@ -8,11 +8,7 @@
 import {
   configStore,
   ExtensionRegistryOriginResolver,
-  getMFImplementation,
   localStorageAdapter,
-  PostgrestExtensionStatePort,
-  RegistryExtensionReleaseReader,
-  setMFImplementation,
   registerCoreResolvers,
   TextResolver,
   AudioResolver,
@@ -26,10 +22,15 @@ import {
   PeerManager,
   WebPeerRuntime,
   JobManager,
-  WebExtensionHost,
-  type ExtensionStatePort,
+  type ExtensionModule,
+  type ExtensionSetupContribution,
 } from '@inkcre/core'
-import { createInstance } from '@module-federation/enhanced/runtime'
+import { createInstance } from '@module-federation/runtime'
+import {
+  ExtensionManager,
+  RegistryReleaseReader,
+  type WebExtensionModule,
+} from '@inkcre/extension-runtime-client-web'
 import * as InKCreCore from '@inkcre/core'
 import * as Zod from 'zod'
 import * as Vue from 'vue'
@@ -80,36 +81,34 @@ export function setupResolvers(): void {
 // Configuration
 // ============================================================================
 
-let extensionHost: WebExtensionHost | null = null
+type ClientExtensionModule = WebExtensionModule & ExtensionModule
+type ClientExtensionManager = ExtensionManager<ClientExtensionModule>
+
+let extensionHost: ClientExtensionManager | null = null
 let extensionHostStartup: Promise<void> | null = null
-let extensionState: ExtensionStatePort | null = null
+let moduleFederation: ReturnType<typeof createInstance> | null = null
 let webPeerRuntime: WebPeerRuntime | null = null
 
-export function initializeExtensionHost(state: ExtensionStatePort): WebExtensionHost {
+export function initializeExtensionHost(): ClientExtensionManager {
   extensionHostStartup = null
-  extensionState = state
   const registryOrigin = new ExtensionRegistryOriginResolver(
     () => configStore.peerConfig.extension_registry_url
   )
-  extensionHost = new WebExtensionHost({
-    state,
-    releases: new RegistryExtensionReleaseReader(() => registryOrigin.resolve()),
-    moduleFederation: getMFImplementation,
-    currentPeerId: () => configStore.metaConfig.INKCRE_PEER_ID,
-    hostSdkVersion: corePackageJson.version,
+  if (!moduleFederation) throw new Error('Module Federation has not been initialized.')
+  extensionHost = new ExtensionManager<ClientExtensionModule>({
+    releases: new RegistryReleaseReader({
+      registryOrigin: () => registryOrigin.resolve(),
+      hostSdk: { name: '@inkcre/core', version: corePackageJson.version },
+    }),
+    moduleFederation,
   })
   return extensionHost
-}
-
-export function getExtensionState(): ExtensionStatePort {
-  if (!extensionState) throw new Error('Web Extension state port has not been initialized.')
-  return extensionState
 }
 
 /** Share one initial runtime restore across the app shell and management view. */
 export function startExtensionHost(): Promise<void> {
   if (extensionHostStartup) return extensionHostStartup
-  const startup = getExtensionHost().startup()
+  const startup = getExtensionHost().startup(configStore.metaConfig.INKCRE_PEER_ID)
   extensionHostStartup = startup.catch((error: unknown) => {
     extensionHostStartup = null
     throw error
@@ -117,11 +116,16 @@ export function startExtensionHost(): Promise<void> {
   return extensionHostStartup
 }
 
-export function getExtensionHost(): WebExtensionHost {
+export function getExtensionHost(): ClientExtensionManager {
   if (!extensionHost) {
     throw new Error('Web Extension Host state port has not been initialized.')
   }
   return extensionHost
+}
+
+/** Project the running native module into the Client-owned setup popup contract. */
+export function getExtensionSetupContribution(name: string): ExtensionSetupContribution | null {
+  return getExtensionHost().getModule(name)?.setup ?? null
 }
 
 /** Replace the browser-owned lease runtime after a validated Settings cutover. */
@@ -154,10 +158,10 @@ export async function startConfiguredWebPeerRuntime(): Promise<void> {
 
 /**
  * Initialize Module Federation runtime.
- * Creates the MF instance and injects it into core.
+ * Creates the MF instance consumed by the application-owned Extension manager.
  */
 export function initializeModuleFederation(): void {
-  const mfInstance = createInstance({
+  moduleFederation = createInstance({
     name: 'host',
     remotes: [],
     shared: {
@@ -212,21 +216,6 @@ export function initializeModuleFederation(): void {
     },
   })
 
-  // Inject MF implementation into core
-  const mfImpl = {
-    registerRemotes: (
-      remotes: Array<{ name: string; entry: string; type?: 'module' | 'script' }>,
-      options?: { force?: boolean }
-    ) => {
-      mfInstance.registerRemotes(remotes, options)
-    },
-    loadRemote: async <T>(remoteName: string): Promise<T | null> => {
-      return mfInstance.loadRemote<T>(remoteName)
-    },
-  }
-
-  setMFImplementation(mfImpl)
-
   console.log('[Core] Module Federation initialized')
 }
 
@@ -266,7 +255,7 @@ export async function initializeCore(options: { loadPeerConfig?: boolean } = {})
   JobManager.startWorker()
   setupResolvers()
   initializeModuleFederation()
-  initializeExtensionHost(new PostgrestExtensionStatePort())
+  initializeExtensionHost()
   if (webPeerRuntime) await webPeerRuntime.start()
   console.log('[Core] Initialization complete')
 }

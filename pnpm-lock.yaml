@@ -110,6 +110,9 @@ importers:
       '@inkcre/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@inkcre/extension-runtime-client-web':
+        specifier: https://github.com/InKCre/ext-reg/releases/download/runtime-client-web-v0.1.0/inkcre-extension-runtime-client-web-0.1.0.tgz
+        version: https://github.com/InKCre/ext-reg/releases/download/runtime-client-web-v0.1.0/inkcre-extension-runtime-client-web-0.1.0.tgz(@inkcre/core@packages+core)(@module-federation/runtime@0.21.6)
       '@inkcre/ui-web':
         specifier: 1.4.0
         version: 1.4.0(@codemirror/autocomplete@6.20.3)(@codemirror/commands@6.10.4)(@codemirror/lang-json@6.0.2)(@codemirror/lint@6.9.7)(@codemirror/state@6.7.1)(@codemirror/view@6.43.6)(@vueuse/core@14.3.0(vue@3.5.40(typescript@5.9.3)))(dayjs@1.11.21)(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vscode-json-languageservice@5.7.2)(vscode-languageserver-textdocument@1.0.12)(vue-router@4.5.1(vue@3.5.40(typescript@5.9.3)))(vue@3.5.40(typescript@5.9.3))
@@ -1343,6 +1346,13 @@ packages:
     engines: {node: '>=20.9.0'}
     cpu: [x64]
     os: [win32]
+
+  '@inkcre/extension-runtime-client-web@https://github.com/InKCre/ext-reg/releases/download/runtime-client-web-v0.1.0/inkcre-extension-runtime-client-web-0.1.0.tgz':
+    resolution: {integrity: sha512-UGDxtoN6Pcv+NCbr8InejfGg6UdvtCrZU7dZsx+Yev/aXmyA1YChfY7VicJTJRr5UIs9JbWe1smNwH1UB/bYQw==, tarball: https://github.com/InKCre/ext-reg/releases/download/runtime-client-web-v0.1.0/inkcre-extension-runtime-client-web-0.1.0.tgz}
+    version: 0.1.0
+    peerDependencies:
+      '@inkcre/core': '>=0.1.2 <0.2.0'
+      '@module-federation/runtime': '>=0.21.4 <0.23.0'
 
   '@inkcre/ui-web@1.4.0':
     resolution: {integrity: sha512-Sq5f/hFpOtuGNZwVB36JuMPoAJUvkWvrHogl/PauI4OuV2M/qExdVXrEZa76pbbn35Ic/dleEPyze6lJghxI5w==, tarball: https://npm.pkg.github.com/download/@inkcre/ui-web/1.4.0/356469307437642b43b7e67e82c9b60e52d4f926}
@@ -6343,6 +6353,9 @@ packages:
       yaml:
         optional: true
 
+  zod@4.1.12:
+    resolution: {integrity: sha512-JInaHOamG8pt5+Ey8kGmdcAcg3OL9reK8ltczgHTAwNhMys/6ThXHityHxVV2p3fkw/c+MAvBHFVYHFZDmjMCQ==}
+
   zod@4.4.3:
     resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
@@ -7239,6 +7252,13 @@ snapshots:
 
   '@img/sharp-win32-x64@0.35.2':
     optional: true
+
+  '@inkcre/extension-runtime-client-web@https://github.com/InKCre/ext-reg/releases/download/runtime-client-web-v0.1.0/inkcre-extension-runtime-client-web-0.1.0.tgz(@inkcre/core@packages+core)(@module-federation/runtime@0.21.6)':
+    dependencies:
+      '@inkcre/core': link:packages/core
+      '@module-federation/runtime': 0.21.6
+      semver: 7.8.5
+      zod: 4.1.12
 
   '@inkcre/ui-web@1.4.0(@codemirror/autocomplete@6.20.3)(@codemirror/commands@6.10.4)(@codemirror/lang-json@6.0.2)(@codemirror/lint@6.9.7)(@codemirror/state@6.7.1)(@codemirror/view@6.43.6)(@vueuse/core@14.3.0(vue@3.5.40(typescript@5.9.3)))(dayjs@1.11.21)(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vscode-json-languageservice@5.7.2)(vscode-languageserver-textdocument@1.0.12)(vue-router@4.5.1(vue@3.5.40(typescript@5.9.3)))(vue@3.5.40(typescript@5.9.3))':
     dependencies:
@@ -11986,5 +12006,7 @@ snapshots:
       dotenv: 17.4.2
       json5: 2.2.3
       yaml: 2.9.0
+
+  zod@4.1.12: {}
 
   zod@4.4.3: {}

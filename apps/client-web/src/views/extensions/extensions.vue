@@ -4,7 +4,7 @@ import extensionCard from '@/components/extension/extensionCard/extensionCard.vu
 import installExtension from '@/components/extension/installExtension/installExtension.vue'
 import { InkDropdown, InkLoading } from '@inkcre/ui-web'
 import { configStore, Peer, type InstalledExtension } from '@inkcre/core'
-import { getExtensionHost, getExtensionState, startExtensionHost } from '@/core'
+import { getExtensionHost, startExtensionHost } from '@/core'
 import { extensionPeerControlMode, setExtensionPeerEnabled } from '@/extension-peer-control'
 import { useI18n } from 'vue-i18n'
 
@@ -115,8 +115,7 @@ const setEnabledForSelectedPeer = (
     peer,
     currentPeerId,
     enabled,
-    webHost: getExtensionHost(),
-    state: getExtensionState(),
+    manager: getExtensionHost(),
   })
 }
 </script>

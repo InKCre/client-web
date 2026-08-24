@@ -1,12 +1,12 @@
 import {
   InstalledExtensionSchema,
+  ExtensionModel,
   Peer,
   PeerManager,
   PeerProtocolResponseSchema,
-  type ExtensionStatePort,
   type InstalledExtension,
-  type WebExtensionHost,
 } from '@inkcre/core'
+import type { ExtensionManager } from '@inkcre/extension-runtime-client-web'
 
 export const EXTENSION_MANAGEMENT_CAPABILITY = 'core.extension.management.v1'
 export type ExtensionPeerControlMode = 'current-runtime' | 'remote-host' | 'desired-state'
@@ -35,15 +35,20 @@ export async function setExtensionPeerEnabled(input: {
   peer: Peer
   currentPeerId: string
   enabled: boolean
-  webHost: WebExtensionHost
-  state: ExtensionStatePort
+  manager: ExtensionManager
 }): Promise<InstalledExtension> {
   const mode = extensionPeerControlMode(input.peer, input.currentPeerId)
   if (mode === 'current-runtime') {
-    return input.enabled ? input.webHost.enable(input.name) : input.webHost.disable(input.name)
+    return input.enabled
+      ? input.manager.enable(input.name, input.currentPeerId)
+      : input.manager.disable(input.name, input.currentPeerId)
   }
   if (mode === 'desired-state') {
-    return input.state.setPeerEnabled(input.name, input.peer.id, input.enabled)
+    const extension = await ExtensionModel.get(input.name)
+    if (!extension) throw new Error(`Extension ${input.name} is not installed.`)
+    return input.enabled
+      ? extension.enablePeer(input.peer.id)
+      : extension.disablePeer(input.peer.id)
   }
 
   const delegated = await PeerManager.delegate(

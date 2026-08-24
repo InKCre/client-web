@@ -2,7 +2,7 @@
 import { ref, computed, nextTick, shallowRef, watch, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { InkButton, InkSwitch, InkDialog, InkInput, InkJsonEditor } from '@inkcre/ui-web'
-import { getExtensionHost } from '@/core'
+import { getExtensionHost, getExtensionSetupContribution } from '@/core'
 import { extensionCardProps, extensionCardEmits } from './extensionCard'
 
 const props = defineProps(extensionCardProps)
@@ -14,7 +14,7 @@ const configPopupOpen = ref<boolean | Promise<boolean>>(false)
 const versionPopupOpen = ref<boolean | Promise<boolean>>(false)
 const setupPopupOpen = ref(false)
 const setupComponent = shallowRef<Component | null>(null)
-const setupContribution = shallowRef(getExtensionHost().getSetupContribution(props.extension.name))
+const setupContribution = shallowRef(getExtensionSetupContribution(props.extension.name))
 const togglePromise = ref<Promise<boolean> | null>(null)
 const isUninstalling = ref(false)
 const operationError = ref<string | null>(null)
@@ -51,7 +51,7 @@ const toggleModel = computed({
         operationError.value = error instanceof Error ? error.message : String(error)
         return props.enabled
       } finally {
-        setupContribution.value = getExtensionHost().getSetupContribution(props.extension.name)
+        setupContribution.value = getExtensionSetupContribution(props.extension.name)
         togglePromise.value = null
       }
     })()

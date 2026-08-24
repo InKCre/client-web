@@ -2,13 +2,12 @@ import {
   InstalledExtensionSchema,
   Cron,
   CronForm,
+  ExtensionModel,
   Peer,
   PeerManager,
   PeerProtocolResponseSchema,
-  PostgrestExtensionStatePort,
   Source,
   SourceForm,
-  type ExtensionStatePort,
   type InstalledExtension,
   type JsonValue,
 } from '@inkcre/core'
@@ -78,12 +77,12 @@ function advertises(peer: Peer, capability: string): boolean {
   }
 }
 
-export async function discoverCoreCandidates(
-  signal?: AbortSignal,
-  state: ExtensionStatePort = new PostgrestExtensionStatePort()
-): Promise<CorePeerCandidate[]> {
+export async function discoverCoreCandidates(signal?: AbortSignal): Promise<CorePeerCandidate[]> {
   signal?.throwIfAborted()
-  const [extension, peers] = await Promise.all([state.get(EXTENSION_NAME), PeerManager.listLive()])
+  const [extension, peers] = await Promise.all([
+    ExtensionModel.get(EXTENSION_NAME),
+    PeerManager.listLive(),
+  ])
   signal?.throwIfAborted()
   if (!extension) return []
   return peers
