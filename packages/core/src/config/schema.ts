@@ -35,13 +35,25 @@ export const AIConfigSchema = z.object({
  * Contains URLs and secrets needed to fetch and initialize app config
  */
 const UnconfiguredUrlSchema = z.union([z.literal(''), z.url()])
-const UnconfiguredPeerIdSchema = z.union([z.literal(''), z.uuid()])
+const GeneratedPeerIdSchema = z.preprocess(
+  (value) => (value === '' ? undefined : value),
+  z.uuid().default(() => crypto.randomUUID())
+)
 
-export const MetaConfigSchema = z.object({
+const CurrentMetaConfigSchema = z.object({
   INKCRE_PGREST_URL: UnconfiguredUrlSchema.default(''),
   INKCRE_JWT_SECRET: z.string().default(''),
-  INKCRE_PEER_ID: UnconfiguredPeerIdSchema.default(''),
+  INKCRE_PEER_ID: GeneratedPeerIdSchema,
 })
+
+/** Preserve one browser origin's old technical identity during the Peer cutover. */
+export const MetaConfigSchema = z.preprocess((value) => {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return value
+  const input = value as Record<string, unknown>
+  if (input.INKCRE_PEER_ID !== undefined) return input
+  const priorIdentity = input.client_id ?? input.INKCRE_CLIENT_ID
+  return priorIdentity === undefined ? input : { ...input, INKCRE_PEER_ID: priorIdentity }
+}, CurrentMetaConfigSchema)
 
 export type MetaConfig = z.infer<typeof MetaConfigSchema>
 
@@ -49,13 +61,15 @@ export type MetaConfig = z.infer<typeof MetaConfigSchema>
  * App configuration schema (runtime)
  * Contains extension registry URL, AI settings, and runtime app configuration
  */
-export const PeerConfigSchema = z.object({
-  // Deployment-owned Peer configuration supplies this URL. Static artifacts
-  // deliberately keep the unconfigured state instead of embedding an origin.
-  extension_registry_url: UnconfiguredUrlSchema.default(''),
-  peer_http_timeout_ms: z.number().int().positive().default(30_000),
-  ai: AIConfigSchema.default(() => AIConfigSchema.parse({})),
-})
+export const PeerConfigSchema = z
+  .object({
+    // Deployment-owned Peer configuration supplies this URL. Static artifacts
+    // deliberately keep the unconfigured state instead of embedding an origin.
+    extension_registry_url: UnconfiguredUrlSchema.default(''),
+    peer_http_timeout_ms: z.number().int().positive().default(30_000),
+    ai: AIConfigSchema.default(() => AIConfigSchema.parse({})),
+  })
+  .passthrough()
 
 /**
  * Config type

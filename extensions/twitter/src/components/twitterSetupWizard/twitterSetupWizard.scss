@@ -1,0 +1,135 @@
+.twitter-setup {
+  display: grid;
+  gap: 1.25rem;
+  width: min(680px, 80vw);
+
+  &__toolbar {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  &__steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: sys-var(color, text, muted);
+      font-size: 0.8rem;
+    }
+
+    span {
+      display: inline-grid;
+      place-items: center;
+      width: 1.5rem;
+      height: 1.5rem;
+      border: 1px solid currentcolor;
+      border-radius: 50%;
+    }
+
+    .is-current,
+    .is-complete {
+      color: sys-var(color, info, base);
+      font-weight: 600;
+    }
+  }
+
+  &__panel {
+    display: grid;
+    gap: 1rem;
+
+    h3,
+    p {
+      margin: 0;
+    }
+
+    code {
+      display: block;
+      margin-top: 0.5rem;
+      padding: 0.6rem;
+      overflow-wrap: anywhere;
+      background: rgb(0 0 0 / 5%);
+    }
+  }
+
+  &__section,
+  &__empty {
+    display: grid;
+    gap: sys-var(space, sm);
+    padding: sys-var(space, md);
+    border: 1px solid sys-var(color, border, base);
+    background: sys-var(color, surface, subtle);
+
+    h4,
+    p {
+      margin: 0;
+    }
+  }
+
+  &__hint {
+    color: sys-var(color, text, subtle);
+  }
+
+  &__secret {
+    width: 100%;
+    min-height: 2.5rem;
+    padding: sys-var(space, sm);
+    border: 1px solid sys-var(color, border, base);
+    background: sys-var(color, surface, base);
+    color: sys-var(color, text, base);
+  }
+
+  &__schedule,
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  &__oauth-link {
+    width: fit-content;
+    font-weight: 600;
+  }
+
+  &__loading {
+    display: flex;
+    justify-content: center;
+    min-height: 10rem;
+  }
+
+  &__error {
+    margin: 0;
+    color: sys-var(color, danger, base);
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.5rem 1rem;
+    margin: 0;
+  }
+
+  dt {
+    font-weight: 600;
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .twitter-setup {
+    width: min(88vw, 680px);
+
+    &__steps {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+}

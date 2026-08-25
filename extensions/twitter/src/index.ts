@@ -12,8 +12,13 @@
 
 import { type ExtensionModule } from '@inkcre/core'
 import './resolver'
+import TwitterSetupWizard from './components/twitterSetupWizard/twitterSetupWizard.vue'
 
 const Extension: ExtensionModule = {
+  setup: {
+    component: TwitterSetupWizard,
+  },
+
   async initialize() {},
 
   async activate() {

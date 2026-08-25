@@ -6,6 +6,7 @@ import type { Database, InkcreSchema, RelationName, RelationRow } from '../datab
 
 type RelationInsert<Relation extends RelationName> = InkcreSchema['Tables'][Relation]['Insert']
 type RelationUpdate<Relation extends RelationName> = InkcreSchema['Tables'][Relation]['Update']
+export type DatabaseTokenProvider = () => Promise<string>
 
 function encodeTransportValue<Value>(value: unknown): Value {
   const encoded = JSON.stringify(value)
@@ -110,13 +111,14 @@ export class DBAPIClient<
     protected relation: Relation,
     protected defSchema?: { parse(input: unknown): DT },
     public schemaName: 'inkcre' = 'inkcre',
-    baseUrl: string = ''
+    baseUrl: string = '',
+    tokenProvider: DatabaseTokenProvider = () => authStore.getToken()
   ) {
     super(normalizePostgrestBaseUrl(baseUrl), {
       schema: schemaName,
       // Custom fetch to dynamically inject auth token on each request
       fetch: async (input, init) => {
-        const token = await authStore.getToken()
+        const token = await tokenProvider()
         const headers = new Headers(init?.headers)
         headers.set('Authorization', `Bearer ${token}`)
         return fetch(input, { ...init, headers })
@@ -130,7 +132,7 @@ export class DBAPIClient<
         (newVal) => {
           this.url = normalizePostgrestBaseUrl(newVal)
         },
-        { immediate: true }
+        { immediate: true, flush: 'sync' }
       )
     }
   }

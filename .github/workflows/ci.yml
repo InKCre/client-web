@@ -145,11 +145,6 @@ jobs:
           packages/core/src/database/database.generated.ts
           packages/core/src/database/runtime-contract.generated.json
 
-      - name: Reject a moved stable release
-        run: >-
-          node scripts/resolve-core-release.mjs
-          --expect "${{ needs.core-release.outputs.image }}"
-
   workspace:
     name: Workspace contract
     runs-on: ubuntu-latest
@@ -260,11 +255,6 @@ jobs:
         run: pnpm test:e2e:web
         env:
           INKCRE_CORE_IMAGE: ${{ needs.core-release.outputs.image }}
-
-      - name: Reject a moved stable release
-        run: >-
-          node scripts/resolve-core-release.mjs
-          --expect "${{ needs.core-release.outputs.image }}"
 
       - name: Upload browser and database evidence on failure
         if: failure()

@@ -5,6 +5,21 @@ import { peerJwtContract } from '../database'
 
 const JWT_CLOCK_SKEW_SECONDS = 5
 
+export async function signDatabaseToken(jwtSecret: string): Promise<string> {
+  if (!jwtSecret) throw new Error('JWT_SECRET not configured')
+
+  const secret = new TextEncoder().encode(jwtSecret)
+  // A Peer and its PostgREST boundary may not share an exact wall clock.
+  const issuedAt = Math.floor(Date.now() / 1000) - JWT_CLOCK_SKEW_SECONDS
+  return new SignJWT({ role: peerJwtContract.role })
+    .setProtectedHeader({ alg: peerJwtContract.algorithm })
+    .setIssuedAt(issuedAt)
+    .setExpirationTime(issuedAt + peerJwtContract.maximum_lifetime_seconds)
+    .setIssuer(peerJwtContract.issuer)
+    .setAudience(peerJwtContract.audience)
+    .sign(secret)
+}
+
 /**
  * Create an auth store instance.
  * Returns reactive token and token management functions.
@@ -13,24 +28,8 @@ export function createAuthStore(configStoreIns = configStore) {
   const token = ref<string | undefined>(undefined)
 
   async function newToken(): Promise<string> {
-    if (!configStoreIns.metaConfig.INKCRE_JWT_SECRET) {
-      throw new Error('JWT_SECRET not configured')
-    }
-
     try {
-      const secret = new TextEncoder().encode(configStoreIns.metaConfig.INKCRE_JWT_SECRET)
-      // A Peer and its PostgREST boundary may not share an exact wall clock.
-      // Backdate the bounded token instead of leaking clock-skew handling into callers.
-      const issuedAt = Math.floor(Date.now() / 1000) - JWT_CLOCK_SKEW_SECONDS
-      const signedToken = await new SignJWT({
-        role: peerJwtContract.role,
-      })
-        .setProtectedHeader({ alg: peerJwtContract.algorithm })
-        .setIssuedAt(issuedAt)
-        .setExpirationTime(issuedAt + peerJwtContract.maximum_lifetime_seconds)
-        .setIssuer(peerJwtContract.issuer)
-        .setAudience(peerJwtContract.audience)
-        .sign(secret)
+      const signedToken = await signDatabaseToken(configStoreIns.metaConfig.INKCRE_JWT_SECRET)
 
       token.value = signedToken
       return signedToken
