@@ -97,7 +97,7 @@ export class PeerManager {
         const publicBaseURL = peer.config.http_public_base_url
         if (typeof publicBaseURL !== 'string') return
         const baseURL = publicBaseURL.endsWith('/') ? publicBaseURL : `${publicBaseURL}/`
-        await fetch(new URL('readyz', baseURL), {
+        await fetch(new URL('livez', baseURL), {
           signal: AbortSignal.timeout(configStore.peerConfig.peer_http_timeout_ms),
         })
       })
