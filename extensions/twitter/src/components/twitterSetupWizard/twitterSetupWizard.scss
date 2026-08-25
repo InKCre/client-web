@@ -76,13 +76,8 @@
     color: sys-var(color, text, subtle);
   }
 
-  &__field,
-  &__schedule label {
-    display: grid;
-    gap: 0.35rem;
-  }
-
-  &__field input {
+  &__secret {
+    width: 100%;
     min-height: 2.5rem;
     padding: sys-var(space, sm);
     border: 1px solid sys-var(color, border, base);

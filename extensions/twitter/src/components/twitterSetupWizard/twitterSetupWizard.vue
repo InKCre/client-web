@@ -4,6 +4,8 @@ import {
   InkButton,
   InkDatetimePickerView,
   InkDropdown,
+  InkField,
+  InkForm,
   InkInput,
   InkLoading,
   InkPicker,
@@ -12,10 +14,12 @@ import {
 import type { Cron, Source } from '@inkcre/core'
 import {
   discoverCoreCandidates,
+  readTwitterOAuthAppConfig,
   TwitterBookmarkSetup,
   TwitterSetupAPI,
   type CorePeerCandidate,
   type OAuthTransaction,
+  type TwitterOAuthAppConfig,
   type TwitterSetupStatus,
 } from '../../setup-api'
 import { TWITTER_SETUP_STEPS, twitterSetupWizardEmits } from './twitterSetupWizard'
@@ -49,6 +53,7 @@ const api = computed(() =>
 )
 const selectedCoreEnabled = computed(() => selectedCandidate.value?.enabled ?? false)
 const busy = computed(() => pending.value !== null)
+const oauthAppConfigured = computed(() => Boolean(clientId.value && clientSecret.value))
 const setupReady = computed(() =>
   Boolean(status.value?.connected && selectedSource.value && selectedCron.value?.enabled)
 )
@@ -94,16 +99,23 @@ async function loadCollection(preferredSourceId?: number | null): Promise<void> 
   scheduleTime.value = scheduleFromCron(collection.cron)
   creatingSource.value = collection.sources.length === 0
 }
+function applyOAuthAppConfig(config: TwitterOAuthAppConfig): void {
+  clientId.value = config.client_id
+  clientSecret.value = config.client_secret
+}
 async function applyStatus(next: TwitterSetupStatus): Promise<void> {
   status.value = next
-  clientId.value = next.client_id ?? ''
-  clientSecret.value = ''
   if (next.connected) await loadCollection(selectedSource.value?.id)
-  currentStep.value = !next.oauth_app_configured || !next.connected ? 1 : setupReady.value ? 3 : 2
+  currentStep.value = !oauthAppConfigured.value || !next.connected ? 1 : setupReady.value ? 3 : 2
 }
 async function reloadStatus(): Promise<void> {
-  if (api.value && selectedCoreEnabled.value)
-    await applyStatus(await api.value.status(lifecycle.signal))
+  if (!api.value || !selectedCoreEnabled.value) return
+  const [next, config] = await Promise.all([
+    api.value.status(lifecycle.signal),
+    readTwitterOAuthAppConfig(),
+  ])
+  applyOAuthAppConfig(config)
+  await applyStatus(next)
 }
 async function initialize(): Promise<void> {
   loading.value = true
@@ -158,16 +170,26 @@ async function saveOAuthApp(): Promise<void> {
   if (!api.value) return
   await run('save-oauth-app', async () => {
     try {
-      await applyStatus(
-        await api.value!.saveOAuthApp(clientId.value, clientSecret.value, false, lifecycle.signal)
+      const next = await api.value!.saveOAuthApp(
+        clientId.value,
+        clientSecret.value,
+        false,
+        lifecycle.signal
       )
+      applyOAuthAppConfig(await readTwitterOAuthAppConfig())
+      await applyStatus(next)
     } catch (cause) {
       const text = message(cause)
       if (!text.includes('requires confirmation')) throw cause
       if (!window.confirm(`${text}\n\nDisconnect the current account and continue?`)) return
-      await applyStatus(
-        await api.value!.saveOAuthApp(clientId.value, clientSecret.value, true, lifecycle.signal)
+      const next = await api.value!.saveOAuthApp(
+        clientId.value,
+        clientSecret.value,
+        true,
+        lifecycle.signal
       )
+      applyOAuthAppConfig(await readTwitterOAuthAppConfig())
+      await applyStatus(next)
     }
   })
 }
@@ -282,12 +304,14 @@ onBeforeUnmount(() => {
       <div v-if="currentStep === 0" class="twitter-setup__panel">
         <h3>Choose a Core Peer</h3>
         <p>The OAuth callback runs on a Core Peer, while setup applies to the deployment.</p>
-        <InkDropdown
-          v-if="candidates.length"
-          v-model="selectedPeerId"
-          :options="peerOptions"
-          label="Core Peer"
-        />
+        <InkForm v-if="candidates.length" layout="col">
+          <InkDropdown
+            v-model="selectedPeerId"
+            :options="peerOptions"
+            label="Core Peer"
+            :editable="!busy"
+          />
+        </InkForm>
         <p v-else>No live Core Peer can manage the installed Twitter Extension.</p>
         <InkButton
           v-if="selectedCandidate && !selectedCoreEnabled"
@@ -302,17 +326,19 @@ onBeforeUnmount(() => {
         <h3>Connect an X account</h3>
         <p>Register your own X OAuth 2.0 application with this callback URL:</p>
         <code>{{ status?.callback_url }}</code>
-        <InkInput v-model="clientId" label="Client ID" required :disabled="busy" />
-        <label class="twitter-setup__field">
-          Client Secret
-          <input
-            v-model="clientSecret"
-            type="password"
-            autocomplete="off"
-            required
-            :disabled="busy"
-          />
-        </label>
+        <InkForm layout="col">
+          <InkInput v-model="clientId" label="Client ID" required :editable="!busy" />
+          <InkField label="Client Secret" required>
+            <input
+              v-model="clientSecret"
+              class="twitter-setup__secret"
+              type="password"
+              autocomplete="off"
+              required
+              :disabled="busy"
+            />
+          </InkField>
+        </InkForm>
         <div class="twitter-setup__actions">
           <InkButton
             text="Save OAuth App"
@@ -321,7 +347,7 @@ onBeforeUnmount(() => {
             @click="saveOAuthApp"
           />
           <InkButton
-            v-if="status?.oauth_app_configured"
+            v-if="oauthAppConfigured"
             text="Create authorization link"
             theme="primary"
             :is-loading="pending === 'begin-oauth'"
@@ -357,12 +383,14 @@ onBeforeUnmount(() => {
         </div>
         <div v-if="sources.length" class="twitter-setup__section">
           <h4>Bookmark Source</h4>
-          <InkDropdown
-            v-model="selectedSourceId"
-            :options="sourceOptions"
-            label="Bookmark Source"
-            :disabled="busy"
-          />
+          <InkForm layout="col">
+            <InkDropdown
+              v-model="selectedSourceId"
+              :options="sourceOptions"
+              label="Bookmark Source"
+              :editable="!busy"
+            />
+          </InkForm>
         </div>
         <div v-else class="twitter-setup__empty">
           <h4>No Bookmark Sources yet</h4>
@@ -371,7 +399,9 @@ onBeforeUnmount(() => {
         <div v-if="creatingSource" class="twitter-setup__section">
           <h4>New Bookmark Source</h4>
           <p>Give the deployment resource a recognizable nickname.</p>
-          <InkInput v-model="sourceNickname" label="Source nickname" :disabled="busy" />
+          <InkForm layout="col">
+            <InkInput v-model="sourceNickname" label="Source nickname" :editable="!busy" />
+          </InkForm>
           <InkButton
             text="Create Bookmark Source"
             :is-loading="pending === 'create-source'"
@@ -382,21 +412,25 @@ onBeforeUnmount(() => {
         <div v-if="selectedSource" class="twitter-setup__section">
           <h4>Collection schedule</h4>
           <p>Choose when Core should collect bookmarks each day.</p>
-          <InkPicker
-            v-model="scheduleTime"
-            type="time"
-            label="Collect bookmarks daily at"
-            :formatter="
-              (value: Date) => value.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            "
-          >
-            <template #default="{ closePopup }"
-              ><InkDatetimePickerView
-                v-model="scheduleTime"
-                mode="time"
-                hour-format="24" /><InkButton text="Done" theme="primary" @click="closePopup"
-            /></template>
-          </InkPicker>
+          <InkForm layout="col">
+            <InkPicker
+              v-model="scheduleTime"
+              type="time"
+              label="Collect bookmarks daily at"
+              :editable="!busy"
+              :formatter="
+                (value: Date) =>
+                  value.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              "
+            >
+              <template #default="{ closePopup }"
+                ><InkDatetimePickerView
+                  v-model="scheduleTime"
+                  mode="time"
+                  hour-format="24" /><InkButton text="Done" theme="primary" @click="closePopup"
+              /></template>
+            </InkPicker>
+          </InkForm>
           <p class="twitter-setup__hint">Time uses the Core deployment timezone.</p>
           <InkButton
             text="Continue"

@@ -42,10 +42,7 @@ const HttpsUrlSchema = z
   )
 
 export const TwitterSetupStatusSchema = z.object({
-  backend: z.string(),
   callback_url: HttpUrlSchema,
-  oauth_app_configured: z.boolean(),
-  client_id: z.string().nullable(),
   connected: z.boolean(),
   user_id: z.string().nullable(),
   handle: z.string().nullable(),
@@ -63,6 +60,19 @@ export const OAuthTransactionSchema = z.object({
 
 export type TwitterSetupStatus = z.infer<typeof TwitterSetupStatusSchema>
 export type OAuthTransaction = z.infer<typeof OAuthTransactionSchema>
+
+const TwitterOAuthAppConfigSchema = z.object({
+  client_id: z.string().default(''),
+  client_secret: z.string().default(''),
+})
+
+export type TwitterOAuthAppConfig = z.infer<typeof TwitterOAuthAppConfigSchema>
+
+export async function readTwitterOAuthAppConfig(): Promise<TwitterOAuthAppConfig> {
+  const extension = await ExtensionModel.get(EXTENSION_NAME)
+  if (!extension) throw new Error(`${EXTENSION_NAME} is not installed.`)
+  return TwitterOAuthAppConfigSchema.parse(extension.config)
+}
 
 export interface CorePeerCandidate {
   peer: Peer
