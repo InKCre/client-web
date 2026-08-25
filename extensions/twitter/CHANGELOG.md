@@ -1,5 +1,16 @@
 # @inkcre/ext-twitter
 
+## 0.3.0
+
+### Minor Changes
+
+- d72d88c: Add peer-local graph-navigation retrieval and the required Resolver preview presentation contract.
+
+### Patch Changes
+
+- Updated dependencies [d72d88c]
+  - @inkcre/core@0.2.0
+
 ## 0.2.1
 
 ### Patch Changes
