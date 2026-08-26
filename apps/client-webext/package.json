@@ -16,7 +16,7 @@
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^2.0.38",
+    "@ai-sdk/anthropic": "^4.0.21",
     "@ai-sdk/google": "^2.0.24",
     "@ai-sdk/openai": "^2.0.56",
     "@ai-sdk/openai-compatible": "^1.0.24",
