@@ -77,12 +77,12 @@ jobs:
           persist-credentials: false
 
       - name: Install the pinned pnpm release
-        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
         with:
           version: 11.11.0
 
       - name: Set up Node
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: candidate/package.json
           cache: pnpm
@@ -91,7 +91,7 @@ jobs:
           scope: '@inkcre'
 
       - name: Set up Python and PDM
-        uses: pdm-project/setup-pdm@973541a5febeafcfdadf8a51211435be6ecfd90f # v4.5
+        uses: pdm-project/setup-pdm@544d7237314ee09c256785bd360f6b30add38b37 # v4.6
         with:
           python-version-file: candidate/.python-version
           version: 2.28.0
