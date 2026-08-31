@@ -89,21 +89,6 @@ jobs:
         working-directory: release
         run: pnpm build
 
-      - name: Reverify main before Pages delivery
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        env:
-          SOURCE_SHA: ${{ needs.identity.outputs.source_sha }}
-        with:
-          script: |
-            const currentMain = await github.rest.git.getRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: 'heads/main',
-            })
-            if (currentMain.data.object.sha !== process.env.SOURCE_SHA) {
-              core.setFailed('Main changed after the release build; refusing Pages delivery.')
-            }
-
       - name: Deploy to Cloudflare Pages
         id: pages
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0

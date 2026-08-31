@@ -33,7 +33,7 @@ Reason in English. Communicate with humans in Chinese.
 - Diagnose: `pnpm run doctor` (`pnpm doctor` is a different pnpm command).
 - Develop: `pnpm dev`, `pnpm dev:all`, or an explicit source lane documented in `docs/40-deployment/development-runtime.md`.
 - Required verification: `pnpm check`; required production outputs: `pnpm build`.
-- Shadow verification: `pnpm lint:type-aware` and `pnpm type-check:ts7`.
+- Optional local migration probes: `pnpm lint:type-aware` and `pnpm type-check:ts7`.
 - Follow the organization-wide [Verification and Test Policy](https://github.com/InKCre/.github/blob/main/TESTING.md).
   The admitted Playwright E2E suites do not authorize new automation by analogy.
 - Follow `.agents/prompts/code-for-human.md` for source changes.

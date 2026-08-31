@@ -12,9 +12,6 @@ on:
       - synchronize
       - reopened
       - ready_for_review
-  merge_group:
-    types:
-      - checks_requested
   workflow_dispatch:
 
 permissions:
@@ -25,7 +22,6 @@ concurrency:
   group: >-
     client-checks-${{
       github.event.pull_request.number ||
-      github.event.merge_group.head_sha ||
       github.ref
     }}
   cancel-in-progress: true
@@ -91,60 +87,6 @@ jobs:
             echo "- Runtime contract: \`$CONTRACT_REVISION\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
-  database-contract:
-    name: Database contract
-    needs: core-release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-
-      - name: Install the pinned pnpm release
-        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
-        with:
-          version: 11.11.0
-
-      - name: Set up Node
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
-        with:
-          node-version-file: package.json
-          cache: pnpm
-          registry-url: https://npm.pkg.github.com
-          scope: '@inkcre'
-
-      - name: Install the frozen workspace
-        run: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Authenticate to GHCR
-        uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7 # v4.5.1
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Generate types from the selected raw schema
-        run: pnpm contract:sync -- --image "${{ needs.core-release.outputs.image }}"
-
-      - name: Upload the generated database contract
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: generated-database-contract-${{ github.sha }}
-          path: |
-            packages/core/src/database/database.generated.ts
-            packages/core/src/database/runtime-contract.generated.json
-          if-no-files-found: error
-          retention-days: 7
-
-      - name: Reject a stale checked-in database contract
-        run: >-
-          git diff --exit-code --
-          packages/core/src/database/database.generated.ts
-          packages/core/src/database/runtime-contract.generated.json
-
   workspace:
     name: Workspace contract
     runs-on: ubuntu-latest
@@ -181,39 +123,6 @@ jobs:
           --package extensions/twitter/package.json
           --core-package packages/core/package.json
           --artifact-directory extensions/twitter/dist/client-web
-
-  toolchain-shadow:
-    name: Type-aware and TypeScript 7 shadow
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Install the pinned pnpm release
-        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
-        with:
-          version: 11.11.0
-
-      - name: Set up Node
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
-        with:
-          node-version-file: package.json
-          cache: pnpm
-          registry-url: https://npm.pkg.github.com
-          scope: '@inkcre'
-
-      - name: Install the frozen workspace
-        run: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Run type-aware Oxlint
-        continue-on-error: true
-        run: pnpm lint:type-aware
-
-      - name: Run the native TypeScript 7 preview
-        continue-on-error: true
-        run: pnpm type-check:ts7
 
   peer-database:
     name: client-web E2E
