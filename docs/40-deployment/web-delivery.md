@@ -20,11 +20,11 @@ The browser-side authority behind this invariant belongs to
 ## Production Pages
 
 [`.github/workflows/pages-deploy.yml`](../../.github/workflows/pages-deploy.yml) owns production
-delivery. A successful `Client checks` run for a protected-`main` push selects that exact source
-SHA, while delivery rejects the run if a newer revision supersedes it. The delivery job consumes
-no check artifact: it checks out the exact source, installs the frozen workspace, builds the
-release, reverifies `main`, and deploys those same-run bytes to the Cloudflare Pages `main` branch
-in the protected `production` environment.
+delivery. A protected-`main` push selects that exact source SHA after strict required PR checks,
+while delivery rejects the run if a newer revision supersedes it. The delivery job checks out the
+exact source, installs the frozen workspace, builds the release, reverifies `main`, and deploys
+those same-run bytes to the Cloudflare Pages `main` branch in the protected `production`
+environment.
 
 The workspace lock owns the exact Wrangler version, and Pages production/preview execute it through
 the pinned pnpm toolchain. Preview cleanup is intentionally different: its tombstone is a standalone
