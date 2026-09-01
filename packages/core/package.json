@@ -20,8 +20,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@supabase/postgrest-js": "^2.84.0",
-    "dayjs": "^1.11.0",
+    "@supabase/postgrest-js": "^2.112.4",
+    "dayjs": "^1.11.23",
     "jose": "^5.0.0",
     "semver": "7.8.5",
     "zod": "^4.1.12",
@@ -30,11 +30,11 @@
   },
   "devDependencies": {
     "@types/semver": "7.5.8",
-    "@vueuse/core": "^14.1.0",
-    "pinia": "^3.0.3",
+    "@vueuse/core": "^14.4.0",
+    "pinia": "^3.0.4",
     "tsdown": "0.22.13",
     "typescript": "catalog:",
-    "vue": "^3.5.18"
+    "vue": "^3.5.42"
   },
   "peerDependencies": {
     "@vueuse/core": "^14.0.0",

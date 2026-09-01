@@ -17,10 +17,10 @@
     "@inkcre/ui-web": "1.4.0"
   },
   "devDependencies": {
-    "pinia": "^3.0.3",
+    "pinia": "^3.0.4",
     "typescript": "catalog:",
-    "vue": "^3.5.18",
-    "vue-router": "^4.5.1",
+    "vue": "^3.5.42",
+    "vue-router": "^4.6.4",
     "vue-tsc": "catalog:"
   },
   "peerDependencies": {
