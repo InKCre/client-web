@@ -25,6 +25,11 @@ updates:
       - dependency-name: '*'
         update-types:
           - version-update:semver-major
+      - dependency-name: vue-tsc
+      - dependency-name: oxfmt
+      - dependency-name: oxlint
+      - dependency-name: oxlint-tsgolint
+      - dependency-name: portless
     groups:
       production-dependencies:
         dependency-type: production
