@@ -12,7 +12,6 @@ on:
 permissions:
   contents: read
   packages: read
-  pull-requests: read
 
 jobs:
   identity:
@@ -57,7 +56,6 @@ jobs:
       contents: read
       deployments: write
       packages: read
-      pull-requests: read
     runs-on: ubuntu-latest
     timeout-minutes: 25
     environment: preview
@@ -123,61 +121,6 @@ jobs:
           cp -R .preview-registry/. apps/client-web/dist/
           cp -R apps/client-web/dist "$GITHUB_WORKSPACE/.pages-preview"
 
-      - name: Reverify pull-request identity before delivery
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        env:
-          PREVIEW_BRANCH: ${{ needs.identity.outputs.branch }}
-          PREVIEW_HEAD_SHA: ${{ needs.identity.outputs.head_sha }}
-          PULL_NUMBER: ${{ needs.identity.outputs.pull_number }}
-        with:
-          script: |
-            const expectedBranch = `preview/client-web/pr-${process.env.PULL_NUMBER}`
-            if (process.env.PREVIEW_BRANCH !== expectedBranch) {
-              core.setFailed(`Unexpected Pages preview branch: ${process.env.PREVIEW_BRANCH}`)
-              return
-            }
-            const { data: pull } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: Number(process.env.PULL_NUMBER),
-            })
-            if (
-              pull.state !== 'open' ||
-              pull.base.ref !== 'main' ||
-              pull.head.sha !== process.env.PREVIEW_HEAD_SHA ||
-              pull.head.repo?.full_name !== `${context.repo.owner}/${context.repo.repo}`
-            ) {
-              core.setFailed('Pull-request identity changed after the exact-head build.')
-            }
-
-      - name: Register the pull-request deployment
-        id: github-deployment
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        env:
-          PREVIEW_HEAD_SHA: ${{ needs.identity.outputs.head_sha }}
-          PULL_NUMBER: ${{ needs.identity.outputs.pull_number }}
-        with:
-          script: |
-            const { data: deployment } = await github.rest.repos.createDeployment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: process.env.PREVIEW_HEAD_SHA,
-              environment: 'preview',
-              description: `Cloudflare Pages preview for PR #${process.env.PULL_NUMBER}`,
-              auto_merge: false,
-              required_contexts: [],
-              transient_environment: true,
-              production_environment: false,
-            })
-            core.setOutput('deployment_id', String(deployment.id))
-            await github.rest.repos.createDeploymentStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              deployment_id: deployment.id,
-              state: 'in_progress',
-              log_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
-            })
-
       - name: Deploy to the isolated Pages preview branch
         id: pages
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
@@ -193,25 +136,3 @@ jobs:
             --branch=${{ needs.identity.outputs.branch }}
             --commit-hash=${{ needs.identity.outputs.head_sha }}
             --commit-dirty=false
-
-      - name: Report the pull-request deployment
-        if: ${{ always() && steps.github-deployment.outputs.deployment_id != '' }}
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        env:
-          DEPLOYMENT_ID: ${{ steps.github-deployment.outputs.deployment_id }}
-          JOB_STATUS: ${{ job.status }}
-          PREVIEW_URL: ${{ steps.pages.outputs.pages-deployment-alias-url }}
-        with:
-          script: |
-            const success = process.env.JOB_STATUS === 'success'
-            await github.rest.repos.createDeploymentStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              deployment_id: Number(process.env.DEPLOYMENT_ID),
-              state: success ? 'success' : 'failure',
-              description: success ? 'Pull-request preview is ready' : 'Pull-request preview failed',
-              log_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
-              ...(success && process.env.PREVIEW_URL
-                ? { environment_url: process.env.PREVIEW_URL }
-                : {}),
-            })

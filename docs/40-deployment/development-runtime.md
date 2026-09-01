@@ -88,10 +88,13 @@ accepts only a ready development runtime, and resets only this worktree's client
 resources. Client-web refuses to reset or stop an external core-py runtime; recovery and cleanup
 must go through core-py. Browser E2E always creates and removes its own isolated database runtime.
 
-The database contract is generated from the selected immutable core release. CI regenerates and
-checks it, runs the real core service in an isolated browser/database chain, and rejects a moved
-`stable` selection before admission. Pull-request evidence does not establish source-branch or
-migration equality between repositories.
+The checked database projection records the contract revision intentionally adopted by this
+consumer. Update it with `pnpm contract:sync` when client work adopts a newer compatible revision;
+an unrelated pull request does not chase a moving `stable` channel. CI still resolves `stable` once
+to an immutable image and runs that real core service through the isolated browser/database chain,
+which proves the checked client remains compatible with current delivery. A breaking contract
+revision requires the coordinated producer-first migration defined by the shared contract.
+Pull-request evidence does not establish source-branch or migration equality between repositories.
 
 ## Operator Commands
 
