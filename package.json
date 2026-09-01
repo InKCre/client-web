@@ -38,21 +38,21 @@
     "ci": "pnpm check && pnpm test:e2e"
   },
   "devDependencies": {
-    "@changesets/cli": "3.0.0",
-    "@playwright/test": "1.61.1",
+    "@changesets/cli": "3.0.1",
+    "@playwright/test": "1.62.1",
     "@types/semver": "7.5.8",
     "@typescript/native": "npm:typescript@7.0.2",
-    "@vitejs/plugin-vue": "6.0.3",
+    "@vitejs/plugin-vue": "6.0.8",
     "concurrently": "^9.0.0",
     "jose": "6.1.2",
-    "oxfmt": "0.60.0",
-    "oxlint": "1.75.0",
+    "oxfmt": "0.65.0",
+    "oxlint": "1.80.0",
     "oxlint-tsgolint": "7.0.2001",
-    "portless": "0.12.0",
+    "portless": "0.15.6",
     "semver": "7.8.5",
-    "supabase": "2.112.0",
+    "supabase": "2.115.0",
     "typescript": "catalog:",
-    "wrangler": "4.114.0"
+    "wrangler": "4.125.0"
   },
   "devEngines": {
     "runtime": {
