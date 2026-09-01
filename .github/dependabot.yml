@@ -30,6 +30,10 @@ updates:
       - dependency-name: oxlint
       - dependency-name: oxlint-tsgolint
       - dependency-name: portless
+      - dependency-name: '@vue/tsconfig'
+      - dependency-name: '@module-federation/runtime'
+      - dependency-name: '@module-federation/enhanced'
+      - dependency-name: '@module-federation/vite'
     groups:
       production-dependencies:
         dependency-type: production
