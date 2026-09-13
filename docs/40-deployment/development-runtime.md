@@ -86,7 +86,9 @@ owns provider parsing and transport safety.
 For a client-owned `local` or `ssh` runtime, the database provisioner resolves core-py's admitted
 `stable` channel once to an immutable digest. The selected image supplies the raw schema and role
 artifact; fresh pgvector PostgreSQL is restored before that exact core service reconciles runtime
-credentials and development data, with PostgREST serving the resulting database. Client-web owns no
+credentials and development data, with PostgREST serving the resulting database. The PostgreSQL
+health check uses TCP so the temporary socket-only initialization server cannot release the restore
+step before the final server is listening. Client-web owns no
 migration SQL, role definitions, seed ordering, or startup sleeps. Those semantics remain a core-py
 capability boundary. [`runtime/database.compose.yml`](../../runtime/database.compose.yml),
 [`contracts/core-release.json`](../../contracts/core-release.json), and
