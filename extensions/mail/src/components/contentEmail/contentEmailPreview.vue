@@ -38,7 +38,7 @@ const body = computed(() => {
   span,
   p {
     margin: 0;
-    color: var(--ink-text-secondary, #6b7280);
+    color: var(--sys-color-text-subtle);
   }
 
   p {

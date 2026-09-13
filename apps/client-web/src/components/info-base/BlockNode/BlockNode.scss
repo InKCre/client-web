@@ -34,8 +34,8 @@
   }
 
   &--focal {
-    border-color: sys-var(color, border, primary);
-    box-shadow: 0 0 0 1px sys-var(color, border, primary);
+    border-color: sys-var(color, border, strong);
+    box-shadow: 0 0 0 1px sys-var(color, border, strong);
   }
 
   &--muted {
@@ -44,7 +44,7 @@
   }
 
   &__resolver {
-    @include apply-font(label-sm, true);
+    @include apply-font(label-md, $mono: true);
     color: sys-var(color, text, subtle);
   }
 
@@ -65,7 +65,7 @@
 
   &__preview-error {
     color: sys-var(color, text, subtle);
-    @include apply-font(label-sm);
+    @include apply-font(body-sm);
   }
 }
 

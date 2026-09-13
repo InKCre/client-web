@@ -391,10 +391,10 @@ function isRoute(route: InfoBaseRoute | null, name: InfoBaseRoute['name']): bool
           @inspect="inspectRelation"
         />
       </template>
-      <Background :gap="24" pattern-color="var(--ink-border-subtle, #d9dde3)" />
+      <Background :gap="24" pattern-color="var(--sys-color-border-subtle)" />
       <div class="graph-view__viewport-controls">
-        <InkButton icon="i-mdi-plus" type="square" theme="subtle" @click="zoomIn" />
-        <InkButton icon="i-mdi-minus" type="square" theme="subtle" @click="zoomOut" />
+        <InkButton icon="i-mdi-plus" type="square" theme="subtle" @click="zoomIn()" />
+        <InkButton icon="i-mdi-minus" type="square" theme="subtle" @click="zoomOut()" />
         <InkButton icon="i-mdi-crosshairs-gps" type="square" theme="subtle" @click="refocus" />
       </div>
     </VueFlow>

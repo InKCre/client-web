@@ -39,7 +39,7 @@
       color: sys-var(color, text, subtle);
       background: transparent;
       cursor: pointer;
-      @include apply-font(label-sm);
+      @include apply-font(label-md);
 
       &:last-child {
         border-right: 0;
@@ -52,7 +52,7 @@
         background: sys-var(color, surface, subtle);
       }
       &:focus-visible {
-        outline: 1px solid sys-var(color, border, primary);
+        outline: 1px solid sys-var(color, border, strong);
         outline-offset: -2px;
       }
     }

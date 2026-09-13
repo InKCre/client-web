@@ -20,7 +20,7 @@
       display: flex;
       align-items: center;
       gap: 0.4rem;
-      color: sys-var(color, text, muted);
+      color: sys-var(color, text, subtle);
       font-size: 0.8rem;
     }
 
@@ -35,7 +35,7 @@
 
     .is-current,
     .is-complete {
-      color: sys-var(color, info, base);
+      color: sys-var(color, feedback, info);
       font-weight: 600;
     }
   }
@@ -105,7 +105,7 @@
 
   &__error {
     margin: 0;
-    color: sys-var(color, danger, base);
+    color: sys-var(color, feedback, error);
   }
 
   dl {

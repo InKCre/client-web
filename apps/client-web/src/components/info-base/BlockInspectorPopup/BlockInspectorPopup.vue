@@ -78,7 +78,13 @@ async function ruminate(): Promise<void> {
 </script>
 
 <template>
-  <InkPopup :open="open" :scrim="false" position="right" @update:open="onOpenChange">
+  <InkPopup
+    :open="open"
+    :scrim="false"
+    position="right"
+    :aria-label="t('infoBase.blockInspector.title')"
+    @update:open="onOpenChange"
+  >
     <section class="block-inspector-popup">
       <header class="block-inspector-popup__header">
         <h3>{{ t('infoBase.blockInspector.title') }}</h3>
@@ -122,7 +128,7 @@ async function ruminate(): Promise<void> {
           />
           <InkButton
             :text="t('infoBase.blockInspector.ruminate')"
-            :loading="isRuminating"
+            :is-loading="isRuminating"
             @click="ruminate"
           />
           <p v-if="ruminationOutcome">

@@ -39,7 +39,7 @@
 
   &__error {
     @include apply-font(body-sm);
-    color: sys-var(color, danger, base);
+    color: sys-var(color, feedback, error);
     margin: 0;
   }
 }

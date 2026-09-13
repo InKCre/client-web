@@ -2,7 +2,14 @@
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { InkButton, InkInput, InkPopup, InkJsonEditor, InkDoubleCheck } from '@inkcre/ui-web'
+import {
+  InkButton,
+  InkInput,
+  InkPopup,
+  InkJsonEditor,
+  InkDoubleCheck,
+  type JsonEditorValidation,
+} from '@inkcre/ui-web'
 import { sourceCardEmits, type SourceCardProps } from './sourceCard'
 import { Job, JobManager, JobStatus, Source, SourceType } from '@inkcre/core'
 import { computedAsync } from '@vueuse/core'
@@ -51,6 +58,13 @@ const latestOpenJob = computedAsync(
 )
 const configPopupOpen = ref(false)
 const configModel = ref('')
+const configValidation = ref<JsonEditorValidation>()
+const configSaving = ref(false)
+const configError = ref('')
+const canSaveConfig = computed(
+  () =>
+    configValidation.value?.status === 'valid' && configValidation.value.text === configModel.value
+)
 const nicknameModel = ref('')
 
 // --- watchers ---
@@ -77,6 +91,8 @@ const onNicknameSave = (newNickname: string) => {
 
 const onEditConfig = () => {
   configModel.value = formattedConfig.value
+  configValidation.value = undefined
+  configError.value = ''
   configPopupOpen.value = true
 }
 
@@ -104,15 +120,19 @@ const onCardClick = () => {
   }
 }
 
-const onConfirmConfig = () => {
+const onConfirmConfig = async () => {
+  if (configSaving.value || !sourceData.value || !canSaveConfig.value) return
+  configSaving.value = true
+  configError.value = ''
   try {
-    const parsedConfig = JSON.parse(configModel.value)
-    sourceData.value!.config = parsedConfig
-    sourceData.value!.save()
+    const candidate = Source.parse({ ...sourceData.value, config: JSON.parse(configModel.value) })
+    const updated = await candidate.save()
+    sourceData.value.config = updated.config
     configPopupOpen.value = false
-  } catch (error) {
-    // Handle JSON parse error, maybe show a toast or something
-    console.error('Invalid JSON:', error)
+  } catch (cause) {
+    configError.value = cause instanceof Error ? cause.message : t('common.saveFailed')
+  } finally {
+    configSaving.value = false
   }
 }
 </script>
@@ -170,7 +190,13 @@ const onConfirmConfig = () => {
     </div>
   </div>
 
-  <InkPopup v-model:open="configPopupOpen" position="center">
+  <InkPopup
+    v-model:open="configPopupOpen"
+    position="center"
+    aria-label="Edit source config"
+    :close-on-scrim="!configSaving"
+    :close-on-escape="!configSaving"
+  >
     <div class="config-editor">
       <h3 class="config-editor__title">Edit Config</h3>
       <InkJsonEditor
@@ -178,10 +204,25 @@ const onConfirmConfig = () => {
         :schema="sourceType?.config_schema"
         placeholder="Enter JSON config..."
         :rows="6"
+        label="Source config"
+        :disabled="configSaving"
+        @validation="configValidation = $event"
       />
+      <p v-if="configError" role="alert" class="text-feedback-error">{{ configError }}</p>
       <div class="config-editor__actions">
-        <InkButton text="Cancel" theme="subtle" @click="configPopupOpen = false" />
-        <InkButton text="Confirm" theme="primary" @click="onConfirmConfig" />
+        <InkButton
+          text="Cancel"
+          theme="subtle"
+          :disabled="configSaving"
+          @click="configPopupOpen = false"
+        />
+        <InkButton
+          text="Confirm"
+          theme="primary"
+          :is-loading="configSaving"
+          :disabled="!canSaveConfig"
+          @click="onConfirmConfig"
+        />
       </div>
     </div>
   </InkPopup>

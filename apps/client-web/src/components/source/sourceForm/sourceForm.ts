@@ -3,6 +3,7 @@ import { Source, SourceForm } from '@inkcre/core'
 
 // --- Props ---
 export const sourceFormProps = {
+  disabled: { type: Boolean, default: false },
   modelValue: {
     type: Object as PropType<Source | SourceForm>,
     required: true,

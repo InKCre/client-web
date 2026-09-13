@@ -7,7 +7,7 @@
 
   &:hover,
   &--focal {
-    stroke: sys-var(color, border, primary);
+    stroke: sys-var(color, border, strong);
   }
 
   &--muted {
@@ -29,7 +29,7 @@
       cursor: pointer;
       text-overflow: ellipsis;
       white-space: nowrap;
-      @include apply-font(label-sm);
+      @include apply-font(label-md);
     }
 
     .relation-edge__focus {
@@ -60,7 +60,7 @@
     button:hover,
     &--focal button {
       color: sys-var(color, text, base);
-      border-color: sys-var(color, border, primary);
+      border-color: sys-var(color, border, strong);
       background: sys-var(color, surface, base);
     }
 

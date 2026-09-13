@@ -13,12 +13,12 @@
   }
 
   &__item-id {
-    @include apply-font(label-sm, mono);
+    @include apply-font(label-md, $mono: true);
     color: sys-var(color, text, subtle);
   }
 
   &__item-capabilities {
-    @include apply-font(label-sm);
+    @include apply-font(body-sm);
     color: sys-var(color, text, subtle);
   }
 
@@ -28,13 +28,13 @@
     border-radius: sys-var(radius, sm);
 
     &--online {
-      background-color: sys-var(color, success, surface);
-      color: sys-var(color, success, base);
+      background-color: sys-var(color, surface, subtle);
+      color: sys-var(color, feedback, success);
     }
 
     &--offline {
-      background-color: sys-var(color, danger, surface);
-      color: sys-var(color, danger, base);
+      background-color: sys-var(color, surface, subtle);
+      color: sys-var(color, feedback, error);
     }
 
     &--unknown {

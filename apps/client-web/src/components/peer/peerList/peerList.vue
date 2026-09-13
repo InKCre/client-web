@@ -38,13 +38,13 @@ const getPeerStatus = (peer: Peer): 'online' | 'offline' | 'unknown' => {
         <InkButton
           :text="t('client.refresh')"
           size="sm"
-          :loading="peersLoading"
+          :is-loading="peersLoading"
           @click="() => refreshPeers()"
         />
         <InkButton
           :text="t('client.checkHealth')"
           size="sm"
-          :loading="healthCheckLoading"
+          :is-loading="healthCheckLoading"
           @click="checkAllHealth"
         />
       </div>

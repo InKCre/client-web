@@ -1,4 +1,5 @@
 import { createApp, type Component } from 'vue'
+import '@inkcre/ui-web/styles'
 import { createPinia } from 'pinia'
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import type { ExtensionModule } from '@inkcre/core'

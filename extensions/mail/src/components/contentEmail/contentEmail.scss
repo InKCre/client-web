@@ -2,10 +2,10 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  color: var(--ink-text-primary, #111827);
+  color: var(--sys-color-text-base);
 
   &__header {
-    border-bottom: 1px solid var(--ink-border-primary, #e5e7eb);
+    border-bottom: 1px solid var(--sys-color-border-base);
     padding-bottom: 16px;
 
     h2 {
@@ -15,7 +15,7 @@
 
     time,
     p {
-      color: var(--ink-text-secondary, #6b7280);
+      color: var(--sys-color-text-subtle);
     }
 
     dl {
@@ -26,7 +26,7 @@
 
     dt {
       text-transform: capitalize;
-      color: var(--ink-text-secondary, #6b7280);
+      color: var(--sys-color-text-subtle);
     }
 
     dd {
@@ -38,7 +38,7 @@
   &__html {
     width: 100%;
     min-height: 420px;
-    border: 1px solid var(--ink-border-primary, #e5e7eb);
+    border: 1px solid var(--sys-color-border-base);
     background: #fff;
   }
 
@@ -68,7 +68,7 @@
     align-items: center;
     gap: 12px;
     padding: 12px;
-    border: 1px solid var(--ink-border-primary, #e5e7eb);
+    border: 1px solid var(--sys-color-border-base);
     border-radius: 6px;
 
     div {
@@ -80,7 +80,7 @@
 
     span,
     p {
-      color: var(--ink-text-secondary, #6b7280);
+      color: var(--sys-color-text-subtle);
     }
 
     p {

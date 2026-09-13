@@ -14,7 +14,7 @@
 
   &__eyebrow {
     @include apply-font(label-md);
-    color: sys-var(color, text, muted);
+    color: sys-var(color, text, subtle);
     margin: 0 0 sys-var(space, sm);
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -32,8 +32,8 @@
 
     input {
       min-width: 0;
-      height: 48px;
-      border: 1px solid sys-var(color, text, muted);
+      min-height: 48px;
+      border: 1px solid sys-var(color, border, base);
       border-radius: 4px;
       padding-inline: sys-var(space, md);
       background: sys-var(color, surface, subtle);
@@ -59,7 +59,7 @@
     justify-content: center;
     gap: sys-var(space, sm);
     text-align: center;
-    color: sys-var(color, text, muted);
+    color: sys-var(color, text, subtle);
 
     p,
     small {
@@ -79,7 +79,7 @@
     width: 100%;
     display: grid;
     gap: sys-var(space, sm);
-    border: 1px solid sys-var(color, text, muted);
+    border: 1px solid sys-var(color, border, base);
     border-radius: 4px;
     padding: sys-var(space, md);
     background: sys-var(color, surface, subtle);
@@ -110,7 +110,7 @@
     }
 
     span {
-      color: sys-var(color, text, muted);
+      color: sys-var(color, text, subtle);
     }
   }
 
@@ -120,8 +120,8 @@
   }
 
   &__evidence {
-    @include apply-font(label-sm);
-    color: sys-var(color, text, muted);
+    @include apply-font(label-md);
+    color: sys-var(color, text, subtle);
   }
 
   @media (max-width: 640px) {

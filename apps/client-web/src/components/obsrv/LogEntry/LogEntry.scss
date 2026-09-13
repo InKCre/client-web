@@ -13,7 +13,7 @@
     transition: background-color 0.2s;
 
     &:hover {
-      background-color: sys-var(color, surface, base-hover);
+      background-color: sys-var(color, surface, subtle-hover);
     }
   }
 
@@ -29,13 +29,13 @@
   }
 
   .log-time {
-    @include apply-font(label-sm, mono);
+    @include apply-font(label-md, $mono: true);
     color: sys-var(color, text, subtle);
     min-width: 80px;
   }
 
   .log-severity {
-    @include apply-font(label-sm);
+    @include apply-font(label-md);
     color: sys-var(color, text, base);
     min-width: 60px;
   }
@@ -70,7 +70,7 @@
   }
 
   &__detail-value {
-    @include apply-font(label-lg, mono);
+    @include apply-font(label-lg, $mono: true);
     color: sys-var(color, text, base);
     flex: 1;
     word-break: break-all;

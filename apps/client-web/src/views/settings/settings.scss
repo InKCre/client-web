@@ -7,7 +7,7 @@
   overflow-y: auto;
 
   &__title {
-    @include apply-font('title', 'lg');
+    @include apply-font(title-lg);
     margin: 0;
     color: sys-var('color', 'text', 'base');
   }
@@ -21,7 +21,7 @@
   &__notice,
   &__export-note {
     margin: 0;
-    color: sys-var('color', 'text', 'muted');
+    color: sys-var('color', 'text', 'subtle');
   }
 
   &__secret,
@@ -40,7 +40,7 @@
     }
 
     small {
-      color: sys-var('color', 'text', 'muted');
+      color: sys-var('color', 'text', 'subtle');
     }
   }
 

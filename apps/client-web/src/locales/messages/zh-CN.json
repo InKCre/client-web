@@ -8,7 +8,9 @@
     "confirmAction": "确认操作",
     "back": "返回",
     "loading": "加载中...",
-    "loadMore": "加载更多"
+    "loadMore": "加载更多",
+    "saveFailed": "保存失败，请稍后重试。",
+    "invalidConfig": "请输入有效的 JSON 配置对象后再保存。"
   },
   "header": {
     "brand": "第三尺寸"

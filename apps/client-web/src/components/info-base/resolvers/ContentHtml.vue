@@ -36,7 +36,7 @@ function stripHtml(html: string): string {
   overflow: hidden;
 
   &__badge {
-    @include apply-font(label-sm, true);
+    @include apply-font(label-md, $mono: true);
     color: sys-var(color, text, subtle);
     margin-bottom: 4px;
     letter-spacing: 0.5px;

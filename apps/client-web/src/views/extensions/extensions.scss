@@ -26,11 +26,11 @@
   &__notice {
     @include apply-font(body-sm);
     margin: 0;
-    color: sys-var(color, text, muted);
+    color: sys-var(color, text, subtle);
   }
 
   &__error {
     @include apply-font(body-sm);
-    color: sys-var(color, danger, base);
+    color: sys-var(color, feedback, error);
   }
 }

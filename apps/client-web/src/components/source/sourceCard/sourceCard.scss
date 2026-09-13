@@ -50,7 +50,7 @@
 
   &__id-label,
   &__id {
-    @include apply-font(label-lg, mono);
+    @include apply-font(label-lg, $mono: true);
     color: sys-var(color, text, subtle);
     text-align: right;
     white-space: nowrap;
@@ -65,7 +65,7 @@
     flex-direction: column;
     gap: sys-var(space, sm);
     padding: sys-var(space, sm);
-    border: 1px solid sys-var(color, border, muted);
+    border: 1px solid sys-var(color, border, subtle);
     box-sizing: border-box;
     height: 96px;
     overflow: auto;
@@ -73,7 +73,7 @@
   }
 
   &__config-text {
-    @include apply-font(label-lg, mono);
+    @include apply-font(label-lg, $mono: true);
     color: sys-var(color, text, subtle);
     margin: 0;
     white-space: pre-wrap;
@@ -131,8 +131,7 @@
   padding: sys-var(space, lg);
   background: sys-var(color, surface, base);
   border-radius: sys-var(radius, md);
-  box-shadow: sys-var(shadow, lg);
-  min-width: 400px;
+  min-width: 0;
   max-width: 600px;
 
   &__title {

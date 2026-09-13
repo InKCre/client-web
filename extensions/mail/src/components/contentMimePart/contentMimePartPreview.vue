@@ -24,7 +24,7 @@ defineProps<SolvedContentRendererProps<SolvedMimePart, MailMimePartResolver>>()
   max-width: 320px;
 
   span {
-    color: var(--ink-text-secondary, #6b7280);
+    color: var(--sys-color-text-subtle);
   }
 }
 </style>

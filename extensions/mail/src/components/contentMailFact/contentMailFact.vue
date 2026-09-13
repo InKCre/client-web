@@ -25,7 +25,7 @@ const entries = computed(() =>
   margin: 0;
 
   dt {
-    color: var(--ink-text-secondary, #6b7280);
+    color: var(--sys-color-text-subtle);
     text-transform: capitalize;
   }
 

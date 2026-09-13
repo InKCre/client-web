@@ -156,7 +156,7 @@ function navigate(block: number): void {
         <InkButton
           v-else
           text="Download"
-          :loading="materializing.has(part.block.id)"
+          :is-loading="materializing.has(part.block.id)"
           @click="materialize(part.block.id)"
         />
         <p v-if="materializeErrors.get(part.block.id)">
