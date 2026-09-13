@@ -14,18 +14,23 @@
   },
   "dependencies": {
     "@inkcre/core": "workspace:*",
-    "@inkcre/ui-web": "1.4.0"
+    "@inkcre/ui-web": "2.0.0"
   },
   "devDependencies": {
     "pinia": "^3.0.3",
     "typescript": "catalog:",
-    "vue": "^3.5.18",
+    "vue": "^3.5.25",
     "vue-router": "^4.5.1",
     "vue-tsc": "catalog:"
   },
   "peerDependencies": {
     "pinia": "^3.0.0",
-    "vue": "^3.5.0",
+    "vue": "^3.5.25",
     "vue-router": "^4.5.0"
+  },
+  "intent": {
+    "skills": [
+      "@inkcre/ui-web"
+    ]
   }
 }

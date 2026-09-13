@@ -14,6 +14,10 @@ Reason in English. Communicate with humans in Chinese.
 - Physical-subtree hazards: the nearest local `AGENTS.md`.
 - Volatile work state: the active packet under `tasks/`.
 
+UI 工作先读取 `apps/client-web/node_modules/@inkcre/ui-web/DESIGN.md` 与 `skills/ui-web/SKILL.md`，按所用组件进入同版本参考和迁移说明。扩展单独工作时使用其自身 node_modules 中的同一版本。包拥有设计与 API 规则，本仓库拥有业务流程和布局；纯后端任务无需加载这些 UI 文档。
+
+当前 UI 2.0 迁移入口为 [task packet](tasks/ui-v2-migration/packet.md)。
+
 ## Working Protocol
 
 - Run `svc status . --json`, then use `svc lookup --keyword` and `svc lookup --path` only for guidance required by the current pressure.

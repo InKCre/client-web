@@ -77,7 +77,7 @@ function setMode(value: 'recall' | 'path'): void {
 </script>
 
 <template>
-  <InkPopup v-model:open="open" position="top">
+  <InkPopup v-model:open="open" position="top" aria-label="Recall information">
     <section class="recall-search" aria-label="Recall information">
       <header>
         <div class="recall-search__modes">
@@ -98,7 +98,7 @@ function setMode(value: 'recall' | 'path'): void {
           autocomplete="off"
           :placeholder="mode === 'path' ? 'Find path endpoints' : 'Recall a clue'"
         />
-        <InkButton text="Search" theme="primary" />
+        <InkButton text="Search" theme="primary" native-type="submit" />
       </form>
       <div v-if="mode === 'path'" class="recall-search__results" aria-live="polite">
         <InkLoading v-if="status === 'loading'" />
@@ -147,7 +147,7 @@ function setMode(value: 'recall' | 'path'): void {
     @include apply-font(body-md);
   }
   form input:focus {
-    outline: 1px solid sys-var(color, border, primary);
+    outline: 1px solid sys-var(color, border, strong);
   }
 
   &__modes {

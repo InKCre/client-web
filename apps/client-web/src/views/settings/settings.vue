@@ -166,7 +166,7 @@ const onFileSelected = async (event: Event) => {
   <main class="settings-view">
     <h1 class="settings-view__title">{{ t('settings.title') }}</h1>
 
-    <InkForm layout="col" class="settings-view__form">
+    <InkForm layout="col" class="settings-view__form" @submit="onSave">
       <!-- Meta Configuration -->
       <h2 class="settings-view__section-title">
         {{ t('settings.metaConfig') }}
@@ -213,41 +213,41 @@ const onFileSelected = async (event: Event) => {
           </option>
         </select>
       </label>
+
+      <!-- Action Buttons -->
+      <div class="settings-view__actions">
+        <InkButton
+          :text="t('settings.saveConfig')"
+          theme="primary"
+          :disabled="formBusy"
+          :is-loading="saving"
+          native-type="submit"
+        />
+
+        <InkDoubleCheck
+          :title="t('settings.resetConfirmTitle')"
+          :message="t('settings.resetConfirmMessage')"
+          @confirm="onReset"
+        >
+          <InkButton :text="t('settings.resetConfig')" theme="danger" />
+        </InkDoubleCheck>
+
+        <InkButton :text="t('settings.exportConfig')" @click="onExport" />
+        <InkButton :text="t('settings.importConfig')" :disabled="formBusy" @click="onImport" />
+      </div>
+      <p class="settings-view__export-note">{{ t('settings.exportExcludesSecret') }}</p>
+
+      <!-- Hidden file input for import -->
+      <input
+        ref="fileInput"
+        type="file"
+        accept=".json"
+        style="display: none"
+        @change="onFileSelected"
+      />
     </InkForm>
 
-    <!-- Action Buttons -->
-    <div class="settings-view__actions">
-      <InkButton
-        :text="t('settings.saveConfig')"
-        theme="primary"
-        :disabled="formBusy"
-        :loading="saving"
-        @click="onSave"
-      />
-
-      <InkDoubleCheck
-        :title="t('settings.resetConfirmTitle')"
-        :message="t('settings.resetConfirmMessage')"
-        @confirm="onReset"
-      >
-        <InkButton :text="t('settings.resetConfig')" theme="danger" />
-      </InkDoubleCheck>
-
-      <InkButton :text="t('settings.exportConfig')" @click="onExport" />
-      <InkButton :text="t('settings.importConfig')" :disabled="formBusy" @click="onImport" />
-    </div>
-    <p class="settings-view__export-note">{{ t('settings.exportExcludesSecret') }}</p>
-
     <PeerList v-if="hasConnectedConfig" :key="allPeersRevision" />
-
-    <!-- Hidden file input for import -->
-    <input
-      ref="fileInput"
-      type="file"
-      accept=".json"
-      style="display: none"
-      @change="onFileSelected"
-    />
   </main>
 </template>
 

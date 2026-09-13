@@ -20,7 +20,7 @@
   }
 
   &__version {
-    @include apply-font(label-lg, mono);
+    @include apply-font(label-lg, $mono: true);
     color: sys-var(color, text, subtle);
   }
 
@@ -42,7 +42,7 @@
 
   &__error {
     @include apply-font(body-sm);
-    color: sys-var(color, danger, base);
+    color: sys-var(color, feedback, error);
     margin: 0;
   }
 }

@@ -37,7 +37,13 @@ function close(): void {
 </script>
 
 <template>
-  <InkPopup :open="true" :scrim="false" position="right" @update:open="close">
+  <InkPopup
+    :open="true"
+    :scrim="false"
+    position="right"
+    :aria-label="`Relation #${props.relation}`"
+    @update:open="close"
+  >
     <section class="relation-inspector-popup">
       <header>
         <h3>Relation #{{ props.relation }}</h3>

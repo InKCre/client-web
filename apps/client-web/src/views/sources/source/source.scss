@@ -130,8 +130,7 @@
   padding: sys-var(space, lg);
   background: sys-var(color, surface, base);
   border-radius: sys-var(radius, md);
-  box-shadow: sys-var(shadow, lg);
-  min-width: 400px;
+  min-width: 0;
   max-width: 600px;
 
   &__title {
@@ -155,8 +154,7 @@
   padding: sys-var(space, lg);
   background: sys-var(color, surface, base);
   border-radius: sys-var(radius, md);
-  box-shadow: sys-var(shadow, lg);
-  min-width: 400px;
+  min-width: 0;
   max-width: 500px;
 
   &__title {

@@ -1,4 +1,5 @@
 import { createI18n } from 'vue-i18n'
+import { locales as uiLocales } from '@inkcre/ui-web/locales'
 
 export const SUPPORT_LOCALES = ['en', 'zh-CN'] as const
 export type SupportLocale = (typeof SUPPORT_LOCALES)[number]
@@ -57,7 +58,7 @@ export async function loadLocaleMessages(locale: SupportLocale) {
   // Load the locale messages
   try {
     const messages = await import(`./messages/${locale}.json`)
-    i18n.global.setLocaleMessage(locale, messages.default)
+    i18n.global.setLocaleMessage(locale, { ...messages.default, ui: uiLocales[locale] })
     loadedLanguages.add(locale)
   } catch (error) {
     console.error(

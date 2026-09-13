@@ -71,7 +71,7 @@ const objectUrl = computed(() => {
     justify-content: space-between;
     gap: sys-var(space, md);
     color: sys-var(color, text, subtle);
-    @include apply-font(label-sm, true);
+    @include apply-font(label-md, $mono: true);
   }
 }
 </style>

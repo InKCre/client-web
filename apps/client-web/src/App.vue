@@ -47,7 +47,10 @@ const sidebarExpanded = ref(false)
 <style>
 body {
   margin: 0;
-  font-size: 14px;
-  color: #000;
+  font-family: var(--sys-typo-family-sans);
+  font-size: var(--sys-font-body-md-font-size);
+  line-height: var(--sys-font-body-md-line-height);
+  color: var(--sys-color-text-base);
+  background: var(--sys-color-surface-base);
 }
 </style>

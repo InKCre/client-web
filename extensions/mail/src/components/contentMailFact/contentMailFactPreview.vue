@@ -28,7 +28,7 @@ const summary = computed(() =>
   max-width: 320px;
 
   dt {
-    color: var(--ink-text-secondary, #6b7280);
+    color: var(--sys-color-text-subtle);
   }
   dd {
     margin: 0;

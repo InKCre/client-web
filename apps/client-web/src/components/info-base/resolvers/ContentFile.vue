@@ -24,7 +24,7 @@ const label = computed(() => props.resolver.block.resolver.split('.')[1]?.toUppe
   background: sys-var(color, surface, subtle);
 
   &__label {
-    @include apply-font(label-sm, true);
+    @include apply-font(label-md, $mono: true);
   }
 
   &__size {

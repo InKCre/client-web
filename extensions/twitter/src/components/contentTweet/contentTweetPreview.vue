@@ -30,7 +30,7 @@ const text = computed(() => {
   max-width: 340px;
 
   span {
-    color: var(--ink-text-secondary, #6b7280);
+    color: var(--sys-color-text-subtle);
     font-size: 0.75rem;
   }
 

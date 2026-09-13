@@ -25,12 +25,12 @@
 }
 
 .dev-home p {
-  color: var(--ink-text-secondary, #888);
+  color: var(--sys-color-text-subtle);
   margin-bottom: 1.5rem;
 }
 
 .dev-info {
-  background: var(--ink-bg-secondary, #242424);
+  background: var(--sys-color-surface-subtle);
   padding: 1rem;
   border-radius: 8px;
 }
@@ -41,7 +41,7 @@
 }
 
 .dev-info code {
-  background: var(--ink-bg-tertiary, #333);
+  background: var(--sys-color-surface-subtle-hover);
   padding: 0.125rem 0.375rem;
   border-radius: 4px;
   font-family: monospace;

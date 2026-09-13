@@ -2,7 +2,6 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import {
   InkButton,
-  InkDatetimePickerView,
   InkDropdown,
   InkField,
   InkForm,
@@ -328,8 +327,9 @@ onBeforeUnmount(() => {
         <code>{{ status?.callback_url }}</code>
         <InkForm layout="col">
           <InkInput v-model="clientId" label="Client ID" required :editable="!busy" />
-          <InkField label="Client Secret" required>
+          <InkField label="Client Secret" for="twitter-client-secret" required>
             <input
+              id="twitter-client-secret"
               v-model="clientSecret"
               class="twitter-setup__secret"
               type="password"
@@ -422,14 +422,7 @@ onBeforeUnmount(() => {
                 (value: Date) =>
                   value.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
               "
-            >
-              <template #default="{ closePopup }"
-                ><InkDatetimePickerView
-                  v-model="scheduleTime"
-                  mode="time"
-                  hour-format="24" /><InkButton text="Done" theme="primary" @click="closePopup"
-              /></template>
-            </InkPicker>
+            />
           </InkForm>
           <p class="twitter-setup__hint">Time uses the Core deployment timezone.</p>
           <InkButton

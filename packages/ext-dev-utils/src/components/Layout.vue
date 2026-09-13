@@ -21,8 +21,8 @@ defineProps<{
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--ink-bg-primary, #1a1a1a);
-  color: var(--ink-text-primary, #fff);
+  background: var(--sys-color-surface-base);
+  color: var(--sys-color-text-base);
 }
 
 .ext-dev-header {
@@ -31,17 +31,17 @@ defineProps<{
   display: flex;
   align-items: center;
   gap: 16px;
-  border-bottom: 1px solid var(--ink-border-primary, #333);
-  background: var(--ink-bg-secondary, #242424);
+  border-bottom: 1px solid var(--sys-color-border-base);
+  background: var(--sys-color-surface-subtle);
 }
 
 .ext-dev-logo {
   font-weight: 600;
-  color: var(--ink-text-secondary, #888);
+  color: var(--sys-color-text-subtle);
 }
 
 .ext-dev-extension-name {
-  color: var(--ink-text-primary, #fff);
+  color: var(--sys-color-text-base);
 }
 
 .ext-dev-main {

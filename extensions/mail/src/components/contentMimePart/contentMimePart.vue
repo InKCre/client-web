@@ -48,7 +48,7 @@ async function materialize(): Promise<void> {
       rel="noopener noreferrer"
       >Open</a
     >
-    <InkButton v-else text="Download content" :loading="loading" @click="materialize" />
+    <InkButton v-else text="Download content" :is-loading="loading" @click="materialize" />
     <p v-if="error">{{ error.message }}</p>
   </div>
 </template>
@@ -63,7 +63,7 @@ async function materialize(): Promise<void> {
   span,
   p {
     margin: 0;
-    color: var(--ink-text-secondary, #6b7280);
+    color: var(--sys-color-text-subtle);
   }
 }
 </style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAsyncState } from '@vueuse/core'
@@ -12,6 +12,7 @@ import {
   InkJsonEditor,
   InkDropdown,
   InkInput,
+  type JsonEditorValidation,
 } from '@inkcre/ui-web'
 import sourceForm from '@/components/source/sourceForm/sourceForm.vue'
 import JobCard from '@/components/job/JobCard/JobCard.vue'
@@ -25,6 +26,15 @@ const newJobPopupOpen = ref(false)
 const jobKind = ref<'ordinary' | 'backfill'>('ordinary')
 const jobConfig = ref('{}')
 const cronSchedule = ref('0 * * * *')
+const editor = useTemplateRef('editor')
+const sourceSaving = ref(false)
+const sourceError = ref('')
+const jobValidation = ref<JsonEditorValidation>()
+const jobSaving = ref(false)
+const jobError = ref('')
+const canCreateJob = computed(
+  () => jobValidation.value?.status === 'valid' && jobValidation.value.text === jobConfig.value
+)
 
 const { state: source } = useEAsyncState(() => Source.get(sourceId.value), null, {
   immediate: true,
@@ -52,7 +62,19 @@ const jobSchema = computed(() =>
     : sourceType.value?.backfill_config_schema
 )
 
-const onSaveSource = async () => source.value?.save()
+const onSaveSource = async () => {
+  if (sourceSaving.value || !source.value || !editor.value?.canSave) return
+  sourceSaving.value = true
+  sourceError.value = ''
+  try {
+    const candidate = Source.parse({ ...source.value, config: editor.value.readConfig() })
+    Object.assign(source.value, await candidate.save())
+  } catch (cause) {
+    sourceError.value = cause instanceof Error ? cause.message : t('common.saveFailed')
+  } finally {
+    sourceSaving.value = false
+  }
+}
 const onDelete = async () => {
   await source.value?.delete()
   await router.push('/sources')
@@ -60,17 +82,28 @@ const onDelete = async () => {
 const onNewJob = () => {
   jobKind.value = 'ordinary'
   jobConfig.value = '{}'
+  jobValidation.value = undefined
+  jobError.value = ''
   newJobPopupOpen.value = true
 }
 const onCreateJob = async () => {
-  const type = jobKind.value === 'ordinary' ? 'core.source.collect.v1' : 'core.source.backfill.v1'
-  const job = await JobManager.create(type, {
-    source: sourceId.value,
-    config: JSON.parse(jobConfig.value),
-  })
-  newJobPopupOpen.value = false
-  await refetchJobs()
-  await router.push(`/jobs/${job.id}`)
+  if (jobSaving.value || !canCreateJob.value) return
+  jobSaving.value = true
+  jobError.value = ''
+  try {
+    const type = jobKind.value === 'ordinary' ? 'core.source.collect.v1' : 'core.source.backfill.v1'
+    const job = await JobManager.create(type, {
+      source: sourceId.value,
+      config: JSON.parse(jobConfig.value),
+    })
+    newJobPopupOpen.value = false
+    await refetchJobs()
+    await router.push(`/jobs/${job.id}`)
+  } catch (cause) {
+    jobError.value = cause instanceof Error ? cause.message : t('common.saveFailed')
+  } finally {
+    jobSaving.value = false
+  }
 }
 const onCreateCron = async () => {
   await new CronForm({
@@ -96,7 +129,13 @@ const onDeleteCron = async (cron: Cron) => {
         <div class="details__header">
           <h2 class="details__title">{{ t('source.detailTitle') }}</h2>
         </div>
-        <sourceForm v-model="source" class="overflow-y-auto" />
+        <sourceForm
+          ref="editor"
+          :model-value="source"
+          class="overflow-y-auto"
+          :disabled="sourceSaving"
+        />
+        <p v-if="sourceError" role="alert" class="text-feedback-error">{{ sourceError }}</p>
         <div class="details__actions">
           <InkDoubleCheck
             :title="t('source.deleteConfirmTitle')"
@@ -107,7 +146,14 @@ const onDeleteCron = async (cron: Cron) => {
           >
             <InkButton :text="t('source.delete')" theme="danger" size="sm" />
           </InkDoubleCheck>
-          <InkButton :text="t('common.save')" theme="primary" size="sm" @click="onSaveSource" />
+          <InkButton
+            :text="t('common.save')"
+            theme="primary"
+            size="sm"
+            :is-loading="sourceSaving"
+            :disabled="!editor?.canSave"
+            @click="onSaveSource"
+          />
         </div>
       </section>
 
@@ -150,7 +196,13 @@ const onDeleteCron = async (cron: Cron) => {
     </template>
   </main>
 
-  <InkPopup v-model:open="newJobPopupOpen" position="center">
+  <InkPopup
+    v-model:open="newJobPopupOpen"
+    position="center"
+    :aria-label="t('source.newJobTitle')"
+    :close-on-scrim="!jobSaving"
+    :close-on-escape="!jobSaving"
+  >
     <div class="new-job-popup">
       <h3 class="new-job-popup__title">{{ t('source.newJobTitle') }}</h3>
       <InkDropdown
@@ -160,16 +212,31 @@ const onDeleteCron = async (cron: Cron) => {
           { label: 'Historical backfill', value: 'backfill' },
         ]"
         label="Collection intent"
+        :disabled="jobSaving"
       />
       <InkJsonEditor
         v-model="jobConfig"
         :schema="jobSchema ?? undefined"
         :label="t('job.config')"
         :rows="6"
+        :disabled="jobSaving"
+        @validation="jobValidation = $event"
       />
+      <p v-if="jobError" role="alert" class="text-feedback-error">{{ jobError }}</p>
       <div class="new-job-popup__actions">
-        <InkButton :text="t('common.cancel')" theme="subtle" @click="newJobPopupOpen = false" />
-        <InkButton :text="t('common.confirm')" theme="primary" @click="onCreateJob" />
+        <InkButton
+          :text="t('common.cancel')"
+          theme="subtle"
+          :disabled="jobSaving"
+          @click="newJobPopupOpen = false"
+        />
+        <InkButton
+          :text="t('common.confirm')"
+          theme="primary"
+          :disabled="!canCreateJob"
+          :is-loading="jobSaving"
+          @click="onCreateJob"
+        />
       </div>
     </div>
   </InkPopup>

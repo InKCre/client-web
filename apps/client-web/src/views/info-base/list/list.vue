@@ -91,7 +91,7 @@ function refresh(): void {
           :placeholder="t('infoBase.list.searchPlaceholder')"
           autocomplete="off"
         />
-        <InkButton :text="t('infoBase.list.search')" theme="primary" />
+        <InkButton :text="t('infoBase.list.search')" theme="primary" native-type="submit" />
       </form>
     </header>
 

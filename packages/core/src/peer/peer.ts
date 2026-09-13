@@ -50,9 +50,10 @@ export class Peer extends Z.class({
     await Peer.dbApi
       .update({ name: this.name, labels: this.labels, config: this.config })
       .eq('id', this.id)
+      .throwOnError()
   }
 
   async saveConfig(): Promise<void> {
-    await Peer.dbApi.update({ config: this.config }).eq('id', this.id)
+    await Peer.dbApi.update({ config: this.config }).eq('id', this.id).throwOnError()
   }
 }
