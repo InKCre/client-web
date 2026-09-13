@@ -4,7 +4,17 @@
   gap: sys-var(space, xs);
 
   &__main {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    text-align: left;
+
+    &:focus-visible {
+      outline: 2px solid sys-var(color, border, strong);
+      outline-offset: 2px;
+    }
     display: flex;
+    flex-wrap: wrap;
     gap: sys-var(space, sm);
     align-items: center;
     cursor: pointer;
@@ -43,7 +53,9 @@
   .log-body {
     @include apply-font(body-sm);
     color: sys-var(color, text, base);
-    flex: 1;
+    flex: 1 1 12rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   &__details {
@@ -57,6 +69,7 @@
 
   &__detail-row {
     display: flex;
+    flex-wrap: wrap;
     gap: sys-var(space, sm);
     justify-content: space-between;
     width: 100%;
@@ -70,15 +83,16 @@
   }
 
   &__detail-value {
-    @include apply-font(label-lg, $mono: true);
+    @include apply-font(body-sm, $mono: true);
     color: sys-var(color, text, base);
-    flex: 1;
+    flex: 1 1 12rem;
+    min-width: 0;
     word-break: break-all;
     overflow-x: scroll;
 
     &--code {
       padding: sys-var(space, xs);
-      border-radius: sys-var(radius, xs);
+      border-radius: sys-var(radius, none);
       margin: 0;
       white-space: pre;
     }

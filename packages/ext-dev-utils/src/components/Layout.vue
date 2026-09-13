@@ -16,8 +16,11 @@ defineProps<{
 }>()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@inkcre/ui-web/styles/mixins' as *;
 .ext-dev-layout {
+  @include apply-font(body-md);
+  overflow-wrap: anywhere;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -26,8 +29,10 @@ defineProps<{
 }
 
 .ext-dev-header {
-  height: 48px;
-  padding: 0 16px;
+  min-height: 48px;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+  padding: var(--sys-space-sm) var(--sys-space-md);
   display: flex;
   align-items: center;
   gap: 16px;
@@ -36,11 +41,12 @@ defineProps<{
 }
 
 .ext-dev-logo {
-  font-weight: 600;
+  @include apply-font(label-lg);
   color: var(--sys-color-text-subtle);
 }
 
 .ext-dev-extension-name {
+  @include apply-font(label-lg);
   color: var(--sys-color-text-base);
 }
 

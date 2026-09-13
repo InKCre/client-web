@@ -8,7 +8,10 @@ await mkdir(evidence, { recursive: true })
 const browser = await chromium.launch()
 const page = await browser.newPage({ viewport: { width: 1280, height: 1000 } })
 const errors = []
-page.on('pageerror', (e) => errors.push(e.message))
+page.on('pageerror', (e) => {
+  errors.push(e.message)
+  console.log('pageerror', e.message)
+})
 page.on('console', (m) => {
   if (m.type() === 'error') console.log('console', m.text().slice(0, 600))
 })
@@ -31,6 +34,7 @@ const core = {
   name: 'Core fixture',
   capabilities: [
     'core.extension.management.v1',
+    'core.feature_retrieval.lexical.v1',
     'inkcre.twitter.setup.status.v1',
     'extensions.mail.mime_part.materialize.v1',
   ].map((id) => ({
@@ -42,7 +46,9 @@ const core = {
         url:
           id === 'extensions.mail.mime_part.materialize.v1'
             ? 'https://api-migration.invalid/materialize'
-            : 'https://api-migration.invalid/status',
+            : id === 'core.feature_retrieval.lexical.v1'
+              ? 'https://api-migration.invalid/search'
+              : 'https://api-migration.invalid/status',
       },
     },
   })),
@@ -60,7 +66,24 @@ let releaseDownload
 const downloadPending = new Promise((resolve) => {
   releaseDownload = resolve
 })
+const fullText = `${'这是完整正文的阅读验收。A paragraph should remain readable after opening. '.repeat(5)}
+正文末尾 END-OF-CONTENT`
+const mediaImage = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="640" height="320"><rect width="640" height="320" fill="#b7c8bd"/><path d="M0 320L200 80L400 320L530 160L640 320" fill="#4e665b"/></svg>')}`
 const blocks = [
+  { id: 104, resolver: 'core.text.v1', content: fullText, storage: null, ...dates },
+  { id: 105, resolver: 'core.html.v1', content: `<p>${fullText}</p>`, storage: null, ...dates },
+  {
+    id: 106,
+    resolver: 'extensions.twitter.tweet.v1',
+    content: JSON.stringify({
+      id: 106,
+      user_id: 'migration_fixture',
+      text: fullText,
+      attachments: [mediaImage],
+    }),
+    storage: null,
+    ...dates,
+  },
   {
     id: 101,
     resolver: 'extensions.mail.email.v1',
@@ -78,7 +101,10 @@ const blocks = [
   {
     id: 103,
     resolver: 'extensions.mail.mime_part.v1',
-    content: JSON.stringify({ media_type: 'text/plain', filename: 'notes.txt' }),
+    content: JSON.stringify({
+      media_type: 'text/plain',
+      filename: '下游迁移附件-long-attachment-name-without-breaks.txt',
+    }),
     storage: null,
     ...dates,
   },
@@ -102,12 +128,33 @@ const relations = [
 const source = {
   id: 7,
   type: 'extensions.twitter.bookmark.Source',
-  nickname: 'UI migration bookmarks',
+  nickname: 'UI migration bookmarks — 用于确认窄屏下长名称与操作按钮的布局',
   config: {},
   state: {},
   storage: null,
   block: null,
   ...dates,
+}
+const job = {
+  id: 9,
+  type: 'core.source.collect.v1',
+  parameters: { source: 7 },
+  state: { message: 'Fixture collection finished' },
+  timeout_seconds: 60,
+  status: 'finished',
+  started_at: dates.created_at,
+  closed_at: dates.created_at,
+  ...dates,
+}
+const log = {
+  id: 1,
+  timestamp: dates.created_at,
+  severity_number: 9,
+  severity_text: 'INFO',
+  body: 'Collection finished. 较长日志正文需要完整换行，日志属性保留可检查的代码格式。',
+  trace_id: 'job.9',
+  span_id: 'fixture',
+  attributes: { source: 7, details: 'long-value-for-layout-verification'.repeat(5) },
 }
 await page.addInitScript(() => {
   if (window.top !== window) return
@@ -134,7 +181,19 @@ await page.route('https://api-migration.invalid/**', async (route) => {
       headers: { 'access-control-allow-origin': '*' },
     })
   }
-  if (url.pathname === '/status')
+  if (url.pathname === '/search')
+    data = {
+      matches: [
+        {
+          block: blocks[0],
+          label: '完整内容阅读与消费者设计迁移',
+          excerpt: fullText.slice(0, 150),
+          evidence: 'terms',
+          rank: 1,
+        },
+      ],
+    }
+  else if (url.pathname === '/status')
     data = {
       callback_url: 'https://api-migration.invalid/callback',
       connected: true,
@@ -160,6 +219,18 @@ await page.route('https://api-migration.invalid/**', async (route) => {
       (x) => !url.searchParams.has('name') || `eq.${x.name}` === url.searchParams.get('name')
     )
   } else if (kind === 'sources') data = [source]
+  else if (kind === 'sources_types')
+    data = [
+      {
+        id: source.type,
+        description: 'Bookmark fixture',
+        config_schema: { type: 'object' },
+        collect_config_schema: { type: 'object' },
+        backfill_config_schema: null,
+      },
+    ]
+  else if (kind === 'jobs') data = [job]
+  else if (kind === 'logs') data = url.searchParams.has('id') ? [] : [log]
   else if (kind === 'crons') data = []
   else if (kind === 'blocks')
     data = blocks.filter(
@@ -218,6 +289,33 @@ await page.route('https://registry-migration.invalid/**', async (route) => {
     await route.fulfill({ status: 404 })
   }
 })
+async function navigate(path) {
+  await page.evaluate((path) => {
+    history.pushState({}, '', path)
+    window.dispatchEvent(new PopStateEvent('popstate'))
+  }, path)
+}
+async function expectContained(selector) {
+  const overflow = await page.locator(selector).evaluateAll((elements) =>
+    elements.flatMap((element) => {
+      const rect = element.getBoundingClientRect()
+      return rect.left < -1 ||
+        rect.right > innerWidth + 1 ||
+        element.scrollWidth > element.clientWidth + 1
+        ? [
+            {
+              selector: element.className,
+              left: rect.left,
+              right: rect.right,
+              width: element.clientWidth,
+              scroll: element.scrollWidth,
+            },
+          ]
+        : []
+    })
+  )
+  expect(overflow, `${selector} stays readable without horizontal clipping`).toEqual([])
+}
 try {
   await page.goto(new URL('/extensions', webUrl).href)
   const card = page.locator('.extension-card', { hasText: 'inkcre/twitter' })
@@ -269,7 +367,93 @@ try {
   await page.getByText('Mail materialization Peer returned HTTP 500').scrollIntoViewIfNeeded()
   await page.screenshot({ path: `${evidence}/mail-host-dark-narrow.png` })
   console.log('Mail renderer, pending and materialization failure passed')
+  await expect(page.locator('.content-email__part')).toHaveCSS('border-top-left-radius', '0px')
+  await expectContained('.content-email__part, .solved-content-popup')
+
+  for (const [id, selector] of [
+    [104, '.content-text__content'],
+    [105, '.content-html__text'],
+    [106, '.content-tweet__text'],
+  ]) {
+    await navigate('/')
+    await navigate(`/info-base/list/blocks/${id}/content`)
+    await expect(page.locator(selector)).toContainText('END-OF-CONTENT')
+    await page.evaluate(() =>
+      document.documentElement.style.setProperty('--sys-font-body-md-font-size', '21px')
+    )
+    await expect(page.locator(selector)).toHaveCSS('font-size', '21px')
+    await expectContained('.solved-content-popup')
+    await page.evaluate(() =>
+      document.documentElement.style.removeProperty('--sys-font-body-md-font-size')
+    )
+  }
+  await expect(page.locator('.content-tweet')).toHaveClass(/solved-content-popup__content/)
+  await expect(page.locator('.content-tweet')).toHaveCSS('overflow-y', 'auto')
+  await expect(page.locator('.content-tweet__media-grid')).toHaveCSS(
+    'border-top-left-radius',
+    '0px'
+  )
+  await page.screenshot({ path: `${evidence}/tweet-host-dark-narrow.png` })
+
+  await navigate('/?q=migration')
+  await expect(page.locator('.info-base-list-view__match')).toBeVisible()
+  await expect(page.locator('.info-base-list-view__match')).toHaveCSS(
+    'border-top-left-radius',
+    '0px'
+  )
+  await expectContained('.info-base-list-view, .info-base-list-view__match')
+  await page.evaluate(() => {
+    window.scrollTo(0, 0)
+    document.querySelector('.info-base-list-view').scrollTop = 0
+  })
+  await page.screenshot({ path: `${evidence}/search-dark-narrow.png` })
+  await page.keyboard.press('Control+k')
+  const recall = page.getByRole('dialog', { name: 'Recall information', exact: true })
+  await expect(recall).toBeVisible()
+  await recall.getByRole('button', { name: 'Find path', exact: true }).click()
+  await recall.getByRole('searchbox').fill('migration')
+  await recall.getByRole('button', { name: 'Search', exact: true }).click()
+  await expect(page.locator('.recall-search__results > button')).toBeVisible()
+  await expectContained('.recall-search, dialog[open]')
+  await page.screenshot({ path: `${evidence}/recall-dark-narrow.png` })
+  await page.keyboard.press('Escape')
+  await expect(recall).not.toBeVisible()
+
+  for (const width of [1280, 375]) {
+    await page.setViewportSize({ width, height: 1000 })
+    await page.emulateMedia({ colorScheme: width === 1280 ? 'light' : 'dark' })
+    await navigate('/sources')
+    await expect(page.locator('.source-card')).toBeVisible()
+    await expectContained('.sources-view, .create-source, .source-card')
+    await page.screenshot({ path: `${evidence}/sources-${width}.png` })
+    await page.getByRole('button', { name: 'Edit Config', exact: true }).click()
+    await expect(page.locator('.config-editor')).toBeVisible()
+    await expectContained('.config-editor, dialog[open]')
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click()
+    await page.getByRole('link', { name: source.type, exact: true }).press('Enter')
+    await expect(page).toHaveURL(/\/sources\/7$/)
+    await expect(page.locator('.source-view__details')).toBeVisible()
+    await expectContained('.source-view, .source-view__details, .source-view__jobs')
+    await navigate('/jobs/9')
+    await expect(page.locator('.log-body')).toBeVisible()
+    await expect(page.locator('pre.metadata__value')).toHaveCSS('font-family', /monospace/)
+    await page.locator('.log-entry__main').press('Enter')
+    await expect(page.locator('.log-entry__main')).toHaveAttribute('aria-expanded', 'true')
+    await expect(page.locator('.log-entry__details')).toBeVisible()
+    await expectContained('.job-view, .job-view__metadata, .job-view__logs, .log-entry')
+    await page.screenshot({ path: `${evidence}/job-${width}.png` })
+    await navigate('/extensions')
+    await expect(card).toBeVisible()
+    await expectContained('.extensions-view, .install-extension, .extension-card')
+    await page.screenshot({ path: `${evidence}/extensions-${width}.png` })
+  }
+  console.log('Full content, semantic font override, square containers and responsive pages passed')
+  expect(errors).toEqual([])
   console.log('errors', errors)
+} catch (error) {
+  await page.screenshot({ path: `${evidence}/failure.png` })
+  console.log('failed page', page.url(), await page.locator('body').innerText())
+  throw error
 } finally {
   await browser.close()
 }

@@ -77,7 +77,12 @@ function setMode(value: 'recall' | 'path'): void {
 </script>
 
 <template>
-  <InkPopup v-model:open="open" position="top" aria-label="Recall information">
+  <InkPopup
+    v-model:open="open"
+    position="top"
+    aria-label="Recall information"
+    style="width: 640px; max-width: calc(100vw - 2 * var(--sys-space-md))"
+  >
     <section class="recall-search" aria-label="Recall information">
       <header>
         <div class="recall-search__modes">
@@ -94,6 +99,7 @@ function setMode(value: 'recall' | 'path'): void {
         <input
           v-model="query"
           type="search"
+          aria-label="Search query"
           autofocus
           autocomplete="off"
           :placeholder="mode === 'path' ? 'Find path endpoints' : 'Recall a clue'"
@@ -121,7 +127,7 @@ function setMode(value: 'recall' | 'path'): void {
 
 <style scoped lang="scss">
 .recall-search {
-  width: min(640px, calc(100vw - 32px));
+  width: 100%;
 
   header,
   form {
@@ -135,13 +141,15 @@ function setMode(value: 'recall' | 'path'): void {
     margin-bottom: sys-var(space, sm);
   }
   small {
+    @include apply-font(label-md);
     color: sys-var(color, text, subtle);
   }
   form input {
     flex: 1;
     min-width: 0;
     padding: sys-var(space, sm) sys-var(space, md);
-    border: 1px solid sys-var(color, border, subtle);
+    border: 1px solid sys-var(color, border, base);
+    border-radius: sys-var(radius, none);
     color: sys-var(color, text, base);
     background: sys-var(color, surface, base);
     @include apply-font(body-md);
@@ -154,6 +162,7 @@ function setMode(value: 'recall' | 'path'): void {
     display: flex;
     gap: 2px;
     button {
+      @include apply-font(label-lg);
       border: 0;
       padding: 4px 8px;
       color: sys-var(color, text, subtle);
@@ -174,6 +183,8 @@ function setMode(value: 'recall' | 'path'): void {
     overflow: auto;
     background: sys-var(color, border, subtle);
     > button {
+      @include apply-font(body-sm);
+      overflow-wrap: anywhere;
       display: grid;
       gap: 3px;
       padding: sys-var(space, sm);
@@ -185,6 +196,9 @@ function setMode(value: 'recall' | 'path'): void {
     }
     > button:hover {
       background: sys-var(color, surface, subtle);
+    }
+    strong {
+      @include apply-font(label-lg);
     }
     span {
       color: sys-var(color, text, subtle);

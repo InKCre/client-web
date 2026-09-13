@@ -159,7 +159,7 @@ function navigate(block: number): void {
           :is-loading="materializing.has(part.block.id)"
           @click="materialize(part.block.id)"
         />
-        <p v-if="materializeErrors.get(part.block.id)">
+        <p v-if="materializeErrors.get(part.block.id)" role="alert">
           {{ materializeErrors.get(part.block.id) }}
         </p>
       </article>

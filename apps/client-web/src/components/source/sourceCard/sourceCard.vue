@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   InkButton,
@@ -108,18 +108,6 @@ const onDelete = () => {
   emit('delete', sourceData.value!)
 }
 
-const onCheckOpenJob = () => {
-  if (latestOpenJob.value) {
-    router.push(`/jobs/${latestOpenJob.value.id}`)
-  }
-}
-
-const onCardClick = () => {
-  if (sourceData.value) {
-    router.push(`/sources/${sourceData.value.id}`)
-  }
-}
-
 const onConfirmConfig = async () => {
   if (configSaving.value || !sourceData.value || !canSaveConfig.value) return
   configSaving.value = true
@@ -138,10 +126,12 @@ const onConfirmConfig = async () => {
 </script>
 
 <template>
-  <div v-if="sourceData" class="source-card" @click="onCardClick">
+  <article v-if="sourceData" class="source-card">
     <div class="source-card__metadata">
       <div class="source-card__left">
-        <span class="source-card__type">{{ sourceData.type }}</span>
+        <RouterLink :to="`/sources/${sourceData.id}`" class="source-card__type">{{
+          sourceData.type
+        }}</RouterLink>
         <InkInput
           :modelValue="nicknameModel"
           type="inline"
@@ -167,9 +157,13 @@ const onConfirmConfig = async () => {
       <pre class="source-card__config-text">{{ formattedConfig }}</pre>
     </div>
 
-    <div v-if="latestOpenJob" class="source-card__open-job" @click.stop="onCheckOpenJob">
+    <RouterLink
+      v-if="latestOpenJob"
+      :to="`/jobs/${latestOpenJob.id}`"
+      class="source-card__open-job"
+    >
       {{ t('source.checkOpenJob') }}
-    </div>
+    </RouterLink>
 
     <div class="source-card__operations" @click.stop>
       <div class="source-card__operations-left">
@@ -188,7 +182,7 @@ const onConfirmConfig = async () => {
         <InkButton text="Run Now" theme="subtle" size="sm" @click="onRunNow" />
       </div>
     </div>
-  </div>
+  </article>
 
   <InkPopup
     v-model:open="configPopupOpen"

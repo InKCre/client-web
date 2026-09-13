@@ -49,6 +49,8 @@ body {
   margin: 0;
   font-family: var(--sys-typo-family-sans);
   font-size: var(--sys-font-body-md-font-size);
+  font-weight: var(--sys-font-body-md-font-weight);
+  letter-spacing: var(--sys-font-body-md-letter-spacing);
   line-height: var(--sys-font-body-md-line-height);
   color: var(--sys-color-text-base);
   background: var(--sys-color-surface-base);

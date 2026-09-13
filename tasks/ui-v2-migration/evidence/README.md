@@ -27,10 +27,29 @@ node tasks/ui-v2-migration/evidence/browser-host.mjs http://127.0.0.1:47931
 - [Twitter 继承 Host 中文](twitter-time-picker.png)：真实 MF remote 使用共享 UI 的日期文案。
 - [Mail 窄屏附件和失败反馈](mail-host-dark-narrow.png)：附件行换行，下载按钮保持完整。
 
-最终构建目录按相对路径排序，依次拼接「路径、NUL、文件内容、NUL」计算 SHA-256，包含 source maps：
+以下为视觉复审后的构建，取代首轮产物哈希。最终构建目录按相对路径排序，依次拼接「路径、NUL、文件内容、NUL」计算 SHA-256，包含 source maps：
 
 | 产物                    | 文件数 | SHA-256                                                            |
 | ----------------------- | ------ | ------------------------------------------------------------------ |
-| Web dist                | 11     | `9ca534eebec790abd9f18ebd70e2ea996fc47a8ca559140fb66fdc87f88f652d` |
-| mail dist/client-web    | 43     | `c040be803eabcb387c9880a1b9a16985259b68574cd2a202e92eb8b58f5d5ee9` |
-| twitter dist/client-web | 47     | `0baae6f0a4030c8bf6f7a9ecdac72139a02eb928af3ef8fc12f564c102864474` |
+| Web dist                | 11     | `dbebfdbc2c6a93cbcf342e7d432fa58950af61a305595f77f25f680bb8670904` |
+| mail dist/client-web    | 44     | `e8b1f1a71c313e3ab12995d7c85b991fb83c5280d43557988d2337f69542ccc3` |
+| twitter dist/client-web | 47     | `b611416d626f44bdc13f99e65787df55acad16713b95c96881965389988f6891` |
+
+## 视觉复审补验
+
+首轮验收证明 API 与交互可用，未覆盖完整设计迁移。本次重放脚本增加以下观察边界，并逐张复查截图：
+
+| 页面或边界                | 实际检查                                                                                          | 证据                                                                  |
+| ------------------------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Mail 正文与附件           | 保留 iframe 隔离；长附件名换行；直角附件容器；下载 pending 和失败恢复，错误使用反馈前景           | [窄屏 Mail](mail-host-dark-narrow.png)                                |
+| Text／HTML 文本／Tweet    | 打开后能够读到完整正文末尾；覆盖 body-md 字号为 21px 后跟随变化；Tweet 根节点接收宿主的间距与滚动 | [窄屏 Tweet](tweet-host-dark-narrow.png)                              |
+| 搜索                      | 真实 Host 调用隔离检索响应，结果标题、正文和元数据按角色显示，结果按钮与输入使用直角              | [窄屏结果](search-dark-narrow.png)                                    |
+| Sources／Source 详情      | 1280px 并排、375px 换行；长名称、配置及操作没有横向裁剪；Enter 激活详情链接；配置弹层位于视口内   | [宽屏](sources-1280.png)、[窄屏](sources-375.png)                     |
+| Job／Logs                 | 元数据和日志按容器换行；Enter 展开原生日志按钮并更新 aria-expanded，结构化属性可局部滚动          | [窄屏日志](job-375.png)                                               |
+| Extensions／Twitter setup | 安装与扩展列表可换行；Host 与 MF remote 的中文时间草稿交互继续通过                                | [窄屏扩展](extensions-375.png)、[时间选择器](twitter-time-picker.png) |
+
+复审后的 `pnpm check` 和浏览器重放均通过，pageerror 为零。Settings、Peer、Mail 事实与 MIME 局部视图、ext-dev-utils 开发页的字体／形状调整经过源码核对及完整构建；本轮没有为每个局部视图另造浏览器页面。旧 Peer 截图仅保留首轮保存交互的证据，不作为更新后视觉样式的截图。
+
+步骤编号保留圆形；Mail iframe 的白色底属于外部邮件文档边界。生产者 DESIGN.md 尚未规定直角默认和例外，本次移除消费者普通业务容器的旧圆角，不将“所有圆角均违规”当作自动检查规则。浏览器扩展 client-webext 使用自有主题而非 UI 依赖，本轮没有迁移该独立主题。
+
+Recall 浮层同样补验了 375px 下的检索结果、Escape 关闭与容器宽度，见 [窄屏 Recall](recall-dark-narrow.png)。Job 状态 JSON 的等宽字体也通过实际 computed style 验证。

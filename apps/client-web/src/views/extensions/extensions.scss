@@ -1,21 +1,24 @@
 .extensions-view {
   display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: flex-start;
+  min-width: 0;
+  overflow-y: auto;
   gap: sys-var(space, lg);
   flex: 1;
   align-self: stretch;
   box-sizing: border-box;
-  padding: sys-var(space, lg) sys-var(space, xl);
+  padding: clamp(16px, 4vw, 32px);
   background: sys-var(color, surface, base);
 
   &__list {
     display: flex;
     flex-direction: column;
     gap: sys-var(space, md);
-    flex: 1;
+    flex: 1 1 24rem;
     min-height: 120px;
-    min-width: 120px;
-    overflow-x: hidden;
-    overflow-y: auto;
+    min-width: 0;
   }
 
   &__header {

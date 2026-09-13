@@ -28,9 +28,11 @@ const summary = computed(() =>
   max-width: 320px;
 
   dt {
+    @include apply-font(label-md);
     color: var(--sys-color-text-subtle);
   }
   dd {
+    @include apply-font(body-sm);
     margin: 0;
     overflow-wrap: anywhere;
   }

@@ -1,7 +1,9 @@
 .content-email {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: sys-var(space, md);
+  @include apply-font(body-md);
+  overflow-wrap: anywhere;
   color: var(--sys-color-text-base);
 
   &__header {
@@ -10,11 +12,12 @@
 
     h2 {
       margin: 0 0 8px;
-      font-size: 20px;
+      @include apply-font(title-sm);
     }
 
     time,
     p {
+      @include apply-font(body-sm);
       color: var(--sys-color-text-subtle);
     }
 
@@ -25,6 +28,7 @@
     }
 
     dt {
+      @include apply-font(label-md);
       text-transform: capitalize;
       color: var(--sys-color-text-subtle);
     }
@@ -40,6 +44,7 @@
     width: 100%;
     min-height: 420px;
     border: 1px solid var(--sys-color-border-base);
+    // Email HTML owns its document colors and remains isolated in the iframe.
     background: #fff;
   }
 
@@ -59,7 +64,7 @@
 
     h3 {
       margin: 0;
-      font-size: 15px;
+      @include apply-font(title-sm);
     }
   }
 
@@ -72,7 +77,7 @@
     gap: 12px;
     padding: 12px;
     border: 1px solid var(--sys-color-border-base);
-    border-radius: 6px;
+    border-radius: sys-var(radius, none);
 
     div {
       display: flex;
@@ -87,14 +92,20 @@
       flex-shrink: 0;
     }
 
+    strong {
+      @include apply-font(label-lg);
+    }
+
     span,
     p {
+      @include apply-font(body-sm);
       color: var(--sys-color-text-subtle);
     }
 
     p {
       width: 100%;
       margin: 0;
+      color: sys-var(color, feedback, error);
     }
   }
 }
