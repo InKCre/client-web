@@ -169,11 +169,15 @@ const onDeleteCron = async (cron: Cron) => {
           />
         </div>
         <div class="flex flex-col gap-2 border-b pb-4">
-          <div class="flex gap-2 items-end">
+          <div class="flex flex-wrap gap-2 items-end">
             <InkInput v-model="cronSchedule" label="Cron schedule" />
             <InkButton text="Schedule ordinary collect" theme="subtle" @click="onCreateCron" />
           </div>
-          <div v-for="cron in crons" :key="cron.id" class="flex gap-2 items-center text-sm">
+          <div
+            v-for="cron in crons"
+            :key="cron.id"
+            class="flex flex-wrap gap-2 items-center font-label-md"
+          >
             <code>{{ cron.schedule }}</code>
             <span>{{ cron.enabled ? 'enabled' : 'disabled' }}</span>
             <InkButton text="Run now" size="sm" theme="subtle" @click="cron.runNow()" />

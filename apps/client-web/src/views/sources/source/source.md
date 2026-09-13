@@ -17,7 +17,7 @@ Provides a detailed view of one Source with its configuration, Jobs, and ordinar
 
 ### Layout
 
-- Two-panel layout (left: Source details, right: scheduling and Jobs)
+Source 详情与调度／任务区域在宽容器中并排，在空间不足时按顺序换行；页面负责纵向滚动，内容不依赖固定百分比列宽。
 
 ### Left Panel (Source Details)
 

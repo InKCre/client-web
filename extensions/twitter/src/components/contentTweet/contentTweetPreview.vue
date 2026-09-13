@@ -31,12 +31,12 @@ const text = computed(() => {
 
   span {
     color: var(--sys-color-text-subtle);
-    font-size: 0.75rem;
+    @include apply-font(label-md);
   }
 
   p {
     margin: 0;
-    line-height: 1.45;
+    @include apply-font(body-sm);
     overflow-wrap: anywhere;
   }
 

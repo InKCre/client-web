@@ -1,7 +1,9 @@
 .twitter-setup {
   display: grid;
-  gap: 1.25rem;
+  gap: sys-var(space, md);
   width: min(680px, 80vw);
+  @include apply-font(body-md);
+  overflow-wrap: anywhere;
 
   &__toolbar {
     display: flex;
@@ -21,14 +23,15 @@
       align-items: center;
       gap: 0.4rem;
       color: sys-var(color, text, subtle);
-      font-size: 0.8rem;
+      @include apply-font(label-md);
     }
 
     span {
       display: inline-grid;
       place-items: center;
-      width: 1.5rem;
-      height: 1.5rem;
+      min-width: 1.5rem;
+      min-height: 1.5rem;
+      flex-shrink: 0;
       border: 1px solid currentcolor;
       border-radius: 50%;
     }
@@ -36,7 +39,6 @@
     .is-current,
     .is-complete {
       color: sys-var(color, feedback, info);
-      font-weight: 600;
     }
   }
 
@@ -49,12 +51,17 @@
       margin: 0;
     }
 
+    h3 {
+      @include apply-font(title-sm);
+    }
+
     code {
+      @include apply-font(body-sm, $mono: true);
       display: block;
       margin-top: 0.5rem;
       padding: 0.6rem;
       overflow-wrap: anywhere;
-      background: rgb(0 0 0 / 5%);
+      background: sys-var(color, surface, subtle);
     }
   }
 
@@ -63,8 +70,11 @@
     display: grid;
     gap: sys-var(space, sm);
     padding: sys-var(space, md);
-    border: 1px solid sys-var(color, border, base);
-    background: sys-var(color, surface, subtle);
+    border-top: 1px solid sys-var(color, border, subtle);
+
+    h4 {
+      @include apply-font(title-sm);
+    }
 
     h4,
     p {
@@ -77,12 +87,20 @@
   }
 
   &__secret {
+    @include apply-font(body-md);
+    box-sizing: border-box;
+    border-radius: sys-var(radius, none);
     width: 100%;
     min-height: 2.5rem;
     padding: sys-var(space, sm);
     border: 1px solid sys-var(color, border, base);
     background: sys-var(color, surface, base);
     color: sys-var(color, text, base);
+
+    &:focus-visible {
+      outline: 2px solid sys-var(color, border, strong);
+      outline-offset: 2px;
+    }
   }
 
   &__schedule,
@@ -94,7 +112,7 @@
 
   &__oauth-link {
     width: fit-content;
-    font-weight: 600;
+    @include apply-font(label-lg, $underlined: true);
   }
 
   &__loading {
@@ -110,13 +128,13 @@
 
   dl {
     display: grid;
-    grid-template-columns: max-content 1fr;
+    grid-template-columns: max-content minmax(0, 1fr);
     gap: 0.5rem 1rem;
     margin: 0;
   }
 
   dt {
-    font-weight: 600;
+    @include apply-font(label-lg);
   }
 
   dd {

@@ -8,7 +8,7 @@ const props = defineProps<SolvedContentRendererProps<Tweet>>()
 // Track failed image loads
 const failedAttachments = ref<Set<number>>(new Set())
 
-// Display text - truncated for graph view
+// Graph summaries belong to contentTweetPreview; this renderer opens the full tweet.
 const displayText = computed(() => {
   if (!props.solvedContent) return ''
   const text = props.solvedContent.text
@@ -16,8 +16,7 @@ const displayText = computed(() => {
     .replace(/\[video\]/g, '')
     .replace(/\[link\]/g, '')
     .trim()
-  const maxLen = 80
-  return text.length > maxLen ? text.slice(0, maxLen) + '...' : text
+  return text
 })
 
 // Attachments from resolved content (blob URLs)
@@ -47,30 +46,35 @@ const isAttachmentFailed = (index: number) => {
 </script>
 
 <template>
-  <div class="content-tweet__header">
-    <span class="content-tweet__icon">𝕏</span>
-    <span class="content-tweet__user">@{{ props.solvedContent.user_id ?? 'unknown' }}</span>
-  </div>
-  <div class="content-tweet__text">{{ displayText }}</div>
-  <div v-if="attachmentCount > 0" class="content-tweet__media">
-    <div class="content-tweet__media-grid" :class="`content-tweet__media-grid--${attachmentCount}`">
+  <article class="content-tweet">
+    <div class="content-tweet__header">
+      <span class="content-tweet__icon">𝕏</span>
+      <span class="content-tweet__user">@{{ props.solvedContent.user_id ?? 'unknown' }}</span>
+    </div>
+    <div class="content-tweet__text">{{ displayText }}</div>
+    <div v-if="attachmentCount > 0" class="content-tweet__media">
       <div
-        v-for="(attachment, index) in displayAttachments"
-        :key="index"
-        class="content-tweet__media-item"
+        class="content-tweet__media-grid"
+        :class="`content-tweet__media-grid--${attachmentCount}`"
       >
-        <img
-          v-if="!isAttachmentFailed(index)"
-          :src="attachment"
-          :alt="`Tweet attachment ${index + 1}`"
-          @error="onImageError(index)"
-        />
-        <div v-else class="content-tweet__media-error">
-          <span class="content-tweet__media-error-icon">!</span>
+        <div
+          v-for="(attachment, index) in displayAttachments"
+          :key="index"
+          class="content-tweet__media-item"
+        >
+          <img
+            v-if="!isAttachmentFailed(index)"
+            :src="attachment"
+            :alt="`Tweet attachment ${index + 1}`"
+            @error="onImageError(index)"
+          />
+          <div v-else class="content-tweet__media-error">
+            <span class="content-tweet__media-error-icon">!</span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </article>
 </template>
 
 <style lang="scss" scoped src="./contentTweet.scss" />

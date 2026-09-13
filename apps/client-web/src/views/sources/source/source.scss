@@ -1,13 +1,15 @@
 .source-view {
   display: flex;
-  flex-direction: row;
-  gap: sys-var(space, xl);
+  flex-wrap: wrap;
+  gap: sys-var(space, lg);
   flex: 1;
   min-width: 0;
   align-items: flex-start;
   box-sizing: border-box;
-  padding: sys-var(space, lg) sys-var(space, xl);
+  padding: clamp(16px, 4vw, 32px);
   background: sys-var(color, surface, base);
+  overflow-y: auto;
+  align-content: flex-start;
 
   &__loading {
     display: flex;
@@ -20,25 +22,23 @@
     display: flex;
     flex-direction: column;
     gap: sys-var(space, md);
-    padding: sys-var(space, lg);
-    border: 1px solid sys-var(color, border, base);
+    padding: sys-var(space, md);
+    border-top: 1px solid sys-var(color, border, subtle);
     box-sizing: border-box;
-    min-width: 280px;
-    max-width: 40%;
-    max-height: 100%;
+    min-width: 0;
+    flex: 1 1 22rem;
   }
 
   &__jobs {
     display: flex;
     flex-direction: column;
     gap: sys-var(space, md);
-    padding: sys-var(space, lg);
-    border: 1px solid sys-var(color, border, base);
+    padding: sys-var(space, md);
+    border-top: 1px solid sys-var(color, border, subtle);
     box-sizing: border-box;
     align-self: stretch;
-    flex: 1;
-    max-width: 60%;
-    min-width: 360px;
+    flex: 2 1 28rem;
+    min-width: 0;
   }
 }
 
@@ -89,7 +89,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: sys-var(space, xl);
+    padding: sys-var(space, md);
     @include apply-font(body-lg);
     color: sys-var(color, text, subtle);
   }
@@ -107,53 +107,10 @@
   }
 }
 
-.collect-at {
-  &__title {
-    @include apply-font(title-sm);
-    color: sys-var(color, text, base);
-    margin-bottom: sys-var(space, md);
-  }
-
-  &__actions {
-    display: flex;
-    gap: sys-var(space, sm);
-    justify-content: flex-end;
-    align-self: stretch;
-    margin-top: sys-var(space, md);
-  }
-}
-
-.config-editor {
-  display: flex;
-  flex-direction: column;
-  gap: sys-var(space, md);
-  padding: sys-var(space, lg);
-  background: sys-var(color, surface, base);
-  border-radius: sys-var(radius, md);
-  min-width: 0;
-  max-width: 600px;
-
-  &__title {
-    @include apply-font(title-sm);
-    color: sys-var(color, text, base);
-    margin: 0;
-  }
-
-  &__actions {
-    display: flex;
-    gap: sys-var(space, sm);
-    justify-content: flex-end;
-    align-self: stretch;
-  }
-}
-
 .new-job-popup {
   display: flex;
   flex-direction: column;
   gap: sys-var(space, md);
-  padding: sys-var(space, lg);
-  background: sys-var(color, surface, base);
-  border-radius: sys-var(radius, md);
   min-width: 0;
   max-width: 500px;
 

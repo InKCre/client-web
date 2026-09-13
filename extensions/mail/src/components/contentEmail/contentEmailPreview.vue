@@ -35,6 +35,16 @@ const body = computed(() => {
   min-width: 220px;
   max-width: 360px;
 
+  overflow-wrap: anywhere;
+
+  strong {
+    @include apply-font(label-lg);
+  }
+
+  span {
+    @include apply-font(label-md);
+  }
+
   span,
   p {
     margin: 0;
@@ -42,7 +52,7 @@ const body = computed(() => {
   }
 
   p {
-    line-height: 1.45;
+    @include apply-font(body-sm);
     overflow-wrap: anywhere;
   }
 }

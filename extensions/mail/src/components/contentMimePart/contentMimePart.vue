@@ -49,7 +49,7 @@ async function materialize(): Promise<void> {
       >Open</a
     >
     <InkButton v-else text="Download content" :is-loading="loading" @click="materialize" />
-    <p v-if="error">{{ error.message }}</p>
+    <p v-if="error" role="alert">{{ error.message }}</p>
   </div>
 </template>
 
@@ -60,10 +60,21 @@ async function materialize(): Promise<void> {
   align-items: flex-start;
   gap: 8px;
 
-  span,
-  p {
-    margin: 0;
+  overflow-wrap: anywhere;
+
+  strong {
+    @include apply-font(label-lg);
+  }
+
+  span {
+    @include apply-font(label-md);
     color: var(--sys-color-text-subtle);
+  }
+
+  p {
+    @include apply-font(body-sm);
+    margin: 0;
+    color: var(--sys-color-feedback-error);
   }
 }
 </style>

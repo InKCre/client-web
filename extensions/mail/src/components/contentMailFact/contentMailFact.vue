@@ -25,11 +25,13 @@ const entries = computed(() =>
   margin: 0;
 
   dt {
+    @include apply-font(label-md);
     color: var(--sys-color-text-subtle);
     text-transform: capitalize;
   }
 
   dd {
+    @include apply-font(body-md);
     margin: 0;
     overflow-wrap: anywhere;
   }

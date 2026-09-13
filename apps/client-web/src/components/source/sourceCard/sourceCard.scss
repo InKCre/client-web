@@ -6,32 +6,28 @@
   border: 1px solid sys-var(color, border, base);
   box-sizing: border-box;
   width: 100%;
-  min-width: 280px;
-  max-width: 380px;
-  cursor: pointer;
-  transition:
-    background-color 0.2s,
-    border-color 0.2s;
-
-  &:hover {
-    border-color: sys-var(color, border, subtle);
-  }
+  min-width: 0;
+  overflow-wrap: anywhere;
 
   &__metadata {
     display: flex;
+    flex-wrap: wrap;
+    gap: sys-var(space, sm);
     align-items: center;
     justify-content: space-between;
     width: 100%;
   }
 
   &__left {
+    min-width: 0;
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
   }
 
   &__type {
-    @include apply-font(label-lg);
+    @include apply-font(label-lg, $underlined: true);
     color: sys-var(color, text, subtle);
     width: 100%;
   }
@@ -73,7 +69,7 @@
   }
 
   &__config-text {
-    @include apply-font(label-lg, $mono: true);
+    @include apply-font(body-sm, $mono: true);
     color: sys-var(color, text, subtle);
     margin: 0;
     white-space: pre-wrap;
@@ -90,6 +86,8 @@
 
   &__operations {
     display: flex;
+    flex-wrap: wrap;
+    gap: sys-var(space, sm);
     align-items: center;
     justify-content: space-between;
     width: 100%;
@@ -103,24 +101,9 @@
 
   &__operations-right {
     display: flex;
+    flex-wrap: wrap;
     gap: sys-var(space, sm);
     align-items: center;
-  }
-}
-
-.collect-at {
-  &__title {
-    @include apply-font(title-sm);
-    color: sys-var(color, text, base);
-    margin-bottom: sys-var(space, md);
-  }
-
-  &__actions {
-    display: flex;
-    gap: sys-var(space, sm);
-    justify-content: flex-end;
-    align-self: stretch;
-    margin-top: sys-var(space, md);
   }
 }
 
@@ -128,9 +111,6 @@
   display: flex;
   flex-direction: column;
   gap: sys-var(space, md);
-  padding: sys-var(space, lg);
-  background: sys-var(color, surface, base);
-  border-radius: sys-var(radius, md);
   min-width: 0;
   max-width: 600px;
 
