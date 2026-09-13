@@ -6,6 +6,10 @@ import corePackageJson from '../packages/core/package.json'
 export const coreSharedVersion = `^${corePackageJson.version}`
 
 export default {
+  '@inkcre/ui-web': {
+    singleton: true,
+    requiredVersion: packageJson.dependencies['@inkcre/ui-web'],
+  },
   vue: { singleton: true, requiredVersion: packageJson.dependencies.vue },
   pinia: { singleton: true, requiredVersion: packageJson.dependencies.pinia },
   'vue-router': {

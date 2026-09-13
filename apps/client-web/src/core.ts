@@ -32,6 +32,7 @@ import {
   type WebExtensionModule,
 } from '@inkcre/extension-runtime-client-web'
 import * as InKCreCore from '@inkcre/core'
+import * as InKCreUi from '@inkcre/ui-web'
 import * as Zod from 'zod'
 import * as Vue from 'vue'
 import * as Pinia from 'pinia'
@@ -165,6 +166,14 @@ export function initializeModuleFederation(): void {
     name: 'host',
     remotes: [],
     shared: {
+      '@inkcre/ui-web': {
+        version: packageJson.dependencies['@inkcre/ui-web'],
+        lib: () => InKCreUi,
+        shareConfig: {
+          singleton: true,
+          requiredVersion: packageJson.dependencies['@inkcre/ui-web'],
+        },
+      },
       zod: {
         version: packageJson.dependencies.zod,
         lib: () => Zod,

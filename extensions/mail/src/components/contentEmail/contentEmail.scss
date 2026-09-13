@@ -36,6 +36,7 @@
   }
 
   &__html {
+    box-sizing: border-box;
     width: 100%;
     min-height: 420px;
     border: 1px solid var(--sys-color-border-base);
@@ -64,6 +65,8 @@
 
   &__part {
     display: flex;
+    flex-wrap: wrap;
+    box-sizing: border-box;
     width: 100%;
     align-items: center;
     gap: 12px;
@@ -74,8 +77,14 @@
     div {
       display: flex;
       min-width: 0;
-      flex: 1;
+      flex: 1 1 10rem;
+      overflow-wrap: anywhere;
       flex-direction: column;
+    }
+
+    button,
+    a {
+      flex-shrink: 0;
     }
 
     span,

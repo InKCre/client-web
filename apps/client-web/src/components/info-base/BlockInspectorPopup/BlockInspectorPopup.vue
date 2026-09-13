@@ -79,6 +79,7 @@ async function ruminate(): Promise<void> {
 
 <template>
   <InkPopup
+    style="width: 420px; max-width: calc(100vw - 2 * var(--sys-space-md)); padding: 0"
     :open="open"
     :scrim="false"
     position="right"
@@ -88,7 +89,13 @@ async function ruminate(): Promise<void> {
     <section class="block-inspector-popup">
       <header class="block-inspector-popup__header">
         <h3>{{ t('infoBase.blockInspector.title') }}</h3>
-        <InkButton icon="i-mdi-close" theme="subtle" type="square" @click="close" />
+        <InkButton
+          icon="i-mdi-close"
+          :aria-label="t('common.close')"
+          theme="subtle"
+          type="square"
+          @click="close"
+        />
       </header>
 
       <div v-if="status === 'loading'" class="block-inspector-popup__state"><InkLoading /></div>
