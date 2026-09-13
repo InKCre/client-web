@@ -91,3 +91,15 @@ Web 与 Mail 产物和上表一致；Twitter 构建仍为 47 个文件，新的 
 构建身份采用上文相同的目录 SHA-256 算法，包含 source maps：Web 为 `fb30b72d2ab988f2d31046a419c026d7fa73c124b103436eb5c2de1b701b1cd9`；Core、Mail、Twitter 的文件数与哈希见产物 JSON。Mail 的源码本轮未修改，其构建引用了更新后的共享 Core。
 
 真实数据库 `pnpm test:e2e:web` 本次仍在 SSH provider 握手时被连接重置，未进入浏览器，不能拿历史 PR CI 证明当前 I3。额外 `pnpm lint:type-aware` 仍报告基线中的 11 项：数据库生成投影 9 项，Extension model 与分发检查脚本各 1 项；这些位置的相关代码没有修改。常规 lint、完整 check 与 TS7 通过。`client-webext` 的独立主题与 Firefox 原生 200% 文字放大不属于此切片。
+
+## PR preview 远端验收
+
+[PR #104](https://github.com/InKCre/client-web/pull/104) 的 I3 源码提交为 `9af7a17`。该提交的 [CI](https://github.com/InKCre/client-web/actions/runs/34759273081) 与 [Pages 交付](https://github.com/InKCre/client-web/actions/runs/34759272059) 全部成功。实际浏览器进入 [preview](https://preview-client-web-pr-104.inkcre-client-web.pages.dev)，Host、同源静态 Registry、Mail／Twitter MF 资源均由远端提供；全部既有来源与扩展旅程通过，pageerror 为零。
+
+```sh
+pnpm exec node tasks/ui-v2-migration/evidence/browser-host.mjs https://preview-client-web-pr-104.inkcre-client-web.pages.dev --deployed-extensions
+```
+
+[交付身份](preview/delivery.json) 与[运行输出](preview/browser.txt)记录已验证的源提交和不可变部署地址。业务数据和失败响应仍为隔离夹具；真实数据库集成由独立 E2E 证明，不将静态 preview 说成完整后端环境。原有本地 tarball／dist 哈希不能当作远端产物哈希。
+
+本机 SSH 已恢复；首轮冷启动暴露 PostgreSQL 的 socket 健康探测早于 TCP 就绪，已在独立 `cfd7b12` 修正。随后完整 `pnpm test:e2e:web` 退出 0，五个真实数据库旅程通过，隔离实例清理完成；最终 `pnpm check` 通过。该提交未改变前端源码，其 [CI](https://github.com/InKCre/client-web/actions/runs/34759512696) 和 [preview](https://github.com/InKCre/client-web/actions/runs/34759511768) 单独记录，不把较早的前端证据写成新提交重放。
