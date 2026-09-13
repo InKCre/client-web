@@ -27,18 +27,6 @@
     @include apply-font(label-md);
     color: sys-var(color, text, base);
 
-    &.status--pending {
-      color: sys-var(color, feedback, warning);
-    }
-
-    &.status--running {
-      color: sys-var(color, feedback, info);
-    }
-
-    &.status--finished {
-      color: sys-var(color, feedback, success);
-    }
-
     &.status--failed {
       color: sys-var(color, feedback, error);
     }

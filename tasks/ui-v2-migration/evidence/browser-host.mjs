@@ -1,8 +1,10 @@
 // 一次性消费验收：加载真实构建的 Host 和两个 MF remote，网络边界使用隔离数据。
 import { chromium, expect } from '@playwright/test'
 import { readFile, mkdir } from 'node:fs/promises'
+import { verifySources } from './sources.mjs'
 const root = process.cwd()
 const webUrl = process.argv[2] ?? 'http://127.0.0.1:47931'
+const deployedExtensions = process.argv.includes('--deployed-extensions')
 const evidence = `${root}/.runtime/ui-migration-evidence`
 await mkdir(evidence, { recursive: true })
 const browser = await chromium.launch()
@@ -22,7 +24,11 @@ const self = {
   id: selfId,
   name: 'UI migration',
   labels: [],
-  config: { extension_registry_url: 'https://registry-migration.invalid' },
+  config: {
+    extension_registry_url: deployedExtensions
+      ? new URL(webUrl).origin
+      : 'https://registry-migration.invalid',
+  },
   config_schema: {},
   capabilities: [],
   lease_expires_at: '2099-01-01T00:00:00Z',
@@ -218,7 +224,8 @@ await page.route('https://api-migration.invalid/**', async (route) => {
     data = extensions.filter(
       (x) => !url.searchParams.has('name') || `eq.${x.name}` === url.searchParams.get('name')
     )
-  } else if (kind === 'sources') data = [source]
+  } else if (kind === 'sources')
+    data = [source, { ...source, id: 8, nickname: 'Second bookmark fixture' }]
   else if (kind === 'sources_types')
     data = [
       {
@@ -323,6 +330,9 @@ try {
   console.log('card', await card.innerText())
   await card.getByRole('button', { name: /^(Setup|设置)$/ }).click()
   await expect(page.getByRole('heading', { name: 'Set up bookmark collection' })).toBeVisible()
+  const sourcePicker = page.getByRole('combobox', { name: 'Bookmark Source', exact: true })
+  await sourcePicker.click()
+  await page.getByRole('option', { name: source.nickname, exact: true }).click()
   const steps = page.getByRole('list', { name: 'Twitter setup progress' })
   await expect(steps.getByRole('listitem')).toHaveCount(4)
   for (const marker of await steps.locator('span').all()) {
@@ -356,6 +366,30 @@ try {
   await timeDialog.getByRole('button', { name: '确认', exact: true }).click()
   await expect(picker).toHaveText('07:30 AM')
   console.log('Twitter time cancel/confirm and Host locale passed')
+  const cronPattern = 'https://api-migration.invalid/rest/crons*'
+  const rejectCron = (route) =>
+    route.fulfill({
+      status: 403,
+      json: { message: 'Controlled schedule read failure' },
+      headers: { 'access-control-allow-origin': '*' },
+    })
+  await page.route(cronPattern, rejectCron)
+  await sourcePicker.click()
+  await page.getByRole('option', { name: 'Second bookmark fixture', exact: true }).click()
+  await expect(page.locator('.twitter-setup').getByRole('alert')).toContainText(
+    'Controlled schedule read failure'
+  )
+  await expect(sourcePicker).toHaveText(source.nickname)
+  await expect(picker).toHaveText('07:30 AM')
+  await page.screenshot({ path: `${evidence}/i3-twitter-selection-failed.png` })
+  await page.unroute(cronPattern, rejectCron)
+  await sourcePicker.click()
+  await page.getByRole('option', { name: 'Second bookmark fixture', exact: true }).click()
+  await expect(sourcePicker).toHaveText('Second bookmark fixture')
+  await expect(page.locator('.twitter-setup').getByRole('alert')).toHaveCount(0)
+  console.log(
+    'Twitter source read failure preserves previous selection/time and manual retry passed'
+  )
   await page.getByRole('button', { name: 'Close', exact: true }).click()
   await page.evaluate(() => {
     history.pushState({}, '', '/info-base/list/blocks/101/content')
@@ -434,21 +468,11 @@ try {
   await page.keyboard.press('Escape')
   await expect(recall).not.toBeVisible()
 
+  await verifySources({ page, source, job, dates, evidence, navigate, expectContained })
+
   for (const width of [1280, 375]) {
     await page.setViewportSize({ width, height: 1000 })
     await page.emulateMedia({ colorScheme: width === 1280 ? 'light' : 'dark' })
-    await navigate('/sources')
-    await expect(page.locator('.source-card')).toBeVisible()
-    await expectContained('.sources-view, .create-source, .source-card')
-    await page.screenshot({ path: `${evidence}/sources-${width}.png` })
-    await page.getByRole('button', { name: 'Edit Config', exact: true }).click()
-    await expect(page.locator('.config-editor')).toBeVisible()
-    await expectContained('.config-editor, dialog[open]')
-    await page.getByRole('button', { name: 'Cancel', exact: true }).click()
-    await page.getByRole('link', { name: source.type, exact: true }).press('Enter')
-    await expect(page).toHaveURL(/\/sources\/7$/)
-    await expect(page.locator('.source-view__details')).toBeVisible()
-    await expectContained('.source-view, .source-view__details, .source-view__jobs')
     await navigate('/jobs/9')
     await expect(page.locator('.log-body')).toBeVisible()
     await expect(page.locator('pre.metadata__value')).toHaveCSS('font-family', /monospace/)

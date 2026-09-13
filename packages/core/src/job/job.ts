@@ -77,6 +77,7 @@ export class Job extends Z.class({
       .contains('parameters', { source })
       .order('created_at', { ascending: false })
       .limit(limit)
+      .throwOnError()
     return (result.data ?? []).map((item) => Job.parse(item))
   }
 

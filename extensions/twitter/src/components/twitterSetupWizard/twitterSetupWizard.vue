@@ -149,12 +149,19 @@ watch(selectedSourceId, async (value) => {
     selectedCron.value = null
     return
   }
-  if (typeof value !== 'number') return
+  if (typeof value !== 'number' || value === selectedSource.value?.id) return
   creatingSource.value = false
-  const collection = await TwitterBookmarkSetup.read(value)
-  selectedSource.value = collection.source
-  selectedCron.value = collection.cron
-  scheduleTime.value = scheduleFromCron(collection.cron)
+  await run('source', async () => {
+    try {
+      const collection = await TwitterBookmarkSetup.read(value)
+      selectedSource.value = collection.source
+      selectedCron.value = collection.cron
+      scheduleTime.value = scheduleFromCron(collection.cron)
+    } catch (cause) {
+      selectedSourceId.value = selectedSource.value?.id ?? null
+      throw cause
+    }
+  })
 })
 async function enableSelectedCore(): Promise<void> {
   if (!api.value || !selectedCandidate.value) return

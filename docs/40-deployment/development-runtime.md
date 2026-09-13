@@ -47,7 +47,8 @@ retains separate Sass ownership, and refuses `vite build`. Before handoff, stop 
 remove `INKCRE_UI_SOURCE_ROOT` if set, and run the normal `pnpm check`; a green source loop is not
 release evidence.
 
-UI 2.0 的共享运行时是 Vue（最低 3.5.25）；使用 UnoCSS 的应用自行声明 UnoCSS。
+UI 2.0 的共享运行时是 Vue（最低 3.5.25）；使用 UnoCSS 的应用自行声明 UnoCSS。Web 的 Uno 配置在通用 preset 后注册
+`@inkcre/ui-web/uno` 的 `presetInk()`，使语义颜色与字体工具类实际生成。
 CodeMirror、JSON 语言服务等编辑器实现依赖由 UI 包拥有，源码联调也从 UI 自身解析它们。
 Web、mail、twitter 和 ext-dev-utils 锁定同一正式 UI 版本；生产构建不使用源码映射。
 
