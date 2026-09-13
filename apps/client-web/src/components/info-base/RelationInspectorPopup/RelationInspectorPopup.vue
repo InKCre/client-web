@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, shallowRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { InkButton, InkLoading, InkPopup } from '@inkcre/ui-web'
 import { getInfoBaseRouter, Relation } from '@inkcre/core'
 
@@ -7,6 +8,7 @@ import type { RelationInspectorPopupProps } from './RelationInspectorPopup'
 
 const props = defineProps<RelationInspectorPopupProps>()
 const router = getInfoBaseRouter()
+const { t } = useI18n()
 const status = ref<'loading' | 'success' | 'missing' | 'error'>('loading')
 const relation = shallowRef<Relation | null>(null)
 let generation = 0
@@ -38,6 +40,7 @@ function close(): void {
 
 <template>
   <InkPopup
+    style="width: 360px; max-width: calc(100vw - 2 * var(--sys-space-md))"
     :open="true"
     :scrim="false"
     position="right"
@@ -47,7 +50,13 @@ function close(): void {
     <section class="relation-inspector-popup">
       <header>
         <h3>Relation #{{ props.relation }}</h3>
-        <InkButton icon="i-mdi-close" theme="subtle" type="square" @click="close" />
+        <InkButton
+          icon="i-mdi-close"
+          :aria-label="t('common.close')"
+          theme="subtle"
+          type="square"
+          @click="close"
+        />
       </header>
       <InkLoading v-if="status === 'loading'" />
       <p v-else-if="status === 'missing'">This Relation no longer exists.</p>
@@ -66,7 +75,7 @@ function close(): void {
 
 <style scoped lang="scss">
 .relation-inspector-popup {
-  width: min(360px, calc(100vw - 32px));
+  width: 100%;
 
   header {
     display: flex;

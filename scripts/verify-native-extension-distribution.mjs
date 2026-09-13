@@ -130,6 +130,14 @@ export async function inspectNativeModuleFederation({
   }
 
   const coreShare = manifest.shared?.filter((shared) => shared.name === '@inkcre/core') ?? []
+  const uiVersion =
+    extensionPackage.dependencies?.['@inkcre/ui-web'] ??
+    extensionPackage.devDependencies?.['@inkcre/ui-web']
+  if (uiVersion) {
+    const uiShare = manifest.shared?.filter((shared) => shared.name === '@inkcre/ui-web') ?? []
+    assert.equal(uiShare.length, 1, 'manifest must share @inkcre/ui-web to inherit Host UI context')
+    assert.equal(uiShare[0].requiredVersion, uiVersion)
+  }
   assert.equal(coreShare.length, 1, 'manifest must contain exactly one @inkcre/core shared module')
   const sharedRange = coreShare[0].requiredVersion?.replaceAll(',', ' ')
   assert.ok(validRange(sharedRange), 'manifest @inkcre/core requiredVersion is invalid')

@@ -10,7 +10,9 @@
     "loading": "加载中...",
     "loadMore": "加载更多",
     "saveFailed": "保存失败，请稍后重试。",
-    "invalidConfig": "请输入有效的 JSON 配置对象后再保存。"
+    "invalidConfig": "请输入有效的 JSON 配置对象后再保存。",
+    "close": "关闭",
+    "refresh": "刷新"
   },
   "header": {
     "brand": "第三尺寸"

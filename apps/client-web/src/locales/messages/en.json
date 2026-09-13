@@ -10,7 +10,9 @@
     "loading": "Loading...",
     "loadMore": "Load More",
     "saveFailed": "Unable to save. Please try again.",
-    "invalidConfig": "Enter a valid JSON configuration object before saving."
+    "invalidConfig": "Enter a valid JSON configuration object before saving.",
+    "close": "Close",
+    "refresh": "Refresh"
   },
   "header": {
     "brand": "InKCre"

@@ -26,6 +26,10 @@ registry 安装、全 workspace 的 pnpm check（含 Core、Web、mail、twitter
 
 发现 Peer.save 与 saveConfig 原先忽略 PostgREST error；在原模型方法上使用 throwOnError，避免配置界面误报成功。这是保存迁移的必要边界修复，包含 Core patch Changeset。新增既有 peer-database E2E 旅程验证语法／schema 无效草稿、pending 禁止重复操作与 Escape、真实数据库拒绝后保留草稿、重试持久化。
 
-本机的 SSH Docker provider 连续两次握手被重置，本机无 Docker；pnpm test:e2e:web 在启动隔离实例前失败，尚未执行浏览器断言。此项交由 PR 的既有 client-web E2E job 运行，不改用共享开发数据库。lint:type-aware 报告 11 条已有问题（数据库生成文件 9 条、extension/model.ts 与分发检查脚本各 1 条）；这些文件未修改，普通 lint 和正式 check 通过，不手改生成投影。
+本机的 SSH Docker provider 连续两次握手被重置，本机无 Docker；pnpm test:e2e:web 在启动隔离实例前失败，尚未执行浏览器断言。此项交由 PR 的既有 client-web E2E job 运行，不改用共享开发数据库。lint:type-aware 报告 11 条已有问题（数据库生成文件 9 条、extension/model.ts 与分发检查脚本各 1 条）；这些告警所在逻辑沿用基线；分发脚本后来增加了 UI 共享检查，原有 sort 告警未改变。普通 lint 和正式 check 通过，不手改生成投影。
 
-当前仍在完成真实页面复核与远端 CI；消费者尚未提交至 main，也未生产部署。
+迁移已提交至独立 [PR #104](https://github.com/InKCre/client-web/pull/104)。首个源码提交 `5873510` 的 [Client checks](https://github.com/InKCre/client-web/actions/runs/34739437023) 全部通过，包括新增的真实数据库保存旅程；本机 SSH 失败不再构成缺少该项证据。
+
+后续实际 MF 加载发现 Host 与扩展各自打包 UI，导致中文 Host 的 Twitter 时间选择器仍使用英文。已将 UI 加入现有共享单例配置，并让分发检查确认使用 UI 的扩展确实声明对应共享版本。复核确认中文注入、时间草稿取消／确认、Mail renderer 和下载 pending／失败恢复均正确；窄屏附件行和 Info-Base 浮层同步修复。证据与复跑方式见 [验收记录](evidence/README.md)。
+
+本地最终检查已覆盖这些修正。PR 当前提交的远端结果以 checks 页面为准；消费者保持独立分支供审阅，尚未合入 main、生产部署或发布扩展。

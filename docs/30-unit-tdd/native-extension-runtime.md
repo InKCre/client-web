@@ -23,6 +23,11 @@ native lifecycle methods `initialize`, `activate`, `deactivate`, and `dispose`; 
 capabilities come from its package entry rather than playground bootstrap code. Extension code
 imports `@inkcre/core` directly.
 
+Host 与 Web 扩展通过现有 Module Federation 配置共享 `@inkcre/ui-web` 单例，
+并声明当前锁定 UI 版本的要求。UI 的 i18n、路由和表单上下文使用模块内的 Vue 注入 key；
+如果扩展另用一份 UI 运行时，即使外观相同，也无法继承 Host 的这些上下文。
+独立 playground 仍可使用包自身的 fallback 模块，样式由各自应用入口加载。
+
 The producer emits the native `mf-manifest.json`, Remote entry, and referenced shared/exposed asset
 closure with relative asset semantics. The Registry Release records an immutable manifest
 association and typed Host SDK association. These are runtime inputs to the Host, not a second

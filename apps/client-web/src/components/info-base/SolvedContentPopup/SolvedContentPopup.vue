@@ -75,6 +75,7 @@ function onOpenChange(value: boolean): void {
 
 <template>
   <InkPopup
+    style="width: 900px; max-width: calc(100vw - 2 * var(--sys-space-md)); padding: 0"
     :open="open"
     :scrim="false"
     position="center"
@@ -87,12 +88,19 @@ function onOpenChange(value: boolean): void {
         <div class="solved-content-popup__controls">
           <InkButton
             icon="i-mdi-refresh"
+            :aria-label="t('common.refresh')"
             theme="subtle"
             type="square"
             :disabled="status === 'loading'"
             @click="load(true)"
           />
-          <InkButton icon="i-mdi-close" theme="subtle" type="square" @click="close" />
+          <InkButton
+            icon="i-mdi-close"
+            :aria-label="t('common.close')"
+            theme="subtle"
+            type="square"
+            @click="close"
+          />
         </div>
       </header>
 

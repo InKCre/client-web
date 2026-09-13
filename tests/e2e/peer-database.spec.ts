@@ -132,8 +132,10 @@ test('Peer config keeps invalid and failed drafts and saves only once while pend
     await expect(save).toBeEnabled()
     await editor.fill('{')
     await expect(save).toBeDisabled()
+    await expect(editor).toHaveAttribute('aria-invalid', 'true')
     await editor.fill('{"limit":"invalid"}')
     await expect(save).toBeDisabled()
+    await expect(editor).toHaveAttribute('aria-invalid', 'true')
     await editor.fill('{"limit":2}')
     await expect(save).toBeEnabled()
 
