@@ -2,6 +2,7 @@
   display: grid;
   gap: sys-var(space, md);
   width: min(680px, 80vw);
+  max-width: 100%;
   @include apply-font(body-md);
   overflow-wrap: anywhere;
 
@@ -33,7 +34,7 @@
       min-height: 1.5rem;
       flex-shrink: 0;
       border: 1px solid currentcolor;
-      border-radius: 50%;
+      border-radius: sys-var(radius, none);
     }
 
     .is-current,

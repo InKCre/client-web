@@ -27,7 +27,7 @@ node tasks/ui-v2-migration/evidence/browser-host.mjs http://127.0.0.1:47931
 - [Twitter 继承 Host 中文](twitter-time-picker.png)：真实 MF remote 使用共享 UI 的日期文案。
 - [Mail 窄屏附件和失败反馈](mail-host-dark-narrow.png)：附件行换行，下载按钮保持完整。
 
-以下为视觉复审后的构建，取代首轮产物哈希。最终构建目录按相对路径排序，依次拼接「路径、NUL、文件内容、NUL」计算 SHA-256，包含 source maps：
+以下为首次视觉复审后的构建，取代首轮产物哈希；后续 I1 的变化见文末。构建目录按相对路径排序，依次拼接「路径、NUL、文件内容、NUL」计算 SHA-256，包含 source maps：
 
 | 产物                    | 文件数 | SHA-256                                                            |
 | ----------------------- | ------ | ------------------------------------------------------------------ |
@@ -50,6 +50,14 @@ node tasks/ui-v2-migration/evidence/browser-host.mjs http://127.0.0.1:47931
 
 复审后的 `pnpm check` 和浏览器重放均通过，pageerror 为零。Settings、Peer、Mail 事实与 MIME 局部视图、ext-dev-utils 开发页的字体／形状调整经过源码核对及完整构建；本轮没有为每个局部视图另造浏览器页面。旧 Peer 截图仅保留首轮保存交互的证据，不作为更新后视觉样式的截图。
 
-步骤编号保留圆形；Mail iframe 的白色底属于外部邮件文档边界。生产者 DESIGN.md 尚未规定直角默认和例外，本次移除消费者普通业务容器的旧圆角，不将“所有圆角均违规”当作自动检查规则。浏览器扩展 client-webext 使用自有主题而非 UI 依赖，本轮没有迁移该独立主题。
+本阶段步骤编号仍保留圆形，生产者当时尚未确认直角默认和例外；这一历史边界已由文末 I1 更新。Mail iframe 的白色底属于外部邮件文档边界。浏览器扩展 client-webext 使用自有主题而非 UI 依赖，本轮没有迁移该独立主题。
 
 Recall 浮层同样补验了 375px 下的检索结果、Escape 关闭与容器宽度，见 [窄屏 Recall](recall-dark-narrow.png)。Job 状态 JSON 的等宽字体也通过实际 computed style 验证。
+
+## I1 已确认风格的实现对齐
+
+2026-09-13，按与用户确认后的共同轮廓，Twitter 步骤编号改为直角；窄屏复核同时修复了向导宽度未受宿主内容区约束、关闭按钮被裁剪的问题。新的 [375px 向导](twitter-steps-375.png) 展示完整的关闭按钮、两列步骤和可换行的配置内容。
+
+最终完整 `pnpm check` 与上述浏览器重放通过。夹具新增四个步骤、唯一当前状态、直角编号、375px 容器无横向裁剪和关闭按钮完整可见的检查；时间草稿取消／确认及其余已有旅程继续通过，pageerror 为零。本地采用 Chromium 149.0.7827.55，未进行真实 OAuth、扩展发布或生产部署。
+
+Web 与 Mail 产物和上表一致；Twitter 构建仍为 47 个文件，新的 SHA-256 为 `7a1156f93e543a8a4be79e2c80a4cfa437a72d6cab00d795578018981d01e3bb`。UI 依赖仍是 registry 2.0.0，没有启用源码映射；这些检查验证消费者局部修正，不宣称已安装生产者分支中尚未发布的字体和文档更新。
