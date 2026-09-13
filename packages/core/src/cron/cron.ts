@@ -31,6 +31,7 @@ export class Cron extends Z.class({
       .select()
       .contains('job_parameters', { source })
       .order('created_at')
+      .throwOnError()
     return (result.data ?? []).map((item) => Cron.parse(item))
   }
 
@@ -62,7 +63,7 @@ export class Cron extends Z.class({
   }
 
   async delete(): Promise<void> {
-    await Cron.dbApi.from().delete().eq('id', this.id)
+    await Cron.dbApi.from().delete().eq('id', this.id).throwOnError()
   }
 }
 
@@ -74,6 +75,6 @@ export class CronForm extends Z.class({
   job_timeout_seconds: z.number().int().positive().nullable().default(null),
 }) {
   async create(): Promise<Cron> {
-    return Cron.parse((await Cron.dbApi.insert(this).select().single()).data)
+    return Cron.parse((await Cron.dbApi.insert(this).select().single().throwOnError()).data)
   }
 }
