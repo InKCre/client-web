@@ -323,6 +323,21 @@ try {
   console.log('card', await card.innerText())
   await card.getByRole('button', { name: /^(Setup|设置)$/ }).click()
   await expect(page.getByRole('heading', { name: 'Set up bookmark collection' })).toBeVisible()
+  const steps = page.getByRole('list', { name: 'Twitter setup progress' })
+  await expect(steps.getByRole('listitem')).toHaveCount(4)
+  for (const marker of await steps.locator('span').all()) {
+    await expect(marker).toHaveCSS('border-radius', '0px')
+  }
+  await expect(steps.locator('.is-current')).toHaveCount(1)
+  await page.setViewportSize({ width: 375, height: 1000 })
+  await expectContained(
+    '.ink-popup, .ink-dialog__content, .twitter-setup, .twitter-setup__steps, .twitter-setup__steps li, .twitter-setup__toolbar'
+  )
+  await expect(page.getByRole('button', { name: 'Close', exact: true })).toBeInViewport({
+    ratio: 1,
+  })
+  await page.screenshot({ path: `${evidence}/twitter-steps-375.png` })
+  await page.setViewportSize({ width: 1280, height: 1000 })
   await page.screenshot({ path: `${evidence}/twitter-host-setup.png` })
   console.log('picker', await page.locator('.ink-picker').innerText())
   await page.locator('.ink-picker').click()
