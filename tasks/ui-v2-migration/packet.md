@@ -105,3 +105,15 @@ SSH 恢复后的首轮真实 E2E 暴露冷启动竞态：PostgreSQL 临时进程
 TCP 健康探测修正后，本机 SSH 隔离数据库已进入浏览器，五个既有真实数据库旅程全部通过。I3 提交 `9af7a17` 的远端 Client checks 也全部通过；其 Pages preview 成功交付，实际 Host、Mail、Twitter 重放覆盖全部既有来源与扩展旅程且 pageerror 为零。冷启动修复单独提交，不与 I3 源码归档混合。
 
 本轮交付：I3 为 `9af7a17`，数据库冷启动修复为 `cfd7b12`，均推送至 PR #104。页面验收读取实际 preview 的 Host／Registry／两个 MF 扩展，全旅程通过；真实数据库五个旅程与最终完整检查通过。详见 [远端验收](evidence/README.md#pr-preview-远端验收)。本次没有合入 main、部署生产或发布包／扩展；UI 2.0.0 依赖与 client-webext 独立主题的边界保留。
+
+## PR #104 图标缺失诊断
+
+用户要求确认菜单／侧栏切换图标是否因 UI Uno safelist 丢失。本轮限定调查与浏览器隔离探针，没有修改组件、消费者源码或依赖。真实 preview 的 Menu 按钮具有 24×24 尺寸，`.i-mdi-menu` 规则与 SVG mask 均已生成；更具体的 `button.ink-header__menu-icon` 将背景覆盖成透明，使 mask 没有可见填色。在当前 DOM 仅把背景恢复为 currentColor，菜单图形立即可见，点击仍正常打开侧栏。根因归属 UI 的 `inkHeader.scss`，不是 safelist。
+
+正式 registry 2.0.0 与生产者当前构建均包含九个组件内置图标选择器。沿既有真实 Host／Mail／Twitter／来源旅程核对当前可见图标，菜单是唯一具有 mask 却填色透明的项；关闭、刷新、下拉／展开箭头与加载图标在已覆盖状态下正常。不能据此宣称所有可能图标和状态都已覆盖。此前浏览器验收检查交互与 pageerror，未验证菜单的实际绘制，这一缺口需要在修复时补上。
+
+建议在 UI Header 内分离 button 与装饰图标 span，沿用 InkButton 的结构：按钮负责透明背景、焦点和命中区域，子元素负责 mask 与 currentColor；保留 aria-label、menu-click 和按钮尺寸。不要在消费者添加重复 safelist 或永久覆盖。发布修复包后更新消费者并验证；当前 PR #104 仍安装 2.0.0，仅修改 UI PR 不会让它自动得到修复。
+
+证据见 [计算样式与图标盘点](evidence/icon-diagnosis.json)、[原始菜单](evidence/icon-menu-before.png)和[仅修改填色的诊断探针](evidence/icon-menu-diagnostic-probe.png)。探针截图不代表已修复交付。
+
+用户授权修复、提交和推送后，生产者已在 UI PR #46 独立提交 `6b988c3`：Header 的 button 与装饰图标分离，完整检查及浅深／窄宽图标、焦点与逐次菜单事件验收通过。本消费者本轮只归档诊断证据，不添加 safelist 或 CSS 覆盖；依赖仍是 registry 2.0.0，菜单修复须等正式修复版本发布后安装复验。
