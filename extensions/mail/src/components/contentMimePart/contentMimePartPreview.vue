@@ -18,14 +18,17 @@ defineProps<SolvedContentRendererProps<SolvedMimePart, MailMimePartResolver>>()
 
 <style scoped lang="scss">
 .mime-part-preview {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  min-width: 0;
   overflow-wrap: anywhere;
-  justify-content: space-between;
-  gap: 12px;
+  gap: sys-var(space, xs);
   max-width: 320px;
 
   strong {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
     @include apply-font(label-lg);
   }
 

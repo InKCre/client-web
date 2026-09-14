@@ -3,38 +3,55 @@ import { computed } from 'vue'
 import type { SolvedContentRendererProps } from '@inkcre/core'
 
 const props = defineProps<SolvedContentRendererProps<Record<string, unknown>>>()
-const summary = computed(() =>
-  Object.entries(props.solvedContent)
-    .filter(([, value]) => value !== null && value !== '')
-    .slice(0, 3)
+const title = computed(
+  () => props.solvedContent.address || props.solvedContent.name || 'Mail record'
 )
 </script>
 
 <template>
-  <dl class="mail-fact-preview">
-    <template v-for="[name, value] in summary" :key="name">
-      <dt>{{ name.replace(/_/g, ' ') }}</dt>
-      <dd>{{ Array.isArray(value) ? value.join(', ') : value }}</dd>
-    </template>
-  </dl>
+  <article class="mail-fact-preview">
+    <strong>{{ title }}</strong>
+    <p v-if="solvedContent.description">{{ solvedContent.description }}</p>
+  </article>
 </template>
 
 <style scoped lang="scss">
 .mail-fact-preview {
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: 4px 12px;
-  margin: 0;
-  max-width: 320px;
-
+  gap: sys-var(space, sm);
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: sys-var(color, text, base);
+  strong {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    @include apply-font(label-lg);
+  }
+  p {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    margin: 0;
+    @include apply-font(body-sm);
+    color: sys-var(color, text, subtle);
+  }
+  dl {
+    display: grid;
+    grid-template-columns: fit-content(35%) minmax(0, 1fr);
+    gap: sys-var(space, sm) sys-var(space, md);
+    margin: 0;
+  }
   dt {
-    @include apply-font(label-md);
-    color: var(--sys-color-text-subtle);
+    @include apply-font(body-sm);
+    text-transform: capitalize;
+    color: sys-var(color, text, subtle);
   }
   dd {
-    @include apply-font(body-sm);
     margin: 0;
-    overflow-wrap: anywhere;
+    @include apply-font(body-md);
   }
 }
 </style>
