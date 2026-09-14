@@ -70,6 +70,17 @@ increasing the shared maximum lifetime or leaking retries into PostgREST/domain 
 
 ## Application Hosts
 
+### Job execution and shutdown
+
+JobManager filters by registered handler and eligibility before its conditional database claim. The active execution owns
+an AbortController and a completion promise. A two-second batch read observes `abort_requested` for those active IDs; Source
+handlers do not poll the Job table. Abort and timeout signal the handler and preserve their distinct reasons. The record closes
+only after the handler settles, not when a Promise.race stops observing it.
+
+`stopWorker()` stops admission, requests cancellation and awaits active cleanup before Extension shutdown. Browser page
+termination can still end JavaScript execution before asynchronous cleanup finishes; this protocol does not promise process
+survival, rollback or automatic retry. A persisted stop request alone is not proof that running work has exited.
+
 `InfoBaseRouter` is an application-bound singleton translating Block and Relation navigation into
 the current Vue UI state. `GraphSurface` and `InfoBaseListView` are route destinations; nested Block
 inspectors and solved-content popups remain hosted by the active surface instead of creating a

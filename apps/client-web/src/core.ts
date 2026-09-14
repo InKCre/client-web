@@ -260,7 +260,7 @@ export async function initializeCore(options: { loadPeerConfig?: boolean } = {})
   console.log('[Core] Initialization complete')
 }
 
-export function shutdownCore(): void {
+export async function shutdownCore(): Promise<void> {
   stopWebPeerRuntime()
-  JobManager.stopWorker()
+  await JobManager.stopWorker()
 }
