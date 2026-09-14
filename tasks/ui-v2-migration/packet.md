@@ -2,7 +2,7 @@
 
 2026-09-13，用户授权发布 UI，并在独立分支与 worktree 中迁移 client-web 及各 extensions。本工作包拥有消费者实施与验证；UI 生产者的 `tasks/ui-foundations/packet.md` 继续拥有总图和发布依赖。
 
-当前执行切片 I3 已提交、推送并通过 PR preview 页面验收；SSH 已恢复，本机真实数据库 E2E 也通过。结果与交付身份见文末。该结论限定于来源工作流和关联修复，不代表全部消费者的视觉复审完成。
+当前已安装正式 UI 2.0.1，完整 check 与本地 Host／Mail／Twitter 浏览器验收通过，正在交付 PR #104 更新。此前 I3 已通过 PR preview；SSH 已恢复，本机真实数据库 E2E 也通过。结果与交付身份见文末。该结论限定于来源工作流和关联修复，不代表全部消费者的视觉复审完成。
 
 ## 目标与边界
 
@@ -117,3 +117,11 @@ TCP 健康探测修正后，本机 SSH 隔离数据库已进入浏览器，五�
 证据见 [计算样式与图标盘点](evidence/icon-diagnosis.json)、[原始菜单](evidence/icon-menu-before.png)和[仅修改填色的诊断探针](evidence/icon-menu-diagnostic-probe.png)。探针截图不代表已修复交付。
 
 用户授权修复、提交和推送后，生产者已在 UI PR #46 独立提交 `6b988c3`：Header 的 button 与装饰图标分离，完整检查及浅深／窄宽图标、焦点与逐次菜单事件验收通过。本消费者本轮只归档诊断证据，不添加 safelist 或 CSS 覆盖；依赖仍是 registry 2.0.0，菜单修复须等正式修复版本发布后安装复验。
+
+## 正式修复版本升级
+
+用户已授权 UI 发布及消费者更新；生产者 PR #46 已合入，正式版本准备由上游发布流程拥有。本次从 registry 2.0.0 升级到将正式发布的修复版本，拥有 Web／Mail／Twitter／ext-dev-utils 四个依赖与 lockfile、适用 Changeset 和既有任务浏览器验收。不使用源码映射、file 依赖、消费者 CSS 覆盖或重复 safelist，不改业务和数据库契约，也不发布消费者应用／扩展。
+
+安装后读取同版本设计／Skill，执行完整 check。既有真实页面旅程补上 Header 的非透明图标、24px 图形、完整焦点与侧栏逐次切换；同时复核新版浅深主题和现有 MF 交互。网络夹具与真实数据库 E2E 继续分开记录。
+
+UI 2.0.1 已正式发布并从 GitHub Packages 安装到四个直接消费者。lockfile integrity 与 registry 相同，四处 UI JS／CSS 字节相同。完整 pnpm check 与本地浏览器全旅程通过，pageerror 为零。浅深／375px／1280px 新增菜单图形 24px、currentColor、键盘焦点和 click／Enter／Space 切换检查；发现侧栏 content-box 将内边距叠加至最小宽度，补 border-box 后窄屏容纳检查通过。新包发布年龄仅按精确版本加入已有安装允许清单，未放宽全局策略。
