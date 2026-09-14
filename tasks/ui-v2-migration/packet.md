@@ -2,7 +2,7 @@
 
 2026-09-13，用户授权发布 UI，并在独立分支与 worktree 中迁移 client-web 及各 extensions。本工作包拥有消费者实施与验证；UI 生产者的 `tasks/ui-foundations/packet.md` 继续拥有总图和发布依赖。
 
-当前执行 I4，按设计原则重组 Twitter setup、Mail 全部 renderer 与 Graph；三组实现和状态验收见文末。已安装正式 UI 2.0.1，完整 check 与本地 Host／Mail／Twitter 浏览器验收通过，已推送 PR #104 并通过真实远端页面复验。此前 I3 已通过 PR preview；SSH 已恢复，本机真实数据库 E2E 也通过。结果与交付身份见文末。该结论限定于来源工作流和关联修复，不代表全部消费者的视觉复审完成。
+I4 已完成：Twitter setup、Mail 全部 renderer 与 Graph 已按设计原则重组，真实远端全旅程与完整 CI 通过。三组实现和状态验收见文末。已安装正式 UI 2.0.1，完整 check 与本地 Host／Mail／Twitter 浏览器验收通过，已推送 PR #104 并通过真实远端页面复验。此前 I3 已通过 PR preview；SSH 已恢复，本机真实数据库 E2E 也通过。结果与交付身份见文末。该结论限定于来源工作流和关联修复，不代表全部消费者的视觉复审完成。
 
 ## 目标与边界
 
@@ -151,3 +151,5 @@ I4 实现完成：Twitter 已配置凭据折叠，保存与授权状态分离，
 I4 本地完整 check、原有 Host／来源旅程与新增状态重放全部通过，pageerror 为零。新增重放包括应用保存失败保留掩码草稿、OAuth 等待／失败／重试、首次来源与调度、明确启动、Mail 六类 renderer 与 Blob 下载、HTML 清理和追踪资源隔离、Graph 拖拽位置保持、方向不重读、两类 inspector 返回，以及空／缺失／错误／路径结果。真实业务 API 使用隔离夹具，不能据此宣称 OAuth／邮箱生产集成已执行。
 
 I4-G 截图收尾移除每条关系线上重复的 Details，将关系详情入口放在选中关系的工具区。连线保留聚焦标签，结构化属性用短编号识别，在 inspector 阅读完整内容，避免标签与相邻节点争夺空间。
+
+I4 已分组提交并推送：Twitter `4131616`、Mail `9e1b0d4`、Block 读取错误 `bdcbdf8`、Graph `c62081e` 及关系操作收尾 `ab5af80`。最终验收源 `9cd531e` 的 preview 34803559638（部署 `69ebcde3`）与 CI 34803560421 全部成功；真实远端 Host／Registry／两个 MF 的原有及新增旅程通过，pageerror 为零。`evidence/i4` 记录源码、部署、日志与远端截图。后续归档只改变文档与证据，不改变运行时代码。
