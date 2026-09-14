@@ -1,6 +1,8 @@
 # UI 2.0 消费验收
 
-Web、mail、twitter 和 ext-dev-utils 均锁定 GitHub Packages 的 `@inkcre/ui-web@2.0.0`；这些检查没有启用源码映射或 `file:` 依赖。截图使用隔离数据，不含用户业务内容或真实凭据。
+Web、mail、twitter 和 ext-dev-utils 均锁定 GitHub Packages 的 `@inkcre/ui-web@2.0.1`；这些检查没有启用源码映射或 `file:` 依赖。截图使用隔离数据，不含用户业务内容或真实凭据。
+
+当前 2.0.1 复验见文末；此前各阶段截图与产物哈希保留其历史版本身份。
 
 ## 通过的边界
 
@@ -103,3 +105,9 @@ pnpm exec node tasks/ui-v2-migration/evidence/browser-host.mjs https://preview-c
 [交付身份](preview/delivery.json) 与[运行输出](preview/browser.txt)记录已验证的源提交和不可变部署地址。业务数据和失败响应仍为隔离夹具；真实数据库集成由独立 E2E 证明，不将静态 preview 说成完整后端环境。原有本地 tarball／dist 哈希不能当作远端产物哈希。
 
 本机 SSH 已恢复；首轮冷启动暴露 PostgreSQL 的 socket 健康探测早于 TCP 就绪，已在独立 `cfd7b12` 修正。随后完整 `pnpm test:e2e:web` 退出 0，五个真实数据库旅程通过，隔离实例清理完成；最终 `pnpm check` 通过。该提交未改变前端源码，其 [CI](https://github.com/InKCre/client-web/actions/runs/34759512696) 和 [preview](https://github.com/InKCre/client-web/actions/runs/34759511768) 单独记录，不把较早的前端证据写成新提交重放。
+
+## 正式 UI 2.0.1 升级
+
+[UI 发布](https://github.com/InKCre/ui/releases/tag/%40inkcre/ui-web%402.0.1) 来自 main `85453b50eee3a8e1db21cdedaca05ba0b6051dd6`。四个直接消费者均安装精确 2.0.1，见 [registry 与实际安装身份](ui-2.0.1/installed.json)。完整 `pnpm check` 与本地真实构建重放通过，pageerror 为零。业务失败仍由隔离网络夹具注入。
+
+新增 Header 验证覆盖浅深主题和 375／1280px：装饰图标为 24×24，mask 与可见 currentColor 填色存在；按钮自身没有 mask，点击图形、Enter 和 Space 正确切换侧栏，键盘焦点轮廓完整。侧栏宽度包含内边距与边框后通过窄屏容纳检查。来源、Mail、Twitter 原有全旅程均通过，新版字体与配色随正式包生效。
