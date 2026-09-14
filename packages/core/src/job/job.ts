@@ -40,6 +40,7 @@ export class Job extends Z.class({
   type: z.string(),
   parameters: JsonObjectSchema,
   state: JsonObjectSchema.default(() => ({})),
+  abort_requested: z.boolean(),
   timeout_seconds: z.number().int().positive(),
   status: z.enum([
     JobStatus.PENDING,

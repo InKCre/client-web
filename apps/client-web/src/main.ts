@@ -37,6 +37,9 @@ if (loadPeerConfigAtBootstrap) {
 }
 
 window.addEventListener('beforeunload', () => {
-  shutdownCore()
-  void extensionHost.shutdown()
+  // Browsers may end the page before cleanup completes, but never deliberately
+  // dispose Extension resources while our Job handlers are still draining.
+  void shutdownCore()
+    .then(() => extensionHost.shutdown())
+    .catch((error: unknown) => console.error('[Core] Shutdown failed', error))
 })

@@ -419,6 +419,7 @@ export type Database = {
       }
       jobs: {
         Row: {
+          abort_requested: boolean
           closed_at: string | null
           created_at: string
           id: number
@@ -430,6 +431,7 @@ export type Database = {
           type: string
         }
         Insert: {
+          abort_requested?: boolean
           closed_at?: string | null
           created_at?: string
           id?: number
@@ -441,6 +443,7 @@ export type Database = {
           type: string
         }
         Update: {
+          abort_requested?: boolean
           closed_at?: string | null
           created_at?: string
           id?: number
@@ -604,6 +607,56 @@ export type Database = {
             columns: ['to_']
             isOneToOne: false
             referencedRelation: 'blocks'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      sink_types: {
+        Row: {
+          config_schema: Json
+          description: string
+          id: string
+        }
+        Insert: {
+          config_schema?: Json
+          description: string
+          id: string
+        }
+        Update: {
+          config_schema?: Json
+          description?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      sinks: {
+        Row: {
+          config: Json
+          enabled: string[]
+          id: number
+          nickname: string | null
+          type: string
+        }
+        Insert: {
+          config?: Json
+          enabled?: string[]
+          id?: number
+          nickname?: string | null
+          type: string
+        }
+        Update: {
+          config?: Json
+          enabled?: string[]
+          id?: number
+          nickname?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'sinks_type_fkey'
+            columns: ['type']
+            isOneToOne: false
+            referencedRelation: 'sink_types'
             referencedColumns: ['id']
           },
         ]

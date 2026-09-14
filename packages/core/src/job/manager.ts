@@ -11,8 +11,13 @@ export class DuplicateJobHandlerError extends Error {}
 
 export class JobManager {
   private static handlers = new Map<JobTypeRef, JobHandler>()
-  private static active = new Set<JobRef>()
+  private static active = new Map<
+    JobRef,
+    { controller: AbortController; completion: Promise<void> }
+  >()
   private static worker: ReturnType<typeof setInterval> | null = null
+  private static abortWatcher: ReturnType<typeof setInterval> | null = null
+  private static accepting = true
 
   static registerHandler<Parameters extends z.ZodType>(
     type: JobTypeRef,
@@ -55,9 +60,8 @@ export class JobManager {
   private static async prepare(job: Job): Promise<[JobHandler, unknown] | null> {
     const handler = this.handlers.get(job.type)
     if (!handler) return null
-    const parsed = handler.parameters.safeParse(job.parameters)
-    if (!parsed.success || !(await handler.canHandle(parsed.data))) return null
-    return [handler, parsed.data]
+    const parameters = handler.parameters.parse(job.parameters)
+    return (await handler.canHandle(parameters)) ? [handler, parameters] : null
   }
 
   private static async claim(job: Job): Promise<Job | null> {
@@ -80,53 +84,119 @@ export class JobManager {
   }
 
   static async run(id: JobRef): Promise<boolean> {
-    if (this.active.has(id)) return false
+    if (!this.accepting || this.active.has(id)) return false
     const candidate = await Job.get(id)
-    const prepared = await this.prepare(candidate)
+    if (candidate.status !== JobStatus.PENDING) return false
+    let prepared: [JobHandler, unknown] | null
+    try {
+      prepared = await this.prepare(candidate)
+    } catch (error) {
+      if (!(error instanceof z.ZodError)) throw error
+      const claimed = await this.claim(candidate)
+      if (!claimed) return false
+      console.error('Persisted Job parameters are invalid', id, error)
+      claimed.state = { ...claimed.state, error: error.message }
+      await this.close(claimed, JobStatus.FAILED)
+      return true
+    }
     if (!prepared) return false
     const claimed = await this.claim(candidate)
     if (!claimed) return false
+    // stopWorker may have run while claim was in flight. Do not start a handler
+    // after its Extension resources have been disposed.
+    if (!this.accepting) {
+      await this.close(claimed, JobStatus.ABORTED)
+      return true
+    }
 
-    this.active.add(id)
     const [handler, parameters] = prepared
     const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), claimed.timeout_seconds * 1000)
+    const completion = this.execute(claimed, handler, parameters, controller)
+    this.active.set(id, { controller, completion })
     try {
+      await completion
+    } finally {
+      this.active.delete(id)
+    }
+    return true
+  }
+
+  private static async execute(
+    claimed: Job,
+    handler: JobHandler,
+    parameters: unknown,
+    controller: AbortController
+  ): Promise<void> {
+    const timeout = setTimeout(
+      () => controller.abort(JobStatus.TIMED_OUT),
+      claimed.timeout_seconds * 1000
+    )
+    try {
+      // An abort signal is only a request. Await actual handler settlement;
+      // Promise.race would report closure while side effects were still running.
       await handler.handle(claimed, parameters, controller.signal)
       await this.close(
         claimed,
-        controller.signal.aborted ? JobStatus.TIMED_OUT : JobStatus.FINISHED
+        controller.signal.aborted ? String(controller.signal.reason) : JobStatus.FINISHED
       )
     } catch (error) {
       claimed.state = {
         ...claimed.state,
         error: error instanceof Error ? error.message : String(error),
       }
-      await this.close(claimed, controller.signal.aborted ? JobStatus.TIMED_OUT : JobStatus.FAILED)
+      await this.close(
+        claimed,
+        controller.signal.aborted ? String(controller.signal.reason) : JobStatus.FAILED
+      )
     } finally {
       clearTimeout(timeout)
-      this.active.delete(id)
     }
-    return true
+  }
+
+  static async checkAbortRequests(): Promise<void> {
+    if (this.active.size === 0) return
+    const result = await Job.dbApi
+      .from()
+      .select('id')
+      .in('id', [...this.active.keys()])
+      .eq('abort_requested', true)
+    for (const job of result.data ?? []) {
+      this.active.get(job.id)?.controller.abort(JobStatus.ABORTED)
+    }
   }
 
   static async check(): Promise<void> {
+    if (!this.accepting) return
     const pending = await Job.getAll({ status: JobStatus.PENDING, limit: 100 })
     for (const job of pending) {
-      if (this.active.has(job.id) || !(await this.prepare(job))) continue
-      void this.run(job.id)
+      if (this.active.has(job.id) || !this.handlers.has(job.type)) continue
+      void this.run(job.id).catch((error: unknown) => console.error('Job worker failed', error))
     }
   }
 
   static startWorker(intervalMilliseconds = 30_000): void {
     if (this.worker) return
-    void this.check()
-    this.worker = setInterval(() => void this.check(), intervalMilliseconds)
+    this.accepting = true
+    const scan = () => {
+      void this.check().catch((error: unknown) => console.error('Job scan failed', error))
+    }
+    scan()
+    this.worker = setInterval(scan, intervalMilliseconds)
+    this.abortWatcher = setInterval(() => {
+      void this.checkAbortRequests().catch((error: unknown) =>
+        console.error('Job abort observation failed', error)
+      )
+    }, 2000)
   }
 
-  static stopWorker(): void {
-    if (!this.worker) return
-    clearInterval(this.worker)
+  static async stopWorker(): Promise<void> {
+    this.accepting = false
+    if (this.worker) clearInterval(this.worker)
+    if (this.abortWatcher) clearInterval(this.abortWatcher)
     this.worker = null
+    this.abortWatcher = null
+    const active = [...this.active.values()]
+    for (const execution of active) execution.controller.abort(JobStatus.ABORTED)
+    await Promise.allSettled(active.map((execution) => execution.completion))
   }
 }
