@@ -2,6 +2,7 @@
 import { chromium, expect } from '@playwright/test'
 import { readFile, mkdir } from 'node:fs/promises'
 import { verifySources } from './sources.mjs'
+import { verifyI4 } from './i4.mjs'
 const root = process.cwd()
 const webUrl = process.argv[2] ?? 'http://127.0.0.1:47931'
 const deployedExtensions = process.argv.includes('--deployed-extensions')
@@ -324,211 +325,230 @@ async function expectContained(selector) {
   expect(overflow, `${selector} stays readable without horizontal clipping`).toEqual([])
 }
 try {
-  await page.goto(new URL('/extensions', webUrl).href)
-  const card = page.locator('.extension-card', { hasText: 'inkcre/twitter' })
-  await expect(card).toBeVisible()
-  const menu = page.getByRole('button', { name: 'Menu', exact: true })
-  const sidebar = page.locator('.app-side-panel')
-  for (const theme of ['light', 'dark']) {
-    await page.evaluate((theme) => (document.documentElement.dataset.theme = theme), theme)
-    for (const width of [375, 1280]) {
-      await page.setViewportSize({ width, height: 1000 })
-      const icon = menu.locator('[aria-hidden="true"]')
-      await expect(icon).toBeVisible()
-      await expect(icon).not.toHaveCSS('mask-image', 'none')
-      await expect(icon).toHaveCSS('width', '24px')
-      await expect(icon).toHaveCSS('height', '24px')
-      const color = await menu.evaluate((element) => getComputedStyle(element).color)
-      await expect(icon).toHaveCSS('background-color', color)
-      await expect(icon).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
-      await expect(menu).toHaveCSS('mask-image', 'none')
-      await expect(sidebar).not.toBeVisible()
-      const contentWidth = await page
-        .locator('.extensions-view')
-        .evaluate((el) => el.getBoundingClientRect().width)
-      await icon.click()
-      await expect(sidebar).toBeVisible()
-      await menu.press('Enter')
-      await expect(sidebar).not.toBeVisible()
-      await menu.press('Space')
-      await expect(sidebar).toBeVisible()
-      await expect(menu).toBeFocused()
-      await expect(menu).toHaveCSS('outline-style', 'solid')
-      await expectContained('.ink-header, .app-side-panel')
-      if (width === 375) {
-        expect(
-          await page.locator('.extensions-view').evaluate((el) => el.getBoundingClientRect().width)
-        ).toBe(contentWidth)
-      }
-      await page.screenshot({ path: `${evidence}/released-header-${theme}-${width}.png` })
-      await menu.press('Space')
-      await expect(sidebar).not.toBeVisible()
-    }
-  }
-  await page.evaluate(() => delete document.documentElement.dataset.theme)
-  console.log(
-    'Released Header: visible 24px icon, focus and sidebar click/Enter/Space passed in light/dark at 375/1280px'
-  )
-  console.log('card', await card.innerText())
-  await card.getByRole('button', { name: /^(Setup|设置)$/ }).click()
-  await expect(page.getByRole('heading', { name: 'Set up bookmark collection' })).toBeVisible()
-  const sourcePicker = page.getByRole('combobox', { name: 'Bookmark Source', exact: true })
-  await sourcePicker.click()
-  await page.getByRole('option', { name: source.nickname, exact: true }).click()
-  const steps = page.getByRole('list', { name: 'Twitter setup progress' })
-  await expect(steps.getByRole('listitem')).toHaveCount(4)
-  for (const marker of await steps.locator('span').all()) {
-    await expect(marker).toHaveCSS('border-radius', '0px')
-  }
-  await expect(steps.locator('.is-current')).toHaveCount(1)
-  await page.setViewportSize({ width: 375, height: 1000 })
-  await expectContained(
-    '.ink-popup, .ink-dialog__content, .twitter-setup, .twitter-setup__steps, .twitter-setup__steps li, .twitter-setup__toolbar'
-  )
-  await expect(page.getByRole('button', { name: 'Close', exact: true })).toBeInViewport({
-    ratio: 1,
-  })
-  await page.screenshot({ path: `${evidence}/twitter-steps-375.png` })
-  await page.setViewportSize({ width: 1280, height: 1000 })
-  await page.screenshot({ path: `${evidence}/twitter-host-setup.png` })
-  console.log('picker', await page.locator('.ink-picker').innerText())
-  await page.locator('.ink-picker').click()
-  console.log('dialogs', await page.getByRole('dialog').allTextContents())
-  await page.screenshot({ path: `${evidence}/twitter-time-picker.png` })
-  const picker = page.locator('.ink-picker')
-  const timeDialog = page.getByRole('dialog').last()
-  await expect(timeDialog.getByRole('button', { name: '取消', exact: true })).toBeVisible()
-  await timeDialog.getByRole('listbox', { name: /小时/ }).selectOption('7')
-  await timeDialog.getByRole('listbox', { name: /分钟/ }).selectOption('30')
-  await timeDialog.getByRole('button', { name: '取消', exact: true }).click()
-  await expect(picker).toHaveText('12:00 AM')
-  await picker.click()
-  await timeDialog.getByRole('listbox', { name: /小时/ }).selectOption('7')
-  await timeDialog.getByRole('listbox', { name: /分钟/ }).selectOption('30')
-  await timeDialog.getByRole('button', { name: '确认', exact: true }).click()
-  await expect(picker).toHaveText('07:30 AM')
-  console.log('Twitter time cancel/confirm and Host locale passed')
-  const cronPattern = 'https://api-migration.invalid/rest/crons*'
-  const rejectCron = (route) =>
-    route.fulfill({
-      status: 403,
-      json: { message: 'Controlled schedule read failure' },
-      headers: { 'access-control-allow-origin': '*' },
-    })
-  await page.route(cronPattern, rejectCron)
-  await sourcePicker.click()
-  await page.getByRole('option', { name: 'Second bookmark fixture', exact: true }).click()
-  await expect(page.locator('.twitter-setup').getByRole('alert')).toContainText(
-    'Controlled schedule read failure'
-  )
-  await expect(sourcePicker).toHaveText(source.nickname)
-  await expect(picker).toHaveText('07:30 AM')
-  await page.screenshot({ path: `${evidence}/i3-twitter-selection-failed.png` })
-  await page.unroute(cronPattern, rejectCron)
-  await sourcePicker.click()
-  await page.getByRole('option', { name: 'Second bookmark fixture', exact: true }).click()
-  await expect(sourcePicker).toHaveText('Second bookmark fixture')
-  await expect(page.locator('.twitter-setup').getByRole('alert')).toHaveCount(0)
-  console.log(
-    'Twitter source read failure preserves previous selection/time and manual retry passed'
-  )
-  await page.getByRole('button', { name: 'Close', exact: true }).click()
-  await page.evaluate(() => {
-    history.pushState({}, '', '/info-base/list/blocks/101/content')
-    window.dispatchEvent(new PopStateEvent('popstate'))
-  })
-  await expect(page.getByRole('heading', { name: 'UI 2.0 Mail acceptance' })).toBeVisible()
-  await expect(
-    page
-      .frameLocator('iframe[title="Email HTML body"]')
-      .getByRole('heading', { name: 'Mail renderer with UI 2.0' })
-  ).toBeVisible()
-  const download = page.getByRole('button', { name: 'Download', exact: true })
-  await download.click()
-  try {
-    await expect(download).toBeDisabled()
-    await page.screenshot({ path: `${evidence}/mail-host-pending.png` })
-  } finally {
-    releaseDownload()
-  }
-  await expect(page.getByText('Mail materialization Peer returned HTTP 500')).toBeVisible()
-  await expect(download).toBeEnabled()
-  await page.setViewportSize({ width: 375, height: 812 })
-  await page.emulateMedia({ colorScheme: 'dark' })
-  await page.getByText('Mail materialization Peer returned HTTP 500').scrollIntoViewIfNeeded()
-  await page.screenshot({ path: `${evidence}/mail-host-dark-narrow.png` })
-  console.log('Mail renderer, pending and materialization failure passed')
-  await expect(page.locator('.content-email__part')).toHaveCSS('border-top-left-radius', '0px')
-  await expectContained('.content-email__part, .solved-content-popup')
-
-  for (const [id, selector] of [
-    [104, '.content-text__content'],
-    [105, '.content-html__text'],
-    [106, '.content-tweet__text'],
-  ]) {
-    await navigate('/')
-    await navigate(`/info-base/list/blocks/${id}/content`)
-    await expect(page.locator(selector)).toContainText('END-OF-CONTENT')
-    await page.evaluate(() =>
-      document.documentElement.style.setProperty('--sys-font-body-md-font-size', '21px')
-    )
-    await expect(page.locator(selector)).toHaveCSS('font-size', '21px')
-    await expectContained('.solved-content-popup')
-    await page.evaluate(() =>
-      document.documentElement.style.removeProperty('--sys-font-body-md-font-size')
-    )
-  }
-  await expect(page.locator('.content-tweet')).toHaveClass(/solved-content-popup__content/)
-  await expect(page.locator('.content-tweet')).toHaveCSS('overflow-y', 'auto')
-  await expect(page.locator('.content-tweet__media-grid')).toHaveCSS(
-    'border-top-left-radius',
-    '0px'
-  )
-  await page.screenshot({ path: `${evidence}/tweet-host-dark-narrow.png` })
-
-  await navigate('/?q=migration')
-  await expect(page.locator('.info-base-list-view__match')).toBeVisible()
-  await expect(page.locator('.info-base-list-view__match')).toHaveCSS(
-    'border-top-left-radius',
-    '0px'
-  )
-  await expectContained('.info-base-list-view, .info-base-list-view__match')
-  await page.evaluate(() => {
-    window.scrollTo(0, 0)
-    document.querySelector('.info-base-list-view').scrollTop = 0
-  })
-  await page.screenshot({ path: `${evidence}/search-dark-narrow.png` })
-  await page.keyboard.press('Control+k')
-  const recall = page.getByRole('dialog', { name: 'Recall information', exact: true })
-  await expect(recall).toBeVisible()
-  await recall.getByRole('button', { name: 'Find path', exact: true }).click()
-  await recall.getByRole('searchbox').fill('migration')
-  await recall.getByRole('button', { name: 'Search', exact: true }).click()
-  await expect(page.locator('.recall-search__results > button')).toBeVisible()
-  await expectContained('.recall-search, dialog[open]')
-  await page.screenshot({ path: `${evidence}/recall-dark-narrow.png` })
-  await page.keyboard.press('Escape')
-  await expect(recall).not.toBeVisible()
-
-  await verifySources({ page, source, job, dates, evidence, navigate, expectContained })
-
-  for (const width of [1280, 375]) {
-    await page.setViewportSize({ width, height: 1000 })
-    await page.emulateMedia({ colorScheme: width === 1280 ? 'light' : 'dark' })
-    await navigate('/jobs/9')
-    await expect(page.locator('.log-body')).toBeVisible()
-    await expect(page.locator('pre.metadata__value')).toHaveCSS('font-family', /monospace/)
-    await page.locator('.log-entry__main').press('Enter')
-    await expect(page.locator('.log-entry__main')).toHaveAttribute('aria-expanded', 'true')
-    await expect(page.locator('.log-entry__details')).toBeVisible()
-    await expectContained('.job-view, .job-view__metadata, .job-view__logs, .log-entry')
-    await page.screenshot({ path: `${evidence}/job-${width}.png` })
-    await navigate('/extensions')
+  if (!process.argv.includes('--i4-only')) {
+    await page.goto(new URL('/extensions', webUrl).href)
+    const card = page.locator('.extension-card', { hasText: 'inkcre/twitter' })
     await expect(card).toBeVisible()
-    await expectContained('.extensions-view, .install-extension, .extension-card')
-    await page.screenshot({ path: `${evidence}/extensions-${width}.png` })
+    const menu = page.getByRole('button', { name: 'Menu', exact: true })
+    const sidebar = page.locator('.app-side-panel')
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate((theme) => (document.documentElement.dataset.theme = theme), theme)
+      for (const width of [375, 1280]) {
+        await page.setViewportSize({ width, height: 1000 })
+        const icon = menu.locator('[aria-hidden="true"]')
+        await expect(icon).toBeVisible()
+        await expect(icon).not.toHaveCSS('mask-image', 'none')
+        await expect(icon).toHaveCSS('width', '24px')
+        await expect(icon).toHaveCSS('height', '24px')
+        const color = await menu.evaluate((element) => getComputedStyle(element).color)
+        await expect(icon).toHaveCSS('background-color', color)
+        await expect(icon).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+        await expect(menu).toHaveCSS('mask-image', 'none')
+        await expect(sidebar).not.toBeVisible()
+        const contentWidth = await page
+          .locator('.extensions-view')
+          .evaluate((el) => el.getBoundingClientRect().width)
+        await icon.click()
+        await expect(sidebar).toBeVisible()
+        await menu.press('Enter')
+        await expect(sidebar).not.toBeVisible()
+        await menu.press('Space')
+        await expect(sidebar).toBeVisible()
+        await expect(menu).toBeFocused()
+        await expect(menu).toHaveCSS('outline-style', 'solid')
+        await expectContained('.ink-header, .app-side-panel')
+        if (width === 375) {
+          expect(
+            await page
+              .locator('.extensions-view')
+              .evaluate((el) => el.getBoundingClientRect().width)
+          ).toBe(contentWidth)
+        }
+        await page.screenshot({ path: `${evidence}/released-header-${theme}-${width}.png` })
+        await menu.press('Space')
+        await expect(sidebar).not.toBeVisible()
+      }
+    }
+    await page.evaluate(() => delete document.documentElement.dataset.theme)
+    console.log(
+      'Released Header: visible 24px icon, focus and sidebar click/Enter/Space passed in light/dark at 375/1280px'
+    )
+    console.log('card', await card.innerText())
+    await card.getByRole('button', { name: /^(Setup|设置)$/ }).click()
+    await expect(page.getByRole('heading', { name: 'Set up bookmark collection' })).toBeVisible()
+    const sourcePicker = page.getByRole('combobox', { name: 'Bookmark Source', exact: true })
+    await sourcePicker.click()
+    await page.getByRole('option', { name: source.nickname, exact: true }).click()
+    const steps = page.getByRole('list', { name: 'Twitter setup progress' })
+    await expect(steps.getByRole('listitem')).toHaveCount(4)
+    for (const marker of await steps.locator('span').all()) {
+      await expect(marker).toHaveCSS('border-radius', '0px')
+    }
+    await expect(steps.locator('.is-current')).toHaveCount(1)
+    await page.setViewportSize({ width: 375, height: 1000 })
+    await expectContained(
+      '.ink-popup, .ink-dialog__content, .twitter-setup, .twitter-setup__steps, .twitter-setup__steps li, .twitter-setup__toolbar'
+    )
+    await expect(page.getByRole('button', { name: 'Close', exact: true })).toBeInViewport({
+      ratio: 1,
+    })
+    await page.screenshot({ path: `${evidence}/twitter-steps-375.png` })
+    await page.setViewportSize({ width: 1280, height: 1000 })
+    await page.screenshot({ path: `${evidence}/twitter-host-setup.png` })
+    console.log('picker', await page.locator('.ink-picker').innerText())
+    await page.locator('.ink-picker').click()
+    console.log('dialogs', await page.getByRole('dialog').allTextContents())
+    await page.screenshot({ path: `${evidence}/twitter-time-picker.png` })
+    const picker = page.locator('.ink-picker')
+    const timeDialog = page.getByRole('dialog').last()
+    await expect(timeDialog.getByRole('button', { name: '取消', exact: true })).toBeVisible()
+    await timeDialog.getByRole('listbox', { name: /小时/ }).selectOption('7')
+    await timeDialog.getByRole('listbox', { name: /分钟/ }).selectOption('30')
+    await timeDialog.getByRole('button', { name: '取消', exact: true }).click()
+    await expect(picker).toHaveText('12:00 AM')
+    await picker.click()
+    await timeDialog.getByRole('listbox', { name: /小时/ }).selectOption('7')
+    await timeDialog.getByRole('listbox', { name: /分钟/ }).selectOption('30')
+    await timeDialog.getByRole('button', { name: '确认', exact: true }).click()
+    await expect(picker).toHaveText('07:30 AM')
+    console.log('Twitter time cancel/confirm and Host locale passed')
+    const cronPattern = 'https://api-migration.invalid/rest/crons*'
+    const rejectCron = (route) =>
+      route.fulfill({
+        status: 403,
+        json: { message: 'Controlled schedule read failure' },
+        headers: { 'access-control-allow-origin': '*' },
+      })
+    await page.route(cronPattern, rejectCron)
+    await sourcePicker.click()
+    await page.getByRole('option', { name: 'Second bookmark fixture', exact: true }).click()
+    await expect(page.locator('.twitter-setup').getByRole('alert')).toContainText(
+      'Controlled schedule read failure'
+    )
+    await expect(sourcePicker).toHaveText(source.nickname)
+    await expect(picker).toHaveText('07:30 AM')
+    await page.screenshot({ path: `${evidence}/i3-twitter-selection-failed.png` })
+    await page.unroute(cronPattern, rejectCron)
+    await sourcePicker.click()
+    await page.getByRole('option', { name: 'Second bookmark fixture', exact: true }).click()
+    await expect(sourcePicker).toHaveText('Second bookmark fixture')
+    await expect(page.locator('.twitter-setup').getByRole('alert')).toHaveCount(0)
+    console.log(
+      'Twitter source read failure preserves previous selection/time and manual retry passed'
+    )
+    await page.getByRole('button', { name: 'Close', exact: true }).click()
+    await page.evaluate(() => {
+      history.pushState({}, '', '/info-base/list/blocks/101/content')
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    })
+    await expect(page.getByRole('heading', { name: 'UI 2.0 Mail acceptance' })).toBeVisible()
+    await expect(
+      page
+        .frameLocator('iframe[title="Email HTML body"]')
+        .getByRole('heading', { name: 'Mail renderer with UI 2.0' })
+    ).toBeVisible()
+    const download = page.getByRole('button', { name: 'Download', exact: true })
+    await download.click()
+    try {
+      await expect(download).toBeDisabled()
+      await page.screenshot({ path: `${evidence}/mail-host-pending.png` })
+    } finally {
+      releaseDownload()
+    }
+    await expect(page.getByText('Mail materialization Peer returned HTTP 500')).toBeVisible()
+    await expect(download).toBeEnabled()
+    await page.setViewportSize({ width: 375, height: 812 })
+    await page.emulateMedia({ colorScheme: 'dark' })
+    await page.getByText('Mail materialization Peer returned HTTP 500').scrollIntoViewIfNeeded()
+    await page.screenshot({ path: `${evidence}/mail-host-dark-narrow.png` })
+    console.log('Mail renderer, pending and materialization failure passed')
+    await expect(page.locator('.content-email__part')).toHaveCSS('border-top-left-radius', '0px')
+    await expectContained('.content-email__part, .solved-content-popup')
+
+    for (const [id, selector] of [
+      [104, '.content-text__content'],
+      [105, '.content-html__text'],
+      [106, '.content-tweet__text'],
+    ]) {
+      await navigate('/')
+      await navigate(`/info-base/list/blocks/${id}/content`)
+      await expect(page.locator(selector)).toContainText('END-OF-CONTENT')
+      await page.evaluate(() =>
+        document.documentElement.style.setProperty('--sys-font-body-md-font-size', '21px')
+      )
+      await expect(page.locator(selector)).toHaveCSS('font-size', '21px')
+      await expectContained('.solved-content-popup')
+      await page.evaluate(() =>
+        document.documentElement.style.removeProperty('--sys-font-body-md-font-size')
+      )
+    }
+    await expect(page.locator('.content-tweet')).toHaveClass(/solved-content-popup__content/)
+    await expect(page.locator('.content-tweet')).toHaveCSS('overflow-y', 'auto')
+    await expect(page.locator('.content-tweet__media-grid')).toHaveCSS(
+      'border-top-left-radius',
+      '0px'
+    )
+    await page.screenshot({ path: `${evidence}/tweet-host-dark-narrow.png` })
+
+    await navigate('/?q=migration')
+    await expect(page.locator('.info-base-list-view__match')).toBeVisible()
+    await expect(page.locator('.info-base-list-view__match')).toHaveCSS(
+      'border-top-left-radius',
+      '0px'
+    )
+    await expectContained('.info-base-list-view, .info-base-list-view__match')
+    await page.evaluate(() => {
+      window.scrollTo(0, 0)
+      document.querySelector('.info-base-list-view').scrollTop = 0
+    })
+    await page.screenshot({ path: `${evidence}/search-dark-narrow.png` })
+    await page.keyboard.press('Control+k')
+    const recall = page.getByRole('dialog', { name: 'Recall information', exact: true })
+    await expect(recall).toBeVisible()
+    await recall.getByRole('button', { name: 'Find path', exact: true }).click()
+    await recall.getByRole('searchbox').fill('migration')
+    await recall.getByRole('button', { name: 'Search', exact: true }).click()
+    await expect(page.locator('.recall-search__results > button')).toBeVisible()
+    await expectContained('.recall-search, dialog[open]')
+    await page.screenshot({ path: `${evidence}/recall-dark-narrow.png` })
+    await page.keyboard.press('Escape')
+    await expect(recall).not.toBeVisible()
+
+    await verifySources({ page, source, job, dates, evidence, navigate, expectContained })
+
+    for (const width of [1280, 375]) {
+      await page.setViewportSize({ width, height: 1000 })
+      await page.emulateMedia({ colorScheme: width === 1280 ? 'light' : 'dark' })
+      await navigate('/jobs/9')
+      await expect(page.locator('.log-body')).toBeVisible()
+      await expect(page.locator('pre.metadata__value')).toHaveCSS('font-family', /monospace/)
+      await page.locator('.log-entry__main').press('Enter')
+      await expect(page.locator('.log-entry__main')).toHaveAttribute('aria-expanded', 'true')
+      await expect(page.locator('.log-entry__details')).toBeVisible()
+      await expectContained('.job-view, .job-view__metadata, .job-view__logs, .log-entry')
+      await page.screenshot({ path: `${evidence}/job-${width}.png` })
+      await navigate('/extensions')
+      await expect(card).toBeVisible()
+      await expectContained('.extensions-view, .install-extension, .extension-card')
+      await page.screenshot({ path: `${evidence}/extensions-${width}.png` })
+    }
+    console.log(
+      'Full content, semantic font override, square containers and responsive pages passed'
+    )
   }
-  console.log('Full content, semantic font override, square containers and responsive pages passed')
+  await verifyI4({
+    page,
+    navigate,
+    evidence,
+    expectContained,
+    dates,
+    blocks,
+    relations,
+    core,
+    extensions,
+    source,
+    webUrl,
+  })
   expect(errors).toEqual([])
   console.log('errors', errors)
 } catch (error) {

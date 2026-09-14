@@ -115,3 +115,11 @@ pnpm exec node tasks/ui-v2-migration/evidence/browser-host.mjs https://preview-c
 正式远端复验通过：[部署身份](ui-2.0.1/delivery.json) 对应源码 `d027230`、[preview run](https://github.com/InKCre/client-web/actions/runs/34799553542) 与部署 `52f3ec3f`。使用 `--deployed-extensions` 加载实际 Host、同源 Registry 和两个 MF 产物，全旅程退出 0，pageerror 为零，见 [日志](ui-2.0.1/browser-output.txt)。截图：[浅色窄屏菜单](ui-2.0.1/released-header-light-375.png)、[深色窄屏菜单](ui-2.0.1/released-header-dark-375.png)、[来源列表](ui-2.0.1/i3-sources-1280.png)、[Mail 失败反馈](ui-2.0.1/mail-host-dark-narrow.png)、[Twitter 时间选择](ui-2.0.1/twitter-time-picker.png)。菜单截图中的轮廓为键盘焦点，普通状态没有边框。
 
 最终功能提交 `d027230` 的 [完整 CI](https://github.com/InKCre/client-web/actions/runs/34799554488) 全部通过，包括 Web 真实数据库旅程、浏览器扩展 E2E 与工作区契约检查。后续文档归档提交没有改变运行时代码。
+
+## I4：Twitter、Mail 与 Graph
+
+本轮以正式包 DESIGN.md 的内容取舍、视觉语言及页面组合为比较依据。Twitter 保留当前步骤与完成摘要，应用凭据按需展开，保存与授权分开；Mail 让邮件内容优先，附件按行组织，信头、内嵌内容与相关邮件可展开，事实摘要不罗列底层字段；Graph 保留场景上下文，选项按需打开，节点可通过键盘聚焦与查看，方向弱化保留可读内容。
+
+完整 check 与原有浏览器旅程通过。扩展的 [I4 重放](i4.mjs) 使用真实构建的 Host 与 MF 产物，验证首次使用、草稿、等待、失败重试、已配置、展开详情、下载、图检索和返回。通过既有 Storage 读取隔离字节并产生真实 Blob 链接；邮件 iframe 不允许脚本、同源访问或外部追踪图像，仅应用清理后注入的固定排印。Graph 验证方向切换不增加数据库读取，拖拽位置在选项变化后保留，读取失败、缺失、空结果、已找到／未找到路径与超出边界分别呈现。
+
+375px 的 Graph 默认聚焦当前对象，使用平移和缩放访问邻域；不要求所有节点同时挤入视口。截图禁用过渡动画并等待相机定位，避免将途中帧作为最终布局。单独重放本轮可在原命令后加 `--i4-only`；远端加 `--deployed-extensions`。详细日志和代表截图位于 [I4 证据目录](i4/)。实际 OAuth 与真实邮箱未执行，数据库 E2E 由同一 PR 的独立 CI 检查。
