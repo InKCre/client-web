@@ -1,39 +1,9 @@
 # AppSidePanel
 
-Application-specific sidebar panel component that displays the main navigation menu (Managing section).
+应用导航由 Header 的 Menu 按钮控制，`expanded` 默认为 `false`。侧栏提供 Sources、Extensions、Settings 和 Info-Base 导航，切换路由时通过 `update:expanded(false)` 通知父组件关闭。
 
-## Features
-
-- Integrates SidePanel for expand/collapse functionality
-- Displays Managing menu with Sources, Extensions, and Settings buttons
-- Handles navigation internally (Sources, Extensions, Settings)
-- Automatically expands on start view, collapses on other routes
-- Manages its own expanded state
-
-## Usage
+桌面端与页面并排显示，宽度包含内边距和边框。移动断点内覆盖 `.app-content`，避免压缩主内容；Header 保持可见，用户可再次激活 Menu 关闭侧栏。
 
 ```vue
-<template>
-  <AppSidePanel :expanded="sidebarExpanded" />
-</template>
+<AppSidePanel v-model:expanded="sidebarExpanded" />
 ```
-
-## Props
-
-| Prop       | Type      | Default | Description                                         |
-| ---------- | --------- | ------- | --------------------------------------------------- |
-| `expanded` | `boolean` | `false` | Controls whether the panel is expanded or collapsed |
-
-## Emits
-
-| Event             | Payload   | Description                                            |
-| ----------------- | --------- | ------------------------------------------------------ |
-| `update:expanded` | `boolean` | Emitted when the expanded state changes based on route |
-
-## Behavior
-
-- **On Start View (`/`)**: Panel expands by default
-- **On Other Routes**: Panel collapses by default
-- **Sources Button**: Navigates to `/sources`
-- **Extensions Button**: Placeholder for future navigation
-- **Settings Button**: Placeholder for future navigation

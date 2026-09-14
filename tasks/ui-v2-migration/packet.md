@@ -125,3 +125,5 @@ TCP 健康探测修正后，本机 SSH 隔离数据库已进入浏览器，五�
 安装后读取同版本设计／Skill，执行完整 check。既有真实页面旅程补上 Header 的非透明图标、24px 图形、完整焦点与侧栏逐次切换；同时复核新版浅深主题和现有 MF 交互。网络夹具与真实数据库 E2E 继续分开记录。
 
 UI 2.0.1 已正式发布并从 GitHub Packages 安装到四个直接消费者。lockfile integrity 与 registry 相同，四处 UI JS／CSS 字节相同。完整 pnpm check 与本地浏览器全旅程通过，pageerror 为零。浅深／375px／1280px 新增菜单图形 24px、currentColor、键盘焦点和 click／Enter／Space 切换检查；发现侧栏 content-box 将内边距叠加至最小宽度，补 border-box 后窄屏容纳检查通过。新包发布年龄仅按精确版本加入已有安装允许清单，未放宽全局策略。
+
+截图复核发现 border-box 只消除了侧栏自身裁切，窄屏主内容仍被并排布局挤成竖列。移动断点内将侧栏定位在 app-content 上覆盖内容，保持 Header 菜单可关闭，桌面继续并排；新增打开菜单前后主内容宽度不变检查。此次补验避免用局部容纳断言替代页面可读性。
