@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { InkButton } from '@inkcre/ui-web'
 import DOMPurify from 'dompurify'
 import { getInfoBaseRouter, type SolvedContentRendererProps } from '@inkcre/core'
 
 import type { EmailResolver } from '../../resolver'
+import MimePartItem from '../contentMimePart/MimePartItem.vue'
 import type { SolvedEmail, SolvedMimePart } from '../../schema'
 
 const props = defineProps<SolvedContentRendererProps<SolvedEmail, EmailResolver>>()
@@ -32,6 +32,35 @@ const participants = computed(() => {
     grouped.set(participant.relation.role, values)
   }
   return [...grouped.entries()]
+})
+
+const sender = computed(() => {
+  const from = email.value.participants.filter(
+    (participant) => participant.relation.role === 'from'
+  )
+  const senders = from.length
+    ? from
+    : email.value.participants.filter((participant) => participant.relation.role === 'sender')
+  return senders
+    .sort((left, right) => left.relation.order - right.relation.order)
+    .map(
+      (participant) =>
+        participant.relation.display_name || participant.address.solvedContent.address
+    )
+    .join(', ')
+})
+const attachments = computed(() =>
+  email.value.mimeParts.filter((part) => part.relation.role === 'attachment')
+)
+const inlineParts = computed(() =>
+  email.value.mimeParts.filter((part) => part.relation.role === 'inline')
+)
+const conversations = computed(() => {
+  const parents = new Set(email.value.parents.map((part) => part.block.id))
+  return [
+    ...email.value.parents,
+    ...email.value.references.filter((part) => !parents.has(part.block.id)),
+  ]
 })
 
 const htmlBody = computed(() =>
@@ -80,10 +109,11 @@ const isolatedHtml = computed(() => {
       anchor.removeAttribute('target')
     }
   }
-  return `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src blob:"></head><body>${document.body.innerHTML}</body></html>`
+  return `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src blob:; style-src 'nonce-inkcre-mail'"><style nonce="inkcre-mail">body{margin:0;padding:16px;color:#202020;background:#fff;font:16px/1.65 system-ui,sans-serif;overflow-wrap:anywhere}h1,h2,h3{line-height:1.35;font-weight:600}h1{font-size:1.5em}h2{font-size:1.25em}h3{font-size:1.1em}img{max-width:100%;height:auto}pre{white-space:pre-wrap}blockquote{margin-inline:0;padding-inline-start:16px;border-inline-start:2px solid #ccc}a{color:inherit}</style></head><body>${document.body.innerHTML}</body></html>`
 })
 
 async function materialize(block: number): Promise<void> {
+  if (materializing.value.has(block)) return
   materializing.value = new Set(materializing.value).add(block)
   const errors = new Map(materializeErrors.value)
   errors.delete(block)
@@ -91,8 +121,10 @@ async function materialize(block: number): Promise<void> {
   try {
     email.value = await props.resolver.materializeMimePart(block)
   } catch (cause) {
-    errors.set(block, cause instanceof Error ? cause.message : String(cause))
-    materializeErrors.value = errors
+    materializeErrors.value = new Map(materializeErrors.value).set(
+      block,
+      cause instanceof Error ? cause.message : String(cause)
+    )
   } finally {
     const active = new Set(materializing.value)
     active.delete(block)
@@ -109,21 +141,35 @@ function navigate(block: number): void {
   <article class="content-email">
     <header class="content-email__header">
       <h2>{{ email.root.subject || '(no subject)' }}</h2>
-      <time v-if="email.root.authored_at">{{ email.root.authored_at.toLocaleString() }}</time>
-      <dl>
-        <template v-for="[role, values] in participants" :key="role">
-          <dt>{{ role.replace(/_/g, ' ') }}</dt>
-          <dd>{{ values.join(', ') }}</dd>
-        </template>
-      </dl>
-      <p v-if="email.mailboxes.length">
-        {{ email.mailboxes.map((item) => item.mailbox.solvedContent.name).join(', ') }}
-        <span v-if="email.flags.length">
-          · {{ email.flags.map((item) => item.flag.solvedContent.name).join(', ') }}</span
-        >
-      </p>
+      <p v-if="sender" class="content-email__sender">{{ sender }}</p>
+      <time v-if="email.root.authored_at" :datetime="email.root.authored_at.toISOString()">{{
+        email.root.authored_at.toLocaleString()
+      }}</time>
+      <details
+        v-if="participants.length || email.mailboxes.length || email.flags.length"
+        class="content-email__details"
+      >
+        <summary>Message details</summary>
+        <dl>
+          <template v-for="[role, values] in participants" :key="role">
+            <dt>{{ role.replace(/_/g, ' ') }}</dt>
+            <dd>{{ values.join(', ') }}</dd>
+          </template>
+          <template v-if="email.mailboxes.length"
+            ><dt>Mailboxes</dt>
+            <dd>
+              {{ email.mailboxes.map((item) => item.mailbox.solvedContent.name).join(', ') }}
+            </dd></template
+          >
+          <template v-if="email.flags.length"
+            ><dt>Flags</dt>
+            <dd>
+              {{ email.flags.map((item) => item.flag.solvedContent.name).join(', ') }}
+            </dd></template
+          >
+        </dl>
+      </details>
     </header>
-
     <iframe
       v-if="htmlBody"
       :key="isolatedHtml"
@@ -134,55 +180,52 @@ function navigate(block: number): void {
     />
     <pre v-else-if="textBody" class="content-email__text">{{ textBody.solvedContent }}</pre>
     <p v-else class="content-email__empty">No body content</p>
-
-    <section v-if="email.mimeParts.length" class="content-email__parts">
-      <h3>Attachments and inline content</h3>
-      <article v-for="part in email.mimeParts" :key="part.block.id" class="content-email__part">
-        <div>
-          <strong>{{
-            part.solvedContent.root.filename ||
-            part.solvedContent.root.description ||
-            part.solvedContent.root.media_type
-          }}</strong>
-          <span>{{ part.solvedContent.root.media_type }}</span>
-        </div>
-        <a
-          v-if="objectUrl(part.solvedContent)"
-          :href="objectUrl(part.solvedContent) || undefined"
-          target="_blank"
-          rel="noopener noreferrer"
-          >Open</a
-        >
-        <InkButton
-          v-else
-          text="Download"
-          :is-loading="materializing.has(part.block.id)"
-          @click="materialize(part.block.id)"
-        />
-        <p v-if="materializeErrors.get(part.block.id)" role="alert">
-          {{ materializeErrors.get(part.block.id) }}
-        </p>
-      </article>
+    <section v-if="attachments.length" class="content-email__parts" aria-label="Attachments">
+      <h3>
+        Attachments <span>{{ attachments.length }}</span>
+      </h3>
+      <ul>
+        <li v-for="part in attachments" :key="part.block.id" class="content-email__part">
+          <MimePartItem
+            :content="part.solvedContent"
+            :loading="materializing.has(part.block.id)"
+            :error="materializeErrors.get(part.block.id)"
+            @download="materialize(part.block.id)"
+          />
+        </li>
+      </ul>
     </section>
-
-    <section
-      v-if="email.parents.length || email.references.length"
-      class="content-email__references"
-    >
-      <h3>Conversation</h3>
-      <InkButton
-        v-for="target in email.parents"
-        :key="`parent-${target.block.id}`"
-        :text="`View reply target: ${target.solvedContent.subject || target.solvedContent.message_id || `#${target.block.id}`}`"
-        @click="navigate(target.block.id)"
-      />
-      <InkButton
-        v-for="target in email.references"
-        :key="`reference-${target.block.id}`"
-        :text="`View reference: ${target.solvedContent.subject || target.solvedContent.message_id || `#${target.block.id}`}`"
-        @click="navigate(target.block.id)"
-      />
-    </section>
+    <details v-if="inlineParts.length" class="content-email__details">
+      <summary>Inline content · {{ inlineParts.length }}</summary>
+      <ul>
+        <li v-for="part in inlineParts" :key="part.block.id" class="content-email__part">
+          <MimePartItem
+            :content="part.solvedContent"
+            :loading="materializing.has(part.block.id)"
+            :error="materializeErrors.get(part.block.id)"
+            @download="materialize(part.block.id)"
+          />
+        </li>
+      </ul>
+    </details>
+    <details v-if="conversations.length" class="content-email__details">
+      <summary>Related messages · {{ conversations.length }}</summary>
+      <ul>
+        <li v-for="target in conversations" :key="target.block.id">
+          <button
+            type="button"
+            class="content-email__message-link"
+            @click="navigate(target.block.id)"
+          >
+            {{
+              target.solvedContent.subject ||
+              target.solvedContent.message_id ||
+              `Message #${target.block.id}`
+            }}
+          </button>
+        </li>
+      </ul>
+    </details>
   </article>
 </template>
 

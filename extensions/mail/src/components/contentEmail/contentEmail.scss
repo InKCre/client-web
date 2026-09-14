@@ -1,111 +1,102 @@
 .content-email {
   display: flex;
   flex-direction: column;
-  gap: sys-var(space, md);
+  gap: sys-var(space, lg);
+  min-width: 0;
   @include apply-font(body-md);
   overflow-wrap: anywhere;
-  color: var(--sys-color-text-base);
-
+  color: sys-var(color, text, base);
+  h2,
+  h3,
+  p {
+    margin: 0;
+  }
+  h2 {
+    @include apply-font(title-sm);
+  }
+  h3 {
+    @include apply-font(label-lg);
+  }
+  h3 span {
+    margin-left: sys-var(space, xs);
+    color: sys-var(color, text, subtle);
+  }
   &__header {
-    border-bottom: 1px solid var(--sys-color-border-base);
-    padding-bottom: 16px;
-
-    h2 {
-      margin: 0 0 8px;
-      @include apply-font(title-sm);
+    display: grid;
+    gap: sys-var(space, sm);
+  }
+  &__sender {
+    @include apply-font(body-md);
+  }
+  time,
+  &__empty {
+    @include apply-font(body-sm);
+    color: sys-var(color, text, subtle);
+  }
+  &__details {
+    @include apply-font(body-sm);
+    summary {
+      cursor: pointer;
+      color: sys-var(color, text, subtle);
     }
-
-    time,
-    p {
-      @include apply-font(body-sm);
-      color: var(--sys-color-text-subtle);
-    }
-
     dl {
       display: grid;
-      grid-template-columns: max-content minmax(0, 1fr);
-      gap: 4px 12px;
+      grid-template-columns: fit-content(30%) minmax(0, 1fr);
+      gap: sys-var(space, sm) sys-var(space, md);
     }
-
     dt {
-      @include apply-font(label-md);
       text-transform: capitalize;
-      color: var(--sys-color-text-subtle);
+      color: sys-var(color, text, subtle);
     }
-
     dd {
       margin: 0;
-      overflow-wrap: anywhere;
+    }
+    ul {
+      margin-top: sys-var(space, sm);
     }
   }
-
   &__html {
     box-sizing: border-box;
     width: 100%;
-    min-height: 420px;
-    border: 1px solid var(--sys-color-border-base);
-    // Email HTML owns its document colors and remains isolated in the iframe.
+    height: min(60vh, 36rem);
+    min-height: 16rem;
+    border: 1px solid sys-var(color, border, subtle);
+    // The sanitized message remains a separate, script-free document.
     background: #fff;
   }
-
   &__text {
     margin: 0;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     font: inherit;
   }
-
-  &__parts,
-  &__references {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-
-    h3 {
-      margin: 0;
-      @include apply-font(title-sm);
-    }
+  &__parts {
+    display: grid;
+    gap: sys-var(space, sm);
   }
-
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
   &__part {
-    display: flex;
-    flex-wrap: wrap;
-    box-sizing: border-box;
-    width: 100%;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    border: 1px solid var(--sys-color-border-base);
-    border-radius: sys-var(radius, none);
-
-    div {
-      display: flex;
-      min-width: 0;
-      flex: 1 1 10rem;
-      overflow-wrap: anywhere;
-      flex-direction: column;
-    }
-
-    button,
-    a {
-      flex-shrink: 0;
-    }
-
-    strong {
-      @include apply-font(label-lg);
-    }
-
-    span,
-    p {
-      @include apply-font(body-sm);
-      color: var(--sys-color-text-subtle);
-    }
-
-    p {
-      width: 100%;
-      margin: 0;
-      color: sys-var(color, feedback, error);
-    }
+    padding-block: sys-var(space, md);
+    border-top: 1px solid sys-var(color, border, subtle);
+  }
+  &__message-link {
+    padding: sys-var(space, xs) 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    text-decoration: underline;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+  }
+  summary:focus-visible,
+  button:focus-visible {
+    outline: 2px solid sys-var(color, border, strong);
+    outline-offset: 2px;
   }
 }
