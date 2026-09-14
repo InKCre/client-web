@@ -8,7 +8,7 @@ const emit = defineEmits<RelationEdgeEmits>()
 
 const label = computed(() => {
   const content = props.data?.relation.content.trim() ?? ''
-  return !content || /^[{[]/.test(content) ? `Relation #${props.data?.relation.id}` : content
+  return !content || /^[{[]/.test(content) ? `#${props.data?.relation.id}` : content
 })
 
 const path = computed(() => {
@@ -53,16 +53,13 @@ const labelY = computed(() => path.value[2])
         pointerEvents: 'all',
       }"
     >
-      <button type="button" class="relation-edge__focus" @click="emit('focus', data!.relation.id)">
-        {{ label }}
-      </button>
       <button
         type="button"
-        class="relation-edge__inspect"
-        :aria-label="`Inspect Relation #${data?.relation.id}`"
-        @click="emit('inspect', data!.relation.id)"
+        class="relation-edge__focus"
+        :aria-label="`Explore Relation #${data?.relation.id}`"
+        @click="emit('focus', data!.relation.id)"
       >
-        Details
+        {{ label }}
       </button>
     </div>
   </EdgeLabelRenderer>

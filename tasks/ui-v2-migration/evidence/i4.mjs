@@ -463,6 +463,7 @@ export async function verifyI4({
   await expect(page.locator('.block-inspector-popup')).toHaveCount(0)
   for (let attempt = 0; attempt < 4; attempt += 1)
     await page.getByRole('button', { name: 'Zoom out', exact: true }).click()
+  await page.getByRole('button', { name: 'Explore Relation #205', exact: true }).click()
   await page.getByRole('button', { name: 'Inspect Relation #205', exact: true }).click()
   await expect(page.locator('.relation-inspector-popup')).toContainText('parent:reply')
   await page.screenshot({ animations: 'disabled', path: `${evidence}/i4-graph-relation-375.png` })
