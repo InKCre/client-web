@@ -153,3 +153,7 @@ I4 本地完整 check、原有 Host／来源旅程与新增状态重放全部通
 I4-G 截图收尾移除每条关系线上重复的 Details，将关系详情入口放在选中关系的工具区。连线保留聚焦标签，结构化属性用短编号识别，在 inspector 阅读完整内容，避免标签与相邻节点争夺空间。
 
 I4 已分组提交并推送：Twitter `4131616`、Mail `9e1b0d4`、Block 读取错误 `bdcbdf8`、Graph `c62081e` 及关系操作收尾 `ab5af80`。最终验收源 `9cd531e` 的 preview 34803559638（部署 `69ebcde3`）与 CI 34803560421 全部成功；真实远端 Host／Registry／两个 MF 的原有及新增旅程通过，pageerror 为零。`evidence/i4` 记录源码、部署、日志与远端截图。后续归档只改变文档与证据，不改变运行时代码。
+
+I4-G 用户复核指出，焦点节点的 Current 标签重复了布局和轮廓已有的表达。已移除该标签及其专用排印样式，保留对象编号、详情入口与焦点轮廓。复核本轮三个界面的相似文案后，Twitter 的账户身份、配置完成与失败反馈仍承载独立信息，Graph 的 Focus current 是定位动作，均保留。此修正落实既有内容取舍原则，不增加设计规则；沿用 Graph 的未发布 Changeset。
+
+本次修正的完整 `pnpm check` 与既有 I4 浏览器旅程通过，pageerror 为零；375px 新截图确认焦点轮廓与对象操作清晰，节点不再显示 Current。检查日志分别为 `/tmp/inkcre-current-check.log`、`/tmp/inkcre-current-browser.log`，本地截图位于 `.runtime/ui-migration-evidence/i4-graph-375.png`。这些是本轮本地构建证据，前述 `evidence/i4` 仍对应其已注明的早期部署。继续通过 PR #104 交付此局部修正。
