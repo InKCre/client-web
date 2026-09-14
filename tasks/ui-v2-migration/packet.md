@@ -2,7 +2,7 @@
 
 2026-09-13，用户授权发布 UI，并在独立分支与 worktree 中迁移 client-web 及各 extensions。本工作包拥有消费者实施与验证；UI 生产者的 `tasks/ui-foundations/packet.md` 继续拥有总图和发布依赖。
 
-当前已安装正式 UI 2.0.1，完整 check 与本地 Host／Mail／Twitter 浏览器验收通过，正在交付 PR #104 更新。此前 I3 已通过 PR preview；SSH 已恢复，本机真实数据库 E2E 也通过。结果与交付身份见文末。该结论限定于来源工作流和关联修复，不代表全部消费者的视觉复审完成。
+当前已安装正式 UI 2.0.1，完整 check 与本地 Host／Mail／Twitter 浏览器验收通过，已推送 PR #104 并通过真实远端页面复验。此前 I3 已通过 PR preview；SSH 已恢复，本机真实数据库 E2E 也通过。结果与交付身份见文末。该结论限定于来源工作流和关联修复，不代表全部消费者的视觉复审完成。
 
 ## 目标与边界
 
@@ -127,3 +127,5 @@ TCP 健康探测修正后，本机 SSH 隔离数据库已进入浏览器，五�
 UI 2.0.1 已正式发布并从 GitHub Packages 安装到四个直接消费者。lockfile integrity 与 registry 相同，四处 UI JS／CSS 字节相同。完整 pnpm check 与本地浏览器全旅程通过，pageerror 为零。浅深／375px／1280px 新增菜单图形 24px、currentColor、键盘焦点和 click／Enter／Space 切换检查；发现侧栏 content-box 将内边距叠加至最小宽度，补 border-box 后窄屏容纳检查通过。新包发布年龄仅按精确版本加入已有安装允许清单，未放宽全局策略。
 
 截图复核发现 border-box 只消除了侧栏自身裁切，窄屏主内容仍被并排布局挤成竖列。移动断点内将侧栏定位在 app-content 上覆盖内容，保持 Header 菜单可关闭，桌面继续并排；新增打开菜单前后主内容宽度不变检查。此次补验避免用局部容纳断言替代页面可读性。
+
+升级提交 `bb4ebd4` 与移动侧栏提交 `d027230` 已推送。部署 run 34799553542 成功，真实远端 Host／Registry／Mail／Twitter 全旅程与浅深／窄宽菜单检查通过；截图和源码／部署身份见 `evidence/ui-2.0.1`。业务网络夹具与真实数据库 CI 仍分别记录，不宣称完成真实 OAuth 或扩展生产发布。
