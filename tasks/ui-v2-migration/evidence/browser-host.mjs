@@ -343,6 +343,9 @@ try {
       await expect(icon).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
       await expect(menu).toHaveCSS('mask-image', 'none')
       await expect(sidebar).not.toBeVisible()
+      const contentWidth = await page
+        .locator('.extensions-view')
+        .evaluate((el) => el.getBoundingClientRect().width)
       await icon.click()
       await expect(sidebar).toBeVisible()
       await menu.press('Enter')
@@ -352,6 +355,11 @@ try {
       await expect(menu).toBeFocused()
       await expect(menu).toHaveCSS('outline-style', 'solid')
       await expectContained('.ink-header, .app-side-panel')
+      if (width === 375) {
+        expect(
+          await page.locator('.extensions-view').evaluate((el) => el.getBoundingClientRect().width)
+        ).toBe(contentWidth)
+      }
       await page.screenshot({ path: `${evidence}/released-header-${theme}-${width}.png` })
       await menu.press('Space')
       await expect(sidebar).not.toBeVisible()

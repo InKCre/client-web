@@ -38,6 +38,7 @@ const sidebarExpanded = ref(false)
 }
 
 .app-content {
+  position: relative;
   flex: 1;
   overflow: hidden;
   display: flex;

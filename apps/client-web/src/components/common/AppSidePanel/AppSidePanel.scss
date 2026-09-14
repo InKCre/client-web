@@ -11,6 +11,16 @@
   gap: sys-var(space, md);
   background-color: sys-var(color, surface, base);
 
+  @include mobile {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    z-index: 10;
+    border-left: 0;
+  }
+
   &__content {
     background-color: sys-var(color, surface, subtle);
     border: 1px solid sys-var(color, border, subtle);
