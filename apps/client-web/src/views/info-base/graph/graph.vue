@@ -395,6 +395,13 @@ function isRoute(route: InfoBaseRoute | null, name: InfoBaseRoute['name']): bool
         <p v-if="status === 'ready'">{{ nodes.length }} blocks · {{ edges.length }} relations</p>
       </div>
       <div class="graph-view__actions">
+        <InkButton
+          v-if="focalRelation !== null"
+          text="Relation details"
+          theme="subtle"
+          :aria-label="`Inspect Relation #${focalRelation}`"
+          @click="inspectRelation(focalRelation)"
+        />
         <InkButton text="Search" theme="subtle" @click="openRecallSearch" />
         <details v-if="focalBlock !== null" class="graph-view__options">
           <summary>View options</summary>
@@ -444,11 +451,7 @@ function isRoute(route: InfoBaseRoute | null, name: InfoBaseRoute['name']): bool
         <BlockNodeComponent v-bind="nodeProps" @focus="focusBlock" @inspect="inspectBlock" />
       </template>
       <template #edge-relation="edgeProps">
-        <RelationEdgeComponent
-          v-bind="edgeProps"
-          @focus="focusRelation"
-          @inspect="inspectRelation"
-        />
+        <RelationEdgeComponent v-bind="edgeProps" @focus="focusRelation" />
       </template>
       <div class="graph-view__viewport-controls">
         <InkButton
