@@ -33,6 +33,7 @@ const pending = ref<string | null>(null)
 const error = ref<string | null>(null)
 const clientId = ref('')
 const clientSecret = ref('')
+const savedOAuthApp = ref<TwitterOAuthAppConfig | null>(null)
 const transaction = ref<OAuthTransaction | null>(null)
 const sources = ref<Source[]>([])
 const selectedSourceId = ref<string | number | null>(null)
@@ -52,7 +53,20 @@ const api = computed(() =>
 )
 const selectedCoreEnabled = computed(() => selectedCandidate.value?.enabled ?? false)
 const busy = computed(() => pending.value !== null)
-const oauthAppConfigured = computed(() => Boolean(clientId.value && clientSecret.value))
+const oauthAppConfigured = computed(() =>
+  Boolean(savedOAuthApp.value?.client_id && savedOAuthApp.value?.client_secret)
+)
+const oauthAppChanged = computed(
+  () =>
+    clientId.value !== savedOAuthApp.value?.client_id ||
+    clientSecret.value !== savedOAuthApp.value?.client_secret
+)
+const authorizationPending = computed(() =>
+  Boolean(transaction.value && ['pending', 'exchanging'].includes(transaction.value.status))
+)
+const collectionTime = computed(() =>
+  scheduleTime.value.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+)
 const setupReady = computed(() =>
   Boolean(status.value?.connected && selectedSource.value && selectedCron.value?.enabled)
 )
@@ -99,6 +113,7 @@ async function loadCollection(preferredSourceId?: number | null): Promise<void> 
   creatingSource.value = collection.sources.length === 0
 }
 function applyOAuthAppConfig(config: TwitterOAuthAppConfig): void {
+  savedOAuthApp.value = config
   clientId.value = config.client_id
   clientSecret.value = config.client_secret
 }
@@ -204,6 +219,7 @@ function stopPolling(): void {
   polling = null
 }
 function close(): void {
+  if (busy.value) return
   stopPolling()
   emit('close')
 }
@@ -293,72 +309,136 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section class="twitter-setup">
+  <section class="twitter-setup" :aria-busy="loading || busy">
     <ol class="twitter-setup__steps" aria-label="Twitter setup progress">
       <li
         v-for="(step, index) in TWITTER_SETUP_STEPS"
         :key="step"
-        :class="{ 'is-current': currentStep === index, 'is-complete': currentStep > index }"
+        :class="{ 'is-current': currentStep === index }"
+        :aria-current="currentStep === index ? 'step' : undefined"
       >
-        <span>{{ index + 1 }}</span
-        >{{ step }}
+        <button
+          v-if="index < currentStep"
+          type="button"
+          :disabled="busy"
+          @click="currentStep = index"
+        >
+          <span>{{ index + 1 }}</span
+          >{{ step }}
+        </button>
+        <span v-else class="twitter-setup__step"
+          ><span>{{ index + 1 }}</span
+          >{{ step }}</span
+        >
       </li>
     </ol>
-    <div v-if="loading" class="twitter-setup__loading"><InkLoading /></div>
+    <div v-if="loading" class="twitter-setup__loading" role="status">
+      <InkLoading />
+      <p>Loading Twitter settings…</p>
+    </div>
     <template v-else>
       <p v-if="error" class="twitter-setup__error" role="alert">{{ error }}</p>
       <div v-if="currentStep === 0" class="twitter-setup__panel">
-        <h3>Choose a Core Peer</h3>
-        <p>The OAuth callback runs on a Core Peer, while setup applies to the deployment.</p>
+        <h3>Choose a collection client</h3>
+        <p class="twitter-setup__hint">
+          This Core client handles authorization and bookmark collection.
+        </p>
         <InkForm v-if="candidates.length" layout="col">
           <InkDropdown
             v-model="selectedPeerId"
             :options="peerOptions"
-            label="Core Peer"
+            label="Core client"
             :editable="!busy"
           />
         </InkForm>
-        <p v-else>No live Core Peer can manage the installed Twitter Extension.</p>
-        <InkButton
-          v-if="selectedCandidate && !selectedCoreEnabled"
-          text="Enable Twitter on this Core Peer"
-          theme="primary"
-          :is-loading="pending === 'enable-core'"
-          :disabled="busy"
-          @click="enableSelectedCore"
-        />
+        <p v-else>No available Core client has the Twitter extension installed.</p>
+        <div class="twitter-setup__actions">
+          <InkButton
+            v-if="selectedCandidate && !selectedCoreEnabled"
+            text="Enable Twitter"
+            theme="primary"
+            :is-loading="pending === 'enable-core'"
+            :disabled="busy"
+            @click="enableSelectedCore"
+          />
+          <InkButton
+            v-else-if="selectedCoreEnabled"
+            text="Continue"
+            theme="primary"
+            :is-loading="busy"
+            @click="run('status', reloadStatus)"
+          />
+          <InkButton v-else text="Retry" theme="subtle" @click="initialize" />
+        </div>
       </div>
       <div v-else-if="currentStep === 1" class="twitter-setup__panel">
         <h3>Connect an X account</h3>
-        <p>Register your own X OAuth 2.0 application with this callback URL:</p>
-        <code>{{ status?.callback_url }}</code>
-        <InkForm layout="col">
-          <InkInput v-model="clientId" label="Client ID" required :editable="!busy" />
-          <InkField label="Client Secret" for="twitter-client-secret" required>
-            <input
-              id="twitter-client-secret"
-              v-model="clientSecret"
-              class="twitter-setup__secret"
-              type="password"
-              autocomplete="off"
+        <p v-if="status?.connected">Connected as @{{ status.handle }}.</p>
+        <p v-else class="twitter-setup__hint">
+          Use your own X OAuth application to authorize access to bookmarks.
+        </p>
+        <details class="twitter-setup__app" :open="!oauthAppConfigured">
+          <summary>
+            {{ oauthAppConfigured ? 'Application settings' : 'Configure your X application' }}
+          </summary>
+          <p class="twitter-setup__hint">Register this callback URL in your X application.</p>
+          <code>{{ status?.callback_url }}</code>
+          <InkForm layout="col" @submit="saveOAuthApp">
+            <InkInput
+              v-model="clientId"
+              label="Client ID"
               required
-              :disabled="busy"
+              :editable="!busy && !authorizationPending"
             />
-          </InkField>
-        </InkForm>
+            <InkField label="Client Secret" for="twitter-client-secret" required>
+              <input
+                id="twitter-client-secret"
+                v-model="clientSecret"
+                class="twitter-setup__secret"
+                type="password"
+                autocomplete="off"
+                required
+                :disabled="busy || authorizationPending"
+              />
+            </InkField>
+            <InkButton
+              text="Save application"
+              native-type="submit"
+              :theme="oauthAppConfigured ? 'subtle' : 'primary'"
+              :is-loading="pending === 'save-oauth-app'"
+              :disabled="
+                busy || authorizationPending || !clientId || !clientSecret || !oauthAppChanged
+              "
+            />
+          </InkForm>
+        </details>
+        <p v-if="oauthAppConfigured && oauthAppChanged" class="twitter-setup__hint">
+          Save the application changes before authorizing.
+        </p>
+        <div v-if="authorizationPending" class="twitter-setup__authorization" role="status">
+          <a
+            v-if="transaction?.authorize_url"
+            :href="transaction.authorize_url"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Open X authorization</a
+          >
+          <p>Complete authorization in the new tab. This page will update when it finishes.</p>
+        </div>
         <div class="twitter-setup__actions">
           <InkButton
-            text="Save OAuth App"
-            :is-loading="pending === 'save-oauth-app'"
-            :disabled="busy || !clientId || !clientSecret"
-            @click="saveOAuthApp"
+            v-if="status?.connected"
+            text="Continue"
+            theme="primary"
+            :disabled="busy || oauthAppChanged"
+            @click="applyStatus(status)"
           />
           <InkButton
-            v-if="oauthAppConfigured"
+            v-else-if="oauthAppConfigured && !authorizationPending"
             text="Create authorization link"
             theme="primary"
             :is-loading="pending === 'begin-oauth'"
-            :disabled="busy"
+            :disabled="busy || oauthAppChanged"
             @click="beginOAuth"
           />
           <InkButton
@@ -370,95 +450,71 @@ onBeforeUnmount(() => {
             @click="disconnect"
           />
         </div>
-        <a
-          v-if="transaction?.authorize_url"
-          :href="transaction.authorize_url"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="twitter-setup__oauth-link"
-          >Open X authorization</a
-        >
-        <p v-if="transaction && ['pending', 'exchanging'].includes(transaction.status)">
-          Waiting for authorization to return to Core…
-        </p>
-        <p v-if="status?.connected">Connected as @{{ status.handle }}.</p>
       </div>
       <div v-else-if="currentStep === 2" class="twitter-setup__panel">
-        <div>
-          <h3>Set up bookmark collection</h3>
-          <p>Choose an existing Bookmark Source or create one for this deployment.</p>
-        </div>
-        <div v-if="sources.length" class="twitter-setup__section">
-          <h4>Bookmark Source</h4>
-          <InkForm layout="col">
-            <InkDropdown
-              v-model="selectedSourceId"
-              :options="sourceOptions"
-              label="Bookmark Source"
-              :editable="!busy"
-            />
-          </InkForm>
-        </div>
-        <div v-else class="twitter-setup__empty">
-          <h4>No Bookmark Sources yet</h4>
-          <p>Create one to store collection cursor and source-specific settings.</p>
-        </div>
-        <div v-if="creatingSource" class="twitter-setup__section">
-          <h4>New Bookmark Source</h4>
-          <p>Give the deployment resource a recognizable nickname.</p>
-          <InkForm layout="col">
-            <InkInput v-model="sourceNickname" label="Source nickname" :editable="!busy" />
-          </InkForm>
+        <h3>Set up bookmark collection</h3>
+        <InkForm v-if="sources.length" layout="col">
+          <InkDropdown
+            v-model="selectedSourceId"
+            :options="sourceOptions"
+            label="Bookmark Source"
+            :editable="!busy"
+          />
+        </InkForm>
+        <InkForm v-if="creatingSource" layout="col" @submit="createSource">
+          <InkInput v-model="sourceNickname" label="Source nickname" :editable="!busy" required />
           <InkButton
             text="Create Bookmark Source"
+            theme="primary"
+            native-type="submit"
             :is-loading="pending === 'create-source'"
             :disabled="busy || !sourceNickname.trim()"
-            @click="createSource"
           />
-        </div>
-        <div v-if="selectedSource" class="twitter-setup__section">
-          <h4>Collection schedule</h4>
-          <p>Choose when Core should collect bookmarks each day.</p>
-          <InkForm layout="col">
-            <InkPicker
-              v-model="scheduleTime"
-              type="time"
-              label="Collect bookmarks daily at"
-              :editable="!busy"
-              :formatter="
-                (value: Date) =>
-                  value.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-              "
-            />
-          </InkForm>
-          <p class="twitter-setup__hint">Time uses the Core deployment timezone.</p>
+        </InkForm>
+        <InkForm v-if="selectedSource" layout="col" @submit="saveSchedule">
+          <InkPicker
+            v-model="scheduleTime"
+            type="time"
+            label="Collect bookmarks daily at"
+            :editable="!busy"
+            :formatter="
+              (value: Date) => value.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            "
+          />
+          <p class="twitter-setup__hint">Time uses the collection client's timezone.</p>
           <InkButton
             text="Continue"
             theme="primary"
+            native-type="submit"
             :is-loading="pending === 'save-schedule'"
             :disabled="busy"
-            @click="saveSchedule"
           />
-        </div>
+        </InkForm>
       </div>
       <div v-else class="twitter-setup__panel">
         <h3>{{ setupReady ? 'Twitter is ready' : 'Review and start' }}</h3>
-        <p>Confirm the deployment resources before starting bookmark collection.</p>
         <dl>
           <dt>Account</dt>
           <dd>@{{ status?.handle }}</dd>
           <dt>Bookmark Source</dt>
           <dd>{{ selectedSource?.nickname || `#${selectedSource?.id}` }}</dd>
-          <dt>Schedule</dt>
-          <dd>{{ selectedCron?.schedule }}</dd>
+          <dt>Collection</dt>
+          <dd>
+            Daily at {{ collectionTime }} <span class="twitter-setup__hint">· client timezone</span>
+          </dd>
         </dl>
+        <p v-if="setupReady" role="status">Bookmarks will be collected on this schedule.</p>
+        <p v-else class="twitter-setup__hint">
+          Start collection now and keep collecting on this schedule.
+        </p>
         <div class="twitter-setup__actions">
           <InkButton
-            text="Back"
+            :text="setupReady ? 'Edit collection' : 'Back'"
             theme="subtle"
             :disabled="busy"
             @click="currentStep = 2"
-          /><InkButton
+          />
+          <InkButton
             v-if="!setupReady"
             text="Start collecting bookmarks"
             theme="primary"
@@ -470,7 +526,7 @@ onBeforeUnmount(() => {
       </div>
     </template>
     <div class="twitter-setup__toolbar">
-      <InkButton text="Close" theme="subtle" @click="close" />
+      <InkButton text="Close" theme="subtle" :disabled="busy" @click="close" />
     </div>
   </section>
 </template>
