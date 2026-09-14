@@ -53,9 +53,6 @@
     @include apply-font(body-sm, $mono: true);
     color: sys-var(color, text, subtle);
   }
-  &__identity span {
-    @include apply-font(body-sm);
-  }
   &__preview-error {
     @include apply-font(body-sm);
     color: sys-var(color, text, subtle);

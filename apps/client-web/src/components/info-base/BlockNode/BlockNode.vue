@@ -59,9 +59,7 @@ const inspect = () => emit('inspect', props.data.block.id)
       <span v-else class="block-node__preview-error">Preview unavailable</span>
     </div>
     <footer>
-      <span class="block-node__identity"
-        >#{{ data.block.id }}<span v-if="data.focal"> · Current</span></span
-      >
+      <span class="block-node__identity">#{{ data.block.id }}</span>
       <button
         type="button"
         class="block-node__inspect nodrag nopan"
