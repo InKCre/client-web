@@ -63,11 +63,19 @@ function close(): void {
       <p v-else-if="status === 'error'">Unable to load this Relation.</p>
       <dl v-else-if="relation">
         <dt>From</dt>
-        <dd>#{{ relation.from_ }}</dd>
+        <dd>
+          <button type="button" @click="router.push({ name: 'block', block: relation.from_ })">
+            Block #{{ relation.from_ }}
+          </button>
+        </dd>
         <dt>Property</dt>
         <dd>{{ relation.content }}</dd>
         <dt>To</dt>
-        <dd>#{{ relation.to_ }}</dd>
+        <dd>
+          <button type="button" @click="router.push({ name: 'block', block: relation.to_ })">
+            Block #{{ relation.to_ }}
+          </button>
+        </dd>
       </dl>
     </section>
   </InkPopup>
@@ -90,8 +98,21 @@ function close(): void {
   }
   dl {
     display: grid;
-    grid-template-columns: max-content minmax(0, 1fr);
+    grid-template-columns: fit-content(30%) minmax(0, 1fr);
     gap: 8px 16px;
+  }
+  button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  button:focus-visible {
+    outline: 2px solid sys-var(color, border, strong);
+    outline-offset: 2px;
   }
   dd {
     margin: 0;

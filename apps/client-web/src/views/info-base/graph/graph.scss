@@ -3,120 +3,114 @@
 
 .graph-view {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
-  min-height: 520px;
+  min-width: 0;
+  min-height: 0;
   overflow: hidden;
   background: sys-var(color, surface, base);
-
+  color: sys-var(color, text, base);
   &__flow {
-    width: 100%;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
   }
-
   &__toolbar {
-    position: absolute;
-    top: sys-var(space, md);
-    left: 50%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: sys-var(space, sm) sys-var(space, md);
+    padding: sys-var(space, md);
+    border-bottom: 1px solid sys-var(color, border, subtle);
     z-index: 5;
-    display: flex;
-    gap: sys-var(space, sm);
-    transform: translateX(-50%);
   }
-
-  &__control-group {
-    display: flex;
-    overflow: hidden;
-    border: 1px solid sys-var(color, border, subtle);
-    border-radius: sys-var(radius, none);
-    background: sys-var(color, surface, base);
-
-    button {
-      min-height: 30px;
-      padding: 0 sys-var(space, sm);
-      border: 0;
-      border-right: 1px solid sys-var(color, border, subtle);
-      color: sys-var(color, text, subtle);
-      background: transparent;
-      cursor: pointer;
-      @include apply-font(label-md);
-
-      &:last-child {
-        border-right: 0;
-      }
-      &:hover {
-        color: sys-var(color, text, base);
-      }
-      &[aria-pressed='true'] {
-        color: sys-var(color, text, base);
-        background: sys-var(color, surface, subtle);
-      }
-      &:focus-visible {
-        outline: 1px solid sys-var(color, border, strong);
-        outline-offset: -2px;
-      }
-    }
+  &__context {
+    min-width: 0;
+    flex: 1 1 12rem;
+    overflow-wrap: anywhere;
   }
-
-  &__state {
-    display: grid;
-    place-items: center;
-    width: 100%;
-    height: 100%;
+  h1 {
+    margin: 0;
+    @include apply-font(title-sm);
+  }
+  &__context p {
+    margin: sys-var(space, xs) 0 0;
+    @include apply-font(body-sm);
     color: sys-var(color, text, subtle);
-
-    p {
-      max-width: 420px;
-      margin: 0;
-      text-align: center;
+  }
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: sys-var(space, md);
+  }
+  &__options {
+    summary {
+      @include apply-font(label-md);
+      cursor: pointer;
+    }
+    summary:focus-visible {
+      outline: 2px solid sys-var(color, border, strong);
+      outline-offset: 2px;
+    }
+    form {
+      position: absolute;
+      top: 100%;
+      right: sys-var(space, md);
+      width: min(20rem, calc(100vw - 2 * var(--sys-space-md)));
+      box-sizing: border-box;
+      padding: sys-var(space, md);
+      border: 1px solid sys-var(color, border, base);
+      background: sys-var(color, surface, base);
     }
   }
-
+  &__toolbar {
+    position: relative;
+  }
+  &__state {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: sys-var(space, md);
+    padding: sys-var(space, lg);
+    overflow: auto;
+    > div {
+      max-width: 30rem;
+      display: grid;
+      justify-items: start;
+      gap: sys-var(space, md);
+    }
+    h2 {
+      margin: 0;
+      @include apply-font(title-sm);
+    }
+    h2[role='alert'] {
+      color: sys-var(color, feedback, error);
+    }
+    p {
+      margin: 0;
+      @include apply-font(body-md);
+      color: sys-var(color, text, subtle);
+    }
+  }
   &__viewport-controls {
     position: absolute;
     right: sys-var(space, md);
     bottom: sys-var(space, md);
     z-index: 4;
     display: flex;
-    gap: 2px;
-    padding: 2px;
-    border: 1px solid sys-var(color, border, subtle);
-    background: sys-var(color, surface, base);
+    gap: sys-var(space, xs);
   }
 }
-
 .vue-flow {
   .vue-flow__pane {
     cursor: grab;
   }
   .vue-flow__pane.dragging {
     cursor: grabbing;
-  }
-  .vue-flow__background {
-    background: sys-var(color, surface, base);
-  }
-}
-
-@media (max-width: 720px) {
-  .graph-view {
-    min-height: 440px;
-
-    &__toolbar {
-      top: sys-var(space, sm);
-      width: calc(100% - 2 * sys-var(space, sm));
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    &__viewport-controls {
-      right: sys-var(space, sm);
-      bottom: sys-var(space, sm);
-    }
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .graph-view * {
-    scroll-behavior: auto !important;
   }
 }

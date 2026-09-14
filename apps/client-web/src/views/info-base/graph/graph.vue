@@ -7,8 +7,7 @@ import {
   type GraphNode,
   type NodeDragEvent,
 } from '@vue-flow/core'
-import { Background } from '@vue-flow/background'
-import { InkButton, InkLoading } from '@inkcre/ui-web'
+import { InkButton, InkDropdown, InkForm, InkLoading } from '@inkcre/ui-web'
 import {
   getInfoBaseRouter,
   GraphNavigationRetrievalManager,
@@ -33,6 +32,7 @@ type SceneScale = 'compact' | 'standard' | 'broad'
 type SceneStatus = 'loading' | 'ready' | 'empty' | 'missing' | 'not-found' | 'limit' | 'error'
 
 const SCALE_LIMITS: Record<SceneScale, number> = { compact: 8, standard: 20, broad: 50 }
+const container = ref<HTMLElement | null>(null)
 const infoBaseRouter = getInfoBaseRouter()
 const currentRoute = computed(() => infoBaseRouter.current.value)
 const nodes = shallowRef<BlockNode[]>([])
@@ -80,6 +80,25 @@ const focalRelation = computed(() => {
   const address = sceneAddress.value
   return address?.type === 'relation' ? address.relation : null
 })
+
+const sceneDescription = computed(() => {
+  const address = sceneAddress.value
+  if (address?.type === 'block') return `Around Block #${address.block}`
+  if (address?.type === 'relation') return `Around Relation #${address.relation}`
+  if (address?.type === 'path') return `Path from #${address.from} to #${address.to}`
+  if (address?.type === 'recall') return `Results for “${address.query}”`
+  return 'Explore your information'
+})
+const scaleOptions = [
+  { value: 'compact', label: 'Small · 8 relations' },
+  { value: 'standard', label: 'Standard · 20 relations' },
+  { value: 'broad', label: 'Large · 50 relations' },
+]
+const directionOptions = [
+  { value: 'both', label: 'Both directions' },
+  { value: 'in', label: 'Incoming' },
+  { value: 'out', label: 'Outgoing' },
+]
 
 function activeRelation(relation: Relation): boolean {
   if (direction.value === 'both') return true
@@ -199,31 +218,32 @@ async function loadScene(): Promise<void> {
     }
 
     let graph: GraphModel | null = null
+    let nextStatus: SceneStatus = 'empty'
     if (address.type === 'block') {
       const result = await GraphNavigationRetrievalManager.getBlockNeighborhood(address.block, {
         direction: 'both',
         limit: SCALE_LIMITS[scale.value],
       })
       graph = result?.graph ?? null
-      if (!graph) status.value = 'missing'
+      if (!graph) nextStatus = 'missing'
     } else if (address.type === 'relation') {
       const result = await GraphNavigationRetrievalManager.getRelationNeighborhood(address.relation)
       graph = result?.graph ?? null
-      if (!graph) status.value = 'missing'
+      if (!graph) nextStatus = 'missing'
     } else if (address.type === 'path') {
       const result = await GraphNavigationRetrievalManager.findPath(address.from, address.to)
       if (result.status === 'found') graph = result.graph
-      else status.value = result.status === 'not_found' ? 'not-found' : 'limit'
+      else nextStatus = result.status === 'not_found' ? 'not-found' : 'limit'
     } else {
       const result = await LexicalRetrievalManager.retrieve({ query: address.query, limit: 20 })
       graph = { blocks: result.matches.map((match) => match.block), relations: [] }
-      if (graph.blocks.length === 0) status.value = 'empty'
     }
     if (current !== generation) return
     if (graph) {
       setGraph(graph)
       status.value = graph.blocks.length > 0 ? 'ready' : 'empty'
     } else {
+      status.value = nextStatus
       nodes.value = []
       edges.value = []
     }
@@ -253,7 +273,7 @@ function layoutMeasuredNodes(): void {
     return typeof node.width === 'number' ? node.width : 180
   }
   const maxWidth = Math.max(180, ...measured.map(measuredWidth))
-  const radius = Math.max(280, (neighbors.length * (maxWidth + 80)) / (Math.PI * 2))
+  const radius = Math.max(280, (neighbors.length * maxWidth) / (Math.PI * 2))
   nodes.value = nodes.value.map((node) => {
     const cached = positionCache.get(node.id)
     if (cached) return { ...node, position: cached }
@@ -273,14 +293,51 @@ function layoutMeasuredNodes(): void {
   })
 }
 
+function routeEdges(): void {
+  const centers = new Map(
+    getNodes.value.map((node) => [
+      node.id,
+      {
+        x: node.position.x + node.dimensions.width / 2,
+        y: node.position.y + node.dimensions.height / 2,
+      },
+    ])
+  )
+  edges.value = edges.value.map((edge) => {
+    const source = centers.get(edge.source)
+    const target = centers.get(edge.target)
+    if (!source || !target) return edge
+    const dx = target.x - source.x
+    const dy = target.y - source.y
+    const [from, to] =
+      Math.abs(dx) > Math.abs(dy)
+        ? dx > 0
+          ? ['right', 'left']
+          : ['left', 'right']
+        : dy > 0
+          ? ['bottom', 'top']
+          : ['top', 'bottom']
+    return { ...edge, sourceHandle: `source-${from}`, targetHandle: `target-${to}` }
+  })
+}
+
 async function realizeScene(): Promise<void> {
   await nextTick()
   layoutMeasuredNodes()
   await nextTick()
+  routeEdges()
+  await nextTick()
   if (!pendingCamera.value) return
   pendingCamera.value = false
+  const narrow = (container.value?.clientWidth ?? 0) < 640
+  const focalId =
+    focalBlock.value ?? (sceneAddress.value?.type === 'path' ? sceneAddress.value.from : null)
+  // A phone-sized canvas starts with a readable focal object; panning reveals its neighborhood.
+  const visibleNodes =
+    narrow && focalId !== null ? [String(focalId)] : nodes.value.map((node) => node.id)
   await fitView({
-    nodes: nodes.value.map((node) => node.id),
+    nodes: visibleNodes,
+    minZoom: 0.75,
     padding: 0.18,
     maxZoom: 1.25,
     duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 260,
@@ -313,6 +370,7 @@ function inspectRelation(relation: number): void {
 
 function onNodeDragStop(event: NodeDragEvent): void {
   positionCache.set(event.node.id, { ...event.node.position })
+  routeEdges()
 }
 
 function refocus(): void {
@@ -330,45 +388,46 @@ function isRoute(route: InfoBaseRoute | null, name: InfoBaseRoute['name']): bool
 </script>
 
 <template>
-  <main class="graph-view">
-    <div class="graph-view__toolbar" aria-label="Graph navigation controls">
-      <div class="graph-view__control-group" aria-label="Exploration scale">
-        <button
-          v-for="option in ['compact', 'standard', 'broad'] as SceneScale[]"
-          :key="option"
-          type="button"
-          :aria-pressed="scale === option"
-          @click="scale = option"
-        >
-          {{ option }}
-        </button>
+  <main ref="container" class="graph-view">
+    <header class="graph-view__toolbar">
+      <div class="graph-view__context">
+        <h1>{{ sceneDescription }}</h1>
+        <p v-if="status === 'ready'">{{ nodes.length }} blocks · {{ edges.length }} relations</p>
       </div>
-      <div class="graph-view__control-group" aria-label="Relation direction emphasis">
-        <button
-          v-for="option in ['in', 'both', 'out'] as GraphDirection[]"
-          :key="option"
-          type="button"
-          :aria-pressed="direction === option"
-          @click="direction = option"
-        >
-          {{ option }}
-        </button>
+      <div class="graph-view__actions">
+        <InkButton text="Search" theme="subtle" @click="openRecallSearch" />
+        <details v-if="focalBlock !== null" class="graph-view__options">
+          <summary>View options</summary>
+          <InkForm layout="col">
+            <InkDropdown v-model="scale" label="Neighborhood size" :options="scaleOptions" />
+            <InkDropdown
+              v-model="direction"
+              label="Emphasize relations"
+              :options="directionOptions"
+            />
+          </InkForm>
+        </details>
       </div>
-    </div>
+    </header>
 
-    <div v-if="status === 'loading'" class="graph-view__state"><InkLoading /></div>
+    <div v-if="status === 'loading'" class="graph-view__state" role="status">
+      <InkLoading />
+      <p>Loading graph…</p>
+    </div>
     <div v-else-if="status !== 'ready'" class="graph-view__state">
-      <p v-if="status === 'empty'">No graph entities are available here.</p>
-      <p v-else-if="status === 'missing'">The addressed graph entity no longer exists.</p>
-      <p v-else-if="status === 'not-found'">No path connects these Blocks.</p>
-      <p v-else-if="status === 'limit'">The path exceeds the current exploration boundary.</p>
-      <p v-else>Graph retrieval is temporarily unavailable.</p>
-      <InkButton
-        v-if="status === 'empty' || status === 'missing'"
-        text="Recall information"
-        theme="subtle"
-        @click="openRecallSearch"
-      />
+      <div>
+        <h2 v-if="status === 'empty'">No information here yet</h2>
+        <h2 v-else-if="status === 'missing'">This item is no longer available</h2>
+        <h2 v-else-if="status === 'not-found'">No connecting path found</h2>
+        <h2 v-else-if="status === 'limit'">The path exceeds the exploration limit</h2>
+        <h2 v-else role="alert">Unable to load the graph</h2>
+        <p v-if="status === 'empty' || status === 'missing'">Search for another starting point.</p>
+        <p v-else-if="status === 'limit'">Try two closer starting points.</p>
+        <p v-else-if="status === 'not-found'">Try another pair of blocks.</p>
+        <p v-else>Your current location is preserved. You can try loading it again.</p>
+        <InkButton v-if="status === 'error'" text="Retry" theme="primary" @click="loadScene" />
+        <InkButton v-else text="Search information" theme="subtle" @click="openRecallSearch" />
+      </div>
     </div>
 
     <VueFlow
@@ -391,11 +450,28 @@ function isRoute(route: InfoBaseRoute | null, name: InfoBaseRoute['name']): bool
           @inspect="inspectRelation"
         />
       </template>
-      <Background :gap="24" pattern-color="var(--sys-color-border-subtle)" />
       <div class="graph-view__viewport-controls">
-        <InkButton icon="i-mdi-plus" type="square" theme="subtle" @click="zoomIn()" />
-        <InkButton icon="i-mdi-minus" type="square" theme="subtle" @click="zoomOut()" />
-        <InkButton icon="i-mdi-crosshairs-gps" type="square" theme="subtle" @click="refocus" />
+        <InkButton
+          icon="i-mdi-plus"
+          aria-label="Zoom in"
+          type="square"
+          theme="subtle"
+          @click="zoomIn()"
+        />
+        <InkButton
+          icon="i-mdi-minus"
+          aria-label="Zoom out"
+          type="square"
+          theme="subtle"
+          @click="zoomOut()"
+        />
+        <InkButton
+          icon="i-mdi-crosshairs-gps"
+          aria-label="Focus current"
+          type="square"
+          theme="subtle"
+          @click="refocus"
+        />
       </div>
     </VueFlow>
 

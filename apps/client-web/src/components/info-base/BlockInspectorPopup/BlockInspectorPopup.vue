@@ -2,7 +2,7 @@
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import dayjs from 'dayjs'
-import { InkButton, InkField, InkLoading, InkPopup } from '@inkcre/ui-web'
+import { InkButton, InkLoading, InkPopup } from '@inkcre/ui-web'
 import { Block, getInfoBaseRouter, OrganizationManager, PeerOutcomeUnknown } from '@inkcre/core'
 
 import type { BlockInspectorPopupProps } from './BlockInspectorPopup'
@@ -107,25 +107,22 @@ async function ruminate(): Promise<void> {
       </div>
 
       <div v-else-if="block" class="block-inspector-popup__body">
-        <InkField :label="t('infoBase.blockInspector.id')" layout="inline"
-          >#{{ block.id }}</InkField
-        >
-        <InkField :label="t('infoBase.blockInspector.resolver')" layout="inline">
-          <code>{{ block.resolver }}</code>
-        </InkField>
-        <InkField :label="t('infoBase.blockInspector.created')" layout="inline">
-          {{ formattedCreatedAt }}
-        </InkField>
-        <InkField :label="t('infoBase.blockInspector.updated')" layout="inline">
-          {{ formattedUpdatedAt }}
-        </InkField>
-        <InkField
-          v-if="block.storage !== null"
-          :label="t('infoBase.blockInspector.storage')"
-          layout="inline"
-        >
-          #{{ block.storage }}
-        </InkField>
+        <dl class="block-inspector-popup__facts">
+          <dt>{{ t('infoBase.blockInspector.id') }}</dt>
+          <dd>#{{ block.id }}</dd>
+          <dt>{{ t('infoBase.blockInspector.resolver') }}</dt>
+          <dd>
+            <code>{{ block.resolver }}</code>
+          </dd>
+          <dt>{{ t('infoBase.blockInspector.created') }}</dt>
+          <dd>{{ formattedCreatedAt }}</dd>
+          <dt>{{ t('infoBase.blockInspector.updated') }}</dt>
+          <dd>{{ formattedUpdatedAt }}</dd>
+          <template v-if="block.storage !== null"
+            ><dt>{{ t('infoBase.blockInspector.storage') }}</dt>
+            <dd>#{{ block.storage }}</dd></template
+          >
+        </dl>
 
         <div class="block-inspector-popup__actions">
           <InkButton
@@ -138,7 +135,7 @@ async function ruminate(): Promise<void> {
             :is-loading="isRuminating"
             @click="ruminate"
           />
-          <p v-if="ruminationOutcome">
+          <p v-if="ruminationOutcome" :role="ruminationOutcome === 'success' ? 'status' : 'alert'">
             {{ t(`infoBase.blockInspector.rumination.${ruminationOutcome}`) }}
           </p>
         </div>

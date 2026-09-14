@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { BezierEdge, EdgeLabelRenderer, getBezierPath, MarkerType } from '@vue-flow/core'
+import { BaseEdge, EdgeLabelRenderer, getBezierPath } from '@vue-flow/core'
 import type { RelationEdgeEmits, RelationEdgeProps } from './RelationEdge'
 
 const props = defineProps<RelationEdgeProps>()
 const emit = defineEmits<RelationEdgeEmits>()
 
-const label = computed(() => props.data?.relation?.content ?? '')
-const curvature = computed(() => 0.16 + ((props.data?.relation.id ?? 0) % 5) * 0.035)
+const label = computed(() => {
+  const content = props.data?.relation.content.trim() ?? ''
+  return !content || /^[{[]/.test(content) ? `Relation #${props.data?.relation.id}` : content
+})
 
 const path = computed(() => {
   return getBezierPath({
@@ -17,7 +19,7 @@ const path = computed(() => {
     targetX: props.targetX,
     targetY: props.targetY,
     targetPosition: props.targetPosition,
-    curvature: curvature.value,
+    curvature: 0.16,
   })
 })
 
@@ -27,14 +29,9 @@ const labelY = computed(() => path.value[2])
 </script>
 
 <template>
-  <BezierEdge
+  <BaseEdge
     :id="id"
-    :source-x="sourceX"
-    :source-y="sourceY"
-    :target-x="targetX"
-    :target-y="targetY"
-    :source-position="sourcePosition"
-    :target-position="targetPosition"
+    :path="edgePath"
     :marker-end="markerEnd"
     :class="{
       'relation-edge': true,
@@ -45,7 +42,7 @@ const labelY = computed(() => path.value[2])
 
   <EdgeLabelRenderer v-if="label">
     <div
-      class="relation-edge__label"
+      class="relation-edge__label nodrag nopan"
       :class="{
         'relation-edge__label--focal': data?.focal,
         'relation-edge__label--muted': data?.muted,
@@ -62,10 +59,10 @@ const labelY = computed(() => path.value[2])
       <button
         type="button"
         class="relation-edge__inspect"
-        aria-label="Inspect Relation"
+        :aria-label="`Inspect Relation #${data?.relation.id}`"
         @click="emit('inspect', data!.relation.id)"
       >
-        <span class="i-mdi-information-outline" aria-hidden="true" />
+        Details
       </button>
     </div>
   </EdgeLabelRenderer>
