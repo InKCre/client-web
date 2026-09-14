@@ -4,74 +4,60 @@
   height: 6px;
   pointer-events: none;
 }
-
 .block-node {
+  cursor: grab;
   min-width: 180px;
-  max-width: 360px;
-  overflow: hidden;
-  cursor: pointer;
+  max-width: 320px;
   color: sys-var(color, text, base);
   background: sys-var(color, surface, base);
-  border: 1px solid sys-var(color, border, subtle);
-  border-radius: sys-var(radius, none);
-  transition:
-    border-color 140ms ease,
-    opacity 140ms ease,
-    filter 140ms ease;
-
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: sys-var(space, sm);
-    min-height: 32px;
-    padding: sys-var(space, xs) sys-var(space, sm);
-    border-bottom: 1px solid sys-var(color, border, subtle);
-  }
-
-  &:hover {
-    border-color: sys-var(color, border, base);
-  }
-
+  border: 1px solid sys-var(color, border, base);
+  border-radius: 0;
   &--focal {
+    outline: 1px solid sys-var(color, border, strong);
     border-color: sys-var(color, border, strong);
-    box-shadow: 0 0 0 1px sys-var(color, border, strong);
   }
-
   &--muted {
-    opacity: 0.34;
-    filter: saturate(0.65);
+    background: sys-var(color, surface, subtle);
+    border-style: dashed;
   }
-
-  &__resolver {
-    @include apply-font(label-md, $mono: true);
-    color: sys-var(color, text, subtle);
-  }
-
-  &__inspect {
-    opacity: 0;
-    transition: opacity 120ms ease;
-  }
-
-  &:hover &__inspect,
-  &__inspect:focus-within {
-    opacity: 1;
-  }
-
   &__content {
+    cursor: pointer;
+    padding: sys-var(space, md);
     min-height: 48px;
-    padding: sys-var(space, sm) sys-var(space, md) sys-var(space, md);
   }
-
-  &__preview-error {
+  &__content:focus-visible {
+    outline: 2px solid sys-var(color, border, strong);
+    outline-offset: -3px;
+  }
+  footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: sys-var(space, sm);
+    padding: 0 sys-var(space, sm) sys-var(space, sm) sys-var(space, md);
+  }
+  &__inspect {
+    padding: sys-var(space, xs);
+    min-height: 2rem;
+    border: 0;
+    background: transparent;
     color: sys-var(color, text, subtle);
+    @include apply-font(body-sm, $underlined: true);
+    cursor: pointer;
+  }
+  &__inspect:focus-visible {
+    outline: 2px solid sys-var(color, border, strong);
+    outline-offset: -2px;
+  }
+  &__identity {
+    @include apply-font(body-sm, $mono: true);
+    color: sys-var(color, text, subtle);
+  }
+  &__identity span {
     @include apply-font(body-sm);
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .block-node,
-  .block-node__inspect {
-    transition: none;
+  &__preview-error {
+    @include apply-font(body-sm);
+    color: sys-var(color, text, subtle);
   }
 }
