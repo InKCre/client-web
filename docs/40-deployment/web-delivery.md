@@ -43,7 +43,8 @@ open, same-repository pull requests targeting `main`; fork pull requests are ine
 `pull_request_target` controller checks out its trusted default-branch revision separately from the
 exact candidate head, installs the candidate's frozen pnpm and PDM environments, builds its SPA and
 selected Module Federation snapshots, and uses `inkcre-ext preview build` with the explicit
-`.github/preview/extensions.json` inventory to add a same-origin static Registry facade. Before
+`.github/preview/extensions.json` inventory to add a same-origin static Registry facade. The
+current inventory includes the Twitter and Mail Module Federation distributions. Before
 deployment it revalidates that the PR is still open and its identity and head SHA have not changed.
 
 The Toolkit places read-only native Extension snapshots and preview Releases beside the exact-head

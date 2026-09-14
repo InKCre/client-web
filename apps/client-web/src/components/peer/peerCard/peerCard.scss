@@ -1,5 +1,8 @@
 .peer-card {
   display: flex;
+  flex-wrap: wrap;
+  gap: sys-var(space, sm);
+  overflow-wrap: anywhere;
   justify-content: space-between;
   align-items: center;
   padding: sys-var(space, md);
@@ -7,34 +10,35 @@
   background-color: sys-var(color, surface, base);
 
   &__item-info {
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: sys-var(space, xs);
   }
 
   &__item-id {
-    @include apply-font(label-sm, mono);
+    @include apply-font(label-md, $mono: true);
     color: sys-var(color, text, subtle);
   }
 
   &__item-capabilities {
-    @include apply-font(label-sm);
+    @include apply-font(body-sm);
     color: sys-var(color, text, subtle);
   }
 
   &__item-status {
     @include apply-font(label-md);
     padding: sys-var(space, xs) sys-var(space, sm);
-    border-radius: sys-var(radius, sm);
+    border-radius: sys-var(radius, none);
 
     &--online {
-      background-color: sys-var(color, success, surface);
-      color: sys-var(color, success, base);
+      background-color: sys-var(color, surface, subtle);
+      color: sys-var(color, feedback, success);
     }
 
     &--offline {
-      background-color: sys-var(color, danger, surface);
-      color: sys-var(color, danger, base);
+      background-color: sys-var(color, surface, subtle);
+      color: sys-var(color, feedback, error);
     }
 
     &--unknown {

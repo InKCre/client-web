@@ -100,6 +100,95 @@ test('wrong and absent credentials are rejected', async ({ page }) => {
   expect(statuses).toEqual([401, 401])
 })
 
+test('Peer config keeps invalid and failed drafts and saves only once while pending', async ({
+  page,
+}) => {
+  const id = crypto.randomUUID()
+  const authorization = `Bearer ${await token()}`
+  const endpoint = `${postgrestUrl}peers?id=eq.${id}`
+  const created = await fetch(`${postgrestUrl}peers`, {
+    method: 'POST',
+    headers: { Authorization: authorization, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id,
+      name: 'UI migration config',
+      config: { limit: 1 },
+      config_schema: {
+        type: 'object',
+        required: ['limit'],
+        properties: { limit: { type: 'integer', minimum: 1 } },
+      },
+    }),
+  })
+  expect(created.status).toBe(201)
+
+  try {
+    await page.goto('/settings')
+    const peer = page.locator('.peer-card', { hasText: id })
+    await peer.getByRole('button', { name: 'Edit Config' }).click()
+    const dialog = page.getByRole('dialog', { name: 'Edit Config' })
+    const editor = dialog.locator('.cm-content')
+    const save = dialog.getByRole('button', { name: 'Save', exact: true })
+    await expect(save).toBeEnabled()
+    await editor.fill('{')
+    await expect(save).toBeDisabled()
+    await expect(editor).toHaveAttribute('aria-invalid', 'true')
+    await editor.fill('{"limit":"invalid"}')
+    await expect(save).toBeDisabled()
+    await expect(editor).toHaveAttribute('aria-invalid', 'true')
+    await editor.fill('{"limit":2}')
+    await expect(save).toBeEnabled()
+
+    let releaseRequest!: () => void
+    const pending = new Promise<void>((resolve) => {
+      releaseRequest = resolve
+    })
+    let writes = 0
+    const wrongAuthorization = `Bearer ${await token('ui-migration-wrong-secret-at-least-32-bytes')}`
+    await page.route(endpoint, async (route) => {
+      if (route.request().method() !== 'PATCH') return route.continue()
+      writes += 1
+      await pending
+      // Exercise the real database rejection without changing the user's draft or auth store.
+      await route.continue({
+        headers: { ...route.request().headers(), authorization: wrongAuthorization },
+      })
+    })
+    await save.click()
+    try {
+      await expect(save).toBeDisabled()
+      await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeDisabled()
+      await page.keyboard.press('Escape')
+      await expect(dialog).toBeVisible()
+      await expect(editor).toHaveAttribute('contenteditable', 'false')
+      expect(writes).toBe(1)
+    } finally {
+      releaseRequest()
+    }
+    await expect(dialog.getByRole('alert')).toBeVisible()
+    await expect(editor).toHaveText('{"limit":2}')
+    await expect(save).toBeEnabled()
+    await page.unroute(endpoint)
+    await save.click()
+    await expect(dialog).not.toBeVisible()
+
+    const stored = await fetch(`${endpoint}&select=config`, {
+      headers: { Authorization: authorization },
+    })
+    expect(stored.status).toBe(200)
+    expect((await stored.json())[0].config).toEqual({ limit: 2 })
+    await peer.getByRole('button', { name: 'Edit Config' }).click()
+    await expect(editor).toContainText('2')
+  } finally {
+    await page.unroute(endpoint)
+    const cleanup = await fetch(endpoint, {
+      method: 'DELETE',
+      headers: { Authorization: authorization },
+    })
+    expect(cleanup.status).toBe(204)
+  }
+})
+
 test('core Peer publishes and serves its exact capability inbounds', async ({ page }) => {
   await page.goto('/')
   const authorization = `Bearer ${await token()}`

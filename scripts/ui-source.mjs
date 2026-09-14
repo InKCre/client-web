@@ -17,21 +17,7 @@ const uiSourceEntries = [
   ['@inkcre/ui-web/uno', 'styles/uno/preset-ink.ts'],
 ]
 
-export const uiSourceDedupe = [
-  '@codemirror/autocomplete',
-  '@codemirror/commands',
-  '@codemirror/lang-json',
-  '@codemirror/lint',
-  '@codemirror/state',
-  '@codemirror/view',
-  '@vueuse/core',
-  'dayjs',
-  'unocss',
-  'vscode-json-languageservice',
-  'vscode-languageserver-textdocument',
-  'vue',
-  'vue-router',
-]
+export const uiSourceDedupe = ['unocss', 'vue']
 
 function exactSpecifier(specifier) {
   const escaped = specifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')

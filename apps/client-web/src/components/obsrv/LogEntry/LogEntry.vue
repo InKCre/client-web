@@ -25,15 +25,21 @@ const formatDate = (date: Date): string => {
 
 <template>
   <div v-if="log" class="log-entry" :class="{ 'log-entry--expanded': expanded }">
-    <div class="log-entry__main" @click="onLogEntryClick">
-      <div
+    <button
+      type="button"
+      class="log-entry__main"
+      :aria-expanded="expanded"
+      @click="onLogEntryClick"
+    >
+      <span
+        aria-hidden="true"
         class="i-mdi-chevron-right log-entry__chevron"
         :class="{ 'log-entry__chevron--expanded': expanded }"
       />
       <span class="log-time">{{ formatDate(log.timestamp) }}</span>
       <span class="log-severity">{{ log.severity_text }}</span>
       <span class="log-body">{{ log.body }}</span>
-    </div>
+    </button>
     <div v-if="expanded" class="log-entry__details">
       <div class="log-entry__detail-row">
         <span class="log-entry__detail-label">Trace ID</span>

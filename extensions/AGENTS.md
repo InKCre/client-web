@@ -21,5 +21,5 @@ Host/producer runtime contracts belong to
 ## Required Check
 
 ```bash
-pnpm exec vitest run scripts/native-extension-distribution.test.mjs
+pnpm build
 ```

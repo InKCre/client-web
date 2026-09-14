@@ -1,26 +1,7 @@
-# sourceForm
+# SourceForm
 
-## Rationale
+来源创建与详情共用的纵向表单，接收 `modelValue: Source | SourceForm` 和 `disabled`。昵称与类型修改传入的草稿对象；调用方必须提供独立草稿，不能把已保存对象直接传入。配置保留为组件内部的原始 JSON 文本，包括尚未完整或无效的内容。
 
-Provides a reusable form for editing source information including nickname, type, config, and collect schedule.
+表单读取可用来源类型，并使用所选类型的配置 schema 校验。读取失败或类型不可用时直接说明问题并阻止保存；重试读取不会覆盖输入。`canSave` 仅在类型可用且当前文本验证通过时成立，`readConfig()` 在该边界解析配置。切换类型立即使旧校验失效。
 
-## Goals
-
-Allow users to edit source configuration in a consistent way across different views.
-
-## Specification
-
-- Pure form component with v-model support
-- Provides all fields: nickname, type, config (InkJsonEditor), collect schedule
-- No save button - parent component handles submission
-- Supports both create and edit modes
-
-## Implementation
-
-### Props
-
-- `modelValue` (`Source | SourceForm`, required): The source data object
-
-### Events
-
-- `update:modelValue(source: Source | SourceForm)`: Emitted when form data changes
+组件另暴露 `isDirty` 与已加载的 `sourceTypes`，供父级保护未保存修改，并按已保存来源的类型选择采集配置规则。传入新的草稿对象会重置 JSON 和修改基线；只有确认保存成功或明确放弃时才应更换对象。父级在默认槽放提交、反馈与取消等操作，通过 `submit` 处理原生表单提交；表单自身不持久化数据。

@@ -1,5 +1,6 @@
 .settings-view {
   flex: 1;
+  min-width: 0;
   padding: sys-var('space', 'lg');
   display: flex;
   flex-direction: column;
@@ -7,7 +8,7 @@
   overflow-y: auto;
 
   &__title {
-    @include apply-font('title', 'lg');
+    @include apply-font(title-lg);
     margin: 0;
     color: sys-var('color', 'text', 'base');
   }
@@ -21,7 +22,7 @@
   &__notice,
   &__export-note {
     margin: 0;
-    color: sys-var('color', 'text', 'muted');
+    color: sys-var('color', 'text', 'subtle');
   }
 
   &__secret,
@@ -33,18 +34,28 @@
 
     input,
     select {
+      @include apply-font(body-md);
+      border-radius: sys-var(radius, none);
+      min-width: 0;
       padding: sys-var('space', 'sm');
       color: sys-var('color', 'text', 'base');
       background: sys-var('color', 'surface', 'base');
       border: 1px solid sys-var('color', 'border', 'base');
+
+      &:focus-visible {
+        outline: 2px solid sys-var(color, border, strong);
+        outline-offset: 2px;
+      }
     }
 
     small {
-      color: sys-var('color', 'text', 'muted');
+      @include apply-font(body-sm);
+      color: sys-var('color', 'text', 'subtle');
     }
   }
 
   &__identity code {
+    @include apply-font(body-sm, $mono: true);
     overflow-wrap: anywhere;
   }
 

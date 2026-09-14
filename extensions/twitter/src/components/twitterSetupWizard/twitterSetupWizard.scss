@@ -1,135 +1,132 @@
 .twitter-setup {
-  display: grid;
-  gap: 1.25rem;
-  width: min(680px, 80vw);
+  display: flex;
+  flex-direction: column;
+  gap: sys-var(space, lg);
+  width: min(36rem, 80vw);
+  max-width: 100%;
+  @include apply-font(body-md);
+  color: sys-var(color, text, base);
+  overflow-wrap: anywhere;
 
-  &__toolbar {
-    display: flex;
-    justify-content: flex-end;
-  }
-
-  &__steps {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.5rem;
+  h3,
+  p {
     margin: 0;
-    padding: 0;
+  }
+  h3 {
+    @include apply-font(title-sm);
+  }
+  &__steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: sys-var(space, sm) sys-var(space, md);
     list-style: none;
-
-    li {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      color: sys-var(color, text, muted);
-      font-size: 0.8rem;
+    margin: 0;
+    padding: 0 0 sys-var(space, md);
+    border-bottom: 1px solid sys-var(color, border, subtle);
+    @include apply-font(body-sm);
+    color: sys-var(color, text, subtle);
+    button,
+    .twitter-setup__step {
+      display: inline-flex;
+      align-items: baseline;
+      gap: sys-var(space, xs);
     }
-
-    span {
-      display: inline-grid;
-      place-items: center;
-      width: 1.5rem;
-      height: 1.5rem;
-      border: 1px solid currentcolor;
-      border-radius: 50%;
+    button {
+      border: 0;
+      padding: 0;
+      font: inherit;
+      color: inherit;
+      background: transparent;
+      text-decoration: underline;
+      cursor: pointer;
     }
-
-    .is-current,
-    .is-complete {
-      color: sys-var(color, info, base);
+    .is-current {
+      color: sys-var(color, text, base);
       font-weight: 600;
     }
   }
-
   &__panel {
     display: grid;
-    gap: 1rem;
-
-    h3,
-    p {
-      margin: 0;
+    gap: sys-var(space, md);
+  }
+  &__app {
+    summary {
+      cursor: pointer;
+      @include apply-font(label-lg);
     }
-
+    > p,
+    > code,
+    > form {
+      margin-top: sys-var(space, md);
+    }
     code {
       display: block;
-      margin-top: 0.5rem;
-      padding: 0.6rem;
+      @include apply-font(body-sm, $mono: true);
       overflow-wrap: anywhere;
-      background: rgb(0 0 0 / 5%);
     }
   }
-
-  &__section,
-  &__empty {
-    display: grid;
-    gap: sys-var(space, sm);
-    padding: sys-var(space, md);
-    border: 1px solid sys-var(color, border, base);
-    background: sys-var(color, surface, subtle);
-
-    h4,
-    p {
-      margin: 0;
-    }
-  }
-
   &__hint {
     color: sys-var(color, text, subtle);
+    @include apply-font(body-sm);
   }
-
+  &__authorization {
+    display: grid;
+    gap: sys-var(space, sm);
+  }
+  &__authorization a {
+    color: sys-var(color, text, base);
+    @include apply-font(label-lg, $underlined: true);
+  }
+  &__authorization p {
+    @include apply-font(body-sm);
+    color: sys-var(color, text, subtle);
+  }
   &__secret {
+    @include apply-font(body-md);
+    box-sizing: border-box;
     width: 100%;
     min-height: 2.5rem;
     padding: sys-var(space, sm);
     border: 1px solid sys-var(color, border, base);
+    border-radius: 0;
     background: sys-var(color, surface, base);
     color: sys-var(color, text, base);
   }
-
-  &__schedule,
   &__actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: sys-var(space, sm);
   }
-
-  &__oauth-link {
-    width: fit-content;
-    font-weight: 600;
-  }
-
-  &__loading {
+  &__toolbar {
     display: flex;
-    justify-content: center;
-    min-height: 10rem;
+    justify-content: flex-end;
   }
-
+  &__loading {
+    display: grid;
+    justify-items: center;
+    gap: sys-var(space, md);
+    padding-block: sys-var(space, lg);
+  }
   &__error {
-    margin: 0;
-    color: sys-var(color, danger, base);
+    color: sys-var(color, feedback, error);
+    @include apply-font(body-sm);
   }
-
   dl {
     display: grid;
-    grid-template-columns: max-content 1fr;
-    gap: 0.5rem 1rem;
+    grid-template-columns: fit-content(35%) minmax(0, 1fr);
+    gap: sys-var(space, sm) sys-var(space, md);
     margin: 0;
   }
-
   dt {
-    font-weight: 600;
+    color: sys-var(color, text, subtle);
   }
-
   dd {
     margin: 0;
   }
-}
-
-@media (max-width: 640px) {
-  .twitter-setup {
-    width: min(88vw, 680px);
-
-    &__steps {
-      grid-template-columns: 1fr 1fr;
-    }
+  button:focus-visible,
+  summary:focus-visible,
+  input:focus-visible {
+    outline: 2px solid sys-var(color, border, strong);
+    outline-offset: 2px;
   }
 }

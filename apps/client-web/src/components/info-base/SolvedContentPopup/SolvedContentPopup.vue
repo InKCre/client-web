@@ -74,19 +74,33 @@ function onOpenChange(value: boolean): void {
 </script>
 
 <template>
-  <InkPopup :open="open" :scrim="false" position="center" @update:open="onOpenChange">
+  <InkPopup
+    style="width: 900px; max-width: calc(100vw - 2 * var(--sys-space-md)); padding: 0"
+    :open="open"
+    :scrim="false"
+    position="center"
+    :aria-label="t('infoBase.solvedContent.title')"
+    @update:open="onOpenChange"
+  >
     <section class="solved-content-popup">
       <header class="solved-content-popup__header">
         <h3>{{ t('infoBase.solvedContent.title') }}</h3>
         <div class="solved-content-popup__controls">
           <InkButton
             icon="i-mdi-refresh"
+            :aria-label="t('common.refresh')"
             theme="subtle"
             type="square"
             :disabled="status === 'loading'"
             @click="load(true)"
           />
-          <InkButton icon="i-mdi-close" theme="subtle" type="square" @click="close" />
+          <InkButton
+            icon="i-mdi-close"
+            :aria-label="t('common.close')"
+            theme="subtle"
+            type="square"
+            @click="close"
+          />
         </div>
       </header>
 

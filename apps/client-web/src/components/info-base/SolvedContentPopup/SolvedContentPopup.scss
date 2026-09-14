@@ -1,24 +1,26 @@
 .solved-content-popup {
   display: flex;
   flex-direction: column;
-  width: min(900px, 94vw);
+  width: 100%;
   max-height: 88vh;
-  background: var(--ink-bg-primary, #fff);
+  background: var(--sys-color-surface-base);
 
   &__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    border-bottom: 1px solid var(--ink-border-primary, #e5e7eb);
+    border-bottom: 1px solid var(--sys-color-border-base);
 
     h3 {
       margin: 0;
-      font-size: 16px;
+      overflow-wrap: anywhere;
+      @include apply-font(title-sm);
     }
   }
 
   &__controls {
+    flex-shrink: 0;
     display: flex;
     gap: 8px;
   }
@@ -34,6 +36,6 @@
     align-items: center;
     justify-content: center;
     padding: 20px;
-    color: var(--ink-text-secondary, #6b7280);
+    color: var(--sys-color-text-subtle);
   }
 }

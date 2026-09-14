@@ -7,10 +7,13 @@
   background-color: sys-var(color, surface, base);
   box-sizing: border-box;
   width: 100%;
-  min-width: 280px;
+  min-width: 0;
+  overflow-wrap: anywhere;
 
   &__header {
     display: flex;
+    flex-wrap: wrap;
+    gap: sys-var(space, sm);
     justify-content: space-between;
     align-items: center;
   }
@@ -20,7 +23,7 @@
   }
 
   &__version {
-    @include apply-font(label-lg, mono);
+    @include apply-font(label-lg, $mono: true);
     color: sys-var(color, text, subtle);
   }
 
@@ -31,6 +34,7 @@
 
   &__actions {
     display: flex;
+    flex-wrap: wrap;
     gap: sys-var(space, sm);
   }
 
@@ -42,7 +46,7 @@
 
   &__error {
     @include apply-font(body-sm);
-    color: sys-var(color, danger, base);
+    color: sys-var(color, feedback, error);
     margin: 0;
   }
 }
@@ -55,6 +59,7 @@
 
   &__actions {
     display: flex;
+    flex-wrap: wrap;
     gap: sys-var(space, sm);
     justify-content: flex-end;
     margin-top: sys-var(space, md);

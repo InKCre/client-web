@@ -47,6 +47,17 @@ retains separate Sass ownership, and refuses `vite build`. Before handoff, stop 
 remove `INKCRE_UI_SOURCE_ROOT` if set, and run the normal `pnpm check`; a green source loop is not
 release evidence.
 
+UI 2.0 的共享运行时是 Vue（最低 3.5.25）；使用 UnoCSS 的应用自行声明 UnoCSS。Web 的 Uno 配置在通用 preset 后注册
+`@inkcre/ui-web/uno` 的 `presetInk()`，使语义颜色与字体工具类实际生成。
+CodeMirror、JSON 语言服务等编辑器实现依赖由 UI 包拥有，源码联调也从 UI 自身解析它们。
+Web、mail、twitter 和 ext-dev-utils 锁定同一正式 UI 版本；生产构建不使用源码映射。
+
+维护 UI 消费代码前，从对应 workspace 的 `node_modules/@inkcre/ui-web/DESIGN.md`
+读取同版本的设计决策，再按随包 `skills/ui-web/SKILL.md` 选择组件与组合指南。
+各消费者的 `intent.skills` 已显式声明该包，可在相应 workspace 运行
+`pnpm exec intent load @inkcre/ui-web#ui-web`（例如先 `cd apps/client-web`）。
+仓库根目录只安装 Intent CLI，不另建一份 UI 依赖或复制 DESIGN.md；更新依赖时同步核对指南。
+
 ## Browser Runtime Configuration
 
 The web settings UI owns the PostgREST URL, technical Peer/Client ID, user-supplied JWT signing
@@ -75,7 +86,9 @@ owns provider parsing and transport safety.
 For a client-owned `local` or `ssh` runtime, the database provisioner resolves core-py's admitted
 `stable` channel once to an immutable digest. The selected image supplies the raw schema and role
 artifact; fresh pgvector PostgreSQL is restored before that exact core service reconciles runtime
-credentials and development data, with PostgREST serving the resulting database. Client-web owns no
+credentials and development data, with PostgREST serving the resulting database. The PostgreSQL
+health check uses TCP so the temporary socket-only initialization server cannot release the restore
+step before the final server is listening. Client-web owns no
 migration SQL, role definitions, seed ordering, or startup sleeps. Those semantics remain a core-py
 capability boundary. [`runtime/database.compose.yml`](../../runtime/database.compose.yml),
 [`contracts/core-release.json`](../../contracts/core-release.json), and

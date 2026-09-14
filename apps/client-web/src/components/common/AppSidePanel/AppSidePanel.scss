@@ -1,4 +1,5 @@
 .app-side-panel {
+  box-sizing: border-box;
   width: 25%;
   min-width: 320px;
   max-width: 400px;
@@ -10,9 +11,19 @@
   gap: sys-var(space, md);
   background-color: sys-var(color, surface, base);
 
+  @include mobile {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    z-index: 10;
+    border-left: 0;
+  }
+
   &__content {
     background-color: sys-var(color, surface, subtle);
-    border: 1px solid sys-var(color, border, muted);
+    border: 1px solid sys-var(color, border, subtle);
     padding: sys-var(space, md);
     display: flex;
     flex-direction: column;

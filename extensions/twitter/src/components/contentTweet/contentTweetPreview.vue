@@ -30,13 +30,13 @@ const text = computed(() => {
   max-width: 340px;
 
   span {
-    color: var(--ink-text-secondary, #6b7280);
-    font-size: 0.75rem;
+    color: var(--sys-color-text-subtle);
+    @include apply-font(label-md);
   }
 
   p {
     margin: 0;
-    line-height: 1.45;
+    @include apply-font(body-sm);
     overflow-wrap: anywhere;
   }
 

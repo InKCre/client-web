@@ -1,31 +1,7 @@
 # SourceCard
 
-A card component for displaying and managing source information.
+来源列表中的识别条目，接收 `source: Source`。名称链接进入完整配置与任务详情；无昵称时显示“未命名数据源”，类型与 ID 继续区分不同来源。普通名称使用正文字体，技术标识局部使用等宽。
 
-## Props
+条目读取近期任务，存在 pending／running 任务时直接提供任务链接，否则提供立即采集。读取期间显示进度，读取失败显示错误与重试；不能从读取失败推断当前没有任务。创建任务期间禁止重复操作，未能确认结果时提示先检查任务列表，不自动重试。
 
-- `source` (SourceData): Source data object containing:
-  - `id` (number): Source ID
-  - `nickname` (string): Source nickname
-  - `type` (string): Source type
-  - `config` (object): Source configuration
-  - `collectAt` (string, optional): Collection schedule
-
-## Emits
-
-- `edit`: Emitted when edit button is clicked with source ID
-- `delete`: Emitted when delete button is clicked with source ID
-- `run`: Emitted when run now button is clicked with source ID
-- `editConfig`: Emitted when edit config button is clicked with source ID
-
-## Usage
-
-```vue
-<SourceCard
-  :source="sourceData"
-  @edit="handleEdit"
-  @delete="handleDelete"
-  @run="handleRun"
-  @editConfig="handleEditConfig"
-/>
-```
+列表不承载配置 JSON、行内昵称编辑或删除。完整配置、昵称与类型修改、删除确认由来源详情负责。卡片外壳没有导航事件；名称和任务使用原生链接，键盘与窄容器中均保留相同入口。

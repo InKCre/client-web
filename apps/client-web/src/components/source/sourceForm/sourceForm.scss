@@ -1,10 +1,15 @@
 .source-form {
-  display: flex;
-  flex-direction: column;
+  min-width: 0;
   gap: sys-var(space, md);
 
-  &__collect-at-placeholder {
-    @include apply-font(body-md);
-    color: sys-var(color, text, subtle);
+  p {
+    margin: 0;
+    @include apply-font(body-sm);
+  }
+  &__error {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: sys-var(space, sm);
   }
 }
