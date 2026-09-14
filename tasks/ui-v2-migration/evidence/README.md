@@ -112,4 +112,6 @@ pnpm exec node tasks/ui-v2-migration/evidence/browser-host.mjs https://preview-c
 
 新增 Header 验证覆盖浅深主题和 375／1280px：装饰图标为 24×24，mask 与可见 currentColor 填色存在；按钮自身没有 mask，点击图形、Enter 和 Space 正确切换侧栏，键盘焦点轮廓完整。侧栏宽度包含内边距与边框；移动断点内覆盖主内容，打开前后主内容宽度不变。窄屏容纳检查与截图复核通过。来源、Mail、Twitter 原有全旅程均通过，新版字体与配色随正式包生效。
 
-正式远端复验通过：[部署身份](ui-2.0.1/delivery.json) 对应源码 `d027230`、[preview run](https://github.com/InKCre/client-web/actions/runs/34799553542) 与部署 `52f3ec3f`。使用 `--deployed-extensions` 加载实际 Host、同源 Registry 和两个 MF 产物，全旅程退出 0，pageerror 为零，见 [日志](ui-2.0.1/browser.log)。截图：[浅色窄屏菜单](ui-2.0.1/released-header-light-375.png)、[深色窄屏菜单](ui-2.0.1/released-header-dark-375.png)、[来源列表](ui-2.0.1/i3-sources-1280.png)、[Mail 失败反馈](ui-2.0.1/mail-host-dark-narrow.png)、[Twitter 时间选择](ui-2.0.1/twitter-time-picker.png)。菜单截图中的轮廓为键盘焦点，普通状态没有边框。
+正式远端复验通过：[部署身份](ui-2.0.1/delivery.json) 对应源码 `d027230`、[preview run](https://github.com/InKCre/client-web/actions/runs/34799553542) 与部署 `52f3ec3f`。使用 `--deployed-extensions` 加载实际 Host、同源 Registry 和两个 MF 产物，全旅程退出 0，pageerror 为零，见 [日志](ui-2.0.1/browser-output.txt)。截图：[浅色窄屏菜单](ui-2.0.1/released-header-light-375.png)、[深色窄屏菜单](ui-2.0.1/released-header-dark-375.png)、[来源列表](ui-2.0.1/i3-sources-1280.png)、[Mail 失败反馈](ui-2.0.1/mail-host-dark-narrow.png)、[Twitter 时间选择](ui-2.0.1/twitter-time-picker.png)。菜单截图中的轮廓为键盘焦点，普通状态没有边框。
+
+最终功能提交 `d027230` 的 [完整 CI](https://github.com/InKCre/client-web/actions/runs/34799554488) 全部通过，包括 Web 真实数据库旅程、浏览器扩展 E2E 与工作区契约检查。后续文档归档提交没有改变运行时代码。
