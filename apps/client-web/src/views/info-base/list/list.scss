@@ -14,7 +14,7 @@
 
   &__eyebrow {
     @include apply-font(label-md);
-    color: sys-var(color, text, muted);
+    color: sys-var(color, text, subtle);
     margin: 0 0 sys-var(space, sm);
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -32,16 +32,16 @@
 
     input {
       min-width: 0;
-      height: 48px;
-      border: 1px solid sys-var(color, text, muted);
-      border-radius: 4px;
+      min-height: 48px;
+      border: 1px solid sys-var(color, border, base);
+      border-radius: sys-var(radius, none);
       padding-inline: sys-var(space, md);
       background: sys-var(color, surface, subtle);
       color: inherit;
       @include apply-font(body-lg);
 
       &:focus {
-        outline: 2px solid sys-var(color, text, base);
+        outline: 2px solid sys-var(color, border, strong);
         outline-offset: 2px;
       }
     }
@@ -59,7 +59,7 @@
     justify-content: center;
     gap: sys-var(space, sm);
     text-align: center;
-    color: sys-var(color, text, muted);
+    color: sys-var(color, text, subtle);
 
     p,
     small {
@@ -79,13 +79,16 @@
     width: 100%;
     display: grid;
     gap: sys-var(space, sm);
-    border: 1px solid sys-var(color, text, muted);
-    border-radius: 4px;
+    border: 1px solid sys-var(color, border, base);
+    border-radius: sys-var(radius, none);
     padding: sys-var(space, md);
     background: sys-var(color, surface, subtle);
     color: inherit;
     text-align: left;
     cursor: pointer;
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+    @include apply-font(label-md);
 
     &:hover,
     &:focus-visible {
@@ -110,7 +113,7 @@
     }
 
     span {
-      color: sys-var(color, text, muted);
+      color: sys-var(color, text, subtle);
     }
   }
 
@@ -120,8 +123,8 @@
   }
 
   &__evidence {
-    @include apply-font(label-sm);
-    color: sys-var(color, text, muted);
+    @include apply-font(label-md);
+    color: sys-var(color, text, subtle);
   }
 
   @media (max-width: 640px) {

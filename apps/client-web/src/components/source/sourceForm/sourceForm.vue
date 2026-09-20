@@ -1,59 +1,110 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { InkInput, InkJsonEditor, InkDropdown, type DropdownOption, InkForm } from '@inkcre/ui-web'
-import { sourceFormProps, sourceFormEmits } from './sourceForm'
+import { computed, ref, watch } from 'vue'
+import { useAsyncState } from '@vueuse/core'
+import {
+  InkInput,
+  InkJsonEditor,
+  InkDropdown,
+  InkForm,
+  InkButton,
+  type JsonEditorValidation,
+} from '@inkcre/ui-web'
+import { sourceFormProps } from './sourceForm'
 import { SourceType } from '@inkcre/core'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps(sourceFormProps)
-const emit = defineEmits(sourceFormEmits)
 const { t } = useI18n()
-
-// --- data ---
-const sourceTypes = ref<(DropdownOption & SourceType)[]>([])
-
-const configJson = computed<string>({
-  get: () => {
-    return JSON.stringify(props.modelValue.config, null, 2)
-  },
-  set: (newVal: string) => {
-    props.modelValue.config = JSON.parse(newVal)
-  },
+const {
+  state: sourceTypes,
+  isLoading: typesLoading,
+  error: typesError,
+  execute: loadTypes,
+} = useAsyncState(() => SourceType.getAll(), [], {
+  // The form renders the error and retains its draft for retry.
+  onError: () => undefined,
 })
-
-const currentSourceType = computed(() => {
-  return sourceTypes.value.find((type) => type.value === props.modelValue.type)
+const typeOptions = computed(() =>
+  sourceTypes.value.map((type) => ({ label: type.id, value: type.id }))
+)
+const currentSourceType = computed(() =>
+  sourceTypes.value.find((type) => type.id === props.modelValue.type)
+)
+const configJson = ref('')
+const validation = ref<JsonEditorValidation>()
+const initial = ref({
+  nickname: props.modelValue.nickname,
+  type: props.modelValue.type,
+  config: '',
 })
-
-// --- methods ---
-const loadSourceTypes = async (): Promise<(DropdownOption & SourceType)[]> => {
-  const result = await SourceType.getAll()
-  return result.map((type) => ({
-    label: type.id,
-    value: type.id,
-    ...type,
-  }))
+watch(
+  () => props.modelValue,
+  (source) => {
+    configJson.value = JSON.stringify(source.config, null, 2)
+    initial.value = { nickname: source.nickname, type: source.type, config: configJson.value }
+    validation.value = undefined
+  },
+  { immediate: true }
+)
+watch(
+  currentSourceType,
+  () => {
+    validation.value = undefined
+  },
+  { flush: 'sync' }
+)
+const isDirty = computed(
+  () =>
+    props.modelValue.nickname !== initial.value.nickname ||
+    props.modelValue.type !== initial.value.type ||
+    configJson.value !== initial.value.config
+)
+const canSave = computed(
+  () =>
+    !typesLoading.value &&
+    !typesError.value &&
+    Boolean(currentSourceType.value) &&
+    validation.value?.status === 'valid' &&
+    validation.value.text === configJson.value
+)
+function readConfig(): unknown {
+  if (!canSave.value) throw new Error(t('common.invalidConfig'))
+  return JSON.parse(configJson.value)
 }
+defineExpose({ canSave, isDirty, readConfig, sourceTypes })
 </script>
 
 <template>
-  <InkForm class="source-form">
-    <InkInput v-model="modelValue.nickname" :label="t('source.nickname')" editable />
-
+  <InkForm class="source-form" layout="col">
+    <InkInput v-model="modelValue.nickname" :label="t('source.nickname')" :disabled="disabled" />
     <InkDropdown
       v-model="modelValue.type"
-      v-model:options="sourceTypes"
-      :refresher="loadSourceTypes"
+      :options="typeOptions"
       :label="t('source.type')"
+      :disabled="disabled || typesLoading"
     />
-
+    <p v-if="typesLoading" role="status">{{ t('source.typesLoading') }}</p>
+    <div v-else-if="typesError" class="source-form__error">
+      <p role="alert" class="text-feedback-error">{{ t('source.typesFailed') }}</p>
+      <InkButton :text="t('source.retry')" theme="subtle" size="sm" @click="loadTypes()" />
+    </div>
+    <p
+      v-else-if="!sourceTypes.length || (modelValue.type && !currentSourceType)"
+      role="alert"
+      class="text-feedback-error"
+    >
+      {{ t('source.typeUnavailable') }}
+    </p>
     <InkJsonEditor
       v-model="configJson"
       :schema="currentSourceType?.config_schema"
       :label="t('source.config')"
       :placeholder="t('source.configPlaceholder')"
-      :rows="6"
+      :rows="8"
+      :disabled="disabled"
+      @validation="validation = $event"
     />
+    <slot />
   </InkForm>
 </template>
 

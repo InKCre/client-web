@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, shallowRef, watch, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { InkButton, InkSwitch, InkDialog, InkInput, InkJsonEditor } from '@inkcre/ui-web'
+import {
+  InkButton,
+  InkSwitch,
+  InkDialog,
+  InkInput,
+  InkJsonEditor,
+  type JsonEditorValidation,
+} from '@inkcre/ui-web'
 import { getExtensionHost, getExtensionSetupContribution } from '@/core'
 import { extensionCardProps, extensionCardEmits } from './extensionCard'
 
@@ -10,7 +17,9 @@ const emit = defineEmits(extensionCardEmits)
 const { t } = useI18n()
 
 // --- data ---
-const configPopupOpen = ref<boolean | Promise<boolean>>(false)
+const configPopupOpen = ref(false)
+const configSaving = ref(false)
+const configValidation = ref<JsonEditorValidation>()
 const versionPopupOpen = ref<boolean | Promise<boolean>>(false)
 const setupPopupOpen = ref(false)
 const setupComponent = shallowRef<Component | null>(null)
@@ -20,12 +29,16 @@ const isUninstalling = ref(false)
 const operationError = ref<string | null>(null)
 const configModel = ref(JSON.stringify(props.extension.config, null, 2))
 const versionModel = ref(props.extension.version)
+const canSaveConfig = computed(
+  () =>
+    configValidation.value?.status === 'valid' && configValidation.value.text === configModel.value
+)
 
 // --- computed ---
 watch(
   () => props.extension.config,
   (config) => {
-    configModel.value = JSON.stringify(config, null, 2)
+    if (!configPopupOpen.value) configModel.value = JSON.stringify(config, null, 2)
   },
   { deep: true }
 )
@@ -59,6 +72,9 @@ const toggleModel = computed({
 })
 
 const onEditConfigClick = () => {
+  configModel.value = JSON.stringify(props.extension.config, null, 2)
+  configValidation.value = undefined
+  operationError.value = null
   configPopupOpen.value = true
 }
 
@@ -91,19 +107,25 @@ const onConfirmVersion = () => {
   })()
 }
 
-const onConfirmConfig = () => {
-  configPopupOpen.value = (async () => {
-    try {
-      operationError.value = null
-      const config = JSON.parse(configModel.value) as Record<string, unknown>
-      const updatedExtension = await getExtensionHost().updateConfig(props.extension.name, config)
-      emit('updated', updatedExtension)
-      return false
-    } catch (error) {
-      operationError.value = error instanceof Error ? error.message : String(error)
-      return true
-    }
-  })()
+const onConfirmConfig = async () => {
+  if (configSaving.value || !canSaveConfig.value) return
+  configSaving.value = true
+  operationError.value = null
+  try {
+    const config: unknown = JSON.parse(configModel.value)
+    if (!config || typeof config !== 'object' || Array.isArray(config))
+      throw new Error(t('common.invalidConfig'))
+    const updatedExtension = await getExtensionHost().updateConfig(
+      props.extension.name,
+      config as Record<string, unknown>
+    )
+    emit('updated', updatedExtension)
+    configPopupOpen.value = false
+  } catch (error) {
+    operationError.value = error instanceof Error ? error.message : t('common.saveFailed')
+  } finally {
+    configSaving.value = false
+  }
 }
 
 const onUninstall = async () => {
@@ -156,7 +178,7 @@ const onUninstall = async () => {
         theme="danger"
         size="sm"
         :disabled="!canUninstall"
-        :loading="isUninstalling"
+        :is-loading="isUninstalling"
       />
     </div>
 
@@ -180,9 +202,26 @@ const onUninstall = async () => {
     <InkDialog
       v-model="configPopupOpen"
       :title="t('extension.editConfigTitle')"
-      @confirm="onConfirmConfig"
+      :is-loading="configSaving"
     >
-      <InkJsonEditor v-model="configModel" :schema="extension.config_schema ?? undefined" />
+      <InkJsonEditor
+        v-model="configModel"
+        :schema="extension.config_schema ?? undefined"
+        :label="t('extension.editConfigTitle')"
+        :disabled="configSaving"
+        @validation="configValidation = $event"
+      />
+      <p v-if="operationError" role="alert" class="extension-card__error">{{ operationError }}</p>
+      <template #footer>
+        <InkButton :text="t('common.cancel')" @click="configPopupOpen = false" />
+        <InkButton
+          :text="t('common.save')"
+          theme="primary"
+          :disabled="!canSaveConfig"
+          :is-loading="configSaving"
+          @click="onConfirmConfig"
+        />
+      </template>
     </InkDialog>
 
     <InkDialog
@@ -196,6 +235,7 @@ const onUninstall = async () => {
         :placeholder="t('extension.versionPlaceholder')"
         required
       />
+      <p v-if="operationError" role="alert" class="extension-card__error">{{ operationError }}</p>
     </InkDialog>
   </div>
 </template>

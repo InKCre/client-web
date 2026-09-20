@@ -1,4 +1,4 @@
-import { SourceForm } from '@inkcre/core'
+import { Source } from '@inkcre/core'
 
 // --- Types ---
 
@@ -11,7 +11,7 @@ export const createSourceProps = {
 
 // --- Emits ---
 export const createSourceEmits = {
-  create: (_data: SourceForm) => true,
+  create: (_data: Source) => true,
 }
 
 // --- Utilities ---

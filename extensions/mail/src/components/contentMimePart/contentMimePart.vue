@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { InkButton } from '@inkcre/ui-web'
+import { computed, ref, watch } from 'vue'
+import MimePartItem from './MimePartItem.vue'
 import type { SolvedContentRendererProps } from '@inkcre/core'
 
 import type { MailMimePartResolver } from '../../resolver'
@@ -11,7 +11,22 @@ const content = ref(props.solvedContent)
 const loading = ref(false)
 const error = ref<Error | null>(null)
 
+const details = computed(() =>
+  Object.entries(content.value.root).filter(
+    ([key, value]) =>
+      !['filename', 'media_type', 'encoded_size'].includes(key) && value !== null && value !== ''
+  )
+)
+watch(
+  () => props.solvedContent,
+  (value) => {
+    content.value = value
+    error.value = null
+  }
+)
+
 async function materialize(): Promise<void> {
+  if (loading.value) return
   loading.value = true
   error.value = null
   try {
@@ -28,42 +43,50 @@ async function materialize(): Promise<void> {
 </script>
 
 <template>
-  <div class="content-mime-part">
-    <strong>{{
-      content.root.filename || content.root.description || content.root.media_type
-    }}</strong>
-    <span>{{ content.root.media_type }}</span>
-    <span v-if="content.root.encoded_size !== null"
-      >{{ content.root.encoded_size }} bytes encoded</span
-    >
-    <a
-      v-if="
-        content.content &&
-        typeof content.content.solvedContent === 'object' &&
-        content.content.solvedContent &&
-        'objectUrl' in content.content.solvedContent
-      "
-      :href="String(content.content.solvedContent.objectUrl)"
-      target="_blank"
-      rel="noopener noreferrer"
-      >Open</a
-    >
-    <InkButton v-else text="Download content" :loading="loading" @click="materialize" />
-    <p v-if="error">{{ error.message }}</p>
-  </div>
+  <article class="content-mime-part">
+    <MimePartItem
+      :content="content"
+      :loading="loading"
+      :error="error?.message"
+      @download="materialize"
+    />
+    <details v-if="details.length">
+      <summary>File details</summary>
+      <dl>
+        <template v-for="[key, value] in details" :key="key"
+          ><dt>{{ key.replace(/_/g, ' ') }}</dt>
+          <dd>{{ value }}</dd></template
+        >
+      </dl>
+    </details>
+  </article>
 </template>
 
 <style scoped lang="scss">
 .content-mime-part {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-
-  span,
-  p {
+  display: grid;
+  gap: sys-var(space, lg);
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: sys-var(color, text, base);
+  summary {
+    @include apply-font(body-sm);
+    cursor: pointer;
+    color: sys-var(color, text, subtle);
+  }
+  dl {
+    display: grid;
+    grid-template-columns: fit-content(35%) minmax(0, 1fr);
+    gap: sys-var(space, sm) sys-var(space, md);
+  }
+  dt {
+    @include apply-font(body-sm);
+    text-transform: capitalize;
+    color: sys-var(color, text, subtle);
+  }
+  dd {
     margin: 0;
-    color: var(--ink-text-secondary, #6b7280);
+    @include apply-font(body-md);
   }
 }
 </style>

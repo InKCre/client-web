@@ -2,7 +2,7 @@
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import dayjs from 'dayjs'
-import { InkButton, InkField, InkLoading, InkPopup } from '@inkcre/ui-web'
+import { InkButton, InkLoading, InkPopup } from '@inkcre/ui-web'
 import { Block, getInfoBaseRouter, OrganizationManager, PeerOutcomeUnknown } from '@inkcre/core'
 
 import type { BlockInspectorPopupProps } from './BlockInspectorPopup'
@@ -78,11 +78,24 @@ async function ruminate(): Promise<void> {
 </script>
 
 <template>
-  <InkPopup :open="open" :scrim="false" position="right" @update:open="onOpenChange">
+  <InkPopup
+    style="width: 420px; max-width: calc(100vw - 2 * var(--sys-space-md)); padding: 0"
+    :open="open"
+    :scrim="false"
+    position="right"
+    :aria-label="t('infoBase.blockInspector.title')"
+    @update:open="onOpenChange"
+  >
     <section class="block-inspector-popup">
       <header class="block-inspector-popup__header">
         <h3>{{ t('infoBase.blockInspector.title') }}</h3>
-        <InkButton icon="i-mdi-close" theme="subtle" type="square" @click="close" />
+        <InkButton
+          icon="i-mdi-close"
+          :aria-label="t('common.close')"
+          theme="subtle"
+          type="square"
+          @click="close"
+        />
       </header>
 
       <div v-if="status === 'loading'" class="block-inspector-popup__state"><InkLoading /></div>
@@ -94,25 +107,22 @@ async function ruminate(): Promise<void> {
       </div>
 
       <div v-else-if="block" class="block-inspector-popup__body">
-        <InkField :label="t('infoBase.blockInspector.id')" layout="inline"
-          >#{{ block.id }}</InkField
-        >
-        <InkField :label="t('infoBase.blockInspector.resolver')" layout="inline">
-          <code>{{ block.resolver }}</code>
-        </InkField>
-        <InkField :label="t('infoBase.blockInspector.created')" layout="inline">
-          {{ formattedCreatedAt }}
-        </InkField>
-        <InkField :label="t('infoBase.blockInspector.updated')" layout="inline">
-          {{ formattedUpdatedAt }}
-        </InkField>
-        <InkField
-          v-if="block.storage !== null"
-          :label="t('infoBase.blockInspector.storage')"
-          layout="inline"
-        >
-          #{{ block.storage }}
-        </InkField>
+        <dl class="block-inspector-popup__facts">
+          <dt>{{ t('infoBase.blockInspector.id') }}</dt>
+          <dd>#{{ block.id }}</dd>
+          <dt>{{ t('infoBase.blockInspector.resolver') }}</dt>
+          <dd>
+            <code>{{ block.resolver }}</code>
+          </dd>
+          <dt>{{ t('infoBase.blockInspector.created') }}</dt>
+          <dd>{{ formattedCreatedAt }}</dd>
+          <dt>{{ t('infoBase.blockInspector.updated') }}</dt>
+          <dd>{{ formattedUpdatedAt }}</dd>
+          <template v-if="block.storage !== null"
+            ><dt>{{ t('infoBase.blockInspector.storage') }}</dt>
+            <dd>#{{ block.storage }}</dd></template
+          >
+        </dl>
 
         <div class="block-inspector-popup__actions">
           <InkButton
@@ -122,10 +132,10 @@ async function ruminate(): Promise<void> {
           />
           <InkButton
             :text="t('infoBase.blockInspector.ruminate')"
-            :loading="isRuminating"
+            :is-loading="isRuminating"
             @click="ruminate"
           />
-          <p v-if="ruminationOutcome">
+          <p v-if="ruminationOutcome" :role="ruminationOutcome === 'success' ? 'status' : 'alert'">
             {{ t(`infoBase.blockInspector.rumination.${ruminationOutcome}`) }}
           </p>
         </div>

@@ -1,23 +1,7 @@
-# createSource
+# CreateSource
 
-## Rationale
+提供“创建数据源”按钮与创建弹层。打开后填写昵称、类型和完整配置；`SourceForm` 拥有原始 JSON 草稿和校验，组件拥有持久化及弹层生命周期。
 
-Component for creating a new source in the info-base.
+保存期间禁用编辑、取消、遮罩和 Escape，防止重复创建。失败保留全部输入并显示反馈；只有服务器返回创建对象后才关闭弹层并发出 `create(source: Source)`。列表可以直接加入返回对象，无须以再次读取成功作为创建成功的条件。
 
-## Goals
-
-Provide a form to input source details and emit the creation data.
-
-## Key Concepts
-
-- Source creation
-
-## Specification
-
-Form with fields for nickname, type, and collect at. Emits create event with the data.
-
-## Implementation
-
-### Events
-
-- `create(data: SourceForm)`: Emitted when create button is clicked, with the form data.
+有未保存修改时，取消、Escape 或应用内离开页面要求确认放弃；拒绝时保留输入。确认放弃或创建成功后清空表单。弹层尺寸变化不重建表单。

@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@inkcre/ext-dev-utils": "workspace:*",
-    "@inkcre/ui-web": "1.4.0",
+    "@inkcre/ui-web": "2.0.1",
     "@module-federation/vite": "^1.1.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vitejs/plugin-vue-jsx": "^5.1.2",
@@ -29,7 +29,7 @@
   "peerDependencies": {
     "@vueuse/core": "^14.0.0",
     "pinia": "^3.0.0",
-    "vue": "^3.5.0",
+    "vue": "^3.5.25",
     "vue-router": "^4.5.0",
     "zod": "^4.1.0"
   },
@@ -40,5 +40,10 @@
       "host_sdk": "@inkcre/core",
       "host_sdk_version": ">=0.2.0 <0.3.0"
     }
+  },
+  "intent": {
+    "skills": [
+      "@inkcre/ui-web"
+    ]
   }
 }

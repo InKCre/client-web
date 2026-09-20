@@ -5,10 +5,7 @@ const props = defineProps<SolvedContentRendererProps<string>>()
 
 const displayContent = computed(() => {
   const textContent = stripHtml(props.solvedContent)
-  const maxLen = 80
-  const preview = textContent.length > maxLen ? textContent.slice(0, maxLen) + '...' : textContent
-
-  return preview || '[HTML]'
+  return textContent || '[HTML]'
 })
 
 function stripHtml(html: string): string {
@@ -24,7 +21,7 @@ function stripHtml(html: string): string {
 <template>
   <div class="content-html">
     <div class="content-html__badge">HTML</div>
-    <div class="content-html__preview">{{ displayContent }}</div>
+    <div class="content-html__text">{{ displayContent }}</div>
   </div>
 </template>
 
@@ -36,24 +33,16 @@ function stripHtml(html: string): string {
   overflow: hidden;
 
   &__badge {
-    @include apply-font(label-sm, true);
+    @include apply-font(label-md, $mono: true);
     color: sys-var(color, text, subtle);
     margin-bottom: 4px;
     letter-spacing: 0.5px;
   }
 
-  &__title {
-    @include apply-font(label-lg);
+  &__text {
+    @include apply-font(body-md);
     color: sys-var(color, text, base);
-    font-weight: 500;
-    word-break: break-word;
-  }
-
-  &__preview {
-    @include apply-font(label-lg);
-    color: sys-var(color, text, subtle);
-    word-break: break-word;
-    line-height: 1.4;
+    overflow-wrap: anywhere;
   }
 }
 </style>

@@ -5,6 +5,11 @@
       "kind": "module_federation",
       "producer": "../../extensions/twitter/package.json",
       "artifact": "../../extensions/twitter/dist/client-web"
+    },
+    {
+      "kind": "module_federation",
+      "producer": "../../extensions/mail/package.json",
+      "artifact": "../../extensions/mail/dist/client-web"
     }
   ]
 }

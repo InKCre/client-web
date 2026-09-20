@@ -9,7 +9,7 @@
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: sys-var(color, surface, hover);
+    background-color: sys-var(color, surface, subtle-hover);
   }
 
   &__header {
@@ -19,7 +19,7 @@
   }
 
   &__id {
-    @include apply-font(label-lg, mono);
+    @include apply-font(label-lg, $mono: true);
     color: sys-var(color, text, base);
   }
 
@@ -27,20 +27,8 @@
     @include apply-font(label-md);
     color: sys-var(color, text, base);
 
-    &.status--pending {
-      color: sys-var(color, warning, base);
-    }
-
-    &.status--running {
-      color: sys-var(color, info, base);
-    }
-
-    &.status--finished {
-      color: sys-var(color, success, base);
-    }
-
     &.status--failed {
-      color: sys-var(color, danger, base);
+      color: sys-var(color, feedback, error);
     }
   }
 
@@ -51,7 +39,7 @@
   }
 
   &__date {
-    @include apply-font(label-sm);
+    @include apply-font(label-md);
     color: sys-var(color, text, subtle);
   }
 }

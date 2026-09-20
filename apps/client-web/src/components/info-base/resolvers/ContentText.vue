@@ -1,19 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import type { SolvedContentRendererProps } from '@inkcre/core'
 
-const props = defineProps<SolvedContentRendererProps<string>>()
-
-const displayText = computed(() => {
-  const text = props.solvedContent
-  const maxLen = 100
-  return text.length > maxLen ? text.slice(0, maxLen) + '...' : text
-})
+defineProps<SolvedContentRendererProps<string>>()
 </script>
 
 <template>
   <div class="content-text">
-    <div class="content-text__content">{{ displayText }}</div>
+    <div class="content-text__content">{{ solvedContent }}</div>
   </div>
 </template>
 
@@ -25,10 +18,10 @@ const displayText = computed(() => {
   overflow: hidden;
 
   &__content {
-    @include apply-font(label-lg);
+    @include apply-font(body-md);
     color: sys-var(color, text, base);
-    word-break: break-word;
-    line-height: 1.4;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
   }
 }
 </style>

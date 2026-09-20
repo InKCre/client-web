@@ -52,8 +52,7 @@ const objectUrl = computed(() => {
 
   p {
     margin: 0;
-    @include apply-font(label-lg);
-    line-height: 1.45;
+    @include apply-font(body-sm);
     overflow-wrap: anywhere;
   }
 
@@ -71,7 +70,7 @@ const objectUrl = computed(() => {
     justify-content: space-between;
     gap: sys-var(space, md);
     color: sys-var(color, text, subtle);
-    @include apply-font(label-sm, true);
+    @include apply-font(label-md, $mono: true);
   }
 }
 </style>

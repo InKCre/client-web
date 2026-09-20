@@ -12,12 +12,7 @@ const { t } = useI18n()
 // --- computed ---
 const statusColor = computed(() => {
   switch (props.job.status) {
-    case JobStatus.PENDING:
-      return 'status--pending'
-    case JobStatus.RUNNING:
-      return 'status--running'
-    case JobStatus.FINISHED:
-      return 'status--finished'
+    case JobStatus.TIMED_OUT:
     case JobStatus.FAILED:
       return 'status--failed'
     default:

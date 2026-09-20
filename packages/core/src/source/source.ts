@@ -26,19 +26,23 @@ export class Source extends Z.class({
   )
 
   static async get(id: SourceRef): Promise<Source> {
-    return Source.parse((await this.dbApi.from().select().eq('id', id).single()).data)
+    return Source.parse(
+      (await this.dbApi.from().select().eq('id', id).single().throwOnError()).data
+    )
   }
 
   static async getAll(): Promise<Source[]> {
-    return ((await this.dbApi.from().select()).data ?? []).map((item) => Source.parse(item))
+    return ((await this.dbApi.from().select().throwOnError()).data ?? []).map((item) =>
+      Source.parse(item)
+    )
   }
 
   public async save(): Promise<Source> {
-    return Source.dbApi.first(await Source.dbApi.upsert(this).select())
+    return Source.dbApi.first(await Source.dbApi.upsert(this).select().throwOnError())
   }
 
   async delete(): Promise<void> {
-    await Source.dbApi.from().delete().eq('id', this.id)
+    await Source.dbApi.from().delete().eq('id', this.id).throwOnError()
   }
 }
 
@@ -50,6 +54,6 @@ export class SourceForm extends Z.class({
   storage: z.number().int().nullable().default(null),
 }) {
   public async create() {
-    return Source.parse((await Source.dbApi.insert(this).select().single()).data)
+    return Source.parse((await Source.dbApi.insert(this).select().single().throwOnError()).data)
   }
 }

@@ -1,41 +1,11 @@
-# Source Detail View
+# Source 详情
 
-## Rationale
+页面标题使用已保存的来源名称，类型与 ID 提供稳定身份。配置修改、现有定时采集与近期任务分别分组；宽容器并排，窄容器按阅读顺序排列，由页面负责滚动。
 
-Provides a detailed view of one Source with its configuration, Jobs, and ordinary collection Crons.
+配置表单使用独立草稿，只有确认保存成功后才更新标题与保存基线。失败保留昵称、类型和原始 JSON；例行保存结果使用中性文字。应用内离开或切换来源前检查未保存修改，拒绝放弃时继续编辑。页面返回入口携带来源锚点，列表读取后定位并聚焦对应名称链接。读取失败提供重试，不停留在无限加载状态；来源、任务与计划分别读取，重试一个区域不会覆盖另一区域的草稿，过期响应不能替换当前来源。
 
-## Goals
+任务列表提供原生链接，只覆盖 Core 返回的近期任务。普通 pending／running／finished 使用中性表达，失败与超时保留错误强调。新建任务弹层校验所选采集方式的 JSON；来源类型没有历史回补 schema 时不提供该选项。创建成功后加入任务列表并进入任务详情；未确认创建结果时不自动重试。
 
-- Display comprehensive source information
-- Allow inline editing of nickname and config
-- List Jobs whose parameters reference this Source
-- Create ordinary and historical collection Jobs
-- Create, run, and delete ordinary collection Crons
-- Provide actions to create new jobs and delete the source
+计划列表始终呈现现有计划及操作，“添加定时采集”打开独立表单。新增与删除成功后直接更新对应列表；读取、写入、立即执行均有等待和失败反馈。来源删除与计划删除使用带对象上下文的确认弹层，等待期间禁止重复操作或关闭；失败保留确认与条目。删除来源成功后返回来源列表。
 
-## Specification
-
-### Layout
-
-- Two-panel layout (left: Source details, right: scheduling and Jobs)
-
-### Left Panel (Source Details)
-
-- Source type, nickname, and ID
-- Inline nickname editing (using InkInput)
-- Config display and editing (using InkJsonEditor with save button)
-- Delete action button
-
-### Right Panel (Scheduling and Jobs)
-
-- "New Job" button at the top (full width)
-- Cron controls and current schedules
-- List of Jobs for this Source
-- Each job shows: ID, status, created date, and clickable link to job detail
-
-### Actions
-
-- New Job: chooses ordinary collection or historical backfill, validates its JSON config, and creates a global Job
-- Schedule: creates an ordinary collection Cron from a five-field schedule
-- Delete: Deletes the source and navigates back to sources list
-- Save Config: Saves the edited configuration
+模型与数据库契约属于 Core，页面不另建调度或采集逻辑。`Source`／`SourceType` 的读取、Source 写入，以及本页使用的 Job／Cron 查询与 Cron 写入会传播请求错误；空结果仅表示请求成功且没有匹配记录。

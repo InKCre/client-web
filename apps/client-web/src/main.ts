@@ -1,4 +1,5 @@
-import { createApp } from 'vue'
+import { computed, createApp } from 'vue'
+import { INK_I18N_KEY, type InkI18n } from '@inkcre/ui-web'
 import App from './App.vue'
 import i18n from './locales'
 import router from './router'
@@ -13,6 +14,10 @@ import '@vue-flow/core/dist/style.css'
 const app = createApp(App)
 
 app.use(i18n)
+app.provide<InkI18n>(INK_I18N_KEY, {
+  t: (key) => i18n.global.t(`ui.${key}`),
+  locale: computed(() => i18n.global.locale.value),
+})
 app.use(store)
 app.use(router)
 setInfoBaseRouter(createInfoBaseRouterAdapter(router))

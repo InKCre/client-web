@@ -1,7 +1,8 @@
 import { defineConfig, presetUno, presetAttributify, presetIcons } from 'unocss'
+import { presetInk } from '@inkcre/ui-web/uno'
 
 export default defineConfig({
-  presets: [presetUno(), presetAttributify(), presetIcons()],
+  presets: [presetUno(), presetInk(), presetAttributify(), presetIcons()],
   safelist: [
     'i-mdi-menu',
     'i-mdi-loading',

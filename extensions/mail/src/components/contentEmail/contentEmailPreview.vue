@@ -22,8 +22,8 @@ const body = computed(() => {
 
 <template>
   <article class="email-preview">
-    <span v-if="sender">{{ sender }}</span>
     <strong>{{ solvedContent.root.subject || '(no subject)' }}</strong>
+    <span v-if="sender">{{ sender }}</span>
     <p v-if="body">{{ body }}</p>
   </article>
 </template>
@@ -31,18 +31,32 @@ const body = computed(() => {
 <style scoped lang="scss">
 .email-preview {
   display: grid;
-  gap: 6px;
-  min-width: 220px;
+  gap: sys-var(space, xs);
+  min-width: 0;
   max-width: 360px;
+
+  overflow-wrap: anywhere;
+
+  strong {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    @include apply-font(label-lg);
+  }
+
+  span {
+    @include apply-font(label-md);
+  }
 
   span,
   p {
     margin: 0;
-    color: var(--ink-text-secondary, #6b7280);
+    color: var(--sys-color-text-subtle);
   }
 
   p {
-    line-height: 1.45;
+    @include apply-font(body-sm);
     overflow-wrap: anywhere;
   }
 }

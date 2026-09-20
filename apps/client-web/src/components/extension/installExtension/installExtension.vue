@@ -15,6 +15,7 @@ const error = ref<string | null>(null)
 
 // --- methods ---
 const onSubmit = async () => {
+  if (isLoading.value) return
   isLoading.value = true
   try {
     error.value = null
@@ -36,32 +37,34 @@ const onSubmit = async () => {
   <div class="install-extension">
     <h2 class="title">{{ t('extension.installExtensionTitle') }}</h2>
 
-    <InkForm class="form">
+    <InkForm class="form" layout="col" @submit="onSubmit">
       <InkInput
         v-model="form.name"
         :label="t('extension.name')"
         :placeholder="t('extension.namePlaceholder')"
+        :disabled="isLoading"
         required
       />
       <InkInput
         v-model="form.version"
         :label="t('extension.version')"
         :placeholder="t('extension.versionPlaceholder')"
+        :disabled="isLoading"
         required
       />
+
+      <p v-if="error" class="install-extension__error">{{ error }}</p>
+
+      <div class="footer">
+        <InkButton
+          :text="t('extension.installNew')"
+          theme="primary"
+          size="md"
+          native-type="submit"
+          :is-loading="isLoading"
+        />
+      </div>
     </InkForm>
-
-    <p v-if="error" class="install-extension__error">{{ error }}</p>
-
-    <div class="footer">
-      <InkButton
-        :text="t('extension.installNew')"
-        theme="primary"
-        size="md"
-        @click="onSubmit"
-        :loading="isLoading"
-      />
-    </div>
   </div>
 </template>
 

@@ -45,7 +45,7 @@ export class Block extends Z.class({
   }
 
   static async find(id: BlockRef): Promise<Block | null> {
-    const row = (await this.dbApi.from().select().eq('id', id).maybeSingle()).data
+    const row = (await this.dbApi.from().select().eq('id', id).maybeSingle().throwOnError()).data
     return row ? Block.parse(row) : null
   }
 
