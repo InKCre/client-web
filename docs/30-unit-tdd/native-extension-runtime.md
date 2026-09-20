@@ -10,7 +10,7 @@ Registry contracts remain in [`../_shared/`](../_shared/).
 
 Resolver/content producer semantics belong to [Info-Base](info-base.md). Registry publication and
 artifact delivery belong to
-[Native Extension Delivery](../40-deployment/native-extension-delivery.md).
+[First-party Extension Delivery](../40-deployment/native-extension-delivery.md).
 
 There is one native format: an Extension Release may associate a Module Federation distribution.
 The Host consumes that association directly. There is no shared Extension Runtime/API package,

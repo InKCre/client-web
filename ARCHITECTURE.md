@@ -54,7 +54,7 @@ types and runtime metadata project the admitted core-py contract through stable 
   database providers, worktree ownership, and sibling-source lanes.
 - [Web Delivery](docs/40-deployment/web-delivery.md) owns checked static artifacts and Cloudflare
   Pages preview/production.
-- [Native Extension Delivery](docs/40-deployment/native-extension-delivery.md) owns Changesets,
+- [First-party Extension Delivery](docs/40-deployment/native-extension-delivery.md) owns Changesets,
   Registry publication, provenance, and release secret boundaries.
 
 Pull-request preview authority is a trusted same-repository controller. It checks out the exact PR

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { lstat, mkdir, readFile, writeFile } from 'node:fs/promises'
+import { lstat, mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { satisfies, subset, valid as validSemVer, validRange } from 'semver'
@@ -222,7 +222,9 @@ export async function verifyPublicModuleFederation({
   expectedManifest.metaData.publicPath = publicPrefix
   assert.deepEqual(publicManifest, expectedManifest, 'Registry changed fields besides publicPath')
 
-  for (const relativePath of local.referenced_assets) {
+  // Manifest references omit transitive chunks, maps and other uploaded files.
+  const snapshotFiles = await listSnapshotFiles(artifactDirectory)
+  for (const relativePath of snapshotFiles.filter((file) => file !== 'mf-manifest.json')) {
     const response = await fetchImplementation(new URL(relativePath, publicPrefix), {
       headers: { Origin: PRODUCTION_BROWSER_ORIGIN },
     })
@@ -238,8 +240,24 @@ export async function verifyPublicModuleFederation({
     name: local.name,
     version: local.version,
     manifest_url: manifestUrl.href,
-    verified_assets: local.referenced_assets.length,
+    verified_assets: snapshotFiles.length,
   }
+}
+
+export async function listSnapshotFiles(directory, prefix = '') {
+  const files = []
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const relativePath = prefix + entry.name
+    assertSafeRelativePath(relativePath, 'snapshot member')
+    assert.ok(!entry.isSymbolicLink(), `snapshot member must not be a symlink: ${relativePath}`)
+    if (entry.isDirectory()) {
+      files.push(...(await listSnapshotFiles(path.join(directory, entry.name), `${relativePath}/`)))
+    } else {
+      assert.ok(entry.isFile(), `snapshot member must be a file: ${relativePath}`)
+      files.push(relativePath)
+    }
+  }
+  return files.sort()
 }
 
 function assertPublicArtifactResponse(response, label) {

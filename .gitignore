@@ -18,6 +18,7 @@ coverage
 *.local
 /playwright-report/
 /test-results/
+/.extension-delivery/
 
 /cypress/videos/
 /cypress/screenshots/

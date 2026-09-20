@@ -121,6 +121,9 @@ jobs:
           --core-package packages/core/package.json
           --artifact-directory extensions/twitter/dist/client-web
 
+      - name: Verify publication recovery over HTTP
+        run: node --test scripts/test-extension-publication.mjs
+
   peer-database:
     name: client-web E2E
     needs: core-release
