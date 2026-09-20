@@ -86,7 +86,13 @@ export async function captureCandidates({
   })) {
     if (!directory.isDirectory()) continue
     const packagePath = path.join(workspace, 'extensions', directory.name, 'package.json')
-    const manifest = await readJson(packagePath)
+    let manifest
+    try {
+      manifest = await readJson(packagePath)
+    } catch (error) {
+      if (error.code === 'ENOENT') continue
+      throw error
+    }
     if (!manifest.inkcre?.module_federation) continue
     const existing = await publicRelease(
       releaseUrl(registryUrl, manifest.inkcre.name, manifest.version),
