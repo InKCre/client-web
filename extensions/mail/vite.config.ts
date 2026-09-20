@@ -6,6 +6,7 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 import { federation } from '@module-federation/vite'
 
 import mfShared from '../mf-shared'
+import extensionPackage from './package.json'
 import {
   createUiSourceAliases,
   isPathInside,
@@ -28,7 +29,7 @@ export const mailFederationOptions = {
   filename: 'remoteEntry.js',
   manifest: true,
   exposes: { '.': path.resolve(__dirname, './src/index.ts') },
-  shared: mfShared,
+  shared: mfShared(extensionPackage.inkcre.module_federation.host_sdk_version),
 }
 
 export default defineConfig(async ({ command }) => {

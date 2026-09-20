@@ -4,6 +4,7 @@ import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import { federation } from '@module-federation/vite'
 import mfShared from '../mf-shared'
+import extensionPackage from './package.json'
 import path from 'path'
 import {
   createUiSourceAliases,
@@ -33,7 +34,7 @@ export const twitterFederationOptions = {
       './src/components/contentTweet/contentTweet.vue'
     ),
   },
-  shared: mfShared,
+  shared: mfShared(extensionPackage.inkcre.module_federation.host_sdk_version),
 }
 
 export default defineConfig(async ({ command }) => {

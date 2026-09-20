@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { lstat, mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { satisfies, valid as validSemVer, validRange } from 'semver'
+import { satisfies, subset, valid as validSemVer, validRange } from 'semver'
 
 const PRODUCTION_BROWSER_ORIGIN = 'https://app.inkcre.dev'
 const EXTENSION_NAME_PATTERN =
@@ -141,6 +141,11 @@ export async function inspectNativeModuleFederation({
   assert.equal(coreShare.length, 1, 'manifest must contain exactly one @inkcre/core shared module')
   const sharedRange = coreShare[0].requiredVersion?.replaceAll(',', ' ')
   assert.ok(validRange(sharedRange), 'manifest @inkcre/core requiredVersion is invalid')
+  const registryRange = association.module_federation.host_sdk_version.replaceAll(',', ' ')
+  assert.ok(
+    subset(sharedRange, registryRange) && subset(registryRange, sharedRange),
+    'manifest @inkcre/core range must match the Registry Host SDK range'
+  )
   assert.ok(
     satisfies(corePackage.version, sharedRange),
     `manifest shared range does not accept @inkcre/core ${corePackage.version}`
