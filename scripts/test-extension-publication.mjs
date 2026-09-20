@@ -99,6 +99,8 @@ test('an unknown MF-only upload resumes the saved ZIP and verifies even an exist
   })
   try {
     await mkdir(path.join(build, '.vite'), { recursive: true })
+    await mkdir(path.join(workspace, 'extensions/.agents'))
+    await mkdir(path.join(workspace, 'extensions/guidance'))
     await mkdir(path.join(workspace, 'packages/core'), { recursive: true })
     await writeFile(
       path.join(workspace, 'packages/core/package.json'),
@@ -180,6 +182,12 @@ test('an unknown MF-only upload resumes the saved ZIP and verifies even an exist
       historical.candidates,
       [],
       'unrelated builds must not claim to verify historical releases'
+    )
+    await writeFile(path.join(workspace, 'extensions/guidance/package.json'), '{invalid')
+    await assert.rejects(
+      captureCandidates({ ...options, deliveryDirectory: path.join(workspace, 'invalid-run') }),
+      SyntaxError,
+      'only absent package metadata may be skipped, not invalid package metadata'
     )
   } finally {
     server.closeAllConnections()
