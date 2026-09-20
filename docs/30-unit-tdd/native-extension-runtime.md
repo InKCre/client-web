@@ -23,6 +23,12 @@ native lifecycle methods `initialize`, `activate`, `deactivate`, and `dispose`; 
 capabilities come from its package entry rather than playground bootstrap code. Extension code
 imports `@inkcre/core` directly.
 
+Each producer's `inkcre.module_federation.host_sdk_version` also supplies its native MF
+`@inkcre/core` shared requirement. The build SDK version is not the consumer compatibility range:
+an Extension may support more than one SDK minor. The artifact verifier requires both ranges to be
+semantically equal and to accept the build SDK. SDK sharing remains a Host-only singleton, without
+a bundled fallback. UI compatibility is declared independently and is not implied by the SDK range.
+
 Host 与 Web 扩展通过现有 Module Federation 配置共享 `@inkcre/ui-web` 单例，
 并声明当前锁定 UI 版本的要求。UI 的 i18n、路由和表单上下文使用模块内的 Vue 注入 key；
 如果扩展另用一份 UI 运行时，即使外观相同，也无法继承 Host 的这些上下文。
