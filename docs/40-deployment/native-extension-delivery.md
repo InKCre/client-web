@@ -1,6 +1,6 @@
-# Native Extension Delivery
+# First-party Extension Delivery
 
-This document owns the operational Release and Registry delivery contract for native client-web
+This document owns the operational Release and Registry delivery contract for first-party client-web
 Extensions. Extension lifecycle and Host internals belong to
 [Native Extension Runtime](../30-unit-tdd/native-extension-runtime.md). A producer is an
 `extensions/*/package.json` declaring `inkcre.module_federation`; its package version is the
@@ -12,21 +12,32 @@ compatible `@inkcre/core` Host SDK range.
 Contributors record intent with `pnpm changeset`, selecting only affected independently releasable
 Extension packages. On a protected `main` push,
 [`.github/workflows/extension-release.yml`](../../.github/workflows/extension-release.yml) runs the
-**Native Extension release** lifecycle:
+**First-party Extension release** lifecycle:
 
 - With pending changesets, Changesets Action runs `pnpm release:version` and creates or updates the
   Extension Version PR. That PR owns generated package versions and changelogs; contributors do not
   edit those outputs separately. The reconciliation step does not publish, create GitHub Releases,
   or push tags.
-- After the Version PR is merged and no changesets remain, the publish job checks out that exact
+- After the Version PR is merged and no changesets remain, the candidate job checks out that exact
   release revision, installs the frozen workspace, and builds `@inkcre/core` plus every
-  `extensions/*` producer itself. It never downloads CI artifacts.
-- Producers are discovered from package metadata. An already-associated native Module Federation
-  Release is a no-op; a missing association is prepared with provenance, uploaded, published, and
-  read back from the public Registry for verification.
+  `extensions/*` producer itself. It saves the selected plan, original prepare descriptors, full ZIP
+  snapshots and SHA-256 digests as the immutable `first-party-extension-candidate` Actions artifact.
+  No Registry writes occur until that artifact is retained and checked.
+- Producers are discovered from package metadata. A published Release with an existing Module
+  Federation association is a historical no-op at candidate selection. Missing associations become
+  fixed candidates; the publish job downloads this run's exact artifact, prepares them with their
+  saved provenance, uploads, publishes, and verifies every candidate from the public Registry.
+  It never consumes pull-request CI artifacts or rebuilds a publication candidate.
+
+The repository must enable **Allow GitHub Actions to create and approve pull requests** for
+Changesets to create its Version PR. GitHub combines these capabilities in one setting; this
+workflow only creates PRs and must never approve reviews. Default workflow-token permissions stay
+read-only, with write permissions confined to reconciliation. GitHub may require a maintainer to
+select **Approve workflows to run** on a token-created Version PR before its checks execute; do not
+replace this gate with an empty-check merge or a broader credential.
 
 Client checks, Pages production, and Pages preview are separate application lifecycles. They cannot
-publish native Extensions. Local development and local verification must never publish either.
+publish first-party Extensions. Local development and local verification must never publish either.
 
 Python and Module Federation producers for one Extension must target the same exact Release when
 both Hosts are needed. A published Python-only Release may receive its missing Module Federation
@@ -37,7 +48,7 @@ or manually editing generated package versions.
 ## Registry Authority and Secret Boundary
 
 Publication runs only in the protected GitHub `production` environment. The scoped bearer secret
-`INKCRE_EXTENSION_REGISTRY_TOKEN` belongs only to the native Extension publish job; it must not be
+`INKCRE_EXTENSION_REGISTRY_TOKEN` belongs only to the first-party Extension publish job; it must not be
 copied to a file, exposed to Pages or checks, or used for protected delivery from a developer
 machine. The public Registry defaults to `https://registry.inkcre.dev`; operators may override only
 the endpoint through repository variable `INKCRE_EXTENSION_REGISTRY_URL`.
@@ -46,12 +57,41 @@ The workflow records `source_repository`, `source_revision`, and a release-workf
 the Module Federation distribution before upload. These Web-distribution provenance facts remain
 independent of any Python distribution attached to the same Registry Release.
 
+## Failure and Recovery
+
+An upload timeout is an unknown outcome, not proof of a rejected snapshot: a Registry behind Heroku
+may finish after its router returns H12. The publisher makes a bounded attempt to complete the
+existing publish operation and read back the Release. A new MF-only Release remains publicly
+invisible while preparing, so recovery cannot rely on public GET alone. Authentication failures,
+immutable conflicts, blocked/yanked Releases and byte mismatches fail rather than becoming retries
+or successful skips.
+
+Use **Re-run failed jobs** after a remaining transient failure. **Re-run all jobs** is also safe:
+the candidate job discovers this run's saved artifact and restores its original plan rather than
+reselecting packages or rebuilding. Both first publication and recovery verify the full public
+snapshot, including candidates whose association appeared after an earlier timeout. A later,
+unrelated main push may classify those historical Releases as no-ops; it does not claim to verify
+them against a new build.
+
+Candidates are retained for 90 days. Do not delete the artifact of an unfinished release or start
+a new run to replace its prepared provenance. An expired or lost candidate requires operator
+investigation using the original run and Registry state; a fresh build is not equivalent evidence.
+The original ZIP digest and all-file verification count are written to the publish job summary.
+
+`node --test scripts/test-extension-publication.mjs` exercises the publisher over an isolated HTTP
+fault-injection endpoint: an MF-only upload returns 503 while the saved snapshot becomes available,
+publish initially reports incomplete objects, and recovery verifies the original ZIP even after
+local build output changes. It also proves that an existing selected association cannot bypass
+byte verification, immutable conflicts stop immediately, and invalid saved candidates cause no
+Registry writes. This is a publisher regression check, not evidence of production R2 latency.
+
 ## Snapshot and Verification
 
 Each producer retains the relative artifact base `base: './'`, emits
 `dist/client-web/mf-manifest.json`, and declares its Registry association in package metadata. The
-distribution verifier follows the manifest Remote entry and every synchronous or asynchronous
-shared/exposed JavaScript and CSS reference. The uploaded snapshot is therefore self-contained and
+distribution verifier checks the manifest Remote entry and every synchronous or asynchronous
+shared/exposed JavaScript and CSS reference, then compares every file in the uploaded snapshot,
+including transitive chunks and generated metadata. The uploaded snapshot is self-contained and
 relocatable; publication does not invent a generic target descriptor or rewrite the producer
 manifest.
 

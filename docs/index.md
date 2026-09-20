@@ -9,7 +9,7 @@
 - [Deployment and Runtime](40-deployment/README.md)
   - [Development Runtime](40-deployment/development-runtime.md)
   - [Web Delivery](40-deployment/web-delivery.md)
-  - [Native Extension Delivery](40-deployment/native-extension-delivery.md)
+  - [First-party Extension Delivery](40-deployment/native-extension-delivery.md)
 
 Shared product requirements and cross-unit Product TDD are owned by the read-only
 [`_shared/`](_shared/) Hub reference. Active work state belongs under `tasks/`, not in this durable

@@ -12,7 +12,7 @@ artifact boundary.
 The **Client checks** workflow in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)
 validates the candidate but uploads no deployable SPA, Module Federation, or Registry handoff
 artifact. Preview and production each build at their own authority boundary and cannot publish
-native Extensions.
+first-party Extensions.
 
 The browser-side authority behind this invariant belongs to
 [Client Runtime and Delegation](../30-unit-tdd/client-runtime-and-delegation.md).
@@ -34,7 +34,7 @@ pnpm workspace.
 The Pages project is selected by `CLOUDFLARE_PAGES_PROJECT`; deployment uses the protected
 `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. After upload, the workflow smoke-tests both the
 Pages deployment URL and `https://app.inkcre.dev`. Production delivery has no Extension Registry
-token and no native Extension publication responsibility.
+token and no first-party Extension publication responsibility.
 
 ## Pull-request Preview
 
