@@ -48,8 +48,13 @@ SQL, PostgREST routes, and generated relation types. The PostgREST adapter is on
 not the Host contract.
 
 Installed state records exact name and version plus the set of enabled Peer IDs. The browser view
-manages the current Peer. Cross-Peer extension management is an exact delegated capability, not a
-generic Core API call.
+selects the Host that validates installation or version changes. The current browser uses its
+Module Federation Host; an online Core uses `core.extension.management.v1` with the exact Release
+coordinate and validates its Python distribution. A Python-only Release therefore does not need
+a browser distribution to be installed from the Web interface. Installation does not enable either
+Host, and the shared version still affects every Peer. Offline Peers cannot validate an installation
+or version change; the view must not silently redirect it to a different Host. Cross-Peer management
+is an exact delegated capability, not a generic Core API call.
 
 Version change and uninstall are refused while any Peer remains enabled or a local runtime is
 running. Startup reads canonical installed state and starts only entries enabled for the current

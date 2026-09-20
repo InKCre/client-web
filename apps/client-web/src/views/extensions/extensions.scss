@@ -22,6 +22,7 @@
   }
 
   &__header {
+    flex-basis: 100%;
     display: grid;
     gap: sys-var(space, sm);
   }

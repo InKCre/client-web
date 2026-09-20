@@ -3,9 +3,18 @@ import { computed, onMounted, ref } from 'vue'
 import extensionCard from '@/components/extension/extensionCard/extensionCard.vue'
 import installExtension from '@/components/extension/installExtension/installExtension.vue'
 import { InkDropdown, InkLoading } from '@inkcre/ui-web'
-import { configStore, Peer, type InstalledExtension } from '@inkcre/core'
+import {
+  configStore,
+  Peer,
+  type InstalledExtension,
+  type InstallExtensionInput,
+} from '@inkcre/core'
 import { getExtensionHost, startExtensionHost } from '@/core'
-import { extensionPeerControlMode, setExtensionPeerEnabled } from '@/extension-peer-control'
+import {
+  extensionPeerControlMode,
+  setExtensionPeerEnabled,
+  installExtensionForPeer,
+} from '@/extension-peer-control'
 import { useI18n } from 'vue-i18n'
 
 // --- data ---
@@ -18,6 +27,7 @@ const peersLoading = ref(false)
 const extensionsLoading = ref(false)
 const error = ref<string | null>(null)
 const peerError = ref<string | null>(null)
+const installing = ref(false)
 
 const currentPeerFallback = Peer.parse({
   id: currentPeerId,
@@ -58,6 +68,24 @@ const selectedControlMode = computed(() =>
 )
 const isEnabledForSelectedPeer = (extension: InstalledExtension) =>
   extension.enabled.includes(selectedPeerId.value)
+const canInstall = computed(
+  () => selectedControlMode.value !== null && selectedControlMode.value !== 'desired-state'
+)
+
+const installForSelectedPeer = (
+  coordinate: InstallExtensionInput,
+  operation: 'install' | 'change-version'
+) => {
+  const peer = selectedPeer.value
+  if (!peer) throw new Error(t('extension.peerNotFound'))
+  return installExtensionForPeer({
+    coordinate,
+    peer,
+    currentPeerId,
+    manager: getExtensionHost(),
+    operation,
+  })
+}
 
 const refreshPeers = async () => {
   peersLoading.value = true
@@ -122,24 +150,34 @@ const setEnabledForSelectedPeer = (
 
 <template>
   <main class="extensions-view">
-    <installExtension @install="onInstallExtension" />
+    <div class="extensions-view__header">
+      <InkDropdown
+        v-model="selectedPeerId"
+        :label="t('extension.peerSelector')"
+        :placeholder="t('extension.peerSelectorPlaceholder')"
+        :options="peerOptions"
+        :disabled="installing"
+      />
+      <p class="extensions-view__notice">{{ t('extension.installOnSelectedClient') }}</p>
+      <p v-if="!canInstall" class="extensions-view__notice">
+        {{ t('extension.installRequiresLiveClient') }}
+      </p>
+      <p v-if="selectedControlMode === 'desired-state'" class="extensions-view__notice">
+        {{ t('extension.desiredStateOnly') }}
+      </p>
+      <p v-if="peerError" class="extensions-view__error">
+        {{ t('extension.peerListUnavailable', { error: peerError }) }}
+      </p>
+    </div>
+
+    <installExtension
+      :install="(coordinate) => installForSelectedPeer(coordinate, 'install')"
+      :disabled="!canInstall || peersLoading"
+      @busy="installing = $event"
+      @install="onInstallExtension"
+    />
 
     <div class="extensions-view__list">
-      <div class="extensions-view__header">
-        <InkDropdown
-          v-model="selectedPeerId"
-          :label="t('extension.peerSelector')"
-          :placeholder="t('extension.peerSelectorPlaceholder')"
-          :options="peerOptions"
-        />
-        <p v-if="selectedControlMode === 'desired-state'" class="extensions-view__notice">
-          {{ t('extension.desiredStateOnly') }}
-        </p>
-        <p v-if="peerError" class="extensions-view__error">
-          {{ t('extension.peerListUnavailable', { error: peerError }) }}
-        </p>
-      </div>
-
       <div v-if="extensionsLoading || peersLoading" class="flex items-center justify-center">
         <InkLoading />
       </div>
@@ -152,6 +190,10 @@ const setEnabledForSelectedPeer = (
         :enabled="isEnabledForSelectedPeer(extension)"
         :controls-current-web-runtime="selectedControlMode === 'current-runtime'"
         :set-enabled="(enabled) => setEnabledForSelectedPeer(extension, enabled)"
+        :can-change-version="canInstall"
+        :change-version="
+          (version) => installForSelectedPeer({ name: extension.name, version }, 'change-version')
+        "
         @updated="updExtension"
         @uninstalled="refreshExtensions"
       />
