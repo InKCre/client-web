@@ -7,6 +7,8 @@ A component that displays extension information and provides controls for toggli
 - `extension` (InstalledExtension, required): the canonical installed row
 - `enabled` (boolean, required): whether the selected Client's Peer UUID is in `enabled[]`
 - `controlsCurrentWebRuntime` (boolean, required): whether the switch owns this browser's runtime
+- `canChangeVersion` (boolean, required): whether the selected Host can validate a version change
+- `changeVersion` (function, required): application-level version change through the selected Host
 - `setEnabled` (function, required): application-level selected-Client control operation
 
 ## Emits
@@ -21,6 +23,6 @@ A component that displays extension information and provides controls for toggli
 - Mount an Extension-owned setup contribution from this browser's running Web Distribution
 - Keep setup availability independent of which Client is selected for enablement control
 - Edit extension configuration via JSON editor in a dialog
-- Change the exact shared version only while every Peer is disabled
+- Change the exact shared version through the selected Host only while every Peer is disabled
 - Auto-formats configuration as JSON for easier editing
 - Prevents uninstall while any Peer remains enabled

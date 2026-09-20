@@ -125,6 +125,8 @@
     "setupTitle": "Set up {name}",
     "peerSelector": "Control Extension on Client",
     "peerSelectorPlaceholder": "Select a Client",
+    "installOnSelectedClient": "The selected Client validates installation and version changes. Installation is shared across the instance; enable the Extension separately on each Client that should run it.",
+    "installRequiresLiveClient": "Select an online Client with Extension management to install or change a version.",
     "peerNotFound": "The selected Client no longer exists.",
     "currentBrowser": "This browser",
     "desiredStateOnly": "This Client has no live management endpoint. Changes update its durable enabled state and take effect when that Client next reconciles it.",

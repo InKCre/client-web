@@ -10,5 +10,7 @@ A component that provides a form interface for installing new extensions.
 
 - Inline form for one canonical `namespace/name` and exact version
 - Install button with loading state
-- Host preflight requires a published native Web Distribution before state insertion
+- The parent supplies installation on the selected Host. The browser requires a Web distribution;
+  a live Core validates its Python distribution. Installation does not enable either Host.
+- Offline installation is disabled; failures retain the input and never select another Host.
 - Automatic form reset after successful installation

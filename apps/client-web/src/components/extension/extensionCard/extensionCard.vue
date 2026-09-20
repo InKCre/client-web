@@ -94,10 +94,7 @@ const onConfirmVersion = () => {
   versionPopupOpen.value = (async () => {
     try {
       operationError.value = null
-      const updatedExtension = await getExtensionHost().changeVersion(
-        props.extension.name,
-        versionModel.value
-      )
+      const updatedExtension = await props.changeVersion(versionModel.value.trim())
       emit('updated', updatedExtension)
       return false
     } catch (error) {
@@ -154,7 +151,7 @@ const onUninstall = async () => {
           {{ extension.nickname }}
         </span>
       </div>
-      <InkSwitch v-model="toggleModel" size="xs" />
+      <InkSwitch v-model="toggleModel" size="xs" :aria-label="extension.name" />
     </div>
 
     <div class="extension-card__actions">
@@ -170,7 +167,7 @@ const onUninstall = async () => {
         @click="onChangeVersionClick"
         :text="t('extension.changeVersion')"
         size="sm"
-        :disabled="extension.enabled.length > 0"
+        :disabled="extension.enabled.length > 0 || !canChangeVersion"
       />
       <InkButton
         @click="onUninstall"

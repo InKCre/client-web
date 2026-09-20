@@ -133,11 +133,13 @@ export function getExtensionSetupContribution(name: string): ExtensionSetupContr
 export function adoptWebPeerRuntime(runtime: WebPeerRuntime): void {
   webPeerRuntime?.stop()
   webPeerRuntime = runtime
+  JobManager.startWorker()
 }
 
-export function stopWebPeerRuntime(): void {
+export async function stopWebPeerRuntime(): Promise<void> {
   webPeerRuntime?.stop()
   webPeerRuntime = null
+  await JobManager.stopWorker()
 }
 
 /** Start the lease after Settings has mounted and loaded recovery configuration. */
@@ -261,7 +263,6 @@ export async function initializeCore(options: { loadPeerConfig?: boolean } = {})
     }
   }
   PeerManager.setupBuiltinOutbounds()
-  JobManager.startWorker()
   setupResolvers()
   initializeModuleFederation()
   initializeExtensionHost()
@@ -270,6 +271,5 @@ export async function initializeCore(options: { loadPeerConfig?: boolean } = {})
 }
 
 export async function shutdownCore(): Promise<void> {
-  stopWebPeerRuntime()
-  await JobManager.stopWorker()
+  await stopWebPeerRuntime()
 }

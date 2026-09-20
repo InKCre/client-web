@@ -210,7 +210,7 @@ export async function verifyPublicModuleFederation({
   const manifestResponse = await fetchImplementation(manifestUrl, {
     headers: { Origin: PRODUCTION_BROWSER_ORIGIN },
   })
-  assertPublicImmutable(manifestResponse, 'public mf-manifest.json')
+  assertPublicArtifactResponse(manifestResponse, 'public mf-manifest.json')
   const publicManifest = await manifestResponse.json()
   const localManifest = await readJson(path.join(artifactDirectory, 'mf-manifest.json'))
   const expectedManifest = structuredClone(localManifest)
@@ -221,7 +221,7 @@ export async function verifyPublicModuleFederation({
     const response = await fetchImplementation(new URL(relativePath, publicPrefix), {
       headers: { Origin: PRODUCTION_BROWSER_ORIGIN },
     })
-    assertPublicImmutable(response, `public Module Federation asset ${relativePath}`)
+    assertPublicArtifactResponse(response, `public Module Federation asset ${relativePath}`)
     const [publicBytes, localBytes] = await Promise.all([
       response.arrayBuffer().then((value) => Buffer.from(value)),
       readFile(path.join(artifactDirectory, ...relativePath.split('/'))),
@@ -237,17 +237,18 @@ export async function verifyPublicModuleFederation({
   }
 }
 
-function assertPublicImmutable(response, label) {
+function assertPublicArtifactResponse(response, label) {
   assert.ok(response.ok, `${label} returned HTTP ${response.status}`)
   assert.equal(
     response.headers.get('access-control-allow-origin'),
     '*',
     `${label} must allow browser reads`
   )
-  assert.match(
-    response.headers.get('cache-control') ?? '',
-    /\bimmutable\b/,
-    `${label} must be immutable`
+  // Immutable bytes still require revalidation so Registry blocking remains effective.
+  assert.equal(
+    response.headers.get('cache-control'),
+    'public, no-cache',
+    `${label} must revalidate Registry readability`
   )
   assert.ok(response.headers.get('etag'), `${label} must include an ETag`)
 }

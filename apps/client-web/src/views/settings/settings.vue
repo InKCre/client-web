@@ -88,8 +88,8 @@ const onSave = async () => {
 
 // Reset config
 const onReset = async () => {
+  await stopWebPeerRuntime()
   await configStore.resetMeta()
-  stopWebPeerRuntime()
   Object.assign(metaFormConfig, configStore.metaConfig)
   Object.assign(peerFormConfig, PeerConfigSchema.parse(configStore.peerConfig))
 }

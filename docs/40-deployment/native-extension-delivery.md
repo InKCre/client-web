@@ -28,6 +28,12 @@ Extension packages. On a protected `main` push,
 Client checks, Pages production, and Pages preview are separate application lifecycles. They cannot
 publish native Extensions. Local development and local verification must never publish either.
 
+Python and Module Federation producers for one Extension must target the same exact Release when
+both Hosts are needed. A published Python-only Release may receive its missing Module Federation
+association through the normal publish workflow; existing associations are not overwritten. Select
+the Changesets increment that reaches that Release rather than downgrading the shared installation
+or manually editing generated package versions.
+
 ## Registry Authority and Secret Boundary
 
 Publication runs only in the protected GitHub `production` environment. The scoped bearer secret
@@ -49,13 +55,16 @@ shared/exposed JavaScript and CSS reference. The uploaded snapshot is therefore 
 relocatable; publication does not invent a generic target descriptor or rewrite the producer
 manifest.
 
+Public executable responses use `Cache-Control: public, no-cache` and an ETag. Immutable Release
+bytes do not imply an immutable HTTP cache policy: browsers must revalidate Registry readability
+so a blocked Release stops being served. Verification also checks CORS, the trusted Registry origin,
+manifest structure, and the exact bytes of every referenced asset.
+
 The executable contract is
-[`scripts/verify-native-extension-distribution.mjs`](../../scripts/verify-native-extension-distribution.mjs),
-guarded by [`scripts/native-extension-distribution.test.mjs`](../../scripts/native-extension-distribution.test.mjs).
+[`scripts/verify-native-extension-distribution.mjs`](../../scripts/verify-native-extension-distribution.mjs).
 Verify locally without publishing:
 
 ```bash
-pnpm exec vitest run scripts/native-extension-distribution.test.mjs
 pnpm --filter @inkcre/core build
 pnpm --filter './extensions/*' build
 node scripts/verify-native-extension-distribution.mjs inspect-local \
