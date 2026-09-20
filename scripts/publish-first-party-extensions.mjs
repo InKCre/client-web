@@ -19,6 +19,21 @@ const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex')
 const readJson = async (file) => JSON.parse(await readFile(file, 'utf8'))
 const writeJson = (file, data) => writeFile(file, `${JSON.stringify(data, null, 2)}\n`)
 
+export function selectSavedCandidate(artifacts, runAttempt) {
+  assert.match(runAttempt, /^[1-9]\d*$/, 'current GitHub run attempt is required')
+  const candidates = artifacts.filter((artifact) => artifact.name === ARTIFACT_NAME)
+  assert.ok(candidates.length <= 1, 'workflow run has multiple release candidates')
+  const candidate = candidates[0]
+  assert.ok(!candidate?.expired, 'saved candidate expired; do not rebuild a prepared Release')
+  // GitHub deletes artifacts on rerun-all. Only partial reruns can retain the original candidate.
+  // ponytail: also reject pre-capture retries; operator review is safer than inferring prior writes.
+  assert.ok(
+    candidate || runAttempt === '1',
+    'Saved candidate is missing on a rerun. Stop: never rebuild a possibly prepared Release. Use the original artifact and rerun only publication; see first-party delivery recovery guidance.'
+  )
+  return candidate
+}
+
 class RegistryError extends Error {
   constructor(stage, status, detail) {
     super(`${stage}: Registry HTTP ${status || 'unavailable'}: ${detail}`)
@@ -281,6 +296,7 @@ async function main() {
     const {
       GITHUB_REPOSITORY: repository,
       GITHUB_RUN_ID: runId,
+      GITHUB_RUN_ATTEMPT: runAttempt,
       GITHUB_OUTPUT: output,
     } = process.env
     assert.ok(repository && runId && output, 'locate requires the current GitHub workflow run')
@@ -291,15 +307,11 @@ async function main() {
         { encoding: 'utf8' }
       )
     )
-    const artifacts = pages
-      .flatMap((page) => page.artifacts)
-      .filter((artifact) => artifact.name === ARTIFACT_NAME)
-    assert.ok(artifacts.length <= 1, 'workflow run has multiple release candidates')
-    assert.ok(
-      !artifacts[0]?.expired,
-      'saved candidate expired; do not silently rebuild a prepared Release'
+    const candidate = selectSavedCandidate(
+      pages.flatMap((page) => page.artifacts),
+      runAttempt
     )
-    await appendFile(output, `artifact_id=${artifacts[0]?.id ?? ''}\n`)
+    await appendFile(output, `artifact_id=${candidate?.id ?? ''}\n`)
     return
   }
   const {

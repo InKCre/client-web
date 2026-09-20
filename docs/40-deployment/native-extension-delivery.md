@@ -66,9 +66,13 @@ invisible while preparing, so recovery cannot rely on public GET alone. Authenti
 immutable conflicts, blocked/yanked Releases and byte mismatches fail rather than becoming retries
 or successful skips.
 
-Use **Re-run failed jobs** after a remaining transient failure. **Re-run all jobs** is also safe:
-the candidate job discovers this run's saved artifact and restores its original plan rather than
-reselecting packages or rebuilding. Both first publication and recovery verify the full public
+After a transient publication failure, use **Re-run failed jobs** or re-run only
+**Publish first-party MF distributions**. These partial reruns retain the successful candidate
+job's artifact and output, so publication downloads the same exact artifact ID. Do not use
+**Re-run all jobs**: GitHub removes the original artifacts before executing the new attempt.
+Candidate discovery rejects a missing artifact on any attempt after the first, before build or
+Registry writes. An existing candidate is restored and checked, never silently replaced.
+Both first publication and recovery verify the full public
 snapshot, including candidates whose association appeared after an earlier timeout. A later,
 unrelated main push may classify those historical Releases as no-ops; it does not claim to verify
 them against a new build.
@@ -76,6 +80,10 @@ them against a new build.
 Candidates are retained for 90 days. Do not delete the artifact of an unfinished release or start
 a new run to replace its prepared provenance. An expired or lost candidate requires operator
 investigation using the original run and Registry state; a fresh build is not equivalent evidence.
+The same conservative stop applies if the first attempt failed before saving any candidate. After
+confirming that publication never ran, the operator may proceed through a new normal main run.
+If publication did run, recover the original candidate; do not use a new build or new run to replace
+its bytes or prepared provenance.
 The original ZIP digest and all-file verification count are written to the publish job summary.
 
 `node --test scripts/test-extension-publication.mjs` exercises the publisher over an isolated HTTP
@@ -83,7 +91,8 @@ fault-injection endpoint: an MF-only upload returns 503 while the saved snapshot
 publish initially reports incomplete objects, and recovery verifies the original ZIP even after
 local build output changes. It also proves that an existing selected association cannot bypass
 byte verification, immutable conflicts stop immediately, and invalid saved candidates cause no
-Registry writes. This is a publisher regression check, not evidence of production R2 latency.
+Registry writes. It also checks that a rerun without its saved candidate stops before rebuilding.
+This is a publisher regression check, not evidence of production R2 latency.
 
 ## Snapshot and Verification
 

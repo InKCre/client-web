@@ -10,7 +10,19 @@ import {
   captureCandidates,
   checkCandidates,
   publishCandidates,
+  selectSavedCandidate,
 } from './publish-first-party-extensions.mjs'
+
+test('a rerun cannot replace a missing or expired release candidate', () => {
+  const candidate = { id: 42, name: 'first-party-extension-candidate', expired: false }
+  const unrelated = { id: 43, name: 'other-artifact', expired: false }
+  assert.equal(selectSavedCandidate([unrelated], '1'), undefined)
+  assert.equal(selectSavedCandidate([unrelated, candidate], '2'), candidate)
+  assert.throws(() => selectSavedCandidate([unrelated], '2'), /missing on a rerun/)
+  assert.throws(() => selectSavedCandidate([{ ...candidate, expired: true }], '2'), /expired/)
+  assert.throws(() => selectSavedCandidate([candidate, candidate], '2'), /multiple/)
+  assert.throws(() => selectSavedCandidate([], undefined), /current GitHub run attempt/)
+})
 
 // A real HTTP fault-injection boundary for the publisher, not a replacement Registry implementation.
 test('an unknown MF-only upload resumes the saved ZIP and verifies even an existing association', async () => {
