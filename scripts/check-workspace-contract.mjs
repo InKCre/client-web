@@ -42,6 +42,12 @@ const workspaces = [
     requiredScripts: ['build', 'dev', 'type-check'],
     builder: 'vite',
   },
+  {
+    path: 'extensions/memos',
+    name: '@inkcre/ext-memos',
+    requiredScripts: ['build', 'dev', 'type-check'],
+    builder: 'vite',
+  },
 ]
 
 const bannedDirectTooling = [

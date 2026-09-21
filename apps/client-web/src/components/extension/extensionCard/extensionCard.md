@@ -22,6 +22,7 @@ A component that displays extension information and provides controls for toggli
 - Toggle enable/disable status with a switch
 - Mount an Extension-owned setup contribution from this browser's running Web Distribution
 - Keep setup availability independent of which Client is selected for enablement control
+- Link the exact installed release's available global, Core, and Web documentation even when the extension is disabled or has no browser distribution; distinguish missing documentation from failed discovery
 - Edit extension configuration via JSON editor in a dialog
 - Change the exact shared version through the selected Host only while every Peer is disabled
 - Auto-formats configuration as JSON for easier editing

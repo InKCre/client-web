@@ -110,6 +110,13 @@
     "typeUnavailable": "This source type is unavailable. Check installed extensions or choose an available type."
   },
   "extension": {
+    "documentation": "Documentation",
+    "documentationScope": {
+      "global": "Extension guide",
+      "python": "Core guide",
+      "module-federation": "Web guide"
+    },
+    "documentationUnavailable": "Documentation is temporarily unavailable.",
     "installNew": "Install Extension",
     "installExtensionTitle": "Install New Extension",
     "name": "Extension Name",
