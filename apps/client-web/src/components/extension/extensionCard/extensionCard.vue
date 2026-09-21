@@ -10,6 +10,11 @@ import {
   type JsonEditorValidation,
 } from '@inkcre/ui-web'
 import { getExtensionHost, getExtensionSetupContribution } from '@/core'
+import { configStore, ExtensionRegistryOriginResolver } from '@inkcre/core'
+import {
+  getExtensionDocumentation,
+  type ExtensionDocumentationLink,
+} from '@inkcre/extension-runtime-client-web'
 import { extensionCardProps, extensionCardEmits } from './extensionCard'
 
 const props = defineProps(extensionCardProps)
@@ -29,12 +34,38 @@ const isUninstalling = ref(false)
 const operationError = ref<string | null>(null)
 const configModel = ref(JSON.stringify(props.extension.config, null, 2))
 const versionModel = ref(props.extension.version)
+const documentation = shallowRef<ExtensionDocumentationLink[]>([])
+const documentationStatus = ref<'loading' | 'available' | 'missing' | 'unavailable'>('loading')
 const canSaveConfig = computed(
   () =>
     configValidation.value?.status === 'valid' && configValidation.value.text === configModel.value
 )
 
 // --- computed ---
+watch(
+  () => [props.extension.name, props.extension.version] as const,
+  async ([name, version], _previous, onCleanup) => {
+    let current = true
+    onCleanup(() => {
+      current = false
+    })
+    documentation.value = []
+    documentationStatus.value = 'loading'
+    try {
+      const origin = await new ExtensionRegistryOriginResolver(
+        () => configStore.peerConfig.extension_registry_url
+      ).resolve()
+      const links = await getExtensionDocumentation(origin, name, version)
+      if (!current) return
+      documentation.value = links ?? []
+      documentationStatus.value = links?.length ? 'available' : 'missing'
+    } catch {
+      if (current) documentationStatus.value = 'unavailable'
+    }
+  },
+  { immediate: true }
+)
+
 watch(
   () => props.extension.config,
   (config) => {
@@ -184,6 +215,24 @@ const onUninstall = async () => {
       {{ t('extension.uninstallDisabled') }}
     </p>
     <p v-if="operationError" class="extension-card__error">{{ operationError }}</p>
+    <nav
+      v-if="documentation.length"
+      class="extension-card__actions"
+      :aria-label="t('extension.documentation')"
+    >
+      <a
+        v-for="link in documentation"
+        :key="link.scope"
+        :href="link.entry_url"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {{ t(`extension.documentationScope.${link.scope}`) }}
+      </a>
+    </nav>
+    <p v-else-if="documentationStatus === 'unavailable'" class="extension-card__hint">
+      {{ t('extension.documentationUnavailable') }}
+    </p>
 
     <InkDialog
       v-model="setupPopupOpen"

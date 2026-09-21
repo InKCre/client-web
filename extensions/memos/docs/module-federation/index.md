@@ -10,23 +10,30 @@ the same installed Extension Release.
 
 1. In **Extensions**, enable Memos in this browser, then open **Setup**.
 2. Choose the online Core providing the service. A single eligible Core is selected automatically.
-3. If its address is missing, set the Core's Public HTTP Base URL in **Clients → Config** and
-   select **Refresh status**. The address must be reachable from your client device.
-4. If you have no saved PAT, select **Generate PAT** or enter one you already prepared, then select
-   **Save PAT and enable Memos**. It must have the `memos_pat_` prefix and 32 ASCII letters or digits.
-5. If a PAT already exists, the page reuses it. Select **Enable Memos on this Core** if necessary.
-6. Copy **Server URL** and **Personal Access Token** into your compatible client's sign-in screen.
-   Keep `/memos` in the URL; do not add `/api/v1` or use the PostgREST address.
+3. Select **Prepare connection**. The browser generates a PAT if none is saved, otherwise reuses
+   the saved PAT. It saves through Core and enables Memos only when necessary.
+4. Copy **Server URL** and **Personal Access Token** into your compatible client's sign-in screen.
+   Use the complete URL as returned by Memos; do not append `/api/v1` or use the PostgREST address.
 
 An already configured connection opens directly on these connection details. Opening or refreshing
 the page never generates or rotates a PAT. The result says that the information is ready; verify
 the actual sign-in in the external app. The established compatibility baseline is MoeMemos Android
 2.0.4, not every Memos version.
 
-Saving and enabling are separate operations. If saving fails, the draft remains available. If
-enablement fails after saving, retry with that saved PAT. An uncertain response first requires
-reading the actual saved state; do not generate another credential just to retry. If copying is
-unavailable, reveal the token and manually select it. Hide it again before sharing a screenshot.
+Saving, enabling, and reading the address are separate operations. A failed address read does not
+undo a saved PAT or disable Memos. If Core has no public address, set its Public HTTP Base URL in
+**Clients → Config**, then select **Refresh status**. The address must be reachable from your
+client device and may include a deployment path prefix.
+
+If enablement fails after saving, retry with the saved PAT. An uncertain save or enable response
+requires **Refresh status** before continuing; the page never automatically repeats that request
+or switches to another Core. An online, enabled Core is assumed to provide the service until a
+concrete failure is observed. If copying is unavailable, reveal the token and manually select it.
+Hide it again before sharing a screenshot.
 
 PAT replacement and revocation remain explicit Extension Config operations. Replacing a token
 requires updating every app that used the old token. This setup interface never does it silently.
+
+The **Memos connection help** link opens this guide for the installed version. Extension cards also
+link any global, Core, or Web documentation provided by that exact release, including when the
+extension is disabled. Missing or temporarily unavailable documentation does not prevent setup.

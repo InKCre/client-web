@@ -2,7 +2,7 @@
 
 ## Boundary
 
-The native Extension Runtime spans the browser Web Extension Host, its durable state port, and
+The native Extension Runtime spans the browser Web Extension Host, its SDK-owned durable models, and
 independently versioned Module Federation producers. It owns compatibility preflight, executable
 loading, runtime lifecycle, and reconciliation with durable enabled intent. Release publication,
 Registry delivery, and deployment workflow remain outside this Unit TDD; cross-unit Extension and
@@ -13,8 +13,10 @@ artifact delivery belong to
 [First-party Extension Delivery](../40-deployment/native-extension-delivery.md).
 
 There is one native format: an Extension Release may associate a Module Federation distribution.
-The Host consumes that association directly. There is no shared Extension Runtime/API package,
-generic target matcher, or canonical cross-format artifact manifest.
+The Host consumes that association directly. `@inkcre/extension-runtime-client-web`, maintained in
+ext-reg, owns the Web Host and Registry consumers. `@inkcre/core` owns the shared models, Peer
+transport, and browser configuration. There is no generic target matcher or cross-format artifact
+manifest.
 
 ## Producer and Host Contract
 
@@ -48,10 +50,17 @@ passes directly to the current native Module Federation implementation.
 
 ## Durable State and Peer Intent
 
-`ExtensionStatePort` is the semantic boundary for listing, reading, installing, changing version,
-updating configuration, setting per-Peer enabled intent, and uninstalling. It deliberately hides
-SQL, PostgREST routes, and generated relation types. The PostgREST adapter is one implementation,
-not the Host contract.
+The Runtime uses `ExtensionModel` from the shared `@inkcre/core` instance for installed state,
+configuration, and per-Peer enabled intent. There is no application-owned `ExtensionStatePort` or
+second PostgREST adapter. The application keeps the selected-Peer policy: current-runtime operations
+use its local Host, online remote Hosts receive management commands, and offline enablement changes
+update desired state through the SDK model.
+
+`listAdvertisedExtensionManagementPeers` and `manageExtensionOnPeer` in the Runtime own the shared
+management capability contract. The latter delegates once to the exact Peer through the SDK's
+`PeerManager`, validates the installed-row response, and preserves unknown outcomes. Consumers do
+not retry mutations or choose a replacement Peer automatically. Response bodies are not included
+in management errors because configuration validation may echo credentials.
 
 Installed state records exact name and version plus the set of enabled Peer IDs. The browser view
 selects the Host that validates installation or version changes. The current browser uses its
@@ -64,8 +73,25 @@ is an exact delegated capability, not a generic Core API call.
 
 Version change and uninstall are refused while any Peer remains enabled or a local runtime is
 running. Startup reads canonical installed state and starts only entries enabled for the current
-Peer. Shutdown stops volatile runtimes without changing durable enabled intent. Host operations are
-serialized so concurrent UI commands cannot interleave lifecycle and persistence transitions.
+Peer. Shutdown stops volatile runtimes without changing durable enabled intent.
+
+## Documentation and Memos Connection
+
+Extension cards discover documentation independently of executable preflight or enablement.
+They resolve the existing Registry origin and read documentation for the exact installed name and
+version through the Runtime's `getExtensionDocumentation`. Only returned global, python, and
+module-federation links appear. Missing documents and temporarily unavailable discovery are
+different states; neither prevents Extension operations. Links open without credentials or an
+opener, and the application does not fetch or embed document bodies.
+
+The Memos setup contribution owns connection preparation. An explicit action reuses a saved PAT or
+generates one with browser cryptographic randomness, saves it through `patch_config`, and enables
+the selected Core only if it is not already enabled. Online plus enabled is the normal best-effort
+runtime assumption. The contribution obtains the complete server URL from `memos.connection.v1`;
+it does not read Peer configuration or construct a Memos route. Address-read failures preserve the
+saved token and enabled state. Opening, selecting, and refreshing only read state. Unknown mutation
+outcomes require refreshing before another attempt. The PAT is masked by default; a normal help
+link opens the exact MF release's connection guide.
 
 ## Lifecycle and Compensation
 
@@ -93,7 +119,7 @@ for inspection, and reports an aggregate after attempting the remaining entries.
 
 ## Invariants
 
-- Canonical installed/enabled state is accessed only through `ExtensionStatePort`.
+- Canonical installed/enabled state is accessed through the shared SDK's `ExtensionModel`.
 - Compatibility is proven before native executable fetch.
 - The exact Release and native manifest association remain stable through one start attempt.
 - Durable enabled intent and volatile runtime are reconciled with explicit compensation.
