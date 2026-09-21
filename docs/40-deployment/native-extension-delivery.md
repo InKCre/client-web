@@ -57,6 +57,14 @@ The workflow records `source_repository`, `source_revision`, and a release-workf
 the Module Federation distribution before upload. These Web-distribution provenance facts remain
 independent of any Python distribution attached to the same Registry Release.
 
+Hosted documentation is discovered separately for the exact Release. Browser code follows the
+absolute entry or snapshot URL returned by Registry and never derives a content hostname from the
+Registry origin, Extension identity, or snapshot ID. The first-party deployment currently uses a
+broad `*.inkcre.dev` DNS/TLS catch-all while Registry admits only
+`registry-docs-{snapshot}.inkcre.dev`; therefore DNS resolution or a successful TLS handshake is
+not documentation availability. A 421 response is a rejected Host, not a URL pattern for the Web
+client to repair or retry under another subdomain.
+
 ## Failure and Recovery
 
 An upload timeout is an unknown outcome, not proof of a rejected snapshot: a Registry behind Heroku
