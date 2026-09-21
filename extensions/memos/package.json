@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@inkcre/core": "workspace:*",
-    "@inkcre/extension-runtime-client-web": "https://github.com/InKCre/ext-reg/releases/download/runtime-client-web-v0.1.0/inkcre-extension-runtime-client-web-0.1.0.tgz"
+    "@inkcre/extension-runtime-client-web": "https://github.com/InKCre/ext-reg/releases/download/runtime-client-web-v0.2.0/inkcre-extension-runtime-client-web-0.2.0.tgz"
   },
   "devDependencies": {
     "@inkcre/ext-dev-utils": "workspace:*",
