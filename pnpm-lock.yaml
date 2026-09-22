@@ -96,8 +96,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/core
       '@inkcre/extension-runtime-client-web':
-        specifier: github:InKCre/ext-reg#10b19ab32098d9ac0bf906017c9ae7cb9cd928fe&path:/runtimes/client-web
-        version: https://codeload.github.com/InKCre/ext-reg/tar.gz/10b19ab32098d9ac0bf906017c9ae7cb9cd928fe#path:/runtimes/client-web(@inkcre/core@packages+core)(@module-federation/runtime@0.21.6)
+        specifier: github:InKCre/ext-reg#57dcd80289285620a1fd27a0a48027e56c4ce7b1&path:/runtimes/client-web
+        version: https://codeload.github.com/InKCre/ext-reg/tar.gz/57dcd80289285620a1fd27a0a48027e56c4ce7b1#path:/runtimes/client-web(@inkcre/core@packages+core)(@module-federation/runtime@0.21.6)
       '@inkcre/ui-web':
         specifier: 2.0.1
         version: 2.0.1(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
@@ -1372,8 +1372,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@inkcre/extension-runtime-client-web@https://codeload.github.com/InKCre/ext-reg/tar.gz/10b19ab32098d9ac0bf906017c9ae7cb9cd928fe#path:/runtimes/client-web':
-    resolution: {gitHosted: true, integrity: sha512-BdiW/QaSWRcazRqqNxfzik5R6CDB69de4BcTNOozracOmPHnmLhiSfmD1KaO7pZ2zzVjyZnPQO8TMPEG+gpWpw==, path: /runtimes/client-web, tarball: https://codeload.github.com/InKCre/ext-reg/tar.gz/10b19ab32098d9ac0bf906017c9ae7cb9cd928fe}
+  '@inkcre/extension-runtime-client-web@https://codeload.github.com/InKCre/ext-reg/tar.gz/57dcd80289285620a1fd27a0a48027e56c4ce7b1#path:/runtimes/client-web':
+    resolution: {gitHosted: true, integrity: sha512-WydOwa8HJ4/aGdk0vhlUV+CzmkWNeQ7KY6YV1F5NXEG07L1pf3Tm4rawOFdFZnLQBbu3AYpQ5IPlhpIfD5r/fg==, path: /runtimes/client-web, tarball: https://codeload.github.com/InKCre/ext-reg/tar.gz/57dcd80289285620a1fd27a0a48027e56c4ce7b1}
     version: 0.2.0
     peerDependencies:
       '@inkcre/core': '>=0.3.0 <0.4.0'
@@ -7267,7 +7267,7 @@ snapshots:
   '@img/sharp-win32-x64@0.35.2':
     optional: true
 
-  '@inkcre/extension-runtime-client-web@https://codeload.github.com/InKCre/ext-reg/tar.gz/10b19ab32098d9ac0bf906017c9ae7cb9cd928fe#path:/runtimes/client-web(@inkcre/core@packages+core)(@module-federation/runtime@0.21.6)':
+  '@inkcre/extension-runtime-client-web@https://codeload.github.com/InKCre/ext-reg/tar.gz/57dcd80289285620a1fd27a0a48027e56c4ce7b1#path:/runtimes/client-web(@inkcre/core@packages+core)(@module-federation/runtime@0.21.6)':
     dependencies:
       '@inkcre/core': link:packages/core
       '@module-federation/runtime': 0.21.6
