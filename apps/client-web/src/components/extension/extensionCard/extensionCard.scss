@@ -49,6 +49,12 @@
     color: sys-var(color, feedback, error);
     margin: 0;
   }
+
+  &__loading {
+    display: grid;
+    min-height: 5rem;
+    place-items: center;
+  }
 }
 
 .config-popup {

@@ -5,14 +5,16 @@ import {
   InkButton,
   InkSwitch,
   InkDialog,
-  InkInput,
+  InkDropdown,
   InkJsonEditor,
+  InkLoading,
   type JsonEditorValidation,
 } from '@inkcre/ui-web'
-import { getExtensionHost, getExtensionSetupContribution } from '@/core'
+import { getExtensionHost, getExtensionRegistry, getExtensionSetupContribution } from '@/core'
 import { configStore, ExtensionRegistryOriginResolver } from '@inkcre/core'
 import {
   getExtensionDocumentation,
+  sortPublishedReleases,
   type ExtensionDocumentationLink,
 } from '@inkcre/extension-runtime-client-web'
 import { extensionCardProps, extensionCardEmits } from './extensionCard'
@@ -34,6 +36,9 @@ const isUninstalling = ref(false)
 const operationError = ref<string | null>(null)
 const configModel = ref(JSON.stringify(props.extension.config, null, 2))
 const versionModel = ref(props.extension.version)
+const versionOptions = ref<{ label: string; value: string; description?: string }[]>([])
+const versionLoading = ref(false)
+const versionError = ref<string | null>(null)
 const documentation = shallowRef<ExtensionDocumentationLink[]>([])
 const documentationStatus = ref<'loading' | 'available' | 'missing' | 'unavailable'>('loading')
 const canSaveConfig = computed(
@@ -116,16 +121,40 @@ const onSetupClick = () => {
   setupPopupOpen.value = true
 }
 
-const onChangeVersionClick = () => {
+const onChangeVersionClick = async () => {
   versionModel.value = props.extension.version
+  versionOptions.value = []
+  versionError.value = null
   versionPopupOpen.value = true
+  versionLoading.value = true
+  try {
+    const record = await getExtensionRegistry().getExtension(props.extension.name)
+    versionOptions.value = sortPublishedReleases(record.releases ?? []).map((release) => ({
+      label: release.version,
+      value: release.version,
+      description: [
+        release.python ? t('extension.hostCore') : null,
+        release.module_federation ? t('extension.hostWeb') : null,
+      ]
+        .filter(Boolean)
+        .join(' · '),
+    }))
+  } catch (error) {
+    versionError.value = error instanceof Error ? error.message : String(error)
+  } finally {
+    versionLoading.value = false
+  }
 }
 
 const onConfirmVersion = () => {
+  if (versionLoading.value || versionError.value || !versionModel.value) return
   versionPopupOpen.value = (async () => {
     try {
       operationError.value = null
-      const updatedExtension = await props.changeVersion(versionModel.value.trim())
+      const updatedExtension = await getExtensionHost().changeVersion(
+        props.extension.name,
+        versionModel.value
+      )
       emit('updated', updatedExtension)
       return false
     } catch (error) {
@@ -198,7 +227,7 @@ const onUninstall = async () => {
         @click="onChangeVersionClick"
         :text="t('extension.changeVersion')"
         size="sm"
-        :disabled="extension.enabled.length > 0 || !canChangeVersion"
+        :disabled="extension.enabled.length > 0"
       />
       <InkButton
         @click="onUninstall"
@@ -273,12 +302,17 @@ const onUninstall = async () => {
     <InkDialog
       v-model="versionPopupOpen"
       :title="t('extension.changeVersionTitle')"
+      :show-confirm="!versionLoading && !versionError && versionOptions.length > 0"
       @confirm="onConfirmVersion"
     >
-      <InkInput
+      <div v-if="versionLoading" class="extension-card__loading"><InkLoading size="sm" /></div>
+      <InkDropdown
+        v-else
         v-model="versionModel"
         :label="t('extension.version')"
-        :placeholder="t('extension.versionPlaceholder')"
+        :options="versionOptions"
+        :error="versionError ?? ''"
+        :disabled="!!versionError"
         required
       />
       <p v-if="operationError" role="alert" class="extension-card__error">{{ operationError }}</p>

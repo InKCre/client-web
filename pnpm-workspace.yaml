@@ -8,6 +8,7 @@ catalog:
   vue-tsc: 3.3.8
 
 allowBuilds:
+  '@inkcre/extension-runtime-client-web@https://codeload.github.com/InKCre/ext-reg/tar.gz/5d508fcfd62ae877302c2d9b8f3390e1f37b8927#path:/runtimes/client-web': true
   '@parcel/watcher': false
   esbuild: false
   sharp: false

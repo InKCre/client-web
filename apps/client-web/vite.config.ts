@@ -84,13 +84,9 @@ export default defineConfig(async ({ command, mode }) => {
       ],
       ...(uiSource ? { dedupe: uiSourceDedupe } : {}),
     },
-    ...(uiSource
-      ? {
-          optimizeDeps: {
-            exclude: ['@inkcre/ui-web'],
-          },
-        }
-      : {}),
+    optimizeDeps: {
+      exclude: ['@inkcre/extension-runtime-client-web', ...(uiSource ? ['@inkcre/ui-web'] : [])],
+    },
     server: {
       host: '127.0.0.1',
       ...(Number.isInteger(devPort)

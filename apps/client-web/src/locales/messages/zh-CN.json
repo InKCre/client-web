@@ -12,7 +12,8 @@
     "saveFailed": "保存失败，请稍后重试。",
     "invalidConfig": "请输入有效的 JSON 配置对象后再保存。",
     "close": "关闭",
-    "refresh": "刷新"
+    "refresh": "刷新",
+    "retry": "重试"
   },
   "header": {
     "brand": "第三尺寸"
@@ -103,6 +104,9 @@
     "typeUnavailable": "当前数据源类型不可用，请检查已安装的扩展或选择可用类型。"
   },
   "extension": {
+    "title": "扩展",
+    "installed": "已安装",
+    "discover": "发现",
     "documentation": "扩展文档",
     "documentationScope": {
       "global": "扩展指南",
@@ -110,12 +114,23 @@
       "module-federation": "Web 指南"
     },
     "documentationUnavailable": "文档暂时不可用。",
-    "installNew": "安装扩展",
-    "installExtensionTitle": "安装新扩展",
-    "name": "扩展名称",
-    "namePlaceholder": "namespace/name，例如 inkcre/twitter",
+    "searchRegistry": "搜索 Registry",
+    "searchRegistryPlaceholder": "名称或 Extension ID",
+    "registryUnavailable": "Registry 暂时不可用",
+    "registryEmpty": "暂无已发布的扩展",
+    "noSearchResults": "没有匹配的扩展",
+    "noSearchResultsDescription": "没有与“{query}”匹配的结果。",
+    "releaseUnavailable": "无法读取此扩展",
+    "selectExtension": "选择一个扩展",
+    "noPublishedReleases": "暂无已发布版本",
+    "prerelease": "预发布",
+    "hostCore": "Core",
+    "hostWeb": "Web",
+    "install": "安装",
+    "installedVersion": "已安装 v{version}",
+    "alreadyInstalled": "此扩展已安装。",
+    "manage": "管理",
     "version": "版本",
-    "versionPlaceholder": "精确版本，例如 0.1.0",
     "editConfig": "编辑配置",
     "editConfigTitle": "编辑扩展配置",
     "changeVersion": "变更版本",
@@ -123,14 +138,15 @@
     "uninstall": "卸载",
     "setup": "设置",
     "setupTitle": "设置 {name}",
-    "peerSelector": "控制扩展的 Peer",
+    "runOnPeer": "在 Peer 上运行",
     "peerSelectorPlaceholder": "选择 Peer",
-    "installOnSelectedPeer": "所选 Peer 负责安装与版本变更的兼容性校验。安装记录由整个实例共享；请在需要运行扩展的 Peer 上分别启用。",
-    "installRequiresLivePeer": "安装或变更版本需要选择在线且支持扩展管理的 Peer。",
     "peerNotFound": "所选 Peer 已不存在。",
     "currentBrowser": "当前浏览器",
     "desiredStateOnly": "此 Peer 没有在线管理端点；操作只更新其持久启用状态，并在该 Peer 下次协调状态时生效。",
     "peerListUnavailable": "无法加载 Peer 列表：{error}",
+    "installedUnavailable": "无法读取已安装扩展",
+    "noneInstalled": "还没有安装扩展",
+    "noneInstalledDescription": "可以从 Registry 发现并安装扩展。",
     "enabledPeerCount": "已在 {count} 个 Peer 上启用。",
     "uninstallDisabled": "卸载或变更共享版本前，必须先禁用所有 Peer。"
   },

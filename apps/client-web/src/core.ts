@@ -120,6 +120,7 @@ type ClientExtensionManager = ExtensionManager<ClientExtensionModule>
 
 let extensionHost: ClientExtensionManager | null = null
 let extensionHostStartup: Promise<void> | null = null
+let extensionRegistry: RegistryReleaseReader | null = null
 let moduleFederation: ReturnType<typeof createInstance> | null = null
 let webPeerRuntime: WebPeerRuntime | null = null
 
@@ -129,11 +130,12 @@ export function initializeExtensionHost(): ClientExtensionManager {
     () => configStore.peerConfig.extension_registry_url
   )
   if (!moduleFederation) throw new Error('Module Federation has not been initialized.')
+  extensionRegistry = new RegistryReleaseReader({
+    registryOrigin: () => registryOrigin.resolve(),
+    hostSdk: { name: '@inkcre/core', version: corePackageJson.version },
+  })
   extensionHost = new ExtensionManager<ClientExtensionModule>({
-    releases: new RegistryReleaseReader({
-      registryOrigin: () => registryOrigin.resolve(),
-      hostSdk: { name: '@inkcre/core', version: corePackageJson.version },
-    }),
+    releases: extensionRegistry,
     moduleFederation,
   })
   return extensionHost
@@ -155,6 +157,13 @@ export function getExtensionHost(): ClientExtensionManager {
     throw new Error('Web Extension Host state port has not been initialized.')
   }
   return extensionHost
+}
+
+export function getExtensionRegistry(): RegistryReleaseReader {
+  if (!extensionRegistry) {
+    throw new Error('Extension Registry reader has not been initialized.')
+  }
+  return extensionRegistry
 }
 
 /** Project the running native module into the Client-owned setup popup contract. */

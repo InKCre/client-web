@@ -6,11 +6,6 @@ export const extensionCardProps = {
   extension: { type: Object as PropType<InstalledExtension>, required: true },
   enabled: { type: Boolean, required: true },
   controlsCurrentWebRuntime: { type: Boolean, required: true },
-  canChangeVersion: { type: Boolean, required: true },
-  changeVersion: {
-    type: Function as PropType<(version: string) => Promise<InstalledExtension>>,
-    required: true,
-  },
   setEnabled: {
     type: Function as PropType<(enabled: boolean) => Promise<InstalledExtension>>,
     required: true,

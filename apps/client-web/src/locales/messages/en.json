@@ -12,7 +12,8 @@
     "saveFailed": "Unable to save. Please try again.",
     "invalidConfig": "Enter a valid JSON configuration object before saving.",
     "close": "Close",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "retry": "Retry"
   },
   "header": {
     "brand": "InKCre"
@@ -102,6 +103,9 @@
     "typeUnavailable": "This source type is unavailable. Check installed extensions or choose an available type."
   },
   "extension": {
+    "title": "Extensions",
+    "installed": "Installed",
+    "discover": "Discover",
     "documentation": "Documentation",
     "documentationScope": {
       "global": "Extension guide",
@@ -109,12 +113,23 @@
       "module-federation": "Web guide"
     },
     "documentationUnavailable": "Documentation is temporarily unavailable.",
-    "installNew": "Install Extension",
-    "installExtensionTitle": "Install New Extension",
-    "name": "Extension Name",
-    "namePlaceholder": "namespace/name, for example inkcre/twitter",
+    "searchRegistry": "Search Registry",
+    "searchRegistryPlaceholder": "Name or Extension ID",
+    "registryUnavailable": "The Registry is unavailable",
+    "registryEmpty": "No published Extensions",
+    "noSearchResults": "No matching Extensions",
+    "noSearchResultsDescription": "Nothing matches “{query}”.",
+    "releaseUnavailable": "Unable to load this Extension",
+    "selectExtension": "Select an Extension",
+    "noPublishedReleases": "No published Releases",
+    "prerelease": "Pre-release",
+    "hostCore": "Core",
+    "hostWeb": "Web",
+    "install": "Install",
+    "installedVersion": "Installed v{version}",
+    "alreadyInstalled": "This Extension is already installed.",
+    "manage": "Manage",
     "version": "Version",
-    "versionPlaceholder": "exact version, for example 0.1.0",
     "editConfig": "Edit Config",
     "editConfigTitle": "Edit Extension Configuration",
     "changeVersion": "Change Version",
@@ -122,14 +137,15 @@
     "uninstall": "Uninstall",
     "setup": "Setup",
     "setupTitle": "Set up {name}",
-    "peerSelector": "Control Extension on Peer",
+    "runOnPeer": "Run on Peer",
     "peerSelectorPlaceholder": "Select a Peer",
-    "installOnSelectedPeer": "The selected Peer validates installation and version changes. Installation is shared across the instance; enable the Extension separately on each Peer that should run it.",
-    "installRequiresLivePeer": "Select an online Peer with Extension management to install or change a version.",
     "peerNotFound": "The selected Peer no longer exists.",
     "currentBrowser": "This browser",
     "desiredStateOnly": "This Peer has no live management endpoint. Changes update its durable enabled state and take effect when that Peer next reconciles it.",
     "peerListUnavailable": "The Peer list could not be loaded: {error}",
+    "installedUnavailable": "Unable to load installed Extensions",
+    "noneInstalled": "No Extensions installed",
+    "noneInstalledDescription": "Browse the Registry to add an Extension.",
     "enabledPeerCount": "Enabled on {count} Peer(s).",
     "uninstallDisabled": "Disable every Peer before uninstalling or changing the shared version."
   },
