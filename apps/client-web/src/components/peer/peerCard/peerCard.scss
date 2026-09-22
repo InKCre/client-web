@@ -13,7 +13,26 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: sys-var(space, xs);
+  }
+
+  &__heading {
+    display: flex;
+    align-items: center;
+    gap: sys-var(space, sm);
+    flex-wrap: wrap;
+  }
+
+  &__version,
+  &__current {
+    @include apply-font(label-md);
+    color: sys-var(color, text, subtle);
+  }
+
+  &__current {
+    padding-inline-start: sys-var(space, sm);
+    border-inline-start: 1px solid sys-var(color, border, base);
   }
 
   &__item-id {

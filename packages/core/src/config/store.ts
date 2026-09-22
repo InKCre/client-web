@@ -4,6 +4,7 @@ import { store } from '../store'
 import type { ConfigAdapterWithWrite } from './types'
 import { MetaConfigSchema, PeerConfigSchema, type MetaConfig, type PeerConfig } from './schema'
 import { loadConfig as zodLoadConfig } from 'zod-config'
+import type { WebPeerIdentity } from '../peer/runtime'
 
 // Lazy import Peer to avoid circular imports
 const lazyPeer = async () => (await import('../peer/peer')).Peer
@@ -73,19 +74,18 @@ export const useConfigStore = defineStore('inkcre-config', () => {
     }
   }
 
-  async function connectAndSave(metaCandidate: MetaConfig, peerCandidate: PeerConfig) {
+  async function connectAndSave(metaCandidate: MetaConfig, identity: WebPeerIdentity) {
     error.value = null
     const nextMeta = MetaConfigSchema.parse(metaCandidate)
-    const nextPeer = PeerConfigSchema.parse(peerCandidate)
     let candidateRuntime: InstanceType<Awaited<ReturnType<typeof lazyWebPeerRuntime>>> | null = null
 
     try {
       const WebPeerRuntime = await lazyWebPeerRuntime()
-      const connection = await WebPeerRuntime.connect(nextMeta, nextPeer)
+      const connection = await WebPeerRuntime.connect(nextMeta, identity)
       candidateRuntime = connection.runtime
       await metaAdapter.value.write(nextMeta)
       metaConfig.value = nextMeta
-      peerConfig.value = nextPeer
+      peerConfig.value = PeerConfigSchema.parse(connection.peer.config)
       return candidateRuntime
     } catch (err) {
       candidateRuntime?.stop()

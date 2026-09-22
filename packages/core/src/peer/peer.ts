@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { Z } from 'zod-class'
-import { DBAPIClient } from '../base'
+import { APIError, DBAPIClient } from '../base'
 import { configStore } from '../config'
 import { makeObjectProp, makeStringProp } from '../utils/vue-props'
 import { PeerCapabilitySnapshotSchema } from './contracts'
@@ -13,6 +13,7 @@ export const makePeerRefProp = (value?: PeerRef) => makeStringProp<PeerRef>(valu
 export class Peer extends Z.class({
   id: PeerRefSchema.default(() => crypto.randomUUID()),
   name: z.string(),
+  application_version: z.string().nullable().default(null),
   labels: z.array(z.string()).default([]),
   config: z.record(z.string(), z.unknown()).default({}),
   config_schema: z.record(z.string(), z.unknown()).default({}),
@@ -29,11 +30,15 @@ export class Peer extends Z.class({
 
   static async list(): Promise<Peer[]> {
     const result = await Peer.dbApi.from().select().order('name', { ascending: true })
+    if (result.error) throw new APIError(result.error.message, result.status, result.error)
     return (result.data ?? []).map((item) => Peer.parse(item))
   }
 
   static async listAsOptions(): Promise<Array<{ label: string; value: PeerRef }>> {
-    return (await Peer.list()).map((peer) => ({ label: peer.name, value: peer.id }))
+    return (await Peer.list()).map((peer) => ({
+      label: `${peer.name} · ${peer.application_version ? `v${peer.application_version}` : 'version unknown'}`,
+      value: peer.id,
+    }))
   }
 
   static async getSelf(): Promise<Peer> {

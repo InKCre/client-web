@@ -9,6 +9,7 @@ import job from '@/views/jobs/job/job.vue'
 import extensions from '@/views/extensions/extensions.vue'
 import infoBaseGraph from '@/views/info-base/graph/graph.vue'
 import settings from '@/views/settings/settings.vue'
+import peers from '@/views/peers/peers.vue'
 import { computed } from 'vue'
 
 const router = createRouter({
@@ -81,6 +82,11 @@ const router = createRouter({
       name: 'InfoBaseGraphRelation',
       component: infoBaseGraph,
       meta: { title: 'Info Base' },
+    },
+    {
+      path: '/peers',
+      name: 'Peers',
+      component: peers,
     },
     {
       path: '/settings',

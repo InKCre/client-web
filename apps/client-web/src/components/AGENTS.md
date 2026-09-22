@@ -8,7 +8,7 @@ Scope: `apps/client-web/src/components/**`.
   component-local copy of a model merely to shape props or emits.
 - Solved-content renderer selection belongs to the core `Resolver` registration. Keep
   `SolvedContentRenderer` as a dynamic handoff; do not add a second resolver-to-component map here.
-- Keep technical names under `peer/`; user-facing copy may use “client”.
+- Keep InKCre runtime-node names under `peer/` and use “Peer” in user-facing copy. Use “client” only for actual application or protocol client roles.
 
 General component file guidance lives in
 [component.instructions.md](../../../../.github/instructions/component.instructions.md). Stable

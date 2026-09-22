@@ -1,26 +1,29 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useAsyncState } from '@vueuse/core'
-import { InkButton, InkLoading } from '@inkcre/ui-web'
-import { Peer, PeerManager } from '@inkcre/core'
+import { InkButton, InkLoading, InkPlaceholder } from '@inkcre/ui-web'
+import { configStore, Peer, PeerManager } from '@inkcre/core'
 import PeerCard from '../peerCard/peerCard.vue'
 
 const { t } = useI18n()
-const {
-  state: peers,
-  execute: refreshPeers,
-  isLoading: peersLoading,
-} = useAsyncState(() => Peer.list(), [], { immediate: true })
+const peers = ref<Peer[]>([])
 const livePeers = ref(new Set<string>())
-const healthCheckLoading = ref(false)
+const loading = ref(false)
+const error = ref('')
+const currentPeerId = configStore.metaConfig.INKCRE_PEER_ID
 
-const checkAllHealth = async () => {
-  healthCheckLoading.value = true
+const refreshPeers = async () => {
+  if (loading.value) return
+  loading.value = true
+  error.value = ''
   try {
-    livePeers.value = new Set((await PeerManager.checkHealth(peers.value)).map((peer) => peer.id))
+    const [all, live] = await Promise.all([Peer.list(), PeerManager.listLive()])
+    peers.value = all
+    livePeers.value = new Set(live.map((peer) => peer.id))
+  } catch (cause) {
+    error.value = cause instanceof Error ? cause.message : String(cause)
   } finally {
-    healthCheckLoading.value = false
+    loading.value = false
   }
 }
 
@@ -28,38 +31,35 @@ const getPeerStatus = (peer: Peer): 'online' | 'offline' | 'unknown' => {
   if (peer.lease_expires_at === null) return 'unknown'
   return livePeers.value.has(peer.id) ? 'online' : 'offline'
 }
+
+onMounted(refreshPeers)
 </script>
 
 <template>
   <section class="peer-list">
     <div class="peer-list__header">
-      <h2 class="peer-list__title">{{ t('client.listTitle') }}</h2>
-      <div class="peer-list__actions">
-        <InkButton
-          :text="t('client.refresh')"
-          size="sm"
-          :is-loading="peersLoading"
-          @click="() => refreshPeers()"
-        />
-        <InkButton
-          :text="t('client.checkHealth')"
-          size="sm"
-          :is-loading="healthCheckLoading"
-          @click="checkAllHealth"
-        />
-      </div>
+      <InkButton :text="t('peer.refresh')" size="sm" :is-loading="loading" @click="refreshPeers" />
     </div>
 
-    <InkLoading v-if="peersLoading && peers.length === 0" />
-    <div v-else-if="peers.length === 0" class="peer-list__empty">
-      {{ t('client.noClients') }}
-    </div>
+    <InkLoading v-if="loading && peers.length === 0" />
+    <InkPlaceholder
+      v-else-if="error"
+      state="error"
+      :title="t('peer.listFailed')"
+      :description="error"
+    >
+      <template #actions>
+        <InkButton :text="t('common.refresh')" @click="refreshPeers" />
+      </template>
+    </InkPlaceholder>
+    <InkPlaceholder v-else-if="peers.length === 0" :title="t('peer.empty')" />
     <div v-else class="peer-list__list">
       <PeerCard
         v-for="peer in peers"
         :key="peer.id"
         :peer="peer"
         :status="getPeerStatus(peer)"
+        :current="peer.id === currentPeerId"
         @updated="refreshPeers"
       />
     </div>

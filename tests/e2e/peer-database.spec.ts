@@ -1,9 +1,13 @@
 import { expect, test } from '@playwright/test'
 import { SignJWT } from 'jose'
+import { readFileSync } from 'node:fs'
 
 const postgrestUrl = process.env.INKCRE_E2E_POSTGREST_URL!
 const jwtSecret = process.env.INKCRE_E2E_JWT_SECRET!
 const coreUrl = process.env.INKCRE_E2E_CORE_URL!
+const clientVersion = JSON.parse(
+  readFileSync(new URL('../../apps/client-web/package.json', import.meta.url), 'utf8')
+).version
 
 async function token(secret = jwtSecret) {
   return new SignJWT({ role: 'authenticated' })
@@ -18,6 +22,7 @@ async function token(secret = jwtSecret) {
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(
     ({ postgrestUrl, jwtSecret }) => {
+      if (localStorage.getItem('inkcre_app_config')) return
       localStorage.setItem(
         'inkcre_app_config',
         JSON.stringify({
@@ -100,6 +105,120 @@ test('wrong and absent credentials are rejected', async ({ page }) => {
   expect(statuses).toEqual([401, 401])
 })
 
+test('Web Peer publishes its app identity and preserves a user name', async ({ page }) => {
+  const id = crypto.randomUUID()
+  const authorization = `Bearer ${await token()}`
+  const endpoint = `${postgrestUrl}peers?id=eq.${id}`
+
+  await page.goto('/settings')
+  await page.evaluate(
+    ({ postgrestUrl, jwtSecret, id }) => {
+      localStorage.setItem(
+        'inkcre_app_config',
+        JSON.stringify({
+          INKCRE_PGREST_URL: postgrestUrl,
+          INKCRE_JWT_SECRET: jwtSecret,
+          INKCRE_PEER_ID: id,
+        })
+      )
+    },
+    { postgrestUrl, jwtSecret, id }
+  )
+
+  try {
+    await page.reload()
+    await expect
+      .poll(async () => {
+        const response = await fetch(`${endpoint}&select=name,application_version`, {
+          headers: { Authorization: authorization },
+        })
+        return response.ok ? (await response.json())[0] : null
+      })
+      .toEqual({
+        name: expect.stringMatching(/^Chrome \d+ · (Linux|macOS|Windows)$/),
+        application_version: clientVersion,
+      })
+
+    const renamed = await fetch(endpoint, {
+      method: 'PATCH',
+      headers: { Authorization: authorization, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'My browser Peer' }),
+    })
+    expect(renamed.status).toBe(204)
+    await page.reload()
+    await expect
+      .poll(async () => {
+        const response = await fetch(`${endpoint}&select=name,application_version`, {
+          headers: { Authorization: authorization },
+        })
+        return response.ok ? (await response.json())[0] : null
+      })
+      .toEqual({ name: 'My browser Peer', application_version: clientVersion })
+  } finally {
+    const cleanup = await fetch(endpoint, {
+      method: 'DELETE',
+      headers: { Authorization: authorization },
+    })
+    expect(cleanup.status).toBe(204)
+  }
+})
+
+test('Settings export restores the complete browser experience', async ({ page }) => {
+  const alternateId = crypto.randomUUID()
+  const authorization = `Bearer ${await token()}`
+  const endpoint = `${postgrestUrl}peers?id=eq.${alternateId}`
+  try {
+    await page.goto('/settings')
+    const downloadPromise = page.waitForEvent('download')
+    await page.getByRole('button', { name: 'Export', exact: true }).click()
+    const download = await downloadPromise
+    const path = await download.path()
+    expect(path).not.toBeNull()
+    const exported = JSON.parse(readFileSync(path!, 'utf8'))
+    expect(exported).toEqual({
+      version: 2,
+      metaConfig: {
+        INKCRE_PGREST_URL: postgrestUrl,
+        INKCRE_JWT_SECRET: jwtSecret,
+        INKCRE_PEER_ID: '00000000-0000-4000-8000-000000000001',
+      },
+      locale: 'en',
+    })
+
+    await page.evaluate(
+      ({ postgrestUrl, jwtSecret, alternateId }) => {
+        localStorage.setItem(
+          'inkcre_app_config',
+          JSON.stringify({
+            INKCRE_PGREST_URL: postgrestUrl,
+            INKCRE_JWT_SECRET: jwtSecret,
+            INKCRE_PEER_ID: alternateId,
+          })
+        )
+        localStorage.setItem('inkcre-locale', 'zh-CN')
+      },
+      { postgrestUrl, jwtSecret, alternateId }
+    )
+    await page.reload()
+    page.once('dialog', (dialog) => dialog.accept())
+    await page.locator('input[type="file"]').setInputFiles(path!)
+    await expect
+      .poll(() =>
+        page.evaluate(() => ({
+          metaConfig: JSON.parse(localStorage.getItem('inkcre_app_config') || 'null'),
+          locale: localStorage.getItem('inkcre-locale'),
+        }))
+      )
+      .toEqual({ metaConfig: exported.metaConfig, locale: 'en' })
+  } finally {
+    const cleanup = await fetch(endpoint, {
+      method: 'DELETE',
+      headers: { Authorization: authorization },
+    })
+    expect(cleanup.status).toBe(204)
+  }
+})
+
 test('Peer config keeps invalid and failed drafts and saves only once while pending', async ({
   page,
 }) => {
@@ -123,8 +242,17 @@ test('Peer config keeps invalid and failed drafts and saves only once while pend
   expect(created.status).toBe(201)
 
   try {
-    await page.goto('/settings')
+    await page.goto('/peers')
     const peer = page.locator('.peer-card', { hasText: id })
+    await expect(peer.getByText('Unknown', { exact: true })).toBeVisible()
+    const renewed = await fetch(endpoint, {
+      method: 'PATCH',
+      headers: { Authorization: authorization, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lease_expires_at: new Date(Date.now() + 60_000).toISOString() }),
+    })
+    expect(renewed.status).toBe(204)
+    await page.getByRole('button', { name: 'Refresh', exact: true }).click()
+    await expect(peer.getByText('Online', { exact: true })).toBeVisible()
     await peer.getByRole('button', { name: 'Edit Config' }).click()
     const dialog = page.getByRole('dialog', { name: 'Edit Config' })
     const editor = dialog.locator('.cm-content')

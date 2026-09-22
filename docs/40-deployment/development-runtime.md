@@ -60,9 +60,10 @@ Web、mail、twitter 和 ext-dev-utils 锁定同一正式 UI 版本；生产构�
 
 ## Browser Runtime Configuration
 
-The web settings UI owns the PostgREST URL, technical Peer/Client ID, user-supplied JWT signing
-credential, and that Peer's Extension Registry URL. A fresh browser origin has no environment
-selection. Portable export omits the credential. No InKCre service origin, client identity, or JWT
+The web settings UI owns the PostgREST URL, technical Peer ID, user-supplied JWT signing
+credential, language, and full-browser import/export. The selected Peer's database row owns its Extension Registry URL and
+other Peer configuration. A fresh browser origin has no environment selection. The explicit export includes the credential
+so another browser can restore the same experience. No InKCre service origin, Peer identity, or JWT
 credential may enter source, source maps, Vite variables, Cloudflare bindings, or the built web and
 extension artifacts. The executable checks are
 [`scripts/check-local-runtime-contract.mjs`](../../scripts/check-local-runtime-contract.mjs) and

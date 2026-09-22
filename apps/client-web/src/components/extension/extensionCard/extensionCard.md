@@ -5,7 +5,7 @@ A component that displays extension information and provides controls for toggli
 ## Props
 
 - `extension` (InstalledExtension, required): the canonical installed row
-- `enabled` (boolean, required): whether the selected Client's Peer UUID is in `enabled[]`
+- `enabled` (boolean, required): whether the selected Peer's UUID is in `enabled[]`
 - `controlsCurrentWebRuntime` (boolean, required): whether the switch owns this browser's runtime
 - `canChangeVersion` (boolean, required): whether the selected Host can validate a version change
 - `changeVersion` (function, required): application-level version change through the selected Host

@@ -22,7 +22,7 @@ the actual sign-in in the external app. The established compatibility baseline i
 
 Saving, enabling, and reading the address are separate operations. A failed address read does not
 undo a saved PAT or disable Memos. If Core has no public address, set its Public HTTP Base URL in
-**Clients → Config**, then select **Refresh status**. The address must be reachable from your
+**Peers → Edit Config**, then select **Refresh status**. The address must be reachable from your
 client device and may include a deployment path prefix.
 
 If enablement fails after saving, retry with the saved PAT. An uncertain save or enable response

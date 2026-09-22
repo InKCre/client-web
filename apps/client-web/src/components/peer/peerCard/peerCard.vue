@@ -8,7 +8,7 @@ import {
   InkJsonEditor,
   type JsonEditorValidation,
 } from '@inkcre/ui-web'
-import { Peer } from '@inkcre/core'
+import { configStore, Peer, PeerConfigSchema } from '@inkcre/core'
 import { peerCardEmits, peerCardProps } from './peerCard'
 
 const props = defineProps(peerCardProps)
@@ -37,7 +37,7 @@ const savePeer = async () => {
     emit('updated')
   } catch (error) {
     console.error('Failed to update Peer:', error)
-    alert('Failed to update client')
+    alert(t('common.saveFailed'))
   }
 }
 
@@ -49,6 +49,7 @@ const onConfirmConfig = async () => {
     const updated = Peer.parse({ ...props.peer, config: JSON.parse(configModel.value) })
     await updated.saveConfig()
     props.peer.config = updated.config
+    if (props.current) configStore.peerConfig = PeerConfigSchema.parse(updated.config)
     emit('updated')
     configPopupOpen.value = false
   } catch (error) {
@@ -60,9 +61,9 @@ const onConfirmConfig = async () => {
 
 const getStatusText = (status: 'online' | 'offline' | 'unknown') => {
   const statusMap = {
-    online: t('client.statusOnline'),
-    offline: t('client.statusOffline'),
-    unknown: t('client.statusUnknown'),
+    online: t('peer.statusOnline'),
+    offline: t('peer.statusOffline'),
+    unknown: t('peer.statusUnknown'),
   }
   return statusMap[status]
 }
@@ -71,22 +72,28 @@ const getStatusText = (status: 'online' | 'offline' | 'unknown') => {
 <template>
   <div class="peer-card">
     <div class="peer-card__item-info">
-      <InkInput v-model="peer.name" type="inline" @confirm="savePeer" />
+      <div class="peer-card__heading">
+        <InkInput v-model="peer.name" type="inline" @confirm="savePeer" />
+        <span class="peer-card__version">
+          {{ peer.application_version ? `v${peer.application_version}` : t('peer.versionUnknown') }}
+        </span>
+        <span v-if="current" class="peer-card__current">{{ t('peer.current') }}</span>
+      </div>
       <span class="peer-card__item-id">{{ peer.id }}</span>
       <span class="peer-card__item-capabilities">
-        {{ peer.capabilities.length }} capabilities
+        {{ t('peer.capabilities', { count: peer.capabilities.length }) }}
       </span>
-      <InkButton :text="t('client.editConfig')" size="sm" @click="openConfig" />
+      <InkButton :text="t('peer.editConfig')" size="sm" @click="openConfig" />
     </div>
     <span :class="['peer-card__item-status', `peer-card__item-status--${status}`]">
       {{ getStatusText(status) }}
     </span>
 
-    <InkDialog v-model="configPopupOpen" :title="t('client.editConfig')" :is-loading="savingConfig">
+    <InkDialog v-model="configPopupOpen" :title="t('peer.editConfig')" :is-loading="savingConfig">
       <InkJsonEditor
         v-model="configModel"
         :schema="peer.config_schema"
-        :label="t('client.editConfig')"
+        :label="t('peer.editConfig')"
         :disabled="savingConfig"
         @validation="configValidation = $event"
       />

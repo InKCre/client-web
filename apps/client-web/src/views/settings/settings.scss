@@ -19,20 +19,17 @@
     gap: sys-var('space', 'md');
   }
 
-  &__notice,
   &__export-note {
     margin: 0;
     color: sys-var('color', 'text', 'subtle');
   }
 
-  &__secret,
   &__locale,
   &__identity {
     display: flex;
     flex-direction: column;
     gap: sys-var('space', 'xs');
 
-    input,
     select {
       @include apply-font(body-md);
       border-radius: sys-var(radius, none);

@@ -77,7 +77,7 @@ export async function installExtensionForPeer(input: {
   }
   if (mode !== 'remote-host') {
     throw new Error(
-      'Installation requires the selected Client to have a live Extension management endpoint.'
+      'Installation requires the selected Peer to have a live Extension management endpoint.'
     )
   }
   if (input.operation === 'install') {

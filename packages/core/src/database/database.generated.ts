@@ -499,6 +499,7 @@ export type Database = {
       }
       peers: {
         Row: {
+          application_version: string | null
           capabilities: Json
           config: Json
           config_schema: Json
@@ -510,6 +511,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          application_version?: string | null
           capabilities?: Json
           config?: Json
           config_schema: Json
@@ -521,6 +523,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          application_version?: string | null
           capabilities?: Json
           config?: Json
           config_schema?: Json

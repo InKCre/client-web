@@ -9,7 +9,7 @@ import {
   type InstalledExtension,
   type InstallExtensionInput,
 } from '@inkcre/core'
-import { getExtensionHost, startExtensionHost } from '@/core'
+import { getExtensionHost, startExtensionHost, WEB_PEER_IDENTITY } from '@/core'
 import {
   extensionPeerControlMode,
   setExtensionPeerEnabled,
@@ -32,6 +32,7 @@ const installing = ref(false)
 const currentPeerFallback = Peer.parse({
   id: currentPeerId,
   name: t('extension.currentBrowser'),
+  application_version: WEB_PEER_IDENTITY.applicationVersion,
   labels: [],
   config: {},
   config_schema: {},
@@ -45,10 +46,14 @@ const selectedPeer = computed(
     peers.value.find((peer) => peer.id === selectedPeerId.value) ??
     (selectedPeerId.value === currentPeerId ? currentPeerFallback : null)
 )
+const peerLabel = (peer: Peer) =>
+  `${peer.name} · ${peer.application_version ? `v${peer.application_version}` : t('peer.versionUnknown')}`
 const peerOptions = computed(() => {
   const options = peers.value.map((peer) => ({
     label:
-      peer.id === currentPeerId ? `${peer.name} (${t('extension.currentBrowser')})` : peer.name,
+      peer.id === currentPeerId
+        ? `${peerLabel(peer)} (${t('extension.currentBrowser')})`
+        : peerLabel(peer),
     value: peer.id,
     description: peer.id,
   }))
@@ -56,7 +61,7 @@ const peerOptions = computed(() => {
     ? options
     : [
         {
-          label: t('extension.currentBrowser'),
+          label: `${t('extension.currentBrowser')} · v${WEB_PEER_IDENTITY.applicationVersion}`,
           value: currentPeerId,
           description: currentPeerId,
         },
@@ -158,9 +163,9 @@ const setEnabledForSelectedPeer = (
         :options="peerOptions"
         :disabled="installing"
       />
-      <p class="extensions-view__notice">{{ t('extension.installOnSelectedClient') }}</p>
+      <p class="extensions-view__notice">{{ t('extension.installOnSelectedPeer') }}</p>
       <p v-if="!canInstall" class="extensions-view__notice">
-        {{ t('extension.installRequiresLiveClient') }}
+        {{ t('extension.installRequiresLivePeer') }}
       </p>
       <p v-if="selectedControlMode === 'desired-state'" class="extensions-view__notice">
         {{ t('extension.desiredStateOnly') }}

@@ -21,22 +21,17 @@
     "managing": "管理",
     "sources": "数据源",
     "extensions": "扩展",
+    "peers": "Peer",
     "settings": "设置",
     "explore": "探索",
     "infoBase": "信息库"
   },
   "settings": {
     "title": "设置",
-    "metaConfig": "运行配置",
-    "coreUrl": "核心 API 地址",
+    "metaConfig": "连接",
     "pgrestUrl": "PostgreSQL REST 地址",
-    "extensionRegistryUrl": "扩展注册表地址",
     "jwtSecret": "JWT 密钥",
-    "clientId": "客户端 ID",
-    "peerId": "客户端 ID",
-    "peerIdGenerated": "由当前浏览器来源自动生成并持久保存。",
-    "peerConfig": "客户端设置",
-    "peerConfigNotice": "配置存储在当前客户端上，并由使用同一客户端 ID 的浏览器会话共享。",
+    "peerId": "Peer ID",
     "languageLabel": "语言",
     "languageDescription": "选择您的首选语言",
     "saveConfig": "保存",
@@ -47,10 +42,7 @@
     "exportConfig": "导出",
     "importConfig": "导入",
     "importError": "导入配置失败，请检查文件格式。",
-    "storageNotice": "配置属于当前浏览器来源，并会在重新加载时自动恢复。",
-    "jwtStoredLocally": "仅存储在当前浏览器中，不由构建产物或托管平台提供。",
-    "exportExcludesSecret": "导出文件不包含 JWT 密钥；导入时会保留当前浏览器已存储的密钥。",
-    "language": "语言"
+    "exportIncludesSecret": "包含连接、Peer ID、JWT 密钥和语言。"
   },
   "source": {
     "deleteConfirmTitle": "删除数据源",
@@ -131,14 +123,14 @@
     "uninstall": "卸载",
     "setup": "设置",
     "setupTitle": "设置 {name}",
-    "peerSelector": "控制扩展的客户端",
-    "peerSelectorPlaceholder": "选择客户端",
-    "installOnSelectedClient": "所选客户端负责安装与版本变更的兼容性校验。安装记录由整个实例共享；请在需要运行扩展的客户端上分别启用。",
-    "installRequiresLiveClient": "安装或变更版本需要选择在线且支持扩展管理的客户端。",
-    "peerNotFound": "所选客户端已不存在。",
+    "peerSelector": "控制扩展的 Peer",
+    "peerSelectorPlaceholder": "选择 Peer",
+    "installOnSelectedPeer": "所选 Peer 负责安装与版本变更的兼容性校验。安装记录由整个实例共享；请在需要运行扩展的 Peer 上分别启用。",
+    "installRequiresLivePeer": "安装或变更版本需要选择在线且支持扩展管理的 Peer。",
+    "peerNotFound": "所选 Peer 已不存在。",
     "currentBrowser": "当前浏览器",
-    "desiredStateOnly": "此客户端没有在线管理端点；操作只更新其持久启用状态，并在该客户端下次协调状态时生效。",
-    "peerListUnavailable": "无法加载客户端列表：{error}",
+    "desiredStateOnly": "此 Peer 没有在线管理端点；操作只更新其持久启用状态，并在该 Peer 下次协调状态时生效。",
+    "peerListUnavailable": "无法加载 Peer 列表：{error}",
     "enabledPeerCount": "已在 {count} 个 Peer 上启用。",
     "uninstallDisabled": "卸载或变更共享版本前，必须先禁用所有 Peer。"
   },
@@ -164,18 +156,20 @@
     "title": "日志",
     "empty": "暂无日志"
   },
-  "client": {
-    "listTitle": "客户端",
+  "peer": {
+    "title": "Peer",
     "refresh": "刷新",
-    "checkHealth": "检查状态",
     "name": "名称",
     "id": "ID",
-    "restUrl": "REST API 地址",
-    "createdAt": "创建时间",
+    "current": "当前浏览器",
+    "versionUnknown": "版本未知",
+    "capabilities": "{count} 项能力",
     "statusOnline": "在线",
     "statusOffline": "离线",
     "statusUnknown": "未知",
-    "noClients": "暂无注册客户端"
+    "empty": "暂无已注册的 Peer",
+    "listFailed": "无法加载 Peer",
+    "editConfig": "编辑配置"
   },
   "infoBase": {
     "list": {

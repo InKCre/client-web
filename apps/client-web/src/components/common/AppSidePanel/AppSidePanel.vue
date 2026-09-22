@@ -24,6 +24,10 @@ const onSettingsClick = () => {
   router.push('/settings')
 }
 
+const onPeersClick = () => {
+  router.push('/peers')
+}
+
 const onExploreClick = () => {
   router.push('/info-base/graph')
 }
@@ -43,6 +47,7 @@ watch(
       <h2 class="app-side-panel__title">{{ t('sidePanel.managing') }}</h2>
       <InkButton :text="t('sidePanel.sources')" class="w-full" @click="onSourcesClick" />
       <InkButton :text="t('sidePanel.extensions')" class="w-full" @click="onExtensionsClick" />
+      <InkButton :text="t('sidePanel.peers')" class="w-full" @click="onPeersClick" />
       <InkButton :text="t('sidePanel.settings')" class="w-full" @click="onSettingsClick" />
     </div>
 
