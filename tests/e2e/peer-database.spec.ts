@@ -87,6 +87,45 @@ test('built browser artifact reads and writes the peer protocol', async ({ page 
   expect(result.cleanupStatus).toBe(204)
 })
 
+test('Registry link confirms an exact Release before installing it', async ({ page }) => {
+  const extensionName = 'e2e/handoff'
+  const endpoint = `${postgrestUrl}extensions?name=eq.${encodeURIComponent(extensionName)}`
+  const authorization = `Bearer ${await token()}`
+  await page.route('**/v1/extensions/e2e/handoff/releases/1.0.0', (route) =>
+    route.fulfill({
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      json: {
+        name: extensionName,
+        nickname: 'Handoff check',
+        version: '1.0.0',
+        state: 'published',
+      },
+    })
+  )
+
+  try {
+    await page.goto('/extensions?install=e2e%2Fhandoff&version=1.0.0')
+    await expect(page.getByRole('heading', { name: 'Handoff check' })).toBeVisible()
+    const before = await fetch(`${endpoint}&select=name`, {
+      headers: { Authorization: authorization },
+    })
+    expect(before.ok ? await before.json() : null).toEqual([])
+
+    await page.getByRole('button', { name: 'Install', exact: true }).click()
+    await expect(page).toHaveURL(/\/extensions$/)
+    await expect
+      .poll(async () => {
+        const response = await fetch(`${endpoint}&select=name,version,enabled`, {
+          headers: { Authorization: authorization },
+        })
+        return response.ok ? await response.json() : null
+      })
+      .toEqual([{ name: extensionName, version: '1.0.0', enabled: [] }])
+  } finally {
+    await fetch(endpoint, { method: 'DELETE', headers: { Authorization: authorization } })
+  }
+})
+
 test('wrong and absent credentials are rejected', async ({ page }) => {
   const wrongAuthorization = `Bearer ${await token(
     'wrong-client-web-jwt-secret-at-least-32-bytes'

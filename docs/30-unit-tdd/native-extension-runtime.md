@@ -62,14 +62,15 @@ management capability contract. The latter delegates once to the exact Peer thro
 not retry mutations or choose a replacement Peer automatically. Response bodies are not included
 in management errors because configuration validation may echo credentials.
 
-Installed state records exact name and version plus the set of enabled Peer IDs. The browser view
-selects the Host that validates installation or version changes. The current browser uses its
-Module Federation Host; an online Core uses `core.extension.management.v1` with the exact Release
-coordinate and validates its Python distribution. A Python-only Release therefore does not need
-a browser distribution to be installed from the Web interface. Installation does not enable either
-Host, and the shared version still affects every Peer. Offline Peers cannot validate an installation
-or version change; the view must not silently redirect it to a different Host. Cross-Peer management
-is an exact delegated capability, not a generic Core API call.
+Installed state records exact name and version plus the set of enabled Peer IDs. Registry Web owns
+catalog search and version browsing; its link returns only a name and exact version to the
+client-web Extensions page. Opening the link reads the published Release from this deployment's
+configured Registry and shows a confirmation, but does not write installed state. Confirmation
+uses the deployment-scoped Web Runtime install operation without selecting a Peer or requiring a
+particular Host distribution. A Python-only Release can therefore be installed from the Web
+interface. Installation does not enable either Host, and the shared version still affects every
+Peer. Reopening an installed version does not silently change it; version changes remain an
+explicit management operation.
 
 Version change and uninstall are refused while any Peer remains enabled or a local runtime is
 running. Startup reads canonical installed state and starts only entries enabled for the current

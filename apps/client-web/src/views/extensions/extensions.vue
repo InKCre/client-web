@@ -1,16 +1,23 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { computed, onMounted, ref, watch } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { InkButton, InkDropdown, InkLoading, InkPlaceholder, InkTabs } from '@inkcre/ui-web'
+import { InkButton, InkDropdown, InkLoading, InkPlaceholder } from '@inkcre/ui-web'
 import { configStore, Peer, type InstalledExtension } from '@inkcre/core'
+import type { ReleaseRecord } from '@inkcre/extension-runtime-client-web'
 import extensionCard from '@/components/extension/extensionCard/extensionCard.vue'
-import extensionDiscovery from '@/components/extension/extensionDiscovery/extensionDiscovery.vue'
-import { getExtensionHost, startExtensionHost, WEB_PEER_IDENTITY } from '@/core'
+import {
+  getExtensionHost,
+  getExtensionRegistry,
+  getExtensionRegistryOrigin,
+  startExtensionHost,
+  WEB_PEER_IDENTITY,
+} from '@/core'
 import { extensionPeerControlMode, setExtensionPeerEnabled } from '@/extension-peer-control'
 
 const { t } = useI18n()
 const route = useRoute()
+const router = useRouter()
 const currentPeerId = configStore.metaConfig.INKCRE_PEER_ID
 const selectedPeerId = ref(currentPeerId)
 const peers = ref<Peer[]>([])
@@ -19,16 +26,22 @@ const peersLoading = ref(false)
 const extensionsLoading = ref(false)
 const extensionError = ref<string | null>(null)
 const peerError = ref<string | null>(null)
-
-const activeView = computed(() => (route.query.view === 'discover' ? 'discover' : 'installed'))
-const viewTabs = computed(() => [
-  { value: 'installed', label: t('extension.installed'), to: '/extensions' },
-  {
-    value: 'discover',
-    label: t('extension.discover'),
-    to: { path: '/extensions', query: { view: 'discover' } },
-  },
-])
+const browseUrl = ref<string | null>(null)
+const browseError = ref<string | null>(null)
+const installRequested = computed(
+  () => route.query.install !== undefined || route.query.version !== undefined
+)
+const installRelease = ref<ReleaseRecord | null>(null)
+const installLoading = ref(false)
+const installError = ref<string | null>(null)
+const installing = ref(false)
+const installedMatch = computed(() =>
+  extensions.value.find(({ name }) => name === installRelease.value?.name)
+)
+const connected = computed(
+  () => !!configStore.metaConfig.INKCRE_PGREST_URL && !!configStore.metaConfig.INKCRE_JWT_SECRET
+)
+let releaseRequest = 0
 const currentPeerFallback = Peer.parse({
   id: currentPeerId,
   name: t('extension.currentBrowser'),
@@ -99,6 +112,59 @@ async function refreshExtensions(): Promise<void> {
   }
 }
 
+async function loadBrowseUrl(): Promise<void> {
+  browseError.value = null
+  try {
+    const url = new URL(await getExtensionRegistryOrigin())
+    url.searchParams.set('client_origin', window.location.origin)
+    browseUrl.value = url.href
+  } catch (error) {
+    browseUrl.value = null
+    browseError.value = error instanceof Error ? error.message : String(error)
+  }
+}
+
+async function loadInstallRelease(): Promise<void> {
+  const request = ++releaseRequest
+  installRelease.value = null
+  installError.value = null
+  if (!installRequested.value) return
+  const name = route.query.install
+  const version = route.query.version
+  if (typeof name !== 'string' || typeof version !== 'string') {
+    installError.value = t('extension.invalidInstallLink')
+    return
+  }
+  installLoading.value = true
+  try {
+    const release = await getExtensionRegistry().getRelease(name, version, true)
+    if (request === releaseRequest) installRelease.value = release
+  } catch (error) {
+    if (request === releaseRequest) {
+      installError.value = error instanceof Error ? error.message : String(error)
+    }
+  } finally {
+    if (request === releaseRequest) installLoading.value = false
+  }
+}
+
+async function installReleaseInDeployment(): Promise<void> {
+  const release = installRelease.value
+  if (!release || installing.value || installedMatch.value || !connected.value) return
+  installing.value = true
+  installError.value = null
+  try {
+    updateExtension(
+      await getExtensionHost().install({ name: release.name, version: release.version })
+    )
+    await router.replace('/extensions')
+  } catch (error) {
+    installError.value = error instanceof Error ? error.message : String(error)
+  } finally {
+    installing.value = false
+  }
+}
+
 function updateExtension(updated: InstalledExtension): void {
   const existing = extensions.value.find(({ name }) => name === updated.name)
   extensions.value = existing
@@ -121,12 +187,17 @@ function setEnabledForSelectedPeer(
   })
 }
 
+watch(() => [route.query.install, route.query.version], loadInstallRelease, { immediate: true })
+
 onMounted(() => {
-  void startExtensionHost().catch(() => {
-    // The app shell owns runtime-startup reporting; this page remains a recovery surface.
-  })
-  void refreshExtensions()
-  void refreshPeers()
+  if (connected.value) {
+    void startExtensionHost().catch(() => {
+      // The app shell owns runtime-startup reporting; this page remains a recovery surface.
+    })
+    void refreshExtensions()
+    void refreshPeers()
+  }
+  void loadBrowseUrl()
 })
 </script>
 
@@ -134,19 +205,79 @@ onMounted(() => {
   <main class="extensions-view">
     <header class="extensions-view__page-header">
       <h1>{{ t('extension.title') }}</h1>
-      <InkTabs
-        :tabs="viewTabs"
-        :model-value="activeView"
-        :label="t('extension.title')"
-        :link-component="RouterLink"
-      />
+      <a v-if="browseUrl" :href="browseUrl" class="extensions-view__browse-link">
+        {{ t('extension.browseRegistry') }} ↗
+      </a>
     </header>
+    <p v-if="browseError" role="alert" class="extensions-view__error">
+      {{ t('extension.registryUnavailable') }}: {{ browseError }}
+    </p>
 
-    <extensionDiscovery
-      v-if="activeView === 'discover'"
-      :installed="extensions"
-      @installed="updateExtension"
-    />
+    <section v-if="installRequested" class="extensions-view__install">
+      <div v-if="installLoading" class="extensions-view__loading"><InkLoading /></div>
+      <InkPlaceholder
+        v-else-if="installError && !installRelease"
+        state="error"
+        :title="t('extension.releaseUnavailable')"
+        :description="installError"
+      >
+        <template #actions>
+          <InkButton :text="t('common.retry')" @click="loadInstallRelease" />
+        </template>
+      </InkPlaceholder>
+      <template v-else-if="installRelease">
+        <h2>{{ installRelease.nickname }}</h2>
+        <p class="extensions-view__install-coordinate">
+          {{ installRelease.name }} · v{{ installRelease.version }}
+        </p>
+        <p class="extensions-view__install-hosts">
+          {{
+            [
+              installRelease.python ? t('extension.hostCore') : null,
+              installRelease.module_federation ? t('extension.hostWeb') : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')
+          }}
+        </p>
+        <p v-if="installedMatch" class="extensions-view__notice">
+          {{ t('extension.installedVersion', { version: installedMatch.version }) }}
+          {{ t('extension.alreadyInstalled') }}
+        </p>
+        <p v-else-if="!connected" class="extensions-view__notice">
+          {{ t('extension.connectBeforeInstall') }}
+          <RouterLink to="/settings">{{ t('common.settings') }}</RouterLink>
+        </p>
+        <p v-else-if="extensionError" role="alert" class="extensions-view__error">
+          {{ t('extension.installedUnavailable') }}: {{ extensionError }}
+        </p>
+        <p v-else class="extensions-view__notice">{{ t('extension.installScope') }}</p>
+        <p v-if="installError" role="alert" class="extensions-view__error">{{ installError }}</p>
+        <div class="extensions-view__install-actions">
+          <InkButton
+            v-if="!installedMatch"
+            theme="primary"
+            :text="t('extension.install')"
+            :disabled="!connected || extensionsLoading || !!extensionError"
+            :is-loading="installing"
+            @click="installReleaseInDeployment"
+          />
+          <RouterLink to="/extensions">{{
+            installedMatch ? t('extension.manage') : t('common.cancel')
+          }}</RouterLink>
+        </div>
+      </template>
+    </section>
+
+    <InkPlaceholder
+      v-else-if="!connected"
+      :title="t('extension.connectDeployment')"
+      :description="t('extension.connectDeploymentDescription')"
+    >
+      <template #actions>
+        <RouterLink to="/settings">{{ t('common.settings') }}</RouterLink>
+      </template>
+    </InkPlaceholder>
 
     <template v-else>
       <section class="extensions-view__peer-control">
@@ -186,9 +317,7 @@ onMounted(() => {
           :description="t('extension.noneInstalledDescription')"
         >
           <template #actions>
-            <RouterLink :to="{ path: '/extensions', query: { view: 'discover' } }">
-              {{ t('extension.discover') }}
-            </RouterLink>
+            <a v-if="browseUrl" :href="browseUrl">{{ t('extension.browseRegistry') }} ↗</a>
           </template>
         </InkPlaceholder>
         <extensionCard

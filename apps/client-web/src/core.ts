@@ -8,6 +8,7 @@
 import {
   configStore,
   ExtensionRegistryOriginResolver,
+  DEFAULT_EXTENSION_REGISTRY_ORIGIN,
   localStorageAdapter,
   registerCoreResolvers,
   TextResolver,
@@ -121,17 +122,18 @@ type ClientExtensionManager = ExtensionManager<ClientExtensionModule>
 let extensionHost: ClientExtensionManager | null = null
 let extensionHostStartup: Promise<void> | null = null
 let extensionRegistry: RegistryReleaseReader | null = null
+let extensionRegistryOrigin: ExtensionRegistryOriginResolver | null = null
 let moduleFederation: ReturnType<typeof createInstance> | null = null
 let webPeerRuntime: WebPeerRuntime | null = null
 
 export function initializeExtensionHost(): ClientExtensionManager {
   extensionHostStartup = null
-  const registryOrigin = new ExtensionRegistryOriginResolver(
+  extensionRegistryOrigin = new ExtensionRegistryOriginResolver(
     () => configStore.peerConfig.extension_registry_url
   )
   if (!moduleFederation) throw new Error('Module Federation has not been initialized.')
   extensionRegistry = new RegistryReleaseReader({
-    registryOrigin: () => registryOrigin.resolve(),
+    registryOrigin: getExtensionRegistryOrigin,
     hostSdk: { name: '@inkcre/core', version: corePackageJson.version },
   })
   extensionHost = new ExtensionManager<ClientExtensionModule>({
@@ -164,6 +166,16 @@ export function getExtensionRegistry(): RegistryReleaseReader {
     throw new Error('Extension Registry reader has not been initialized.')
   }
   return extensionRegistry
+}
+
+export function getExtensionRegistryOrigin(): Promise<string> {
+  if (!configStore.metaConfig.INKCRE_PGREST_URL) {
+    return Promise.resolve(DEFAULT_EXTENSION_REGISTRY_ORIGIN)
+  }
+  if (!extensionRegistryOrigin) {
+    throw new Error('Extension Registry origin has not been initialized.')
+  }
+  return extensionRegistryOrigin.resolve()
 }
 
 /** Project the running native module into the Client-owned setup popup contract. */

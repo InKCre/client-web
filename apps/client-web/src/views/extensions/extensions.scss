@@ -24,6 +24,44 @@
     }
   }
 
+  &__browse-link {
+    margin-bottom: sys-var(space, sm);
+    white-space: nowrap;
+  }
+
+  &__install {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: sys-var(space, sm);
+    max-width: 42rem;
+    padding: sys-var(space, lg);
+    border: 1px solid sys-var(color, border, base);
+
+    h2,
+    p {
+      margin: 0;
+    }
+
+    h2 {
+      @include apply-font(title-sm);
+    }
+  }
+
+  &__install-coordinate,
+  &__install-hosts {
+    @include apply-font(body-sm);
+    color: sys-var(color, text, subtle);
+  }
+
+  &__install-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: sys-var(space, md);
+    margin-top: sys-var(space, sm);
+  }
+
   &__peer-control {
     display: grid;
     grid-template-columns: minmax(16rem, 24rem) minmax(0, 1fr);
