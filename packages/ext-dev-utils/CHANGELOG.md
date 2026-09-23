@@ -1,5 +1,14 @@
 # @inkcre/ext-dev-utils
 
+## 0.1.3
+
+### Patch Changes
+
+- 7307dda: Source 与 Peer 配置使用可视化表单，保留完整 JSON 编辑模式；Peers 页面可确认删除离线 Peer 并清理其扩展启用记录。Extension 浏览与版本选择交由 Registry，Web 接收精确版本并确认安装；Web 与 Module Federation 扩展统一升级正式 UI 2.2.0，Peer AI 凭据在 schema 中标记为密码输入。
+- Updated dependencies [7307dda]
+- Updated dependencies [7307dda]
+  - @inkcre/core@0.3.1
+
 ## 0.1.2
 
 ### Patch Changes
