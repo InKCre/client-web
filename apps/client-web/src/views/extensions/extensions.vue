@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { InkButton, InkDropdown, InkLoading, InkPlaceholder } from '@inkcre/ui-web'
+import { InkButton, InkLoading, InkPlaceholder } from '@inkcre/ui-web'
 import { configStore, Peer, type InstalledExtension } from '@inkcre/core'
 import type { ReleaseRecord } from '@inkcre/extension-runtime-client-web'
 import extensionCard from '@/components/extension/extensionCard/extensionCard.vue'
@@ -13,13 +13,11 @@ import {
   startExtensionHost,
   WEB_PEER_IDENTITY,
 } from '@/core'
-import { extensionPeerControlMode, setExtensionPeerEnabled } from '@/extension-peer-control'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const currentPeerId = configStore.metaConfig.INKCRE_PEER_ID
-const selectedPeerId = ref(currentPeerId)
 const peers = ref<Peer[]>([])
 const extensions = ref<InstalledExtension[]>([])
 const peersLoading = ref(false)
@@ -54,38 +52,11 @@ const currentPeerFallback = Peer.parse({
   created_at: new Date(),
   updated_at: new Date(),
 })
-const selectedPeer = computed(
-  () =>
-    peers.value.find((peer) => peer.id === selectedPeerId.value) ??
-    (selectedPeerId.value === currentPeerId ? currentPeerFallback : null)
+const availablePeers = computed(() =>
+  peers.value.some((peer) => peer.id === currentPeerId)
+    ? peers.value
+    : [currentPeerFallback, ...peers.value]
 )
-const peerLabel = (peer: Peer) =>
-  `${peer.name} · ${peer.application_version ? `v${peer.application_version}` : t('peer.versionUnknown')}`
-const peerOptions = computed(() => {
-  const options = peers.value.map((peer) => ({
-    label:
-      peer.id === currentPeerId
-        ? `${peerLabel(peer)} (${t('extension.currentBrowser')})`
-        : peerLabel(peer),
-    value: peer.id,
-    description: peer.id,
-  }))
-  return peers.value.some((peer) => peer.id === currentPeerId)
-    ? options
-    : [
-        {
-          label: `${t('extension.currentBrowser')} · v${WEB_PEER_IDENTITY.applicationVersion}`,
-          value: currentPeerId,
-          description: currentPeerId,
-        },
-        ...options,
-      ]
-})
-const selectedControlMode = computed(() =>
-  selectedPeer.value ? extensionPeerControlMode(selectedPeer.value, currentPeerId) : null
-)
-const isEnabledForSelectedPeer = (extension: InstalledExtension) =>
-  extension.enabled.includes(selectedPeerId.value)
 
 async function refreshPeers(): Promise<void> {
   peersLoading.value = true
@@ -170,21 +141,6 @@ function updateExtension(updated: InstalledExtension): void {
   extensions.value = existing
     ? extensions.value.map((extension) => (extension.name === updated.name ? updated : extension))
     : [...extensions.value, updated].sort((left, right) => left.name.localeCompare(right.name))
-}
-
-function setEnabledForSelectedPeer(
-  extension: InstalledExtension,
-  enabled: boolean
-): Promise<InstalledExtension> {
-  const peer = selectedPeer.value
-  if (!peer) throw new Error(t('extension.peerNotFound'))
-  return setExtensionPeerEnabled({
-    name: extension.name,
-    peer,
-    currentPeerId,
-    enabled,
-    manager: getExtensionHost(),
-  })
 }
 
 watch(() => [route.query.install, route.query.version], loadInstallRelease, { immediate: true })
@@ -280,21 +236,12 @@ onMounted(() => {
     </InkPlaceholder>
 
     <template v-else>
-      <section class="extensions-view__peer-control">
-        <InkDropdown
-          v-model="selectedPeerId"
-          :label="t('extension.runOnPeer')"
-          :placeholder="t('extension.peerSelectorPlaceholder')"
-          :options="peerOptions"
-          :disabled="peersLoading"
-        />
+      <section v-if="peersLoading || peerError" class="extensions-view__peer-status">
         <InkLoading v-if="peersLoading" size="sm" />
-        <p v-else-if="selectedControlMode === 'desired-state'" class="extensions-view__notice">
-          {{ t('extension.desiredStateOnly') }}
-        </p>
-        <p v-if="peerError" role="alert" class="extensions-view__error">
+        <p v-else role="alert" class="extensions-view__error">
           {{ t('extension.peerListUnavailable', { error: peerError }) }}
         </p>
+        <InkButton v-if="peerError" :text="t('common.retry')" size="sm" @click="refreshPeers" />
       </section>
 
       <section class="extensions-view__list">
@@ -325,9 +272,9 @@ onMounted(() => {
           v-else
           :key="extension.name"
           :extension="extension"
-          :enabled="isEnabledForSelectedPeer(extension)"
-          :controls-current-web-runtime="selectedControlMode === 'current-runtime'"
-          :set-enabled="(enabled) => setEnabledForSelectedPeer(extension, enabled)"
+          :peers="availablePeers"
+          :current-peer-id="currentPeerId"
+          :peer-selection-disabled="peersLoading || !!peerError"
           @updated="updateExtension"
           @uninstalled="refreshExtensions"
         />

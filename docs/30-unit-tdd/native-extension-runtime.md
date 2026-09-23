@@ -52,9 +52,12 @@ passes directly to the current native Module Federation implementation.
 
 The Runtime uses `ExtensionModel` from the shared `@inkcre/core` instance for installed state,
 configuration, and per-Peer enabled intent. There is no application-owned `ExtensionStatePort` or
-second PostgREST adapter. The application keeps the selected-Peer policy: current-runtime operations
-use its local Host, online remote Hosts receive management commands, and offline enablement changes
-update desired state through the SDK model.
+second PostgREST adapter. The application chooses the targeted Peers for each enable or disable
+action: current-runtime operations use its local Host, online remote Hosts receive management
+commands, and offline enablement changes update desired state through the SDK model. Selecting
+several Peers performs independent per-Peer operations, preserves successful changes when another
+Peer fails, then reads the canonical installed row before offering another decision. It does not
+invent a batch transaction or retry an ambiguous remote outcome.
 
 `listAdvertisedExtensionManagementPeers` and `manageExtensionOnPeer` in the Runtime own the shared
 management capability contract. The latter delegates once to the exact Peer through the SDK's

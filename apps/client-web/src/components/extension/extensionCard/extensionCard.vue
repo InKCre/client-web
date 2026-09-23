@@ -3,7 +3,6 @@ import { ref, computed, nextTick, shallowRef, watch, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   InkButton,
-  InkSwitch,
   InkDialog,
   InkDropdown,
   InkJsonEditor,
@@ -11,13 +10,14 @@ import {
   type JsonEditorValidation,
 } from '@inkcre/ui-web'
 import { getExtensionHost, getExtensionRegistry, getExtensionSetupContribution } from '@/core'
-import { configStore, ExtensionRegistryOriginResolver } from '@inkcre/core'
+import { configStore, ExtensionRegistryOriginResolver, type Peer } from '@inkcre/core'
 import {
   getExtensionDocumentation,
   sortPublishedReleases,
   type ExtensionDocumentationLink,
 } from '@inkcre/extension-runtime-client-web'
 import { extensionCardProps, extensionCardEmits } from './extensionCard'
+import { extensionPeerControlMode, setExtensionPeerEnabled } from '@/extension-peer-control'
 
 const props = defineProps(extensionCardProps)
 const emit = defineEmits(extensionCardEmits)
@@ -31,7 +31,11 @@ const versionPopupOpen = ref<boolean | Promise<boolean>>(false)
 const setupPopupOpen = ref(false)
 const setupComponent = shallowRef<Component | null>(null)
 const setupContribution = shallowRef(getExtensionSetupContribution(props.extension.name))
-const togglePromise = ref<Promise<boolean> | null>(null)
+const peerDialogOpen = ref(false)
+const peerAction = ref<'enable' | 'disable'>('enable')
+const selectedPeerIds = ref<string[]>([])
+const peerActionErrors = ref<string[]>([])
+const updatingPeers = ref(false)
 const isUninstalling = ref(false)
 const operationError = ref<string | null>(null)
 const configModel = ref(JSON.stringify(props.extension.config, null, 2))
@@ -80,32 +84,71 @@ watch(
 )
 
 const canUninstall = computed(() => props.extension.enabled.length === 0 && !isUninstalling.value)
+const eligiblePeers = computed(() =>
+  props.peers.filter((peer) => {
+    const alreadyEnabled = props.extension.enabled.includes(peer.id)
+    return peerAction.value === 'disable' ? alreadyEnabled : !alreadyEnabled
+  })
+)
+const peerLabel = (peer: Peer) =>
+  `${peer.name} · ${peer.application_version ? `v${peer.application_version}` : t('peer.versionUnknown')}`
 const closeSetup = async () => {
   setupPopupOpen.value = false
   setupComponent.value = null
   await nextTick()
 }
 
-const toggleModel = computed({
-  get: () => (togglePromise.value ? togglePromise.value : props.enabled),
-  set: (enabled: boolean) => {
-    operationError.value = null
-    togglePromise.value = (async () => {
+const openPeerDialog = (action: 'enable' | 'disable') => {
+  peerAction.value = action
+  selectedPeerIds.value = []
+  peerActionErrors.value = []
+  operationError.value = null
+  peerDialogOpen.value = true
+}
+
+const applyPeerAction = async () => {
+  if (updatingPeers.value || selectedPeerIds.value.length === 0) return
+  const selectedPeers = eligiblePeers.value.filter((peer) =>
+    selectedPeerIds.value.includes(peer.id)
+  )
+  if (selectedPeers.length === 0) return
+  const enabled = peerAction.value === 'enable'
+  updatingPeers.value = true
+  peerActionErrors.value = []
+  try {
+    if (!enabled && selectedPeerIds.value.includes(props.currentPeerId)) await closeSetup()
+    for (const peer of selectedPeers) {
       try {
-        if (!enabled && props.controlsCurrentWebRuntime) await closeSetup()
-        const updated = await props.setEnabled(enabled)
+        const updated = await setExtensionPeerEnabled({
+          name: props.extension.name,
+          peer,
+          currentPeerId: props.currentPeerId,
+          enabled,
+          manager: getExtensionHost(),
+        })
         emit('updated', updated)
-        return enabled
       } catch (error) {
-        operationError.value = error instanceof Error ? error.message : String(error)
-        return props.enabled
-      } finally {
-        setupContribution.value = getExtensionSetupContribution(props.extension.name)
-        togglePromise.value = null
+        peerActionErrors.value.push(
+          `${peerLabel(peer)}: ${error instanceof Error ? error.message : String(error)}`
+        )
       }
-    })()
-  },
-})
+    }
+    if (peerActionErrors.value.length) {
+      try {
+        const latest = await getExtensionHost().get(props.extension.name)
+        if (latest) emit('updated', latest)
+      } catch (error) {
+        peerActionErrors.value.push(error instanceof Error ? error.message : String(error))
+      }
+      selectedPeerIds.value = []
+    } else {
+      peerDialogOpen.value = false
+    }
+  } finally {
+    setupContribution.value = getExtensionSetupContribution(props.extension.name)
+    updatingPeers.value = false
+  }
+}
 
 const onEditConfigClick = () => {
   configModel.value = JSON.stringify(props.extension.config, null, 2)
@@ -211,10 +254,25 @@ const onUninstall = async () => {
           {{ extension.nickname }}
         </span>
       </div>
-      <InkSwitch v-model="toggleModel" size="xs" :aria-label="extension.name" />
     </div>
 
     <div class="extension-card__actions">
+      <InkButton
+        :text="t('extension.enableOnPeers')"
+        size="sm"
+        :disabled="
+          peerSelectionDisabled || !peers.some((peer) => !extension.enabled.includes(peer.id))
+        "
+        @click="openPeerDialog('enable')"
+      />
+      <InkButton
+        :text="t('extension.disableOnPeers')"
+        size="sm"
+        :disabled="
+          peerSelectionDisabled || !peers.some((peer) => extension.enabled.includes(peer.id))
+        "
+        @click="openPeerDialog('disable')"
+      />
       <InkButton
         v-if="setupContribution"
         :text="t('extension.setup')"
@@ -262,6 +320,60 @@ const onUninstall = async () => {
     <p v-else-if="documentationStatus === 'unavailable'" class="extension-card__hint">
       {{ t('extension.documentationUnavailable') }}
     </p>
+
+    <InkDialog
+      v-model="peerDialogOpen"
+      :title="
+        t(peerAction === 'enable' ? 'extension.enablePeerTitle' : 'extension.disablePeerTitle', {
+          name: extension.nickname ?? extension.name,
+        })
+      "
+      :show-cancel="false"
+      :show-confirm="false"
+      :is-loading="updatingPeers"
+    >
+      <div class="extension-card__peer-options">
+        <label v-for="peer in eligiblePeers" :key="peer.id" class="extension-card__peer-option">
+          <input
+            v-model="selectedPeerIds"
+            type="checkbox"
+            :value="peer.id"
+            :disabled="updatingPeers"
+          />
+          <span>
+            <span>{{ peerLabel(peer) }}</span>
+            <span v-if="peer.id === currentPeerId" class="extension-card__peer-note">
+              {{ t('extension.currentBrowser') }}
+            </span>
+            <span
+              v-else-if="extensionPeerControlMode(peer, currentPeerId) === 'desired-state'"
+              class="extension-card__peer-note"
+            >
+              {{ t('extension.desiredStateBrief') }}
+            </span>
+          </span>
+        </label>
+      </div>
+      <p v-for="error in peerActionErrors" :key="error" role="alert" class="extension-card__error">
+        {{ error }}
+      </p>
+      <template #footer>
+        <InkButton
+          :text="t('common.cancel')"
+          :disabled="updatingPeers"
+          @click="peerDialogOpen = false"
+        />
+        <InkButton
+          :text="
+            t(peerAction === 'enable' ? 'extension.enableSelected' : 'extension.disableSelected')
+          "
+          theme="primary"
+          :disabled="selectedPeerIds.length === 0"
+          :is-loading="updatingPeers"
+          @click="applyPeerAction"
+        />
+      </template>
+    </InkDialog>
 
     <InkDialog
       v-model="setupPopupOpen"

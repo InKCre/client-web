@@ -87,10 +87,13 @@ test('built browser artifact reads and writes the peer protocol', async ({ page 
   expect(result.cleanupStatus).toBe(204)
 })
 
-test('Registry link confirms an exact Release before installing it', async ({ page }) => {
+test('Registry install and multi-Peer enablement require explicit confirmation', async ({
+  page,
+}) => {
   const extensionName = 'e2e/handoff'
   const endpoint = `${postgrestUrl}extensions?name=eq.${encodeURIComponent(extensionName)}`
   const authorization = `Bearer ${await token()}`
+  const peerIds = [crypto.randomUUID(), crypto.randomUUID()]
   await page.route('**/v1/extensions/e2e/handoff/releases/1.0.0', (route) =>
     route.fulfill({
       headers: { 'Access-Control-Allow-Origin': '*' },
@@ -121,8 +124,46 @@ test('Registry link confirms an exact Release before installing it', async ({ pa
         return response.ok ? await response.json() : null
       })
       .toEqual([{ name: extensionName, version: '1.0.0', enabled: [] }])
+
+    const createdPeers = await fetch(`${postgrestUrl}peers`, {
+      method: 'POST',
+      headers: { Authorization: authorization, 'Content-Type': 'application/json' },
+      body: JSON.stringify(peerIds.map((id, index) => ({ id, name: `E2E Peer ${index + 1}` }))),
+    })
+    expect(createdPeers.status).toBe(201)
+    await page.reload()
+
+    await page.getByRole('button', { name: 'Enable…' }).click()
+    const dialog = page.getByRole('dialog')
+    await dialog.getByRole('checkbox', { name: /E2E Peer 1/ }).check()
+    await dialog.getByRole('button', { name: 'Cancel' }).click()
+    const readEnabled = async () => {
+      const response = await fetch(`${endpoint}&select=enabled`, {
+        headers: { Authorization: authorization },
+      })
+      return response.ok ? (await response.json())[0]?.enabled : null
+    }
+    expect(await readEnabled()).toEqual([])
+
+    await page.getByRole('button', { name: 'Enable…' }).click()
+    await dialog.getByRole('checkbox', { name: /E2E Peer 1/ }).check()
+    await dialog.getByRole('checkbox', { name: /E2E Peer 2/ }).check()
+    await dialog.getByRole('button', { name: 'Enable selected' }).click()
+    await expect(dialog).toBeHidden()
+    await expect.poll(readEnabled).toEqual(expect.arrayContaining(peerIds))
+
+    await page.getByRole('button', { name: 'Disable…' }).click()
+    await dialog.getByRole('checkbox', { name: /E2E Peer 1/ }).check()
+    await dialog.getByRole('checkbox', { name: /E2E Peer 2/ }).check()
+    await dialog.getByRole('button', { name: 'Disable selected' }).click()
+    await expect(dialog).toBeHidden()
+    await expect.poll(readEnabled).toEqual([])
   } finally {
     await fetch(endpoint, { method: 'DELETE', headers: { Authorization: authorization } })
+    await fetch(`${postgrestUrl}peers?id=in.(${peerIds.join(',')})`, {
+      method: 'DELETE',
+      headers: { Authorization: authorization },
+    })
   }
 })
 

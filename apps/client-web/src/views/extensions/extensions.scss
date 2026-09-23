@@ -62,11 +62,11 @@
     margin-top: sys-var(space, sm);
   }
 
-  &__peer-control {
-    display: grid;
-    grid-template-columns: minmax(16rem, 24rem) minmax(0, 1fr);
-    align-items: end;
-    gap: sys-var(space, sm) sys-var(space, md);
+  &__peer-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: sys-var(space, sm);
   }
 
   &__list {
@@ -94,13 +94,6 @@
   }
 
   &__error {
-    grid-column: 1 / -1;
     color: sys-var(color, feedback, error);
-  }
-
-  @media (max-width: 720px) {
-    &__peer-control {
-      grid-template-columns: 1fr;
-    }
   }
 }

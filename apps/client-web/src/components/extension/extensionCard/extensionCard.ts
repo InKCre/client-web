@@ -1,15 +1,12 @@
 import { type PropType } from 'vue'
-import type { InstalledExtension } from '@inkcre/core'
+import type { InstalledExtension, Peer } from '@inkcre/core'
 
 // --- Props ---
 export const extensionCardProps = {
   extension: { type: Object as PropType<InstalledExtension>, required: true },
-  enabled: { type: Boolean, required: true },
-  controlsCurrentWebRuntime: { type: Boolean, required: true },
-  setEnabled: {
-    type: Function as PropType<(enabled: boolean) => Promise<InstalledExtension>>,
-    required: true,
-  },
+  peers: { type: Array as PropType<Peer[]>, required: true },
+  currentPeerId: { type: String, required: true },
+  peerSelectionDisabled: { type: Boolean, default: false },
 } as const
 
 // --- Emits ---

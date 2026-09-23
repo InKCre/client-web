@@ -50,6 +50,32 @@
     margin: 0;
   }
 
+  &__peer-options {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, sm);
+    max-height: min(50vh, 24rem);
+    overflow-y: auto;
+  }
+
+  &__peer-option {
+    display: flex;
+    align-items: start;
+    gap: sys-var(space, sm);
+    padding: sys-var(space, sm);
+    border: 1px solid sys-var(color, border, subtle);
+    cursor: pointer;
+
+    input {
+      margin-top: 0.15em;
+    }
+  }
+
+  &__peer-note {
+    display: block;
+    color: sys-var(color, text, subtle);
+  }
+
   &__loading {
     display: grid;
     min-height: 5rem;
