@@ -658,7 +658,7 @@ test('an empty browser saves its connection across refresh and reads Peers', asy
   try {
     await page.addInitScript(() => {
       const observer = new MutationObserver(() => {
-        const text = document.getElementById('app')?.textContent
+        const text = document.querySelector('main')?.textContent
         if (!text) return
         sessionStorage.setItem('first-app-text', text)
         observer.disconnect()
