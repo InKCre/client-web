@@ -255,6 +255,7 @@ test('Peer config keeps invalid and failed drafts and saves only once while pend
     await expect(peer.getByText('Online', { exact: true })).toBeVisible()
     await peer.getByRole('button', { name: 'Edit Config' }).click()
     const dialog = page.getByRole('dialog', { name: 'Edit Config' })
+    await dialog.getByRole('tab', { name: 'JSON' }).click()
     const editor = dialog.locator('.cm-content')
     const save = dialog.getByRole('button', { name: 'Save', exact: true })
     await expect(save).toBeEnabled()
