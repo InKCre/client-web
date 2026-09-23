@@ -15,9 +15,10 @@
 
 ## 已完成：Extension 发现与安装
 
-- Extensions 页面提供 Registry Web 入口；搜索、详情与精确版本选择都在 Registry 完成，不再复制一套 Web listing。Peer selector 只控制“在 Peer 上运行”。
+- Extensions 页面提供 Registry Web 入口；搜索、详情与精确版本选择都在 Registry 完成，不再复制一套 Web listing。安装与 Peer 无关；每张已安装 Extension 卡片的「Enable… / Disable…」分别打开可多选 Peer 的弹窗。
 - Registry 回跳 `/extensions?install=<name>&version=<exact>` 后，Web 重新读取 Release、展示 Host 信息并等待确认；打开链接不安装。未连接部署时显示 Settings 入口，已安装版本不会被静默替换。
 - 安装确认只写部署级记录，不隐式启用、下载或执行 Extension。
+- 启用/停用弹窗默认不选 Peer；取消不写入。逐 Peer 应用既有 Host/持久意图路径，成功保留，部分失败显示并读回实际状态。在线判断复用 Peers 页的服务端在线集合，不凭浏览器时钟推断。
 - 已安装 Extension 显示精确版本和管理入口；改版直接使用部署级操作，并保留 enabled/setup state 的既有阻止不变量。
 - Vite 开发服务器不再预打包 Extension runtime，确保它与应用共享同一份 `@inkcre/core` 状态。
 
@@ -26,8 +27,7 @@
 - Source 创建/编辑与 Peer 配置共用 JSON Schema 可视化表单；保留 JSON 模式和完整草稿，未知字段与无效 JSON 不会在切换时丢失。
 - 不支持的 schema 仍可通过 JSON 编辑，内嵌表单不产生嵌套原生 `<form>`。凭据遮蔽只依据 schema 的 `format: password`，不改变读写语义。
 - 配置 Form/JSON 复用 UI 包的受控 Tabs；Extension 发现不再属于 Web 内部视图。
-- Web、Mail、Memos、Twitter 与 ext-dev-utils 统一锁定已正式发布的 `@inkcre/ui-web@2.1.0`。
-- `InkAutoForm` 五处数组/可空字段操作已在 UI 独立 worktree 改为 InkButton；本 PR 尚未消费修正后的正式 UI 包，不能把它计入当前 preview。
+- `InkAutoForm` 五处数组/可空字段动作已在 [UI #52](https://github.com/InKCre/ui/pull/52) 修正为 InkButton，并由正常 Version PR #53 发布 `@inkcre/ui-web@2.1.1`；Web、Mail、Memos、Twitter 与 ext-dev-utils 统一消费这一正式版本。
 
 ## 后续分组
 
