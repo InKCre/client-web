@@ -59,7 +59,8 @@ initialization runs. Business views mount only after initialization succeeds. A 
 replaces loading with an error and a Retry action that reloads the current URL, preserving deep-link
 parameters. Settings remains reachable during loading and after failure through a full-page
 navigation: its recovery bootstrap does not wait for the configured Peer. Neither action resets
-stored configuration or reuses a partially initialized runtime; startup does not retry automatically.
+stored configuration or reuses a partially initialized runtime; the root does not rerun initialization
+automatically. Existing SDK transport retry behavior is unchanged.
 
 The selected Peer's database row supplies deployment configuration such as Extension Registry URL
 and Peer HTTP timeout. The static artifact contains no environment origin, Peer identity, secret,

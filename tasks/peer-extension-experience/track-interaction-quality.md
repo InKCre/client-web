@@ -14,6 +14,8 @@ Human 已认可场景化加载方向，并要求三点式加载继续实际使�
 
 ## 调查依据
 
+启动修复初轮 CI：原有 12 条通过，新增旅程在断开请求后 5 秒内未见错误态。已检查锁定版本的 PostgREST SDK：GET 网络失败会按 1/2/4 秒退避重试，故测试把 SDK 的中间等待误当成终态。改为受控返回明确的 HTTP 503，验证应用的失败恢复边界，不修改 SDK、不延长断言超时。公开新版 preview 已实测三点式启动提示 → RSS 0.2.1 精确版本页；本地不可达连接已实测失败 → Retry → Settings，配置仍保留。新版完整 CI 待通过。
+
 - 在已连接 Heroku/Neon 的 client-web#118 预览实际查看 Settings、Peers、Extensions、搜索首页；Create Source → Type 的顶部空白已在此前同一预览实测并验证过滤。
 - Settings 的导出内容说明常驻，Peer ID 与语言夹在 Connection 表单中；语言实际立即生效，Save 只保存连接；Import 却共用 saving 状态，处理导入时 Save 按钮也会显示进行中。
 - Peers 默认显示 UUID、能力数量；扩展 RSS 卡片常驻启用数量、卸载/换版前提及“文档暂不可用”；搜索首页常驻 LEXICAL RECALL eyebrow 与匹配规则说明。

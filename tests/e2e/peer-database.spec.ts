@@ -101,7 +101,12 @@ test('startup shows pending and failed states without trapping a deep link', asy
       new URL(route.request().url()).searchParams.get('select') === 'id'
     ) {
       await gate
-      await route.abort('failed')
+      // A terminal API failure avoids coupling this UI check to the SDK's network retry delays.
+      await route.fulfill({
+        status: 503,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        json: { message: 'Startup service unavailable' },
+      })
     } else await route.continue()
   })
 
