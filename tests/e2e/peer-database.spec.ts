@@ -656,8 +656,20 @@ test('an empty browser saves its connection across refresh and reads Peers', asy
   const authorization = `Bearer ${await token()}`
   let id: string | undefined
   try {
+    await page.addInitScript(() => {
+      const observer = new MutationObserver(() => {
+        const text = document.getElementById('app')?.textContent
+        if (!text) return
+        sessionStorage.setItem('first-app-text', text)
+        observer.disconnect()
+      })
+      observer.observe(document, { childList: true, subtree: true })
+    })
     await page.goto('/settings')
     await expect(page).toHaveTitle('Settings - InKCre')
+    const firstText = await page.evaluate(() => sessionStorage.getItem('first-app-text'))
+    expect(firstText).toContain('Connection')
+    expect(firstText).not.toContain('settings.')
     await page.getByLabel('PostgreSQL REST URL').fill(postgrestUrl)
     await page.getByLabel('JWT Secret').fill(jwtSecret)
     await page.getByRole('button', { name: 'Save', exact: true }).click()

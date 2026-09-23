@@ -143,6 +143,8 @@ Ctrl+K 已实测原生 input 42px、按钮 36px：用 InkInput 的现有控件�
 
 UI #54 已在检查通过后合入 `c3f2370`。Release 35866577328 生成正常 Changesets 版本分支，但因 Actions 不允许创建 PR 而失败；用已授权的维护者身份补建 Version PR #55，未改变仓库权限。#55 通过检查后合入 `386b0716`，Release 35867201587 成功发布 `@inkcre/ui-web@2.2.0`，包仓库可下载。Web、ext-dev-utils、Mail、Memos、Twitter 全部更新为精确 2.2.0；pnpm 为这次已核验的第一方发布追加精确版本的新包等待期例外，未放宽全局策略。源码联调进程已停止。本机浏览器扩展 E2E 1/1、正式包完整 `pnpm check` 已通过；CI 与公开 preview 待推送后检查。
 
+提交 `28f9e11` 的 CI 35867675742 全部通过，正式构建数据库 E2E 12/12（14.1 秒）通过；Pages 35867671728 已部署同一 head。公开预览中重新从 Settings 保存 owner Heroku 连接成功，刷新仍保留。现场另发现首次渲染短暂显示翻译键：21.8 KB 的两份语言 JSON 被异步载入且未阻止挂载。改为静态导入，删除空消息集、缓存和失败吞咽；沿既有空浏览器 E2E 记录第一份真实 DOM 文案以验证无键名闪现，并设置初始文档语言。这是观察到的反馈缺陷，不扩展为通用启动或加载框架。
+
 UI 生产者已提交为 `0b5d9da`，Draft [ui#54](https://github.com/InKCre/ui/pull/54)。完整 `pnpm check` 通过；主代理在实际 Story 构建复核了自定义 footer 保存期间仅保存转圈、取消禁用、Escape 锁定，以及失败保留草稿、重试成功。生产者另验证 Loading 的作者提供状态名称，不能把辅助树检查声称为屏幕阅读器语音实测。
 
 Web 已接入新的界面分层、默认 Header 去重、动态 Tab 标题、Loading/Skeleton、刷新失败保留和恢复入口。当前通过显式 UI source lane 验证，未把未发布包写入 manifest/lockfile。首页名称复用启动注册结果；Settings 成功连接后的运行时返回值不包含 Peer，因此此处只额外读取一次当前 Peer 来更新非持久身份，未为显示标题改变 SDK 公共返回类型，也不逐路由请求。读取名字失败只退回 InKCre，不影响已保存连接。
