@@ -99,8 +99,8 @@ importers:
         specifier: github:InKCre/ext-reg#57dcd80289285620a1fd27a0a48027e56c4ce7b1&path:/runtimes/client-web
         version: https://codeload.github.com/InKCre/ext-reg/tar.gz/57dcd80289285620a1fd27a0a48027e56c4ce7b1#path:/runtimes/client-web(@inkcre/core@packages+core)(@module-federation/runtime@0.21.6)
       '@inkcre/ui-web':
-        specifier: 2.1.1
-        version: 2.1.1(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
+        specifier: 2.2.0
+        version: 2.2.0(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
       '@module-federation/runtime':
         specifier: ^0.21.4
         version: 0.21.6
@@ -318,8 +318,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/ext-dev-utils
       '@inkcre/ui-web':
-        specifier: 2.1.1
-        version: 2.1.1(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
+        specifier: 2.2.0
+        version: 2.2.0(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
       '@module-federation/vite':
         specifier: ^1.1.0
         version: 1.7.1(rollup@4.59.0)
@@ -376,8 +376,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/ext-dev-utils
       '@inkcre/ui-web':
-        specifier: 2.1.1
-        version: 2.1.1(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
+        specifier: 2.2.0
+        version: 2.2.0(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
       '@module-federation/vite':
         specifier: ^1.1.0
         version: 1.7.1(rollup@4.59.0)
@@ -422,8 +422,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/ext-dev-utils
       '@inkcre/ui-web':
-        specifier: 2.1.1
-        version: 2.1.1(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
+        specifier: 2.2.0
+        version: 2.2.0(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
       '@module-federation/vite':
         specifier: ^1.1.0
         version: 1.7.1(rollup@4.59.0)
@@ -498,8 +498,8 @@ importers:
         specifier: workspace:*
         version: link:../core
       '@inkcre/ui-web':
-        specifier: 2.1.1
-        version: 2.1.1(unocss@66.7.5(vite@8.1.5(@types/node@22.17.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
+        specifier: 2.2.0
+        version: 2.2.0(unocss@66.7.5(vite@8.1.5(@types/node@22.17.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
     devDependencies:
       pinia:
         specifier: ^3.0.3
@@ -1386,8 +1386,8 @@ packages:
       '@inkcre/core': '>=0.3.0 <0.4.0'
       '@module-federation/runtime': '>=0.21.4 <0.23.0'
 
-  '@inkcre/ui-web@2.1.1':
-    resolution: {integrity: sha512-42mpzHb/06eGQ6czzjvwo5lZ3cOWIWHWFUXu3UvdBeU31tDFUvG66FehKCJZrpNuvy8TNArhRNHrMcZ9461Ijg==, tarball: https://npm.pkg.github.com/download/@inkcre/ui-web/2.1.1/8331e2183e4970f158cb067a7ce70b2d348e3c94}
+  '@inkcre/ui-web@2.2.0':
+    resolution: {integrity: sha512-23FDF3UhIiNWIcc7AuSW6bj1TWK4JlmmWiEpYjuNyR0HE71Fub/0YsTuvzOHpGGtFi0J/3JrjvNLblmECKChNw==, tarball: https://npm.pkg.github.com/download/@inkcre/ui-web/2.2.0/748a48df82d6ddaf0abc53bad2f64690535e690f}
     peerDependencies:
       unocss: ^66.5.0
       vue: ^3.5.25
@@ -6138,9 +6138,6 @@ packages:
   vscode-languageserver-types@3.18.3:
     resolution: {integrity: sha512-XIlzJ7Qp/jzSI1ds7/FwPAWrPeTZA7pAtlW4hdJ1J6xXWJL6dR9QYnDhJOdLzdKhUQ5Mm6mvUMw+3DcOQQasPw==}
 
-  vscode-uri@3.1.0:
-    resolution: {integrity: sha512-/BpdSx+yCQGnCvecbyXdxHDkuk55/G3xwnC0GqY4gmQ3j+A+g8kzzgB4Nk/SINjqn6+waqw3EgbVF2QKExkRxQ==}
-
   vscode-uri@3.2.0:
     resolution: {integrity: sha512-m2gXo3bn0G1kT9InzMf07fTbqMbGtyckj3bH5ktLO+1Ssv+yiATZ4dhwaQv9UZWxJh6E9IFGnQyjgWVDWVBDrg==}
 
@@ -7300,7 +7297,7 @@ snapshots:
       semver: 7.8.5
       zod: 4.1.12
 
-  '@inkcre/ui-web@2.1.1(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))':
+  '@inkcre/ui-web@2.2.0(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))':
     dependencies:
       '@codemirror/autocomplete': 6.20.3
       '@codemirror/commands': 6.11.1
@@ -7316,7 +7313,7 @@ snapshots:
       vscode-languageserver-textdocument: 1.0.14
       vue: 3.5.40(typescript@5.9.3)
 
-  '@inkcre/ui-web@2.1.1(unocss@66.7.5(vite@8.1.5(@types/node@22.17.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))':
+  '@inkcre/ui-web@2.2.0(unocss@66.7.5(vite@8.1.5(@types/node@22.17.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))':
     dependencies:
       '@codemirror/autocomplete': 6.20.3
       '@codemirror/commands': 6.11.1
@@ -8531,7 +8528,7 @@ snapshots:
     dependencies:
       '@volar/language-core': 2.4.28
       path-browserify: 1.0.1
-      vscode-uri: 3.1.0
+      vscode-uri: 3.2.0
 
   '@vscode/l10n@0.0.18': {}
 
@@ -11698,8 +11695,6 @@ snapshots:
   vscode-languageserver-textdocument@1.0.14: {}
 
   vscode-languageserver-types@3.18.3: {}
-
-  vscode-uri@3.1.0: {}
 
   vscode-uri@3.2.0: {}
 

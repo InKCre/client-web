@@ -139,6 +139,10 @@ Ctrl+K 已实测原生 input 42px、按钮 36px：用 InkInput 的现有控件�
 
 ## 实施与交付状态
 
+2026-09-23 Human 已授权 UI #54 合并与正常 Version PR 正式发布，然后更新 Web 正式依赖、检查和公开预览验收；client-web#118 与 docs#31 仍不合并。UI #54 转为 Ready 后触发新的必需检查，须等待通过，不绕过。当前 Colima 显示运行，但 Docker API 读取无响应；本任务不重启共享引擎，正式数据库 E2E 优先使用既有 GitHub CI 的隔离运行环境。
+
+UI #54 已在检查通过后合入 `c3f2370`。Release 35866577328 生成正常 Changesets 版本分支，但因 Actions 不允许创建 PR 而失败；用已授权的维护者身份补建 Version PR #55，未改变仓库权限。#55 通过检查后合入 `386b0716`，Release 35867201587 成功发布 `@inkcre/ui-web@2.2.0`，包仓库可下载。Web、ext-dev-utils、Mail、Memos、Twitter 全部更新为精确 2.2.0；pnpm 为这次已核验的第一方发布追加精确版本的新包等待期例外，未放宽全局策略。源码联调进程已停止。本机浏览器扩展 E2E 1/1、正式包完整 `pnpm check` 已通过；CI 与公开 preview 待推送后检查。
+
 UI 生产者已提交为 `0b5d9da`，Draft [ui#54](https://github.com/InKCre/ui/pull/54)。完整 `pnpm check` 通过；主代理在实际 Story 构建复核了自定义 footer 保存期间仅保存转圈、取消禁用、Escape 锁定，以及失败保留草稿、重试成功。生产者另验证 Loading 的作者提供状态名称，不能把辅助树检查声称为屏幕阅读器语音实测。
 
 Web 已接入新的界面分层、默认 Header 去重、动态 Tab 标题、Loading/Skeleton、刷新失败保留和恢复入口。当前通过显式 UI source lane 验证，未把未发布包写入 manifest/lockfile。首页名称复用启动注册结果；Settings 成功连接后的运行时返回值不包含 Peer，因此此处只额外读取一次当前 Peer 来更新非持久身份，未为显示标题改变 SDK 公共返回类型，也不逐路由请求。读取名字失败只退回 InKCre，不影响已保存连接。
