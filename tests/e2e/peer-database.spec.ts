@@ -307,6 +307,7 @@ test('Peer config keeps invalid and failed drafts and saves only once while pend
     expect(stored.status).toBe(200)
     expect((await stored.json())[0].config).toEqual({ limit: 2 })
     await peer.getByRole('button', { name: 'Edit Config' }).click()
+    await dialog.getByRole('tab', { name: 'JSON' }).click()
     await expect(editor).toContainText('2')
   } finally {
     await page.unroute(endpoint)
