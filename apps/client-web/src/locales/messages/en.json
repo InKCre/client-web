@@ -13,7 +13,10 @@
     "invalidConfig": "Enter a valid JSON configuration object before saving.",
     "close": "Close",
     "refresh": "Refresh",
-    "retry": "Retry"
+    "retry": "Retry",
+    "visual": "Form",
+    "json": "JSON",
+    "fixJsonBeforeForm": "Fix the JSON before switching to the form."
   },
   "header": {
     "brand": "InKCre"

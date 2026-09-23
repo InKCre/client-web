@@ -9,12 +9,14 @@ export type ProviderType = 'openai' | 'anthropic' | 'google' | 'openai-compatibl
  * LLM Provider configuration schema
  */
 export const LLMProviderConfigSchema = z.object({
-  id: z.string(), // Unique identifier for the provider
-  name: z.string(), // Display name (e.g., "My OpenAI")
-  type: z.enum(['openai', 'anthropic', 'google', 'openai-compatible']),
-  apiKey: z.string(),
-  baseURL: z.string().optional(), // Optional base URL for OpenAI-compatible providers
-  models: z.array(z.string()), // List of available models
+  id: z.string().meta({ title: 'Provider ID' }), // Unique identifier for the provider
+  name: z.string().meta({ title: 'Name' }), // Display name (e.g., "My OpenAI")
+  type: z
+    .enum(['openai', 'anthropic', 'google', 'openai-compatible'])
+    .meta({ title: 'Provider type' }),
+  apiKey: z.string().meta({ format: 'password', title: 'API key' }),
+  baseURL: z.string().optional().meta({ title: 'Base URL' }), // Optional base URL for OpenAI-compatible providers
+  models: z.array(z.string()).meta({ title: 'Models' }), // List of available models
 })
 
 export type LLMProviderConfig = z.infer<typeof LLMProviderConfigSchema>
@@ -23,11 +25,12 @@ export type LLMProviderConfig = z.infer<typeof LLMProviderConfigSchema>
  * AI configuration schema (from client-webext)
  */
 export const AIConfigSchema = z.object({
-  llmProviders: z.array(LLMProviderConfigSchema).default([]),
-  defaultModel: z.string().default('openai-default:gpt-4o-mini'),
+  llmProviders: z.array(LLMProviderConfigSchema).default([]).meta({ title: 'AI providers' }),
+  defaultModel: z.string().default('openai-default:gpt-4o-mini').meta({ title: 'Default model' }),
   explainInstruction: z
     .string()
-    .default('Explain user given text based on page content in a concise, clear, simple way.'),
+    .default('Explain user given text based on page content in a concise, clear, simple way.')
+    .meta({ title: 'Explanation instruction' }),
 })
 
 /**
@@ -65,9 +68,16 @@ export const PeerConfigSchema = z
   .object({
     // Deployment-owned Peer configuration supplies this URL. Static artifacts
     // deliberately keep the unconfigured state instead of embedding an origin.
-    extension_registry_url: UnconfiguredUrlSchema.default(''),
-    peer_http_timeout_ms: z.number().int().positive().default(30_000),
-    ai: AIConfigSchema.default(() => AIConfigSchema.parse({})),
+    extension_registry_url: UnconfiguredUrlSchema.default('').meta({
+      title: 'Extension registry URL',
+    }),
+    peer_http_timeout_ms: z
+      .number()
+      .int()
+      .positive()
+      .default(30_000)
+      .meta({ title: 'Peer response timeout (ms)' }),
+    ai: AIConfigSchema.default(() => AIConfigSchema.parse({})).meta({ title: 'AI' }),
   })
   .passthrough()
 

@@ -22,24 +22,6 @@
       @include apply-font(title-lg);
       margin: 0 0 sys-var(space, sm);
     }
-
-    nav {
-      display: flex;
-      gap: sys-var(space, md);
-    }
-  }
-
-  &__nav-link {
-    @include apply-font(label-lg);
-    padding-block: sys-var(space, sm);
-    border-bottom: 2px solid transparent;
-    color: sys-var(color, text, subtle);
-    text-decoration: none;
-
-    &--active {
-      border-color: sys-var(color, border, strong);
-      color: sys-var(color, text, base);
-    }
   }
 
   &__peer-control {

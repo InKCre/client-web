@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { InkButton, InkDropdown, InkLoading, InkPlaceholder } from '@inkcre/ui-web'
+import { InkButton, InkDropdown, InkLoading, InkPlaceholder, InkTabs } from '@inkcre/ui-web'
 import { configStore, Peer, type InstalledExtension } from '@inkcre/core'
 import extensionCard from '@/components/extension/extensionCard/extensionCard.vue'
 import extensionDiscovery from '@/components/extension/extensionDiscovery/extensionDiscovery.vue'
@@ -21,6 +21,14 @@ const extensionError = ref<string | null>(null)
 const peerError = ref<string | null>(null)
 
 const activeView = computed(() => (route.query.view === 'discover' ? 'discover' : 'installed'))
+const viewTabs = computed(() => [
+  { value: 'installed', label: t('extension.installed'), to: '/extensions' },
+  {
+    value: 'discover',
+    label: t('extension.discover'),
+    to: { path: '/extensions', query: { view: 'discover' } },
+  },
+])
 const currentPeerFallback = Peer.parse({
   id: currentPeerId,
   name: t('extension.currentBrowser'),
@@ -126,22 +134,12 @@ onMounted(() => {
   <main class="extensions-view">
     <header class="extensions-view__page-header">
       <h1>{{ t('extension.title') }}</h1>
-      <nav :aria-label="t('extension.title')">
-        <RouterLink
-          to="/extensions"
-          class="extensions-view__nav-link"
-          :class="{ 'extensions-view__nav-link--active': activeView === 'installed' }"
-        >
-          {{ t('extension.installed') }}
-        </RouterLink>
-        <RouterLink
-          :to="{ path: '/extensions', query: { view: 'discover' } }"
-          class="extensions-view__nav-link"
-          :class="{ 'extensions-view__nav-link--active': activeView === 'discover' }"
-        >
-          {{ t('extension.discover') }}
-        </RouterLink>
-      </nav>
+      <InkTabs
+        :tabs="viewTabs"
+        :model-value="activeView"
+        :label="t('extension.title')"
+        :link-component="RouterLink"
+      />
     </header>
 
     <extensionDiscovery

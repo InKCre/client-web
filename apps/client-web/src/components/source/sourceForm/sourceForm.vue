@@ -3,12 +3,12 @@ import { computed, ref, watch } from 'vue'
 import { useAsyncState } from '@vueuse/core'
 import {
   InkInput,
-  InkJsonEditor,
   InkDropdown,
   InkForm,
   InkButton,
   type JsonEditorValidation,
 } from '@inkcre/ui-web'
+import SchemaConfigEditor from '@/components/schemaConfigEditor/schemaConfigEditor.vue'
 import { sourceFormProps } from './sourceForm'
 import { SourceType } from '@inkcre/core'
 import { useI18n } from 'vue-i18n'
@@ -95,7 +95,7 @@ defineExpose({ canSave, isDirty, readConfig, sourceTypes })
     >
       {{ t('source.typeUnavailable') }}
     </p>
-    <InkJsonEditor
+    <SchemaConfigEditor
       v-model="configJson"
       :schema="currentSourceType?.config_schema"
       :label="t('source.config')"

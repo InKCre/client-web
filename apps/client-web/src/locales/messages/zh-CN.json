@@ -13,7 +13,10 @@
     "invalidConfig": "请输入有效的 JSON 配置对象后再保存。",
     "close": "关闭",
     "refresh": "刷新",
-    "retry": "重试"
+    "retry": "重试",
+    "visual": "表单",
+    "json": "JSON",
+    "fixJsonBeforeForm": "先修正 JSON，才能切换到表单。"
   },
   "header": {
     "brand": "第三尺寸"

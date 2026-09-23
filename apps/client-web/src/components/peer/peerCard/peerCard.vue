@@ -1,13 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import {
-  InkButton,
-  InkDialog,
-  InkInput,
-  InkJsonEditor,
-  type JsonEditorValidation,
-} from '@inkcre/ui-web'
+import { InkButton, InkDialog, InkInput, type JsonEditorValidation } from '@inkcre/ui-web'
+import SchemaConfigEditor from '@/components/schemaConfigEditor/schemaConfigEditor.vue'
 import { configStore, Peer, PeerConfigSchema } from '@inkcre/core'
 import { peerCardEmits, peerCardProps } from './peerCard'
 
@@ -90,7 +85,7 @@ const getStatusText = (status: 'online' | 'offline' | 'unknown') => {
     </span>
 
     <InkDialog v-model="configPopupOpen" :title="t('peer.editConfig')" :is-loading="savingConfig">
-      <InkJsonEditor
+      <SchemaConfigEditor
         v-model="configModel"
         :schema="peer.config_schema"
         :label="t('peer.editConfig')"

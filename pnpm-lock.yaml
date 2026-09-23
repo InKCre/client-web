@@ -99,8 +99,8 @@ importers:
         specifier: github:InKCre/ext-reg#57dcd80289285620a1fd27a0a48027e56c4ce7b1&path:/runtimes/client-web
         version: https://codeload.github.com/InKCre/ext-reg/tar.gz/57dcd80289285620a1fd27a0a48027e56c4ce7b1#path:/runtimes/client-web(@inkcre/core@packages+core)(@module-federation/runtime@0.21.6)
       '@inkcre/ui-web':
-        specifier: 2.0.1
-        version: 2.0.1(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
+        specifier: 2.1.0
+        version: 2.1.0(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
       '@module-federation/runtime':
         specifier: ^0.21.4
         version: 0.21.6
@@ -318,8 +318,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/ext-dev-utils
       '@inkcre/ui-web':
-        specifier: 2.0.1
-        version: 2.0.1(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
+        specifier: 2.1.0
+        version: 2.1.0(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
       '@module-federation/vite':
         specifier: ^1.1.0
         version: 1.7.1(rollup@4.59.0)
@@ -376,8 +376,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/ext-dev-utils
       '@inkcre/ui-web':
-        specifier: 2.0.1
-        version: 2.0.1(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
+        specifier: 2.1.0
+        version: 2.1.0(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
       '@module-federation/vite':
         specifier: ^1.1.0
         version: 1.7.1(rollup@4.59.0)
@@ -422,8 +422,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/ext-dev-utils
       '@inkcre/ui-web':
-        specifier: 2.0.1
-        version: 2.0.1(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
+        specifier: 2.1.0
+        version: 2.1.0(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
       '@module-federation/vite':
         specifier: ^1.1.0
         version: 1.7.1(rollup@4.59.0)
@@ -498,8 +498,8 @@ importers:
         specifier: workspace:*
         version: link:../core
       '@inkcre/ui-web':
-        specifier: 2.0.1
-        version: 2.0.1(unocss@66.7.5(vite@8.1.5(@types/node@22.17.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
+        specifier: 2.1.0
+        version: 2.1.0(unocss@66.7.5(vite@8.1.5(@types/node@22.17.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
     devDependencies:
       pinia:
         specifier: ^3.0.3
@@ -1386,8 +1386,8 @@ packages:
       '@inkcre/core': '>=0.3.0 <0.4.0'
       '@module-federation/runtime': '>=0.21.4 <0.23.0'
 
-  '@inkcre/ui-web@2.0.1':
-    resolution: {integrity: sha512-8KELh89mLA1xjoB8uDFmh8HJfHn6UAeJRWVaKM3w4UKLt11tsuw9/22rEUDfHp9U5y4d5MecQRrKt3MH2zQO5Q==, tarball: https://npm.pkg.github.com/download/@inkcre/ui-web/2.0.1/2e6e9968460859dd8c17392849c3807ca4a95799}
+  '@inkcre/ui-web@2.1.0':
+    resolution: {integrity: sha512-4oHr2zJy1rqPAjvHSGrDkGR70jvCqHnrpIbIk8RK3kfTuvSnektKYwvv4A0gXmChPeC3thkK3JYmY6OqLVW5sg==, tarball: https://npm.pkg.github.com/download/@inkcre/ui-web/2.1.0/4801b9a96049877f576e38a296de263b264575af}
     peerDependencies:
       unocss: ^66.5.0
       vue: ^3.5.25
@@ -7281,7 +7281,7 @@ snapshots:
       semver: 7.8.5
       zod: 4.1.12
 
-  '@inkcre/ui-web@2.0.1(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))':
+  '@inkcre/ui-web@2.1.0(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))':
     dependencies:
       '@codemirror/autocomplete': 6.20.3
       '@codemirror/commands': 6.10.4
@@ -7297,7 +7297,7 @@ snapshots:
       vscode-languageserver-textdocument: 1.0.12
       vue: 3.5.40(typescript@5.9.3)
 
-  '@inkcre/ui-web@2.0.1(unocss@66.7.5(vite@8.1.5(@types/node@22.17.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))':
+  '@inkcre/ui-web@2.1.0(unocss@66.7.5(vite@8.1.5(@types/node@22.17.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))':
     dependencies:
       '@codemirror/autocomplete': 6.20.3
       '@codemirror/commands': 6.10.4
