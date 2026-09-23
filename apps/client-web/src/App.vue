@@ -56,4 +56,8 @@ body {
   color: var(--sys-color-text-base);
   background: var(--sys-color-surface-base);
 }
+
+a {
+  color: inherit;
+}
 </style>

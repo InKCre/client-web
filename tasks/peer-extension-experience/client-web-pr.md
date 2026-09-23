@@ -28,6 +28,7 @@
 - 不支持的 schema 仍可通过 JSON 编辑，内嵌表单不产生嵌套原生 `<form>`。凭据遮蔽只依据 schema 的 `format: password`，不改变读写语义。
 - 配置 Form/JSON 复用 UI 包的受控 Tabs；Extension 发现不再属于 Web 内部视图。
 - `InkAutoForm` 五处数组/可空字段动作已在 [UI #52](https://github.com/InKCre/ui/pull/52) 修正为 InkButton，并由正常 Version PR #53 发布 `@inkcre/ui-web@2.1.1`；Web、Mail、Memos、Twitter 与 ext-dev-utils 统一消费这一正式版本。
+- 原生链接继承宿主文字色，不再让 Browse Registry、Settings 等链接回退为浏览器默认蓝色或已访问紫色；保留各组件自身更具体的样式。
 
 ## 后续分组
 
@@ -41,7 +42,7 @@
 - [PR preview](https://preview-client-web-pr-118.inkcre-client-web.pages.dev) 默认不预置连接；公开页面的空连接不作为联网数据面的通过证据。自动化使用隔离数据库，手工验收使用 owner 的兼容 self-hosted 部署。
 - 在 owner 的 self-hosted Heroku 部署更新到 Core 0.6.2 后，实际从 PR preview 的 Settings 保存连接、刷新页面、打开 Peers，确认本浏览器 Peer 与 Core Peer 均为 Online，Core 显示 v0.6.2；对应[部署运行](https://github.com/xiaoland/core-py/actions/runs/35815978481)完成迁移、发布和公网探针。JWT 值未写入 PR 或日志；导入/导出验收产生的本地临时文件已删除。
 - 同一联网环境完成导出→隔离浏览器导入→恢复同一 Peer 身份与在线列表；当前浏览器 Peer 改名刷新后保留且已恢复原名。JSON 草稿、密码遮蔽和 Tabs 历史亦已复核。未运行第三方采集；含密钥导出文件已删除。
-- 在连接 owner Heroku/Neon 部署的公开 preview 中，精确 RSS 0.2.1 回跳链接打开后须确认才安装，刷新仍保留。Heroku Eco 休眠时 Core 在 Peers 页和弹窗均显示离线；唤醒后均显示在线，从弹窗启用、停用 Core 成功。验收用 RSS 随后卸载，最终预览显示未安装扩展。Registry #56 尚未部署，故“从 Registry Web 版本页实际点击回跳”的跨站一步未验证。
+- 在连接 owner Heroku/Neon 部署的公开 preview 中，精确 RSS 0.2.1 回跳链接打开后须确认才安装，刷新仍保留。Heroku Eco 休眠时 Core 在 Peers 页和弹窗均显示离线；唤醒后均显示在线，从弹窗启用、停用 Core 成功。验收用 RSS 随后卸载，最终预览显示未安装扩展。[Registry #56 Web 预览](https://inkcre-ext-reg-pr-56-bcb9e238282c.herokuapp.com/)已在精确 PR head 上运行；其目录为空，故“从版本页实际点击回跳”的跨站一步尚未验证。
 - 仍待补一条不预填 localStorage 的 Settings 保存→刷新→Peers E2E。未连接浏览器现在显示连接指引，不再暴露底层 URL 错误。
 
 关联：InKCre/ext-reg#56、InKCre/ext-reg#48、InKCre/core-py#118、InKCre/ui#50、InKCre/ui#51、InKCre/core-py#120、InKCre/core-py#121、InKCre/docs#31。
