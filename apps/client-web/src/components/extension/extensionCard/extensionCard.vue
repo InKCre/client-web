@@ -123,6 +123,7 @@ const applyPeerAction = async () => {
           name: props.extension.name,
           peer,
           currentPeerId: props.currentPeerId,
+          livePeerIds: props.livePeerIds,
           enabled,
           manager: getExtensionHost(),
         })
@@ -346,7 +347,9 @@ const onUninstall = async () => {
               {{ t('extension.currentBrowser') }}
             </span>
             <span
-              v-else-if="extensionPeerControlMode(peer, currentPeerId) === 'desired-state'"
+              v-else-if="
+                extensionPeerControlMode(peer, currentPeerId, livePeerIds) === 'desired-state'
+              "
               class="extension-card__peer-note"
             >
               {{ t('extension.desiredStateBrief') }}

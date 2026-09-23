@@ -18,11 +18,11 @@ export function peerAdvertises(peer: Peer, capability: string): boolean {
 
 export function extensionPeerControlMode(
   peer: Peer,
-  currentPeerId: string
+  currentPeerId: string,
+  livePeerIds: ReadonlySet<string>
 ): ExtensionPeerControlMode {
   if (peer.id === currentPeerId) return 'current-runtime'
-  const live = peer.lease_expires_at !== null && peer.lease_expires_at.getTime() > Date.now()
-  return live && peerAdvertises(peer, EXTENSION_MANAGEMENT_CAPABILITY)
+  return livePeerIds.has(peer.id) && peerAdvertises(peer, EXTENSION_MANAGEMENT_CAPABILITY)
     ? 'remote-host'
     : 'desired-state'
 }
@@ -31,10 +31,11 @@ export async function setExtensionPeerEnabled(input: {
   name: string
   peer: Peer
   currentPeerId: string
+  livePeerIds: ReadonlySet<string>
   enabled: boolean
   manager: ExtensionManager
 }): Promise<InstalledExtension> {
-  const mode = extensionPeerControlMode(input.peer, input.currentPeerId)
+  const mode = extensionPeerControlMode(input.peer, input.currentPeerId, input.livePeerIds)
   if (mode === 'current-runtime') {
     return input.enabled
       ? input.manager.enable(input.name, input.currentPeerId)

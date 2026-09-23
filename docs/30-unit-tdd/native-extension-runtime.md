@@ -54,7 +54,9 @@ The Runtime uses `ExtensionModel` from the shared `@inkcre/core` instance for in
 configuration, and per-Peer enabled intent. There is no application-owned `ExtensionStatePort` or
 second PostgREST adapter. The application chooses the targeted Peers for each enable or disable
 action: current-runtime operations use its local Host, online remote Hosts receive management
-commands, and offline enablement changes update desired state through the SDK model. Selecting
+commands, and offline enablement changes update desired state through the SDK model. The browser
+uses `PeerManager.listLive()` for this routing decision, matching the Peers page rather than
+comparing a lease timestamp with the browser clock. Selecting
 several Peers performs independent per-Peer operations, preserves successful changes when another
 Peer fails, then reads the canonical installed row before offering another decision. It does not
 invent a batch transaction or retry an ambiguous remote outcome.

@@ -6,6 +6,7 @@ A component that displays an installed Extension and opens focused Peer selectio
 
 - `extension` (InstalledExtension, required): the canonical installed row
 - `peers` (Peer[], required): available Peers, including this browser
+- `livePeerIds` (ReadonlySet<string>, required): server-evaluated online Peers used for management routing
 - `currentPeerId` (string, required): identifies this browser's running Host
 - `peerSelectionDisabled` (boolean): blocks actions while the Peer list is unavailable
 

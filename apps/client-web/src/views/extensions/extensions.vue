@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { InkButton, InkLoading, InkPlaceholder } from '@inkcre/ui-web'
-import { configStore, Peer, type InstalledExtension } from '@inkcre/core'
+import { configStore, Peer, PeerManager, type InstalledExtension } from '@inkcre/core'
 import type { ReleaseRecord } from '@inkcre/extension-runtime-client-web'
 import extensionCard from '@/components/extension/extensionCard/extensionCard.vue'
 import {
@@ -19,6 +19,7 @@ const route = useRoute()
 const router = useRouter()
 const currentPeerId = configStore.metaConfig.INKCRE_PEER_ID
 const peers = ref<Peer[]>([])
+const livePeerIds = ref<ReadonlySet<string>>(new Set())
 const extensions = ref<InstalledExtension[]>([])
 const peersLoading = ref(false)
 const extensionsLoading = ref(false)
@@ -62,9 +63,12 @@ async function refreshPeers(): Promise<void> {
   peersLoading.value = true
   peerError.value = null
   try {
-    peers.value = await Peer.list()
+    const [allPeers, livePeers] = await Promise.all([Peer.list(), PeerManager.listLive()])
+    peers.value = allPeers
+    livePeerIds.value = new Set(livePeers.map((peer) => peer.id))
   } catch (error) {
     peers.value = []
+    livePeerIds.value = new Set()
     peerError.value = error instanceof Error ? error.message : String(error)
   } finally {
     peersLoading.value = false
@@ -273,6 +277,7 @@ onMounted(() => {
           :key="extension.name"
           :extension="extension"
           :peers="availablePeers"
+          :live-peer-ids="livePeerIds"
           :current-peer-id="currentPeerId"
           :peer-selection-disabled="peersLoading || !!peerError"
           @updated="updateExtension"

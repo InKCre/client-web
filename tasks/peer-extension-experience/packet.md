@@ -14,6 +14,7 @@
 - **本轮验证（2026-09-23）**：`pnpm check`、PR #118 的 Workspace contract、Web/Webext E2E 与 Cloudflare preview 全部通过。本地和公开 preview 的空浏览器扩展页显示连接指引，不再暴露底层 URL 错误；`/extensions?install=inkcre%2Frss&version=0.2.1` 从公共 Registry 读到精确 RSS Release，展示坐标和 Host，未连接时安装按钮禁用。数据库 E2E 已覆盖“打开回跳链接不写入 → 点击确认后写入”。在 Human 已连接的公开 PR preview + Heroku/Neon 部署中，确认按钮将 RSS 0.2.1 写入已安装列表，刷新仍保留；随后已卸载，恢复未安装。Registry #56 尚未部署，故从其 Web 版本页点击进入的完整跨站往返仍待验收。
 - **下一步**：更新 client-web#118 与 docs#31，观察远端检查；完成 Registry preview 的跨站回跳和 UI 正式版本消费前，不宣称两项修正已在公开 client-web preview 闭环。Web E2E 仍缺从空浏览器输入 Settings 再刷新读取的回归路径。
 - **新增独立修正（2026-09-23）**：Human 要求 Extension 启用、停用时另弹出可多选 Peer 的对话框。现有页面级 Peer 下拉加单卡开关只能表达一个 Peer，拟删除该选择器，改为每张卡的启用/停用动作打开同一个对话框；分别列出尚未启用/已启用的 Peer，默认不选。每个目标继续经过现有当前 Host、远端 Host 或持久意图路径；逐 Peer 执行，成功保留，部分失败显示并读回权威状态，不做批量事务或自动重试。验证重点为取消无写入、两个离线 Peer 的批量启停、当前浏览器 setup 收尾和窄屏/键盘可达性。UI PR #52 已按授权建立，正式版本消费另行追踪。
+- **弹窗验收中发现的在线判定偏差**：在 Human 已连接的公开 preview 中，Peers 页通过服务端 `PeerManager.listLive()` 把 Core v0.6.2 标为在线，Extension 弹窗却用浏览器 `Date.now()` 比较 lease，标为“下次协调时生效”。已改为与 Peers 页一致的服务端在线集合；不增加数据库 running 状态。需在新 preview 复核 Core 的管理路径及取消、提交状态。
 
 ## 工作地图
 

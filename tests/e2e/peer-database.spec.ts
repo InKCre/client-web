@@ -128,7 +128,17 @@ test('Registry install and multi-Peer enablement require explicit confirmation',
     const createdPeers = await fetch(`${postgrestUrl}peers`, {
       method: 'POST',
       headers: { Authorization: authorization, 'Content-Type': 'application/json' },
-      body: JSON.stringify(peerIds.map((id, index) => ({ id, name: `E2E Peer ${index + 1}` }))),
+      body: JSON.stringify(
+        peerIds.map((id, index) => ({
+          id,
+          name: `E2E Peer ${index + 1}`,
+          labels: ['e2e'],
+          config: {},
+          config_schema: {},
+          capabilities: [],
+          lease_expires_at: null,
+        }))
+      ),
     })
     expect(createdPeers.status).toBe(201)
     await page.reload()
