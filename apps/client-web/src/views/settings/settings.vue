@@ -169,12 +169,6 @@ const onFileSelected = async (event: Event) => {
         :disabled="formBusy"
       />
 
-      <details class="settings-view__identity">
-        <summary>{{ t('settings.connectionDetails') }}</summary>
-        <span>{{ t('settings.peerId') }}</span>
-        <code>{{ metaFormConfig.INKCRE_PEER_ID }}</code>
-      </details>
-
       <div class="settings-view__actions">
         <InkButton
           :text="t('settings.saveConfig')"

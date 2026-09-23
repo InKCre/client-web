@@ -679,6 +679,8 @@ test('an empty browser saves its connection across refresh and reads Peers', asy
     )
     await page.reload()
     await expect(page.getByLabel('PostgreSQL REST URL')).toHaveValue(postgrestUrl)
+    await expect(page.getByRole('main')).not.toContainText(id!)
+    await expect(page.getByRole('main')).not.toContainText('Peer ID')
     await page.goto('/peers')
     await expect(page).toHaveTitle('Peers - InKCre')
     await expect(page.locator('.peer-card', { hasText: id })).toContainText('This browser')

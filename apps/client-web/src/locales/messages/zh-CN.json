@@ -50,14 +50,12 @@
     "infoBase": "信息库"
   },
   "settings": {
-    "connectionDetails": "连接详情",
     "backup": "备份与恢复",
     "importSuccess": "配置已恢复。",
     "title": "设置",
     "metaConfig": "连接",
     "pgrestUrl": "PostgreSQL REST 地址",
     "jwtSecret": "JWT 密钥",
-    "peerId": "Peer ID",
     "languageLabel": "语言",
     "languageDescription": "选择您的首选语言",
     "saveConfig": "保存",

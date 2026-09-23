@@ -50,14 +50,12 @@
     "infoBase": "Info Base"
   },
   "settings": {
-    "connectionDetails": "Connection details",
     "backup": "Backup and restore",
     "importSuccess": "Configuration restored.",
     "title": "Settings",
     "metaConfig": "Connection",
     "pgrestUrl": "PostgreSQL REST URL",
     "jwtSecret": "JWT Secret",
-    "peerId": "Peer ID",
     "languageLabel": "Language",
     "languageDescription": "Select your preferred language",
     "saveConfig": "Save",

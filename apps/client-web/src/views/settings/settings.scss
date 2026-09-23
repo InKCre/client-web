@@ -27,22 +27,6 @@
     color: sys-var('color', 'text', 'subtle');
   }
 
-  &__identity {
-    @include apply-font(body-sm);
-    summary {
-      cursor: pointer;
-      margin-bottom: sys-var(space, xs);
-    }
-    span {
-      margin-inline-end: sys-var(space, sm);
-    }
-  }
-
-  &__identity code {
-    @include apply-font(body-sm, $mono: true);
-    overflow-wrap: anywhere;
-  }
-
   &__actions {
     display: flex;
     gap: sys-var('space', 'md');
