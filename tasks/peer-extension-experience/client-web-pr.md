@@ -36,19 +36,18 @@
 ## 验证
 
 - `pnpm check`
-- `INKCRE_E2E_DATABASE_PROVIDER=external pnpm test:e2e:web`（7 passed，连接真实 core-py 开发运行时）
-- 旧版内置 Discover 已在真实 `registry.inkcre.dev` + 隔离数据库验收；此记录不代表本轮跨站回跳已验收。本轮在本地与公开 preview 验证了未连接时的指引、精确 RSS Release 显示和禁用的安装动作；数据库 E2E 已补“回跳不写入、确认后安装”，并在 PR CI 通过。
-- UI 2.1.0 正式包安装后，完整 `pnpm check` 再次通过，包括 Web 与三个 MF Extension 的类型、构建和包边界检查。第三组源码联调阶段已在浏览器检查嵌套/可空字段、未知字段保留、无效 JSON、单一原生 form 和 Tabs 历史；本轮远端 Workspace contract、Web/Webext E2E 与 Cloudflare preview 均通过。
+- `INKCRE_E2E_DATABASE_PROVIDER=external pnpm test:e2e:web`（连接真实 core-py 开发运行时）；PR CI 的 Web/Webext E2E、Workspace contract 与 Cloudflare preview 均通过。新增 Web E2E 覆盖“回跳不写入、确认后安装”、取消 Peer 弹窗不写入，以及两个离线 Peer 的批量启停。
+- 正式 InkUI 2.1.1 接入后，完整 `pnpm check` 再次通过，包括 Web 与三个 MF Extension 的类型、构建和包边界检查。第三组源码联调已在浏览器检查嵌套/可空字段、未知字段保留、无效 JSON、单一原生 form 和 Tabs 历史。
 - [PR preview](https://preview-client-web-pr-118.inkcre-client-web.pages.dev) 默认不预置连接；公开页面的空连接不作为联网数据面的通过证据。自动化使用隔离数据库，手工验收使用 owner 的兼容 self-hosted 部署。
 - 在 owner 的 self-hosted Heroku 部署更新到 Core 0.6.2 后，实际从 PR preview 的 Settings 保存连接、刷新页面、打开 Peers，确认本浏览器 Peer 与 Core Peer 均为 Online，Core 显示 v0.6.2；对应[部署运行](https://github.com/xiaoland/core-py/actions/runs/35815978481)完成迁移、发布和公网探针。JWT 值未写入 PR 或日志；导入/导出验收产生的本地临时文件已删除。
-- 同一联网环境此前完成导出→隔离浏览器导入→恢复同一 Peer 身份与在线列表；当前浏览器 Peer 人工改名在刷新后保留且已恢复原名。旧 Discover 的 Registry 搜索、版本分发标识、RSS 一键安装→Core 启用→Source 可视化创建/编辑/刷新→删除→扩展停用/卸载均通过；新回跳流程仍须重新验收。JSON 无效草稿和未知键的处理、Core/Web Peer 表单、密码遮蔽、Tabs 历史也已复核；Core Peer 配置无变更保存后刷新仍完整。未运行第三方采集；验收临时记录与含密钥导出文件已清理。
-- 本轮在已连接 owner Heroku/Neon 部署的公开 preview 打开精确 RSS 0.2.1 回跳链接，确认后已安装、刷新仍保留；随后卸载了验收用记录。Registry #56 尚未部署，故“从 Registry Web 版本页实际点击回跳”的端到端步骤未验证。
+- 同一联网环境完成导出→隔离浏览器导入→恢复同一 Peer 身份与在线列表；当前浏览器 Peer 改名刷新后保留且已恢复原名。JSON 草稿、密码遮蔽和 Tabs 历史亦已复核。未运行第三方采集；含密钥导出文件已删除。
+- 在连接 owner Heroku/Neon 部署的公开 preview 中，精确 RSS 0.2.1 回跳链接打开后须确认才安装，刷新仍保留。Heroku Eco 休眠时 Core 在 Peers 页和弹窗均显示离线；唤醒后均显示在线，从弹窗启用、停用 Core 成功。验收用 RSS 随后卸载，最终预览显示未安装扩展。Registry #56 尚未部署，故“从 Registry Web 版本页实际点击回跳”的跨站一步未验证。
 - 仍待补一条不预填 localStorage 的 Settings 保存→刷新→Peers E2E。未连接浏览器现在显示连接指引，不再暴露底层 URL 错误。
 
 关联：InKCre/ext-reg#56、InKCre/ext-reg#48、InKCre/core-py#118、InKCre/ui#50、InKCre/ui#51、InKCre/core-py#120、InKCre/core-py#121、InKCre/docs#31。
 
 ## 交付边界与回退
 
-Core `peer-runtime-identity-v1`、UI 2.1.0 与 GitHub/Mail/Telegram Source wheel 0.3.2 已交付；本 PR
+Core `peer-runtime-identity-v1`、UI 2.1.1 与 GitHub/Mail/Telegram Source wheel 0.3.2 已交付；本 PR
 保持 Draft，后续继续承载交互质量分组。此分组无数据库迁移或新外部权限。若发布后表单回归，
 可回退本 PR 的 Web 提交；既有 JSON 模式保留为不丢配置的操作路径。
