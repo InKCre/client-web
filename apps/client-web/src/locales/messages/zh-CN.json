@@ -20,6 +20,10 @@
     "json": "JSON",
     "fixJsonBeforeForm": "先修正 JSON，才能切换到表单。"
   },
+  "startup": {
+    "loading": "正在启动 InKCre…",
+    "failed": "无法启动 InKCre。请重试，或前往设置检查连接。"
+  },
   "header": {
     "brand": "InKCre"
   },

@@ -2,10 +2,16 @@
 
 # client-web Peer 与 Extension 体验
 
+## 2026-09-23 最终合并复核
+
+本任务尚开放的产品 PR 为 client-web#118（acbd83f）、Registry#56（b82d29b）和 docs#31（d90ec73）；已转为 Ready，尚未合并。三者读取到的检查均通过、无未解决 review thread，Core/UI 依赖已合并发布。Registry 预览 revision 与 #56 head 相同，目录已有 RSS 0.2.1。最终人工验收实际经过目录搜索、版本选择、点击安装链接，进入已连接 Web 的精确版本页，并识别现有安装；未写入安装记录或更改部署配置。旧的“空目录”描述不再成立。
+
+本次复核发现启动反馈缺口：跨站进入及刷新非 Settings 深链时，在 Peer 初始化完成前整页空白，随后恢复正常。`main.ts` 在 `app.mount` 前等待 `initializeCore`，后者等待远程注册/配置；失败也会在挂载前抛出。本轮同时观察到 GitHub 和 Heroku TLS 握手失败，不能将等待时长全部归因于产品，但缺少可见启动状态及恢复入口是现有控制流事实。暂不宣称最终验收全部通过，不开始本地清理。Registry 正式部署需独立触发，已向 Human 请求该生产操作授权；不得把允许合并自动解释成所有云端资源操作许可。
+
 - **目标**：让用户在 Web 中清楚地连接部署、管理 Peers、发现和安装 Extensions，并通过可视化表单完成配置。
 - **边界**：逐组复核后实施；不预建通用 Wizard 框架。Settings 只管理元配置和本地配置，Peers 管理当前及其他 Peer。Extension 安装不依赖 Peer 选择。`docs#31` 保持开启，并随已交付界面更新。
 - **终局验证**：每一组通过针对性行为检查、桌面浅色界面复核和仓库门禁；改变用户步骤时同步验证 docs preview。跨仓库 Peer 契约必须先由其权威仓库交付，再由消费者更新。
-- **当前事实**：client-web#118 与 docs#31 保持 Draft。四组实现已交付；UI #54/#55 合并后正式发布 2.2.0，五个 Web 消费者已精确锁定。产品提交 `1dd5d02` 的完整 CI 通过，数据库 E2E 12/12，已补空浏览器 Settings 保存→刷新→Peers 和首屏文案回归。公开 preview 已连接 owner 部署复核，docs 步骤和桌面配图同步；完整证据及未实测范围见 [交互质量 Track](track-interaction-quality.md)。Core PR #120/#121 与 GitHub/Mail/Telegram wheel 0.3.2 已交付。Registry #56 的跨站点击仍按其 Track 独立追踪。
+- **当前事实**：client-web#118、ext-reg#56 与 docs#31 已转为 Ready，尚未合并。四组实现与 UI 2.2.0 正式消费已交付；此前数据库 E2E 12/12，公开 preview 的 Registry 精确版本回跳通过。Human 已授权修复最终复核中发现的启动空白，再继续合并验收。完整证据及未实测范围见 [交互质量 Track](track-interaction-quality.md)。Core PR #120/#121 与 GitHub/Mail/Telegram wheel 0.3.2 已交付。
 
 ## 前序调查与需求演变
 

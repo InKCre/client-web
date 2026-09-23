@@ -2,7 +2,7 @@
  * Core Package Integration for client-web
  *
  * This file initializes @inkcre/core with client-web specific configuration.
- * Import this file in main.ts before mounting the Vue app.
+ * Initialize from App.vue before mounting business views.
  */
 
 import {
@@ -315,7 +315,7 @@ export function initializeModuleFederation(): void {
 
 /**
  * Initialize all core systems.
- * Call this in main.ts before creating the Vue app.
+ * Call this from App.vue before mounting business views.
  */
 export function shouldLoadPeerConfigAtBootstrap(pathname: string): boolean {
   return !/^\/settings(?:\/|$)/.test(pathname)

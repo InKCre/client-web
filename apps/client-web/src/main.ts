@@ -22,29 +22,4 @@ app.use(store)
 app.use(router)
 setInfoBaseRouter(createInfoBaseRouterAdapter(router))
 
-// Initialize core package
-import { initializeCore, shutdownCore } from './core'
-import { shouldLoadPeerConfigAtBootstrap } from './core'
-const loadPeerConfigAtBootstrap = shouldLoadPeerConfigAtBootstrap(window.location.pathname)
-await initializeCore({
-  // Settings is the recovery surface for invalid or incomplete bootstrap
-  // credentials. It mounts before contacting the configured Peer.
-  loadPeerConfig: loadPeerConfigAtBootstrap,
-})
 app.mount('#app')
-
-import { getExtensionHost, startExtensionHost } from './core'
-const extensionHost = getExtensionHost()
-if (loadPeerConfigAtBootstrap) {
-  startExtensionHost().catch((error) => {
-    console.error('[Web Extension Host] Startup failed:', error)
-  })
-}
-
-window.addEventListener('beforeunload', () => {
-  // Browsers may end the page before cleanup completes, but never deliberately
-  // dispose Extension resources while our Job handlers are still draining.
-  void shutdownCore()
-    .then(() => extensionHost.shutdown())
-    .catch((error: unknown) => console.error('[Core] Shutdown failed', error))
-})

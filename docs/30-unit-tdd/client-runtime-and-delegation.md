@@ -47,12 +47,19 @@ proof of non-execution.
 
 ## Browser Configuration and JWT
 
-Before Vue mounts, the browser initializes three bootstrap values owned by the current browser
+Before business views mount, the browser initializes three bootstrap values owned by the current browser
 origin:
 
 - PostgREST base URL;
 - current technical Peer UUID;
 - user-owned JWT signing secret.
+
+The application root mounts immediately and shows the three-block loading indicator while Core
+initialization runs. Business views mount only after initialization succeeds. A startup failure
+replaces loading with an error and a Retry action that reloads the current URL, preserving deep-link
+parameters. Settings remains reachable during loading and after failure through a full-page
+navigation: its recovery bootstrap does not wait for the configured Peer. Neither action resets
+stored configuration or reuses a partially initialized runtime; startup does not retry automatically.
 
 The selected Peer's database row supplies deployment configuration such as Extension Registry URL
 and Peer HTTP timeout. The static artifact contains no environment origin, Peer identity, secret,

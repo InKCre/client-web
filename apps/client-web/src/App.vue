@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, provide, watchEffect } from 'vue'
-import { InkHeader } from '@inkcre/ui-web'
+import { computed, ref, provide, watchEffect, onMounted } from 'vue'
+import { InkButton, InkHeader, InkLoading } from '@inkcre/ui-web'
 import AppSidePanel from './components/common/AppSidePanel/AppSidePanel.vue'
 import router from './router'
 import { createInkRouterAdapter } from './router'
@@ -9,11 +9,47 @@ import { useRoute } from 'vue-router'
 import RecallSearch from './components/recall/RecallSearch.vue'
 import { useI18n } from 'vue-i18n'
 import { configStore } from '@inkcre/core'
-import { currentWebPeer } from './core'
+import {
+  currentWebPeer,
+  initializeCore,
+  shouldLoadPeerConfigAtBootstrap,
+  getExtensionHost,
+  startExtensionHost,
+  shutdownCore,
+} from './core'
 import { pageObjectTitle } from './composables/use-page-object-title'
 
 const route = useRoute()
 const { t } = useI18n()
+const startupState = ref<'loading' | 'ready' | 'failed'>('loading')
+const reload = () => window.location.reload()
+
+onMounted(async () => {
+  const loadPeerConfig = shouldLoadPeerConfigAtBootstrap(window.location.pathname)
+  try {
+    await initializeCore({ loadPeerConfig })
+  } catch (error) {
+    console.error('[Core] Startup failed:', error)
+    startupState.value = 'failed'
+    return
+  }
+  startupState.value = 'ready'
+
+  const extensionHost = getExtensionHost()
+  if (loadPeerConfig) {
+    startExtensionHost().catch((error) => {
+      console.error('[Web Extension Host] Startup failed:', error)
+    })
+  }
+  window.addEventListener('beforeunload', () => {
+    // Browsers may end the page before cleanup completes, but never deliberately
+    // dispose Extension resources while our Job handlers are still draining.
+    void shutdownCore()
+      .then(() => extensionHost.shutdown())
+      .catch((error: unknown) => console.error('[Core] Shutdown failed', error))
+  })
+})
+
 const pageLabel = computed(() =>
   t(typeof route.meta.titleKey === 'string' ? route.meta.titleKey : 'sidePanel.infoBase')
 )
@@ -50,7 +86,7 @@ const sidebarExpanded = ref(false)
 </script>
 
 <template>
-  <div class="app">
+  <div v-if="startupState === 'ready'" class="app">
     <InkHeader
       title="InKCre"
       :page-title="pageLabel"
@@ -64,9 +100,53 @@ const sidebarExpanded = ref(false)
     </div>
     <RecallSearch />
   </div>
+  <main v-else class="app-startup">
+    <h1>InKCre</h1>
+    <InkLoading v-if="startupState === 'loading'" :label="t('startup.loading')" />
+    <p v-else role="alert">{{ t('startup.failed') }}</p>
+    <div class="app-startup__actions">
+      <InkButton v-if="startupState === 'failed'" @click="reload">
+        {{ t('common.retry') }}
+      </InkButton>
+      <!-- Full navigation leaves the partial runtime and opens Settings' recovery bootstrap. -->
+      <a href="/settings">{{ t('common.settings') }}</a>
+    </div>
+  </main>
 </template>
 
 <style lang="scss" scoped>
+@use '@inkcre/ui-web/styles/functions' as *;
+@use '@inkcre/ui-web/styles/mixins' as *;
+
+.app-startup {
+  box-sizing: border-box;
+  min-height: 100dvh;
+  padding: sys-var(space, lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: sys-var(space, md);
+  text-align: center;
+
+  h1 {
+    @include apply-font(title-lg);
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: sys-var(space, md);
+  }
+}
+
 .app {
   display: flex;
   flex-direction: column;

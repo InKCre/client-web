@@ -38,7 +38,7 @@ test.beforeEach(async ({ page }) => {
 
 test('built browser artifact reads and writes the peer protocol', async ({ page }) => {
   await page.goto('/')
-  await expect(page.locator('#app')).not.toBeEmpty()
+  await expect(page.getByRole('button', { name: 'Menu', exact: true })).toBeVisible()
 
   const authorization = `Bearer ${await token()}`
   const result = await page.evaluate(
@@ -85,6 +85,58 @@ test('built browser artifact reads and writes the peer protocol', async ({ page 
   expect(result.writeStatus).toBe(201)
   expect(result.writeBody[0].id).toBe('11111111-1111-4111-8111-111111111111')
   expect(result.cleanupStatus).toBe(204)
+})
+
+test('startup shows pending and failed states without trapping a deep link', async ({ page }) => {
+  const path = '/sources?startup-check=preserved'
+  let release!: () => void
+  const pending = () =>
+    new Promise<void>((resolve) => {
+      release = resolve
+    })
+  let gate = pending()
+  await page.route('**/peers?**', async (route) => {
+    if (
+      route.request().method() === 'GET' &&
+      new URL(route.request().url()).searchParams.get('select') === 'id'
+    ) {
+      await gate
+      await route.abort('failed')
+    } else await route.continue()
+  })
+
+  try {
+    await page.goto(path)
+    const loading = page.getByRole('status', { name: 'Starting InKCre…' })
+    await expect(loading).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Menu', exact: true })).toHaveCount(0)
+    await expect(page.getByRole('link', { name: 'Settings', exact: true })).toBeVisible()
+    release()
+    await expect(page.getByRole('alert')).toHaveText(
+      'Unable to start InKCre. Retry or check your connection in Settings.'
+    )
+    await expect(loading).toBeHidden()
+
+    gate = pending()
+    await page.getByRole('button', { name: 'Retry', exact: true }).click()
+    await expect(loading).toBeVisible()
+    await expect(page).toHaveURL(new RegExp(`${path.replace('?', '\\?')}$`))
+    await page.getByRole('link', { name: 'Settings', exact: true }).click()
+    await expect(page).toHaveURL(/\/settings$/)
+    await expect(page.getByLabel('PostgreSQL REST URL')).toHaveValue(postgrestUrl)
+    await expect(page.getByLabel('JWT Secret')).toHaveValue(jwtSecret)
+    release()
+    await page.unrouteAll({ behavior: 'wait' })
+
+    await page.goto(path)
+    await expect(page.getByRole('main', { name: 'Sources', exact: true })).toBeVisible()
+    await expect(page).toHaveTitle('Sources - InKCre')
+    await expect(page).toHaveURL(new RegExp(`${path.replace('?', '\\?')}$`))
+    await expect(loading).toHaveCount(0)
+  } finally {
+    release()
+    await page.unrouteAll({ behavior: 'wait' })
+  }
 })
 
 test('Registry install and multi-Peer enablement require explicit confirmation', async ({
@@ -668,8 +720,9 @@ test('an empty browser saves its connection across refresh and reads Peers', asy
     await page.goto('/settings')
     await expect(page).toHaveTitle('Settings - InKCre')
     const firstText = await page.evaluate(() => sessionStorage.getItem('first-app-text'))
-    expect(firstText).toContain('Connection')
+    expect(firstText).toBeTruthy()
     expect(firstText).not.toContain('settings.')
+    expect(firstText).not.toContain('startup.')
     await page.getByLabel('PostgreSQL REST URL').fill(postgrestUrl)
     await page.getByLabel('JWT Secret').fill(jwtSecret)
     await page.getByRole('button', { name: 'Save', exact: true }).click()

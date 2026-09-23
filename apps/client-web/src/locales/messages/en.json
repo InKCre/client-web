@@ -20,6 +20,10 @@
     "json": "JSON",
     "fixJsonBeforeForm": "Fix the JSON before switching to the form."
   },
+  "startup": {
+    "loading": "Starting InKCre…",
+    "failed": "Unable to start InKCre. Retry or check your connection in Settings."
+  },
   "header": {
     "brand": "InKCre"
   },

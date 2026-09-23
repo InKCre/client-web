@@ -4,11 +4,13 @@
 
 本组将渐进式披露、Dropdown 可识别性和场景化加载落实到具体页面，并维护长期使用标准。本文是第四组的唯一范围与设计复核入口，父 packet 负责全任务编排。UI worktree 仅隔离生产者修改，不另立修复项目。
 
-Human 已授权开始第四组实现。按本方案推进 UI 生产者、client-web 消费与 docs#31 更新；不授权合并 client-web#118。UI worktree 保留既有 Dropdown 修正，新增加载、Dialog 状态与 spacing；Web 在现有分支继续，不另起项目。交互草案见 [设计稿](interaction-quality-study.html)，它是独立静态示意，不是 InkUI 实例或产品验收证据。
+Human 已授权第四组实现与最终验收通过后的相关 PR 合并；client-web#118、ext-reg#56、docs#31 已 Ready，尚未合并。最终复核发现启动空白，已授权在现有分支修复。UI worktree 保留既有 Dropdown 修正，新增加载、Dialog 状态与 spacing；Web 在现有分支继续，不另起项目。交互草案见 [设计稿](interaction-quality-study.html)，它是独立静态示意，不是 InkUI 实例或产品验收证据。
 
 Human 已认可场景化加载方向，并要求三点式加载继续实际使用，而非仅保留兼容接口；保存时只有保存按钮显示 loading，取消按钮不能显示 loading。导出内容无需额外说明：完整恢复是默认契约，仅真实存在的遗漏需要特别说明。以下方案与草案已按这三项意见修订，其余取舍仍沿本组复核流程。
 
 2026-09-23 复核修订：Settings 不再展示 Peer ID，删除仅承载它的 Connection details、样式与翻译。身份仍由运行时生成、持久化并随完整配置导出/导入，Peers 页的身份信息不变。既有首次连接 E2E 同时检查刷新后 Settings 不显示 ID、Peers 仍能识别同一浏览器；连接教程与截图同步更新。此决定替代下表原先的折叠展示方案。
+
+2026-09-23 最终复核修复：`main.ts` 立即挂载 App，App 使用本地 loading/ready/failed 状态等待原有 Core 初始化；成功前不挂载业务页面。等待复用 InkLoading 三点式，失败提供 Retry；Retry 整页刷新保留深链，等待和失败均提供整页 Settings 入口，沿用其不等待远程 Peer 的恢复启动路径。不开通自动重试，不增加 SDK 启动状态或配置重置。既有数据库 E2E 增补一条可控请求旅程，验证等待、失败、重试深链保留、等待中进入 Settings 后配置仍在，以及恢复正常启动；完整门禁和新版 preview 待运行。
 
 ## 调查依据
 
