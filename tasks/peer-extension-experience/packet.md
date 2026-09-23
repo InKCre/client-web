@@ -5,7 +5,12 @@
 - **目标**：让用户在 Web 中清楚地连接部署、管理 Peers、发现和安装 Extensions，并通过可视化表单完成配置。
 - **边界**：逐组复核后实施；不预建通用 Wizard 框架。Settings 只管理元配置和本地配置，Peers 管理当前及其他 Peer。Extension 安装不依赖 Peer 选择。`docs#31` 保持开启，并随已交付界面更新。
 - **终局验证**：每一组通过针对性行为检查、桌面浅色界面复核和仓库门禁；改变用户步骤时同步验证 docs preview。跨仓库 Peer 契约必须先由其权威仓库交付，再由消费者更新。
-- **当前事实**：client-web#118 与 docs#31 保持 Draft。Peer 身份和 Schema 表单已在 Web 落地；Extension 发现留在 Registry，安装只从精确 Release 回跳 Web 确认，启用/停用使用可多选 Peer 弹窗。Web、三个第一方 MF 与 ext-dev-utils 已统一锁定正式 UI 2.1.1。Core PR #120 与 Version PR #121 已合入，GitHub/Mail/Telegram wheel 0.3.2 在 Registry published。完整 `pnpm check`、最新 PR CI 与预览均通过。公开 client-web preview 不预置连接配置。
+- **当前事实**：client-web#118 与 docs#31 保持 Draft。四组实现已交付；UI #54/#55 合并后正式发布 2.2.0，五个 Web 消费者已精确锁定。产品提交 `1dd5d02` 的完整 CI 通过，数据库 E2E 12/12，已补空浏览器 Settings 保存→刷新→Peers 和首屏文案回归。公开 preview 已连接 owner 部署复核，docs 步骤和桌面配图同步；完整证据及未实测范围见 [交互质量 Track](track-interaction-quality.md)。Core PR #120/#121 与 GitHub/Mail/Telegram wheel 0.3.2 已交付。Registry #56 的跨站点击仍按其 Track 独立追踪。
+
+## 前序调查与需求演变
+
+以下按发生顺序保留，不代表当前未完成项；当前状态以以上事实和工作地图为准。
+
 - **验收反证（2026-09-23）**：Human 在公开 preview 从 Settings 填入部署 URL 与 JWT 后看到保存成功，但刷新后字段消失且 Peers 读取失败。当前不能把第三组/整体 PR 称为完成验收。现有 Web E2E 在页面启动前向 localStorage 预填连接，未覆盖空浏览器的 Settings 保存→刷新→Peers 读取。启动时配置加载失败会回退默认值，而 `initializeCore` 随后无条件写回，存在覆盖持久配置的路径；尚无证据证明本次就是该路径触发。现场浏览器当前 URL/JWT 字段为空，Peer ID 在一次刷新中保持不变；实际预览部署的 PR head 为 `e58e1be`。诊断和修复前不得将 CI 绿色等同于用户闭环通过。
 - **部署兼容性证据（2026-09-23）**：用 Human 提供的 Heroku PostgREST URL 与 JWT 在隔离浏览器复现时，Settings 进入失败提示路径；浏览器日志为 `Web Peer register failed: Could not find the 'application_version' column of 'peers' in the schema cache`，因此本次并没有写入浏览器配置。该 self-hosted fork `xiaoland/core-py` 的最新 main 与 Heroku 部署运行均为 `2938494`（2026-09-21）；提供 `application_version` 的 Core PR #118 于 2026-09-22 合并，fork 尚未包含。Human 先前描述的“保存成功”与这次复现不一致，不能倒推当时的实际提示；仍需在兼容部署上验证真实保存→刷新闭环。隔离浏览器页已关闭，凭据未输出或写入文件。
 - **兼容部署闭环（2026-09-23）**：获 Human 授权后，先在 `xiaoland/core-py` 禁用四条无关的 fork 自动发布工作流（runtime artifact、CLI、first-party Extension wheels、release PR），再把 fork main 非强制快进到上游 `3b7b1b1`。手动 Heroku+Neon 工作流 [35815978481](https://github.com/xiaoland/core-py/actions/runs/35815978481) 在该精确 SHA 上完成数据库收敛、双进程发布与公网探针。用户 Chrome 的 PR preview Settings 保存后刷新仍显示 PostgREST URL，Peers 实际读到本浏览器 Peer Online 与 Core Peer v0.6.2 Online；JWT 未出现在日志或任务包。故“同一兼容部署的首次连接→刷新→Peers”手工验收通过；原 E2E 绕过首次输入的覆盖缺口仍需修复。
@@ -28,10 +33,10 @@
 
 | Track                                                | 状态                       | 当前返回                                                                                                    | Human 注意                                                                         |
 | ---------------------------------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| [Peer 身份与生命周期](track-peer-lifecycle.md)       | 环境兼容已闭环             | 升级 fork 后 Settings→刷新→Peers 在真实 Heroku 部署通过                                                     | E2E 补空浏览器路径                                                                 |
+| [Peer 身份与生命周期](track-peer-lifecycle.md)       | 环境兼容与回归已闭环       | Settings→刷新→Peers 在真实 Heroku 部署与隔离数据库 E2E 均通过                                               | 随整体 PR 复核                                                                     |
 | [Extension 发现与安装](track-extension-discovery.md) | 已实现待远端验收           | Registry Web 浏览并回跳精确 Release 确认安装                                                                | 跨站回跳验证                                                                       |
-| [Schema 表单](track-schema-forms.md)                 | 正式包已接入               | Source/Peer 共用可视化编辑器；InkButton 修正经 UI 2.1.1 发布                                                | 后续界面复核                                                                       |
-| [交互质量](track-interaction-quality.md)             | 已授权实施，源码联调验证中 | UI Draft #54 已提交，完整 producer 检查通过；Web 分层、标题、加载与恢复已本地接入；隔离数据库首批 11 条通过 | UI 正式发布授权已询问；待锁定正式包后正常门禁/公开 preview，#118 与 docs#31 不合并 |
+| [Schema 表单](track-schema-forms.md)                 | 正式包已接入               | Source/Peer 共用可视化编辑器；当前统一消费 UI 2.2.0                                                         | 随整体 PR 复核                                                                     |
+| [交互质量](track-interaction-quality.md)             | 正式发布、实现与验收完成   | UI 2.2.0；Web 正式包 CI 数据库 12/12 与公开 preview 复核；docs 步骤和桌面图已同步                            | #118 与 docs#31 保持 Draft；人工矩阵边界见 Track                                    |
 
 ## 已确认决定
 

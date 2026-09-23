@@ -139,16 +139,24 @@ Ctrl+K 已实测原生 input 42px、按钮 36px：用 InkInput 的现有控件�
 
 ## 实施与交付状态
 
-2026-09-23 Human 已授权 UI #54 合并与正常 Version PR 正式发布，然后更新 Web 正式依赖、检查和公开预览验收；client-web#118 与 docs#31 仍不合并。UI #54 转为 Ready 后触发新的必需检查，须等待通过，不绕过。当前 Colima 显示运行，但 Docker API 读取无响应；本任务不重启共享引擎，正式数据库 E2E 优先使用既有 GitHub CI 的隔离运行环境。
+2026-09-23 Human 已授权 UI #54 合并与正常 Version PR 正式发布，然后更新 Web 正式依赖、检查和公开预览验收；client-web#118 与 docs#31 仍不合并。所有合并均等待必需检查通过。Colima 显示运行但 Docker API 读取无响应，本任务未重启共享引擎；正式数据库 E2E 已由既有 GitHub CI 的隔离运行环境完成。
 
-UI #54 已在检查通过后合入 `c3f2370`。Release 35866577328 生成正常 Changesets 版本分支，但因 Actions 不允许创建 PR 而失败；用已授权的维护者身份补建 Version PR #55，未改变仓库权限。#55 通过检查后合入 `386b0716`，Release 35867201587 成功发布 `@inkcre/ui-web@2.2.0`，包仓库可下载。Web、ext-dev-utils、Mail、Memos、Twitter 全部更新为精确 2.2.0；pnpm 为这次已核验的第一方发布追加精确版本的新包等待期例外，未放宽全局策略。源码联调进程已停止。本机浏览器扩展 E2E 1/1、正式包完整 `pnpm check` 已通过；CI 与公开 preview 待推送后检查。
+UI #54 已在检查通过后合入 `c3f2370`。Release 35866577328 生成正常 Changesets 版本分支，但因 Actions 不允许创建 PR 而失败；用已授权的维护者身份补建 Version PR #55，未改变仓库权限。#55 通过检查后合入 `386b0716`，Release 35867201587 成功发布 `@inkcre/ui-web@2.2.0`，包仓库可下载。Web、ext-dev-utils、Mail、Memos、Twitter 全部更新为精确 2.2.0；pnpm 为这次已核验的第一方发布追加精确版本的新包等待期例外，未放宽全局策略。源码联调进程已停止。本机浏览器扩展 E2E 1/1、正式包完整 `pnpm check` 已通过。
 
 提交 `28f9e11` 的 CI 35867675742 全部通过，正式构建数据库 E2E 12/12（14.1 秒）通过；Pages 35867671728 已部署同一 head。公开预览中重新从 Settings 保存 owner Heroku 连接成功，刷新仍保留。现场另发现首次渲染短暂显示翻译键：21.8 KB 的两份语言 JSON 被异步载入且未阻止挂载。改为静态导入，删除空消息集、缓存和失败吞咽；沿既有空浏览器 E2E 记录第一份真实 DOM 文案以验证无键名闪现，并设置初始文档语言。这是观察到的反馈缺陷，不扩展为通用启动或加载框架。
 
-UI 生产者已提交为 `0b5d9da`，Draft [ui#54](https://github.com/InKCre/ui/pull/54)。完整 `pnpm check` 通过；主代理在实际 Story 构建复核了自定义 footer 保存期间仅保存转圈、取消禁用、Escape 锁定，以及失败保留草稿、重试成功。生产者另验证 Loading 的作者提供状态名称，不能把辅助树检查声称为屏幕阅读器语音实测。
+最新产品提交 `1dd5d02` 的 Client checks 35868963811 全部通过，数据库 E2E 12/12（17.0 秒）；Pages 35868961368 成功部署同一 head。新增首屏文案断言最初捕获到 App Header 而非页面内容，现限定记录首个 main；没有加延时或重试掩盖失败。公开 preview 已复核连接保存/刷新、Peer 版本、首页和路由标题、英中切换及刷新、RSS 精确版本回跳、版本/文档披露、Type 搜索和键盘选择、360px Source 表单、Ctrl+K 对齐。未创建 Source、执行采集或修改现有 RSS 安装/启用状态。
 
-Web 已接入新的界面分层、默认 Header 去重、动态 Tab 标题、Loading/Skeleton、刷新失败保留和恢复入口。当前通过显式 UI source lane 验证，未把未发布包写入 manifest/lockfile。首页名称复用启动注册结果；Settings 成功连接后的运行时返回值不包含 Peer，因此此处只额外读取一次当前 Peer 来更新非持久身份，未为显示标题改变 SDK 公共返回类型，也不逐路由请求。读取名字失败只退回 InKCre，不影响已保存连接。
+docs 提交 `b39a833` 已更新连接、版本管理、任务观察和 RSS 步骤，加入正式预览的 1280×720 浅色桌面配图。网站完整 check、Website contract 35869105553 与 Pages preview 通过，已查看线上 RSS 教程与图片。原始截图留在父 packet 的 ignored assets，不提交含用户凭据的素材。
 
-源码联调类型检查、格式与 lint 通过。隔离数据库首批 11 条 E2E 已通过，包括空浏览器首次连接与刷新、默认/自定义 Dialog 的取消不转圈、Recall 一次请求与失效、Job 失败/missing、日志失败保留。扩展后的 12 条整轮为 8 条通过、4 条因源码开发服务器模块请求 502 失败；新增 Source 名称/草稿/保存/历史/刷新、首页 Peer 名称与 Peer 刷新失败保持详情均已在该轮通过。再次整轮运行在准备数据库时遭遇 Colima Docker API 无响应，未进入测试；因此不能把分轮证据表述为最新完整 12 条通过，也未修改产品或测试来掩盖环境失败。日志保留于 ignored assets，正常依赖的完整重跑仍待完成。任务与日志模型在现有读取边界传播真实请求失败，Job 不存在返回既有 APIError 的 404；不改变 Peer 或数据库协议。
+正式 UI 2.2.0 的临时独立样例已复核深色、20px 根字号：间距/容器留白从 16px/32px 联动为 20px/40px，1280px 无横向溢出。样例文件和标签已删除。reduced-motion 已实现且经代码检查，但未做操作系统偏好切换实测；不将代表性页面验证声称为全部 Dropdown 消费场景或完整辅助技术矩阵通过。
 
-已查看 1280×720 浅色 Settings 与 Dropdown、360px 换行；桌面原图在 ignored `assets/group4-settings-desktop.png`。临时浏览器视口已恢复。docs#31 的连接、扩展版本管理与任务观察步骤已本地同步，站点完整 check 通过；正式包与公开 preview 截图待交付后更新。UI PR #54 的 CI 与 Pages 构建均通过。UI 正式发布需要独立授权，已提出；client-web#118 与 docs#31 不合并。源码联调证据不替代正常锁定依赖构建、CI 与公开 preview 验收。深色、reduced-motion、20px 根字号及全部 Dropdown 消费场景的浏览器矩阵仍需补完。
+### 较早实施证据（已由上述正式包验收接续）
+
+UI 生产者提交 `0b5d9da` 的完整 `pnpm check` 通过；主代理在实际 Story 构建复核了自定义 footer 保存期间仅保存转圈、取消禁用、Escape 锁定，以及失败保留草稿、重试成功。生产者另验证 Loading 的作者提供状态名称，不能把辅助树检查声称为屏幕阅读器语音实测。
+
+Web 已接入新的界面分层、默认 Header 去重、动态 Tab 标题、Loading/Skeleton、刷新失败保留和恢复入口。最初通过显式 UI source lane 验证，未把未发布包写入 manifest/lockfile。首页名称复用启动注册结果；Settings 成功连接后的运行时返回值不包含 Peer，因此此处只额外读取一次当前 Peer 来更新非持久身份，未为显示标题改变 SDK 公共返回类型，也不逐路由请求。读取名字失败只退回 InKCre，不影响已保存连接。
+
+源码联调类型检查、格式与 lint 通过。隔离数据库首批 11 条 E2E 通过；扩展后的 12 条整轮为 8 条通过、4 条因源码开发服务器模块请求 502 失败。再次本地整轮在准备数据库时遭遇 Colima Docker API 无响应，未进入测试。日志保留于 ignored assets，这些分轮结果未被当作整轮通过；后续正式依赖的 CI 已完成完整重跑。任务与日志模型在现有读取边界传播真实请求失败，Job 不存在返回既有 APIError 的 404；不改变 Peer 或数据库协议。
+
+源码阶段另查看 1280×720 浅色 Settings 与 Dropdown、360px 换行；桌面原图在 ignored `assets/group4-settings-desktop.png`。该阶段证据不替代上述正式依赖构建、CI 与公开 preview 验收。

@@ -27,7 +27,7 @@
 - Source 创建/编辑与 Peer 配置共用 JSON Schema 可视化表单；保留 JSON 模式和完整草稿，未知字段与无效 JSON 不会在切换时丢失。
 - 不支持的 schema 仍可通过 JSON 编辑，内嵌表单不产生嵌套原生 `<form>`。凭据遮蔽只依据 schema 的 `format: password`，不改变读写语义。
 - 配置 Form/JSON 复用 UI 包的受控 Tabs；Extension 发现不再属于 Web 内部视图。
-- `InkAutoForm` 五处数组/可空字段动作已在 [UI #52](https://github.com/InKCre/ui/pull/52) 修正为 InkButton，并由正常 Version PR #53 发布 `@inkcre/ui-web@2.1.1`；Web、Mail、Memos、Twitter 与 ext-dev-utils 统一消费这一正式版本。
+- `InkAutoForm` 五处数组/可空字段动作已在 [UI #52](https://github.com/InKCre/ui/pull/52) 修正为 InkButton，由正常 Version PR #53 发布 2.1.1；第四组已将全部消费者统一升级到正式 2.2.0。
 - 原生链接继承宿主文字色，不再让 Browse Registry、Settings 等链接回退为浏览器默认蓝色或已访问紫色；保留各组件自身更具体的样式。
 
 ## 第四组：交互质量
@@ -35,10 +35,12 @@
 - Settings 只显示当前任务需要的连接、语言、备份操作；删除导出内容的常驻说明。Peer 身份/能力、Extension 版本管理/文档、搜索帮助与技术错误按需展开。
 - 页面不重复 Header 标题；浏览器标题跟随路由、已保存的 Source 名称和当前 Web Peer 名称，不使用未提交草稿。
 - 首次读取使用结构化骨架；刷新保留原内容，失败提供重试。独立内容等待仍使用三点式，紧凑行内状态使用 spinner，轮询间隔不持续转圈。
-- Dialog 将交互锁定与动作 loading 分开：保存时仅保存按钮转圈，取消可禁用但不转圈。UI #54 同时交付 Dropdown 搜索提示和相对 spacing token，后续通过正常 Version PR 发布。
+- Dialog 将交互锁定与动作 loading 分开：保存时仅保存按钮转圈，取消可禁用但不转圈。UI #54 同时交付 Dropdown 搜索提示和相对 spacing token，已通过正常 Version PR #55 发布。
 - Recall 普通检索只由目标页面发起；Find path 的过期响应不污染新模式。Job 区分不存在与读取失败，日志刷新失败保留已有内容。
 
-UI #54 与正常 Version PR #55 已合并，`@inkcre/ui-web@2.2.0` 正式发布且由全部五个消费者精确锁定。正式包的完整 `pnpm check` 与本机浏览器扩展 E2E 通过；最新数据库 CI 和公开 preview 证据在交付完成后更新。本 PR 与 docs#31 均不合并。
+UI #54 与正常 Version PR #55 已合并，`@inkcre/ui-web@2.2.0` 正式发布且由全部五个消费者精确锁定。正式包的完整 `pnpm check` 与本机浏览器扩展 E2E 通过；产品提交 `1dd5d02` 的 [Client checks](https://github.com/InKCre/client-web/actions/runs/35868963811) 全部通过，数据库 E2E 12/12，[Pages](https://github.com/InKCre/client-web/actions/runs/35868961368) 已部署同一 head。本 PR 与 docs#31 均不合并。
+
+公开预览另发现首屏短暂显示翻译键，已改为同步载入两份约 21.8 KB 的语言资源，并在既有首次连接 E2E 增加首份页面文案检查；未引入启动加载框架。
 
 ## 验证
 
@@ -49,12 +51,14 @@ UI #54 与正常 Version PR #55 已合并，`@inkcre/ui-web@2.2.0` 正式发布�
 - 在 owner 的 self-hosted Heroku 部署更新到 Core 0.6.2 后，实际从 PR preview 的 Settings 保存连接、刷新页面、打开 Peers，确认本浏览器 Peer 与 Core Peer 均为 Online，Core 显示 v0.6.2；对应[部署运行](https://github.com/xiaoland/core-py/actions/runs/35815978481)完成迁移、发布和公网探针。JWT 值未写入 PR 或日志；导入/导出验收产生的本地临时文件已删除。
 - 同一联网环境完成导出→隔离浏览器导入→恢复同一 Peer 身份与在线列表；当前浏览器 Peer 改名刷新后保留且已恢复原名。JSON 草稿、密码遮蔽和 Tabs 历史亦已复核。未运行第三方采集；含密钥导出文件已删除。
 - 在连接 owner Heroku/Neon 部署的公开 preview 中，精确 RSS 0.2.1 回跳链接打开后须确认才安装，刷新仍保留。Heroku Eco 休眠时 Core 在 Peers 页和弹窗均显示离线；唤醒后均显示在线，从弹窗启用、停用 Core 成功。验收用 RSS 随后卸载，最终预览显示未安装扩展。[Registry #56 Web 预览](https://inkcre-ext-reg-pr-56-bcb9e238282c.herokuapp.com/)已在精确 PR head 上运行；其目录为空，故“从版本页实际点击回跳”的跨站一步尚未验证。
-- 已补空浏览器 Settings 保存→刷新→Peers、Source 已保存名称/草稿/历史/刷新、首页 Peer 名称、Dialog 取消不转圈、读取失败与恢复回归。首批源码联调 11/11 通过；扩展轮 8/12，4 项遭遇开发服务器模块 502；新增标题与 Peer 保留详情均通过。后续本地整轮准备被 Docker API 无响应阻断，不能将分轮结果声称为完整 12 条通过。正式包接入后由既有 CI 隔离环境重跑。
+- 第四组正式包的数据库 E2E 12/12 通过，覆盖空浏览器 Settings 保存→刷新→Peers、首屏文案、Source 已保存名称/草稿/历史/刷新、首页 Peer 名称、Dialog 取消不转圈、Recall 请求责任/失效、Job 与日志失败恢复。早期本地 source lane 的模块 502 与 Docker API 阻塞保留为历史记录，不替代本次正式构建结果。
+- 最新公开 preview 已连接 owner 部署，复核连接持久化、Peer 版本、动态标题、中英切换/刷新、RSS 版本回跳、版本与文档披露、Type 搜索/键盘选择、360px Source 表单和 Ctrl+K 对齐；未创建 Source 或执行采集。现有 RSS 0.2.1 保持原安装/启用状态。正式 UI 样例另检查深色与 20px 根字号；未声称完成操作系统 reduced-motion 切换或全部消费者组合的人工实测。
+- docs#31 已同步操作步骤与 1280×720 浅色桌面配图，网站检查和 preview 均通过。原始截图留在忽略的 task assets。
 
 关联：InKCre/ext-reg#56、InKCre/ext-reg#48、InKCre/core-py#118、InKCre/ui#50、InKCre/ui#51、InKCre/core-py#120、InKCre/core-py#121、InKCre/docs#31。
 
 ## 交付边界与回退
 
-Core `peer-runtime-identity-v1`、UI 2.1.1 与 GitHub/Mail/Telegram Source wheel 0.3.2 已交付；本 PR
-保持 Draft，后续继续承载交互质量分组。此分组无数据库迁移或新外部权限。若发布后表单回归，
+Core `peer-runtime-identity-v1`、UI 2.2.0 与 GitHub/Mail/Telegram Source wheel 0.3.2 已交付；本 PR
+保持 Draft，第四组实现与正式依赖验收已交付复核。此分组无数据库迁移或新外部权限。若发布后表单回归，
 可回退本 PR 的 Web 提交；既有 JSON 模式保留为不丢配置的操作路径。
