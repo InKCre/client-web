@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { InkButton, InkDialog, InkInput, type JsonEditorValidation } from '@inkcre/ui-web'
 import SchemaConfigEditor from '@/components/schemaConfigEditor/schemaConfigEditor.vue'
-import { configStore, Peer, PeerConfigSchema } from '@inkcre/core'
+import { configStore, ExtensionModel, Peer, PeerConfigSchema, PeerManager } from '@inkcre/core'
 import { peerCardEmits, peerCardProps } from './peerCard'
 
 const props = defineProps(peerCardProps)
@@ -15,6 +15,13 @@ const configModel = ref('{}')
 const configValidation = ref<JsonEditorValidation>()
 const savingConfig = ref(false)
 const configError = ref('')
+const deleteOpen = ref(false)
+const deleting = ref(false)
+const deleteError = ref('')
+function openDelete() {
+  deleteError.value = ''
+  deleteOpen.value = true
+}
 const canSaveConfig = computed(
   () =>
     configValidation.value?.status === 'valid' && configValidation.value.text === configModel.value
@@ -54,6 +61,31 @@ const onConfirmConfig = async () => {
   }
 }
 
+const onConfirmDelete = async () => {
+  if (deleting.value || props.current) return
+  deleting.value = true
+  deleteError.value = ''
+  try {
+    const live = await PeerManager.listLive()
+    if (live.some((peer) => peer.id === props.peer.id)) {
+      deleteError.value = t('peer.deleteOnline')
+      emit('updated')
+      return
+    }
+    const extensions = await ExtensionModel.list()
+    for (const extension of extensions) {
+      if (extension.enabled.includes(props.peer.id)) await extension.disablePeer(props.peer.id)
+    }
+    await props.peer.delete()
+    deleteOpen.value = false
+    emit('updated')
+  } catch (error) {
+    deleteError.value = error instanceof Error ? error.message : t('peer.deleteFailed')
+  } finally {
+    deleting.value = false
+  }
+}
+
 const getStatusText = (status: 'online' | 'offline' | 'unknown') => {
   const statusMap = {
     online: t('peer.statusOnline'),
@@ -78,7 +110,18 @@ const getStatusText = (status: 'online' | 'offline' | 'unknown') => {
       <span class="peer-card__item-capabilities">
         {{ t('peer.capabilities', { count: peer.capabilities.length }) }}
       </span>
-      <InkButton :text="t('peer.editConfig')" size="sm" @click="openConfig" />
+      <div class="peer-card__actions">
+        <InkButton :text="t('peer.editConfig')" size="sm" @click="openConfig" />
+        <InkButton
+          v-if="!current"
+          :text="t('peer.delete')"
+          size="sm"
+          theme="danger"
+          :disabled="status === 'online'"
+          :title="status === 'online' ? t('peer.deleteOnline') : undefined"
+          @click="openDelete"
+        />
+      </div>
     </div>
     <span :class="['peer-card__item-status', `peer-card__item-status--${status}`]">
       {{ getStatusText(status) }}
@@ -103,6 +146,19 @@ const getStatusText = (status: 'online' | 'offline' | 'unknown') => {
           @click="onConfirmConfig"
         />
       </template>
+    </InkDialog>
+
+    <InkDialog
+      v-model="deleteOpen"
+      :title="t('peer.delete')"
+      :confirm-text="t('peer.delete')"
+      :cancel-text="t('common.cancel')"
+      :is-loading="deleting"
+      @confirm="onConfirmDelete"
+    >
+      <p>{{ peer.name }} · {{ peer.id }}</p>
+      <p>{{ t('peer.deleteConfirm') }}</p>
+      <p v-if="deleteError" role="alert" class="text-feedback-error">{{ deleteError }}</p>
     </InkDialog>
   </div>
 </template>

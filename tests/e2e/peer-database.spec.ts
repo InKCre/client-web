@@ -162,8 +162,25 @@ test('Registry install and multi-Peer enablement require explicit confirmation',
     await expect(dialog).toBeHidden()
     await expect.poll(readEnabled).toEqual(expect.arrayContaining(peerIds))
 
+    await page.goto('/peers')
+    await expect(
+      page.locator('.peer-card', { hasText: 'This browser' }).getByRole('button', {
+        name: 'Delete Peer',
+      })
+    ).toHaveCount(0)
+    const peerToDelete = page.locator('.peer-card', { hasText: peerIds[0] })
+    await peerToDelete.getByRole('button', { name: 'Delete Peer' }).click()
+    const deleteDialog = page.getByRole('dialog', { name: 'Delete Peer' })
+    await deleteDialog.getByRole('button', { name: 'Cancel' }).click()
+    await expect(peerToDelete).toBeVisible()
+    await expect.poll(readEnabled).toEqual(expect.arrayContaining(peerIds))
+    await peerToDelete.getByRole('button', { name: 'Delete Peer' }).click()
+    await deleteDialog.getByRole('button', { name: 'Delete Peer' }).click()
+    await expect(peerToDelete).toBeHidden()
+    await expect.poll(readEnabled).toEqual([peerIds[1]])
+
+    await page.goto('/extensions')
     await page.getByRole('button', { name: 'Disable…' }).click()
-    await dialog.getByRole('checkbox', { name: /E2E Peer 1/ }).check()
     await dialog.getByRole('checkbox', { name: /E2E Peer 2/ }).check()
     await dialog.getByRole('button', { name: 'Disable selected' }).click()
     await expect(dialog).toBeHidden()
@@ -343,6 +360,7 @@ test('Peer config keeps invalid and failed drafts and saves only once while pend
     expect(renewed.status).toBe(204)
     await page.getByRole('button', { name: 'Refresh', exact: true }).click()
     await expect(peer.getByText('Online', { exact: true })).toBeVisible()
+    await expect(peer.getByRole('button', { name: 'Delete Peer' })).toBeDisabled()
     await peer.getByRole('button', { name: 'Edit Config' }).click()
     const dialog = page.getByRole('dialog', { name: 'Edit Config' })
     await dialog.getByRole('tab', { name: 'JSON' }).click()

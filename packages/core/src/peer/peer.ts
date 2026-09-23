@@ -61,4 +61,8 @@ export class Peer extends Z.class({
   async saveConfig(): Promise<void> {
     await Peer.dbApi.update({ config: this.config }).eq('id', this.id).throwOnError()
   }
+
+  async delete(): Promise<void> {
+    await Peer.dbApi.from().delete().eq('id', this.id).throwOnError()
+  }
 }

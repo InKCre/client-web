@@ -187,7 +187,11 @@
     "statusUnknown": "Unknown",
     "empty": "No Peers registered",
     "listFailed": "Unable to load Peers",
-    "editConfig": "Edit Config"
+    "editConfig": "Edit Config",
+    "delete": "Delete Peer",
+    "deleteConfirm": "This removes the Peer and its extension enablement from this deployment. A running Peer may register again when it reconnects.",
+    "deleteOnline": "Stop this Peer and wait for it to go offline before deleting it.",
+    "deleteFailed": "Unable to delete this Peer. Please try again."
   },
   "infoBase": {
     "list": {

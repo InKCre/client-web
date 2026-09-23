@@ -19,6 +19,8 @@
 - **本轮验收结论（2026-09-23）**：五个 Web 消费者已统一升级到正式 UI 2.1.1，完整 `pnpm check` 与 PR #118 最新 head 的全部检查、Cloudflare preview 均通过。Web E2E 在真实隔离数据库上验证确认安装、取消无写入、两个离线 Peer 批量启停。公开 preview 连接 owner Heroku/Neon 部署，Core Eco dyno 休眠时 Peers 页和弹窗均显示离线；唤醒后均显示在线，在线 Core 启用、停用 RSS 成功。最后卸载 RSS，刷新后的最终 preview 显示未安装扩展。Registry #56 的独立 Web 预览在精确 PR head 上运行，但空目录尚不能完成版本页的跨站点击验收；本 PR 继续保持 Draft。另一个既有缺口是空浏览器 Settings 保存→刷新→Peers 的自动化回归，手工链路此前已通过。
 - **链接颜色复核（2026-09-23）**：公开 preview 的原生 Browse Registry 链接使用浏览器默认蓝色，已访问的 Settings 链接变为默认紫色；应用未设置原生 `<a>` 的颜色。用宿主一条继承规则保留 InkUI 文字色、下划线及组件自有样式，不增加链接组件。
 - **Registry 预览发现（2026-09-23）**：`registry-preview.yml` 的工作流运行 35825019767 在 PR #56 head `d58bdcb` 上成功交付完整 CPython Web，`/livez` 返回相同修订号，首页 200，`/v1/extensions` 为空。预览 URL 记录于 GitHub Deployment 6607501622，但 `workflow_run` 的 Deployment ref 是 `main`，因此 PR #56 的 checks 不呈现预览地址；这是关联与可发现性缺口，不是预览环境缺失。
+- **Peer 删除新增需求（2026-09-23）**：Human 要求 Peers 页可删除 Peer，第二条待补。Web 当前可直接读写 `peers`，但没有删除入口；本浏览器删除后会再次注册，在线 Peer 的运行时亦可能重注册。`extensions.enabled[]` 以 UUID 存引用，若先删 Peer，将无法再通过现有 RPC 停用该 UUID，进而阻碍扩展卸载/换版。拟只允许删除离线的非当前 Peer，在确认后先逐个停用其扩展，再删除 Peer 行；失败时保留卡片并显示错误，已成功的停用不回滚，重试可继续。验收覆盖取消、在线/当前不可删、带扩展绑定的离线 Peer 删除后无残留 UUID。具体边界仍待复核。
+- **Peer 删除实现与验证（2026-09-23）**：按单用户 deployment 的 best-effort 模型，不引入新数据库 RPC 或通用删除框架。当前浏览器不显示删除；在线 Peer 禁用删除；确认时再次按服务端 lease 核对，先用现有 Extension RPC 清掉该 Peer 的每条 `enabled[]` 关系，再删除 Peer 行。失败保留卡片与错误，重试继续未完成的清理。`pnpm check` 全通过；使用临时 GHCR 凭据和本机隔离 Compose 的 `pnpm test:e2e:web` 8/8，通过取消、在线限制、当前身份限制及启用关系清理，测试资源与临时凭据已销毁。已咨询 advisor：其建议为并发启用/删除增加数据库事务和锁；鉴于既定单用户 best-effort 边界，本轮不承担这一跨仓库协议成本。
 
 ## 工作地图
 

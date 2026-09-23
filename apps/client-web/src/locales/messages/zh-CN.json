@@ -188,7 +188,11 @@
     "statusUnknown": "未知",
     "empty": "暂无已注册的 Peer",
     "listFailed": "无法加载 Peer",
-    "editConfig": "编辑配置"
+    "editConfig": "编辑配置",
+    "delete": "删除 Peer",
+    "deleteConfirm": "这会从当前部署中移除该 Peer 及其扩展启用记录。若它重新连接，可能会再次注册。",
+    "deleteOnline": "请先停止该 Peer，待它离线后再删除。",
+    "deleteFailed": "无法删除该 Peer，请重试。"
   },
   "infoBase": {
     "list": {

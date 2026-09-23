@@ -45,6 +45,12 @@
     color: sys-var(color, text, subtle);
   }
 
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: sys-var(space, xs);
+  }
+
   &__item-status {
     @include apply-font(label-md);
     padding: sys-var(space, xs) sys-var(space, sm);
