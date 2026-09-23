@@ -36,6 +36,6 @@ export class Log extends Z.class({
     if (options?.limit) {
       query = query.limit(options.limit)
     }
-    return (await query).data?.map((item) => Log.parse(item)) ?? []
+    return (await query.throwOnError()).data?.map((item) => Log.parse(item)) ?? []
   }
 }

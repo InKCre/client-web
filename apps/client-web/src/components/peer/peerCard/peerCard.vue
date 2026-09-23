@@ -5,6 +5,7 @@ import { InkButton, InkDialog, InkInput, type JsonEditorValidation } from '@inkc
 import SchemaConfigEditor from '@/components/schemaConfigEditor/schemaConfigEditor.vue'
 import { configStore, ExtensionModel, Peer, PeerConfigSchema, PeerManager } from '@inkcre/core'
 import { peerCardEmits, peerCardProps } from './peerCard'
+import { currentWebPeer } from '@/core'
 
 const props = defineProps(peerCardProps)
 const emit = defineEmits(peerCardEmits)
@@ -36,6 +37,7 @@ function openConfig() {
 const savePeer = async () => {
   try {
     await props.peer.save()
+    if (props.current) currentWebPeer.value = { id: props.peer.id, name: props.peer.name }
     emit('updated')
   } catch (error) {
     console.error('Failed to update Peer:', error)
@@ -106,10 +108,6 @@ const getStatusText = (status: 'online' | 'offline' | 'unknown') => {
         </span>
         <span v-if="current" class="peer-card__current">{{ t('peer.current') }}</span>
       </div>
-      <span class="peer-card__item-id">{{ peer.id }}</span>
-      <span class="peer-card__item-capabilities">
-        {{ t('peer.capabilities', { count: peer.capabilities.length }) }}
-      </span>
       <div class="peer-card__actions">
         <InkButton :text="t('peer.editConfig')" size="sm" @click="openConfig" />
         <InkButton
@@ -118,10 +116,16 @@ const getStatusText = (status: 'online' | 'offline' | 'unknown') => {
           size="sm"
           theme="danger"
           :disabled="status === 'online'"
-          :title="status === 'online' ? t('peer.deleteOnline') : undefined"
           @click="openDelete"
         />
       </div>
+      <details class="peer-card__details">
+        <summary>{{ t('common.details') }}</summary>
+        <code class="peer-card__item-id">{{ peer.id }}</code>
+        <p>{{ t('peer.capabilities', { count: peer.capabilities.length }) }}</p>
+        <pre v-if="peer.capabilities.length">{{ JSON.stringify(peer.capabilities, null, 2) }}</pre>
+        <p v-if="!current && status === 'online'">{{ t('peer.deleteOnline') }}</p>
+      </details>
     </div>
     <span :class="['peer-card__item-status', `peer-card__item-status--${status}`]">
       {{ getStatusText(status) }}

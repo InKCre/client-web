@@ -37,6 +37,18 @@
     flex-wrap: wrap;
     gap: sys-var(space, sm);
   }
+  &__details {
+    @include apply-font(body-sm);
+    summary {
+      cursor: pointer;
+    }
+    &[open] > summary {
+      margin-bottom: sys-var(space, sm);
+    }
+    .extension-card__hint {
+      margin-top: sys-var(space, sm);
+    }
+  }
 
   &__hint {
     @include apply-font(body-sm);

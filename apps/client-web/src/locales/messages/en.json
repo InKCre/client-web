@@ -1,5 +1,7 @@
 {
   "common": {
+    "details": "Details",
+    "errorDetails": "Error details",
     "settings": "Settings",
     "language": "Language",
     "save": "Save",
@@ -21,6 +23,23 @@
   "header": {
     "brand": "InKCre"
   },
+  "navigation": {
+    "source": "Source",
+    "job": "Job",
+    "block": "Block",
+    "relation": "Relation",
+    "content": "Content",
+    "graph": "Graph"
+  },
+  "recall": {
+    "title": "Recall information",
+    "mode": "Search mode",
+    "recall": "Recall",
+    "findPath": "Find path",
+    "pathPlaceholder": "Find path endpoints",
+    "placeholder": "Recall a clue",
+    "chooseDestination": "Choose the destination Block."
+  },
   "sidePanel": {
     "managing": "Managing",
     "sources": "Sources",
@@ -31,6 +50,9 @@
     "infoBase": "Info Base"
   },
   "settings": {
+    "connectionDetails": "Connection details",
+    "backup": "Backup and restore",
+    "importSuccess": "Configuration restored.",
     "title": "Settings",
     "metaConfig": "Connection",
     "pgrestUrl": "PostgreSQL REST URL",
@@ -45,8 +67,7 @@
     "resetConfirmMessage": "Are you sure you want to reset all settings to default? This action cannot be undone.",
     "exportConfig": "Export",
     "importConfig": "Import",
-    "importError": "Failed to import configuration. Please check the file format.",
-    "exportIncludesSecret": "Includes the connection, Peer ID, JWT secret, and language."
+    "importError": "Unable to restore configuration. Check the file and deployment connection."
   },
   "source": {
     "deleteConfirmTitle": "Delete Source",
@@ -106,6 +127,10 @@
     "typeUnavailable": "This source type is unavailable. Check installed extensions or choose an available type."
   },
   "extension": {
+    "versionAndRemoval": "Version and removal",
+    "versionsLoading": "Loading versions…",
+    "documentationMissing": "No documentation published for this release.",
+    "desiredStateExplanation": "The selected Peers will apply this change when they next sync.",
     "title": "Extensions",
     "installed": "Installed",
     "browseRegistry": "Browse Registry",
@@ -122,12 +147,11 @@
     "connectBeforeInstall": "Connect your deployment in",
     "connectDeployment": "Connect your deployment",
     "connectDeploymentDescription": "Add its connection in Settings to manage Extensions here.",
-    "installScope": "Install into this deployment. You can enable the Extension on a Peer afterward.",
+    "installScope": "After installing, enable the Extension on a Peer.",
     "hostCore": "Core",
     "hostWeb": "Web",
     "install": "Install",
     "installedVersion": "Installed v{version}",
-    "alreadyInstalled": "This Extension is already installed.",
     "manage": "Manage",
     "version": "Version",
     "editConfig": "Edit Config",
@@ -144,7 +168,7 @@
     "enableSelected": "Enable selected",
     "disableSelected": "Disable selected",
     "currentBrowser": "This browser",
-    "desiredStateBrief": "Applies on the next reconciliation",
+    "desiredStateBrief": "Waiting for Peer sync",
     "peerListUnavailable": "The Peer list could not be loaded: {error}",
     "installedUnavailable": "Unable to load installed Extensions",
     "noneInstalled": "No Extensions installed",
@@ -153,6 +177,8 @@
     "uninstallDisabled": "Disable every Peer before uninstalling or changing the shared version."
   },
   "job": {
+    "loadFailed": "Unable to load this job.",
+    "sourceLoadFailed": "Unable to load the source.",
     "title": "Job Details",
     "jobId": "Job ID",
     "status": "Status",
@@ -171,6 +197,9 @@
     "sourceNotFound": "Source not found"
   },
   "logs": {
+    "loading": "Loading logs…",
+    "autoUpdating": "Updating automatically",
+    "loadFailed": "Unable to load logs.",
     "title": "Logs",
     "empty": "No logs"
   },
@@ -194,8 +223,9 @@
     "deleteFailed": "Unable to delete this Peer. Please try again."
   },
   "infoBase": {
+    "relationLoadFailed": "Unable to load this Relation.",
     "list": {
-      "eyebrow": "Lexical recall",
+      "help": "Search help",
       "title": "Find the information you remember.",
       "searchLabel": "Search the info base",
       "searchPlaceholder": "A phrase, name, filename, or remembered detail…",
@@ -212,6 +242,7 @@
       }
     },
     "blockInspector": {
+      "loadFailed": "Unable to load this Block.",
       "title": "Block Inspector",
       "id": "ID",
       "resolver": "Resolver",

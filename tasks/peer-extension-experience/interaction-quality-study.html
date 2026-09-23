@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="zh-CN">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>第四组：界面与加载提案</title>
+  <style>
+    :root {
+      font-family: system-ui, sans-serif;
+      color: #1f1f1f;
+      background: white;
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 2rem;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+    }
+    main {
+      max-width: 72rem;
+      margin: auto;
+      padding: var(--space-lg);
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 500;
+      margin: 0 0 1rem;
+    }
+    h2 {
+      font-size: 1.375rem;
+      font-weight: 500;
+      margin: 0;
+    }
+    h3 {
+      font-size: 1rem;
+      font-weight: 500;
+      margin: 0;
+    }
+    p {
+      margin: 0;
+      line-height: 1.5;
+    }
+    .subtle {
+      color: #5e5e5e;
+      font-size: 0.875rem;
+    }
+    .intro {
+      margin-bottom: 2rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-lg);
+    }
+    section {
+      display: grid;
+      gap: var(--space-md);
+      align-content: start;
+      min-width: 0;
+    }
+    .panel {
+      padding: var(--space-md);
+      border: 1px solid #c6c6c6;
+      display: grid;
+      gap: var(--space-md);
+      min-width: 0;
+    }
+    .row {
+      display: flex;
+      gap: var(--space-sm);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .between {
+      justify-content: space-between;
+    }
+    .stack {
+      display: grid;
+      gap: var(--space-sm);
+    }
+    button,
+    select,
+    input {
+      font: inherit;
+      font-size: 0.875rem;
+      border: 1px solid #777;
+      color: inherit;
+      background: white;
+      padding: var(--space-sm);
+      min-width: 0;
+      border-radius: 0;
+    }
+    button {
+      cursor: pointer;
+    }
+    button.primary {
+      background: #1f1f1f;
+      color: white;
+    }
+    button:disabled {
+      opacity: 0.65;
+      cursor: default;
+    }
+    label {
+      display: grid;
+      gap: var(--space-xs);
+      font-size: 0.875rem;
+    }
+    input {
+      width: 100%;
+    }
+    :focus-visible {
+      outline: 2px solid #1f1f1f;
+      outline-offset: 2px;
+    }
+    details {
+      font-size: 0.875rem;
+    }
+    summary {
+      cursor: pointer;
+      width: fit-content;
+    }
+    details[open] summary {
+      margin-bottom: var(--space-sm);
+    }
+    code {
+      font-size: 0.8125rem;
+      overflow-wrap: anywhere;
+    }
+    a {
+      color: inherit;
+    }
+    .rule {
+      border-top: 1px solid #e2e2e2;
+      padding-top: var(--space-md);
+    }
+    .loading-grid {
+      margin-top: 2rem;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-md);
+    }
+    .skeleton {
+      display: block;
+      height: 1rem;
+      background: #e2e2e2;
+      animation: pulse 1.4s ease-in-out infinite alternate;
+    }
+    .spinner {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      flex-shrink: 0;
+    }
+    .blocks {
+      display: flex;
+      gap: var(--space-xs);
+    }
+    .blocks i {
+      width: 1.125rem;
+      height: 1.125rem;
+      background: #c6c6c6;
+      animation: block-pulse 0.9s ease-in-out infinite;
+    }
+    .blocks i:nth-child(2) {
+      background: #a8a8a8;
+      animation-delay: 0.3s;
+    }
+    .blocks i:nth-child(3) {
+      animation-delay: 0.5s;
+    }
+    .waiting {
+      display: grid;
+      min-height: 8rem;
+      align-content: center;
+      justify-items: center;
+      gap: var(--space-sm);
+    }
+    .log {
+      font:
+        0.8125rem/1.6 ui-monospace,
+        monospace;
+      color: #474747;
+    }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    @keyframes pulse {
+      to {
+        opacity: 0.5;
+      }
+    }
+    @keyframes block-pulse {
+      0% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.4;
+      }
+      100% {
+        opacity: 0.8;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .spinner,
+      .skeleton,
+      .blocks i {
+        animation: none;
+      }
+    }
+    @media (max-width: 48rem) {
+      .grid,
+      .loading-grid {
+        grid-template-columns: 1fr;
+      }
+      main {
+        padding: var(--space-md);
+      }
+    }
+  </style>
+  <main>
+    <h1>第四组：界面与加载提案</h1>
+    <p class="subtle intro">
+      静态设计稿，不是运行中的
+      client-web。帮助与详情可以展开；按钮不执行真实操作。尺寸展示采用拟议的 rem spacing。
+    </p>
+    <div class="grid">
+      <section>
+        <h2>Settings</h2>
+        <div class="panel">
+          <h3>Connection</h3>
+          <label>PostgREST URL<input readonly value="https://your-deployment.example" /></label>
+          <label>JWT Secret<input readonly type="password" value="example-only" /></label>
+          <details>
+            <summary>Connection details</summary>
+            <p class="subtle">Peer ID: <code>示例浏览器身份</code></p>
+          </details>
+          <div><button class="primary">Save connection</button></div>
+          <div class="rule stack">
+            <h3>Language</h3>
+            <select aria-label="Language">
+              <option>English</option>
+              <option>简体中文</option>
+            </select>
+            <p class="subtle">设计说明：沿用立即生效行为，不受连接保存按钮控制。</p>
+          </div>
+          <div class="rule stack">
+            <h3>Backup and restore</h3>
+            <div class="row"><button>Export</button><button>Import</button></div>
+          </div>
+        </div>
+      </section>
+      <section>
+        <h2>Peers 与 Extensions</h2>
+        <div class="panel">
+          <div class="row between">
+            <h3>Chrome 151 <span class="subtle">v0.1.2 · This browser</span></h3>
+            <span class="subtle">Online</span>
+          </div>
+          <div class="row">
+            <button>Edit config</button>
+            <details>
+              <summary>Details</summary>
+              <code>Peer ID: 示例标识</code>
+              <p>Capabilities: 0</p>
+            </details>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="row between">
+            <h3>RSS/Atom Feeds <span class="subtle">v0.2.1</span></h3>
+            <span class="subtle">Enabled on 1 Peer</span>
+          </div>
+          <code>inkcre/rss</code>
+          <div class="row">
+            <button>Enable…</button><button>Disable…</button><button>Edit config</button>
+          </div>
+          <details>
+            <summary>Version and removal</summary>
+            <div class="stack">
+              <div class="row">
+                <button disabled>Change version</button><button disabled>Uninstall</button>
+              </div>
+              <p class="subtle">Disable the Extension on all Peers first.</p>
+            </div>
+          </details>
+          <details>
+            <summary>Help</summary>
+            <div class="stack">
+              <span>Extension guide · Core guide · Web guide</span>
+              <p class="subtle">实际界面仍跳转精确 Release 的文档；读取失败与重试出现在这里。</p>
+            </div>
+          </details>
+        </div>
+        <p class="subtle">
+          默认只保留识别对象、当前状态和常用操作。展开后提供技术信息或对应操作的前置条件。
+        </p>
+      </section>
+    </div>
+    <section style="margin-top: 2rem">
+      <h2>不同等待对象，采用不同反馈</h2>
+      <div class="loading-grid" style="margin-top: 0">
+        <div class="panel">
+          <h3>首次读取列表</h3>
+          <div aria-hidden="true" class="panel">
+            <i class="skeleton" style="width: 45%"></i
+            ><i class="skeleton" style="width: 75%; height: 0.75rem"></i>
+          </div>
+          <div aria-hidden="true" class="panel">
+            <i class="skeleton" style="width: 55%"></i
+            ><i class="skeleton" style="width: 70%; height: 0.75rem"></i>
+          </div>
+          <p class="subtle">结构明确：条目骨架。页面标题和导航保持可用。</p>
+        </div>
+        <div class="panel">
+          <h3>读取未知结构的内容</h3>
+          <div class="waiting" role="status">
+            <span class="blocks" aria-hidden="true"><i></i><i></i><i></i></span
+            ><span>Loading content…</span>
+          </div>
+          <p class="subtle">图谱、内容预览保留三点式加载；不虚构文章或图节点。</p>
+        </div>
+        <div class="panel">
+          <h3>操作与后台更新</h3>
+          <div class="row">
+            <button class="primary" disabled aria-busy="true">
+              Save <span class="spinner" aria-hidden="true"></span></button
+            ><button disabled>Cancel</button>
+          </div>
+          <p class="subtle">仅保存动作转圈；不可中止保存时，取消只禁用。</p>
+          <div class="rule stack">
+            <span class="log">14:20 Collection started<br />14:20 Reading feed</span
+            ><span class="subtle row" role="status"
+              ><span class="spinner" aria-hidden="true"></span>Loading new logs…</span
+            >
+          </div>
+          <p class="subtle">
+            已有内容继续显示。请求结束后停止动画；轮询间隔只显示静态“自动更新中”。
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+</html>

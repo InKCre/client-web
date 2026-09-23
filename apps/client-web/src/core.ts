@@ -23,6 +23,7 @@ import {
   PeerManager,
   WebPeerRuntime,
   JobManager,
+  Peer,
   type ExtensionModule,
   type ExtensionSetupContribution,
 } from '@inkcre/core'
@@ -80,6 +81,26 @@ export function defaultWebPeerName(browser: NavigatorWithUserAgentData = navigat
 export const WEB_PEER_IDENTITY = {
   applicationVersion: packageJson.version,
   defaultName: defaultWebPeerName(),
+}
+
+// Runtime identity for this browser; never persisted as a second copy of the Peer name.
+export const currentWebPeer = Vue.shallowRef<Pick<Peer, 'id' | 'name'> | null>(null)
+
+export async function refreshCurrentWebPeer(): Promise<void> {
+  const peerId = configStore.metaConfig.INKCRE_PEER_ID
+  const origin = configStore.metaConfig.INKCRE_PGREST_URL
+  currentWebPeer.value = null
+  try {
+    const peer = await Peer.getSelf()
+    if (
+      peerId === configStore.metaConfig.INKCRE_PEER_ID &&
+      origin === configStore.metaConfig.INKCRE_PGREST_URL
+    ) {
+      currentWebPeer.value = { id: peer.id, name: peer.name }
+    }
+  } catch {
+    // A display name is best-effort; connection failure remains owned by the connection UI.
+  }
 }
 
 // ============================================================================
@@ -193,6 +214,7 @@ export function adoptWebPeerRuntime(runtime: WebPeerRuntime): void {
 export async function stopWebPeerRuntime(): Promise<void> {
   webPeerRuntime?.stop()
   webPeerRuntime = null
+  currentWebPeer.value = null
   await JobManager.stopWorker()
 }
 
@@ -201,10 +223,11 @@ export async function startConfiguredWebPeerRuntime(): Promise<void> {
   if (!configStore.metaConfig.INKCRE_PGREST_URL || !configStore.metaConfig.INKCRE_JWT_SECRET) return
   const candidate = new WebPeerRuntime(configStore.metaConfig.INKCRE_PEER_ID, WEB_PEER_IDENTITY)
   try {
-    await candidate.register()
+    const peer = await candidate.register()
     await configStore.loadPeerConfig()
     await candidate.start()
     adoptWebPeerRuntime(candidate)
+    currentWebPeer.value = { id: peer.id, name: peer.name }
   } catch (error) {
     candidate.stop()
     throw error
@@ -309,10 +332,11 @@ export async function initializeCore(options: { loadPeerConfig?: boolean } = {})
   ) {
     const candidate = new WebPeerRuntime(configStore.metaConfig.INKCRE_PEER_ID, WEB_PEER_IDENTITY)
     try {
-      await candidate.register()
+      const peer = await candidate.register()
       await configStore.loadPeerConfig()
       await candidate.start()
       adoptWebPeerRuntime(candidate)
+      currentWebPeer.value = { id: peer.id, name: peer.name }
     } catch (error) {
       candidate.stop()
       throw error

@@ -175,8 +175,30 @@ test('Registry install and multi-Peer enablement require explicit confirmation',
     await expect(peerToDelete).toBeVisible()
     await expect.poll(readEnabled).toEqual(expect.arrayContaining(peerIds))
     await peerToDelete.getByRole('button', { name: 'Delete Peer' }).click()
+    const deleteEndpoint = `${postgrestUrl}peers?id=eq.${peerIds[0]}`
+    let releaseDelete!: () => void
+    const pendingDelete = new Promise<void>((resolve) => {
+      releaseDelete = resolve
+    })
+    await page.route(deleteEndpoint, async (route) => {
+      if (route.request().method() === 'DELETE') await pendingDelete
+      await route.continue()
+    })
     await deleteDialog.getByRole('button', { name: 'Delete Peer' }).click()
+    try {
+      await expect(deleteDialog.getByRole('button', { name: 'Delete Peer' })).toHaveAttribute(
+        'aria-busy',
+        'true'
+      )
+      const cancel = deleteDialog.getByRole('button', { name: 'Cancel' })
+      await expect(cancel).toBeDisabled()
+      await expect(cancel).not.toHaveAttribute('aria-busy', 'true')
+      await expect(cancel.locator('.ink-button__loading')).toHaveCount(0)
+    } finally {
+      releaseDelete()
+    }
     await expect(peerToDelete).toBeHidden()
+    await page.unroute(deleteEndpoint)
     await expect.poll(readEnabled).toEqual([peerIds[1]])
 
     await page.goto('/extensions')
@@ -261,6 +283,8 @@ test('Web Peer publishes its app identity and preserves a user name', async ({ p
         return response.ok ? (await response.json())[0] : null
       })
       .toEqual({ name: 'My browser Peer', application_version: clientVersion })
+    await page.goto('/')
+    await expect(page).toHaveTitle('My browser Peer - InKCre')
   } finally {
     const cleanup = await fetch(endpoint, {
       method: 'DELETE',
@@ -331,6 +355,7 @@ test('Peer config keeps invalid and failed drafts and saves only once while pend
 }) => {
   const id = crypto.randomUUID()
   const authorization = `Bearer ${await token()}`
+  const wrongAuthorization = `Bearer ${await token('ui-migration-wrong-secret-at-least-32-bytes')}`
   const endpoint = `${postgrestUrl}peers?id=eq.${id}`
   const created = await fetch(`${postgrestUrl}peers`, {
     method: 'POST',
@@ -361,6 +386,21 @@ test('Peer config keeps invalid and failed drafts and saves only once while pend
     await page.getByRole('button', { name: 'Refresh', exact: true }).click()
     await expect(peer.getByText('Online', { exact: true })).toBeVisible()
     await expect(peer.getByRole('button', { name: 'Delete Peer' })).toBeDisabled()
+    await peer.getByText('Details', { exact: true }).click()
+    await expect(peer.getByText(id, { exact: true })).toBeVisible()
+    await page.route('**/peers?**', (route) =>
+      route.continue({
+        headers: { ...route.request().headers(), authorization: wrongAuthorization },
+      })
+    )
+    await page.getByRole('button', { name: 'Refresh', exact: true }).click()
+    await expect(page.getByRole('alert')).toHaveText('Unable to load Peers')
+    await expect(peer).toBeVisible()
+    await expect(peer.getByText(id, { exact: true })).toBeVisible()
+    await page.unroute('**/peers?**')
+    await page.getByRole('button', { name: 'Retry', exact: true }).click()
+    await expect(page.getByRole('alert')).toHaveCount(0)
+    await expect(peer.getByText(id, { exact: true })).toBeVisible()
     await peer.getByRole('button', { name: 'Edit Config' }).click()
     const dialog = page.getByRole('dialog', { name: 'Edit Config' })
     await dialog.getByRole('tab', { name: 'JSON' }).click()
@@ -381,7 +421,6 @@ test('Peer config keeps invalid and failed drafts and saves only once while pend
       releaseRequest = resolve
     })
     let writes = 0
-    const wrongAuthorization = `Bearer ${await token('ui-migration-wrong-secret-at-least-32-bytes')}`
     await page.route(endpoint, async (route) => {
       if (route.request().method() !== 'PATCH') return route.continue()
       writes += 1
@@ -394,7 +433,11 @@ test('Peer config keeps invalid and failed drafts and saves only once while pend
     await save.click()
     try {
       await expect(save).toBeDisabled()
-      await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeDisabled()
+      await expect(save).toHaveAttribute('aria-busy', 'true')
+      const cancel = dialog.getByRole('button', { name: 'Cancel' })
+      await expect(cancel).toBeDisabled()
+      await expect(cancel).not.toHaveAttribute('aria-busy', 'true')
+      await expect(cancel.locator('.ink-button__loading')).toHaveCount(0)
       await page.keyboard.press('Escape')
       await expect(dialog).toBeVisible()
       await expect(editor).toHaveAttribute('contenteditable', 'false')
@@ -418,6 +461,7 @@ test('Peer config keeps invalid and failed drafts and saves only once while pend
     await dialog.getByRole('tab', { name: 'JSON' }).click()
     await expect(editor).toContainText('2')
   } finally {
+    await page.unroute('**/peers?**')
     await page.unroute(endpoint)
     const cleanup = await fetch(endpoint, {
       method: 'DELETE',
@@ -528,5 +572,271 @@ test('Block Inspector delegates rumination through the discovered Peer', async (
       headers: { Authorization: authorization },
     })
     expect(cleanup.status).toBe(204)
+  }
+})
+
+test('Recall delegates one read to its destination and discards stale path searches', async ({
+  page,
+}) => {
+  await page.goto('/')
+  await expect(page.getByRole('searchbox')).toBeVisible()
+  await page.keyboard.press('Control+k')
+  const dialog = page.getByRole('dialog', { name: 'Recall information' })
+  const input = dialog.getByRole('searchbox')
+  await expect(input).toBeFocused()
+  const query = `recall-e2e-${Date.now()}`
+  let requests = 0
+  let release!: () => void
+  let pending = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  let fail = false
+  await page.route(`${coreUrl}lexical-retrieval`, async (route) => {
+    requests++
+    await pending
+    if (fail) await route.fulfill({ status: 503, json: { message: 'Unavailable' } })
+    else await route.continue()
+  })
+  await input.fill(query)
+  await input.press('Enter')
+  try {
+    // The destination owns the pending request; Recall must already be closed.
+    await expect(page).toHaveURL(new RegExp(`q=${query}`))
+    await expect(dialog).toBeHidden()
+    await expect.poll(() => requests).toBe(1)
+  } finally {
+    release()
+  }
+  await expect(page.getByText(`No indexed blocks matched “${query}”.`)).toBeVisible()
+  expect(requests).toBe(1)
+
+  await page.keyboard.press('Control+k')
+  await dialog.getByRole('tab', { name: 'Find path' }).click()
+  await input.fill('stale path')
+  pending = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  fail = true
+  const staleResponse = page.waitForResponse(
+    (response) => response.url() === `${coreUrl}lexical-retrieval` && response.status() === 503
+  )
+  await input.press('Enter')
+  try {
+    await expect.poll(() => requests).toBe(2)
+    await expect(dialog.getByRole('button', { name: 'Search', exact: true })).toHaveAttribute(
+      'aria-busy',
+      'true'
+    )
+    await dialog.getByRole('tab', { name: 'Recall', exact: true }).click()
+    await page.keyboard.press('Escape')
+    await expect(dialog).toBeHidden()
+    await page.keyboard.press('Control+k')
+    await dialog.getByRole('tab', { name: 'Find path' }).click()
+  } finally {
+    release()
+  }
+  await (await staleResponse).finished()
+  await expect(dialog.getByRole('alert')).toHaveCount(0)
+  await expect(dialog.getByRole('button', { name: 'Search', exact: true })).toBeEnabled()
+  await input.fill('retry path')
+  await input.press('Enter')
+  await expect(dialog.getByRole('alert')).toBeVisible()
+  await expect(input).toHaveValue('retry path')
+  fail = false
+  await dialog.getByRole('button', { name: 'Retry', exact: true }).click()
+  await expect(dialog.getByText('No indexed blocks matched “retry path”.')).toBeVisible()
+  await expect(page).toHaveURL(new RegExp(`q=${query}`))
+})
+
+test('an empty browser saves its connection across refresh and reads Peers', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({ baseURL: process.env.INKCRE_E2E_WEB_URL })
+  const page = await context.newPage()
+  const authorization = `Bearer ${await token()}`
+  let id: string | undefined
+  try {
+    await page.goto('/settings')
+    await expect(page).toHaveTitle('Settings - InKCre')
+    await page.getByLabel('PostgreSQL REST URL').fill(postgrestUrl)
+    await page.getByLabel('JWT Secret').fill(jwtSecret)
+    await page.getByRole('button', { name: 'Save', exact: true }).click()
+    await expect(page.getByRole('status')).toHaveText('Configuration saved successfully')
+    id = await page.evaluate(
+      () => JSON.parse(localStorage.getItem('inkcre_app_config')!).INKCRE_PEER_ID
+    )
+    await page.reload()
+    await expect(page.getByLabel('PostgreSQL REST URL')).toHaveValue(postgrestUrl)
+    await page.goto('/peers')
+    await expect(page).toHaveTitle('Peers - InKCre')
+    await expect(page.locator('.peer-card', { hasText: id })).toContainText('This browser')
+    await expect(page.getByRole('main', { name: 'Peers' })).toBeVisible()
+  } finally {
+    await context.close()
+    if (id)
+      await fetch(`${postgrestUrl}peers?id=eq.${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: authorization },
+      })
+  }
+})
+
+test('Job distinguishes failed and missing reads and preserves logs after a polling failure', async ({
+  page,
+}) => {
+  const authorization = `Bearer ${await token()}`
+  const headers = { Authorization: authorization, 'Content-Type': 'application/json' }
+  const type = `e2e.feedback.${crypto.randomUUID()}`
+  const createdType = await fetch(`${postgrestUrl}job_types`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      id: type,
+      description: 'Feedback regression',
+      default_timeout_seconds: 3600,
+    }),
+  })
+  expect(createdType.status).toBe(201)
+  let jobId: number | undefined
+  let releaseLogs: (() => void) | undefined
+  try {
+    const createdJob = await fetch(`${postgrestUrl}jobs`, {
+      method: 'POST',
+      headers: { ...headers, Prefer: 'return=representation' },
+      body: JSON.stringify({
+        type,
+        status: 'running',
+        started_at: new Date().toISOString(),
+        timeout_seconds: 3600,
+      }),
+    })
+    expect(createdJob.status).toBe(201)
+    const [job] = await createdJob.json()
+    jobId = job.id
+    const initialLog = await fetch(`${postgrestUrl}logs`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        trace_id: `job.${jobId}`,
+        severity_number: 9,
+        severity_text: 'INFO',
+        body: 'Existing log survives failure',
+      }),
+    })
+    expect(initialLog.status).toBe(201)
+    const wrongAuthorization = `Bearer ${await token('feedback-wrong-secret-at-least-32-bytes')}`
+    await page.route('**/jobs?**', (route) =>
+      route.continue({
+        headers: { ...route.request().headers(), authorization: wrongAuthorization },
+      })
+    )
+    await page.goto(`/jobs/${jobId}`)
+    await expect(page.getByText('Unable to load this job.', { exact: true })).toBeVisible()
+    await expect(page.getByRole('status', { name: 'Loading...' })).toHaveCount(0)
+    await page.unroute('**/jobs?**')
+
+    const pendingLogs = new Promise<void>((resolve) => {
+      releaseLogs = resolve
+    })
+    let logReads = 0
+    let rejectLogs = true
+    await page.route('**/logs?**', async (route) => {
+      logReads++
+      if (logReads > 1 && rejectLogs) {
+        await pendingLogs
+        await route.continue({
+          headers: { ...route.request().headers(), authorization: wrongAuthorization },
+        })
+      } else await route.continue()
+    })
+    await page.getByRole('button', { name: 'Retry', exact: true }).click()
+    const logs = page.locator('.logs-viewer')
+    await expect(logs.getByText('Existing log survives failure')).toBeVisible()
+    await expect(logs.getByText('Updating automatically')).toBeVisible()
+    await expect(logs.getByRole('status')).toHaveCount(0)
+    await expect.poll(() => logReads).toBe(2)
+    await expect(logs.getByRole('status', { name: 'Loading logs…' })).toBeVisible()
+    releaseLogs()
+    await expect(logs.getByText('Unable to load logs.')).toBeVisible()
+    await expect(logs.getByText('Existing log survives failure')).toBeVisible()
+    await expect(logs.getByRole('status')).toHaveCount(0)
+    rejectLogs = false
+    await logs.getByRole('button', { name: 'Retry', exact: true }).click()
+    await expect(logs.getByText('Updating automatically')).toBeVisible()
+    await expect(logs.getByText('Existing log survives failure')).toHaveCount(1)
+    await page.goto('/jobs/-1')
+    await expect(page.getByText('Job not found', { exact: true })).toBeVisible()
+    await expect(page.getByRole('status', { name: 'Loading...' })).toHaveCount(0)
+  } finally {
+    releaseLogs?.()
+    if (jobId !== undefined) {
+      await fetch(`${postgrestUrl}logs?trace_id=eq.job.${jobId}`, { method: 'DELETE', headers })
+      await fetch(`${postgrestUrl}jobs?id=eq.${jobId}`, { method: 'DELETE', headers })
+    }
+    await fetch(`${postgrestUrl}job_types?id=eq.${type}`, { method: 'DELETE', headers })
+  }
+})
+
+test('Source titles follow saved names across navigation and refresh', async ({ page }) => {
+  const authorization = `Bearer ${await token()}`
+  const headers = { Authorization: authorization, 'Content-Type': 'application/json' }
+  const type = `e2e.title.${crypto.randomUUID()}`
+  const initialName = 'Title history source'
+  const savedName = 'Renamed title history source'
+  const createdType = await fetch(`${postgrestUrl}sources_types`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      id: type,
+      description: 'Source title regression',
+      config_schema: { type: 'object', properties: {} },
+      collect_config_schema: { type: 'object', properties: {} },
+    }),
+  })
+  expect(createdType.status).toBe(201)
+  let sourceId: number | undefined
+  try {
+    const created = await fetch(`${postgrestUrl}sources`, {
+      method: 'POST',
+      headers: { ...headers, Prefer: 'return=representation' },
+      body: JSON.stringify({ type, nickname: initialName, config: {} }),
+    })
+    expect(created.status).toBe(201)
+    const [source] = await created.json()
+    sourceId = source.id
+    await page.goto('/sources')
+    await expect(page).toHaveTitle('Sources - InKCre')
+    await page.getByRole('link', { name: initialName, exact: true }).click()
+    await expect(page).toHaveTitle(`${initialName} - Sources - InKCre`)
+    await page.getByLabel('Nickname', { exact: true }).fill(savedName)
+    const save = page.getByRole('button', { name: 'Save', exact: true })
+    await expect(save).toBeEnabled()
+    await expect(page).toHaveTitle(`${initialName} - Sources - InKCre`)
+    await save.click()
+    await expect(
+      page.getByRole('region', { name: 'Edit Config', exact: true }).getByRole('status')
+    ).toHaveText('Changes saved.')
+    await expect(page).toHaveTitle(`${savedName} - Sources - InKCre`)
+    await page.getByRole('link', { name: 'Sources', exact: true }).click()
+    await expect(page).toHaveTitle('Sources - InKCre')
+    await page.goBack()
+    await expect(page).toHaveURL(new RegExp(`/sources/${sourceId}$`))
+    await expect(page).toHaveTitle(`${savedName} - Sources - InKCre`)
+    await page.reload()
+    await expect(page).toHaveTitle(`${savedName} - Sources - InKCre`)
+    await expect(page.getByLabel('Nickname', { exact: true })).toHaveValue(savedName)
+  } finally {
+    if (sourceId !== undefined) {
+      const removedSource = await fetch(`${postgrestUrl}sources?id=eq.${sourceId}`, {
+        method: 'DELETE',
+        headers,
+      })
+      expect(removedSource.status).toBe(204)
+    }
+    const removedType = await fetch(`${postgrestUrl}sources_types?id=eq.${type}`, {
+      method: 'DELETE',
+      headers,
+    })
+    expect(removedType.status).toBe(204)
   }
 })

@@ -16,4 +16,18 @@
     flex-direction: column;
     gap: sys-var(space, sm);
   }
+  &__skeleton {
+    display: grid;
+    gap: sys-var(space, md);
+    padding: sys-var(space, lg) sys-var(space, md);
+    border: 1px solid sys-var(color, border, subtle);
+  }
+  &__error {
+    display: grid;
+    justify-items: start;
+    gap: sys-var(space, sm);
+    p {
+      margin: 0;
+    }
+  }
 }

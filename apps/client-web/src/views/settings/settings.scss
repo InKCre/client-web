@@ -7,47 +7,34 @@
   gap: sys-var('space', 'lg');
   overflow-y: auto;
 
-  &__title {
-    @include apply-font(title-lg);
+  h2 {
+    @include apply-font(title-sm);
     margin: 0;
     color: sys-var('color', 'text', 'base');
   }
 
-  &__form {
+  &__form,
+  &__section {
     display: flex;
     flex-direction: column;
     gap: sys-var('space', 'md');
+    width: 100%;
+    max-inline-size: 42rem;
   }
 
-  &__export-note {
+  p {
     margin: 0;
     color: sys-var('color', 'text', 'subtle');
   }
 
-  &__locale,
   &__identity {
-    display: flex;
-    flex-direction: column;
-    gap: sys-var('space', 'xs');
-
-    select {
-      @include apply-font(body-md);
-      border-radius: sys-var(radius, none);
-      min-width: 0;
-      padding: sys-var('space', 'sm');
-      color: sys-var('color', 'text', 'base');
-      background: sys-var('color', 'surface', 'base');
-      border: 1px solid sys-var('color', 'border', 'base');
-
-      &:focus-visible {
-        outline: 2px solid sys-var(color, border, strong);
-        outline-offset: 2px;
-      }
+    @include apply-font(body-sm);
+    summary {
+      cursor: pointer;
+      margin-bottom: sys-var(space, xs);
     }
-
-    small {
-      @include apply-font(body-sm);
-      color: sys-var('color', 'text', 'subtle');
+    span {
+      margin-inline-end: sys-var(space, sm);
     }
   }
 
@@ -60,7 +47,5 @@
     display: flex;
     gap: sys-var('space', 'md');
     flex-wrap: wrap;
-    padding-top: sys-var('space', 'md');
-    border-top: 1px solid sys-var('color', 'border', 'base');
   }
 }

@@ -44,6 +44,8 @@ const versionOptions = ref<{ label: string; value: string; description?: string 
 const versionLoading = ref(false)
 const versionError = ref<string | null>(null)
 const documentation = shallowRef<ExtensionDocumentationLink[]>([])
+const documentationOpen = ref(false)
+const documentationRetry = ref(0)
 const documentationStatus = ref<'loading' | 'available' | 'missing' | 'unavailable'>('loading')
 const canSaveConfig = computed(
   () =>
@@ -52,8 +54,15 @@ const canSaveConfig = computed(
 
 // --- computed ---
 watch(
-  () => [props.extension.name, props.extension.version] as const,
-  async ([name, version], _previous, onCleanup) => {
+  () =>
+    [
+      props.extension.name,
+      props.extension.version,
+      documentationOpen.value,
+      documentationRetry.value,
+    ] as const,
+  async ([name, version, open], _previous, onCleanup) => {
+    if (!open) return
     let current = true
     onCleanup(() => {
       current = false
@@ -89,6 +98,13 @@ const eligiblePeers = computed(() =>
     const alreadyEnabled = props.extension.enabled.includes(peer.id)
     return peerAction.value === 'disable' ? alreadyEnabled : !alreadyEnabled
   })
+)
+const hasDeferredSelection = computed(() =>
+  eligiblePeers.value.some(
+    (peer) =>
+      selectedPeerIds.value.includes(peer.id) &&
+      extensionPeerControlMode(peer, props.currentPeerId, props.livePeerIds) === 'desired-state'
+  )
 )
 const peerLabel = (peer: Peer) =>
   `${peer.name} · ${peer.application_version ? `v${peer.application_version}` : t('peer.versionUnknown')}`
@@ -282,45 +298,73 @@ const onUninstall = async () => {
         @click="onSetupClick"
       />
       <InkButton @click="onEditConfigClick" :text="t('extension.editConfig')" size="sm" />
-      <InkButton
-        @click="onChangeVersionClick"
-        :text="t('extension.changeVersion')"
-        size="sm"
-        :disabled="extension.enabled.length > 0"
-      />
-      <InkButton
-        @click="onUninstall"
-        :text="t('extension.uninstall')"
-        theme="danger"
-        size="sm"
-        :disabled="!canUninstall"
-        :is-loading="isUninstalling"
-      />
     </div>
-
-    <p v-if="extension.enabled.length > 0" class="extension-card__hint">
+    <p class="extension-card__hint">
       {{ t('extension.enabledPeerCount', { count: extension.enabled.length }) }}
-      {{ t('extension.uninstallDisabled') }}
     </p>
-    <p v-if="operationError" class="extension-card__error">{{ operationError }}</p>
-    <nav
-      v-if="documentation.length"
-      class="extension-card__actions"
-      :aria-label="t('extension.documentation')"
+    <details class="extension-card__details">
+      <summary>{{ t('extension.versionAndRemoval') }}</summary>
+      <div class="extension-card__actions">
+        <InkButton
+          @click="onChangeVersionClick"
+          :text="t('extension.changeVersion')"
+          size="sm"
+          :disabled="extension.enabled.length > 0"
+        />
+        <InkButton
+          @click="onUninstall"
+          :text="t('extension.uninstall')"
+          theme="danger"
+          size="sm"
+          :disabled="!canUninstall"
+          :is-loading="isUninstalling"
+        />
+      </div>
+
+      <p v-if="extension.enabled.length > 0" class="extension-card__hint">
+        {{ t('extension.uninstallDisabled') }}
+      </p>
+    </details>
+    <p v-if="operationError" role="alert" class="extension-card__error">{{ operationError }}</p>
+    <details
+      class="extension-card__details"
+      @toggle="documentationOpen = ($event.target as HTMLDetailsElement).open"
     >
-      <a
-        v-for="link in documentation"
-        :key="link.scope"
-        :href="link.entry_url"
-        target="_blank"
-        rel="noopener noreferrer"
+      <summary>{{ t('extension.documentation') }}</summary>
+      <InkLoading
+        v-if="documentationStatus === 'loading'"
+        variant="spinner"
+        size="xs"
+        :label="t('common.loading')"
+      />
+      <nav
+        v-else-if="documentation.length"
+        class="extension-card__actions"
+        :aria-label="t('extension.documentation')"
       >
-        {{ t(`extension.documentationScope.${link.scope}`) }}
-      </a>
-    </nav>
-    <p v-else-if="documentationStatus === 'unavailable'" class="extension-card__hint">
-      {{ t('extension.documentationUnavailable') }}
-    </p>
+        <a
+          v-for="link in documentation"
+          :key="link.scope"
+          :href="link.entry_url"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {{ t(`extension.documentationScope.${link.scope}`) }}
+        </a>
+      </nav>
+      <p v-else-if="documentationStatus === 'unavailable'" class="extension-card__hint">
+        {{ t('extension.documentationUnavailable') }}
+      </p>
+      <p v-else-if="documentationStatus === 'missing'" class="extension-card__hint">
+        {{ t('extension.documentationMissing') }}
+      </p>
+      <InkButton
+        v-if="documentationStatus === 'unavailable'"
+        :text="t('common.retry')"
+        size="sm"
+        @click="documentationRetry++"
+      />
+    </details>
 
     <InkDialog
       v-model="peerDialogOpen"
@@ -357,6 +401,9 @@ const onUninstall = async () => {
           </span>
         </label>
       </div>
+      <p v-if="hasDeferredSelection" class="extension-card__hint">
+        {{ t('extension.desiredStateExplanation') }}
+      </p>
       <p v-for="error in peerActionErrors" :key="error" role="alert" class="extension-card__error">
         {{ error }}
       </p>
@@ -420,7 +467,9 @@ const onUninstall = async () => {
       :show-confirm="!versionLoading && !versionError && versionOptions.length > 0"
       @confirm="onConfirmVersion"
     >
-      <div v-if="versionLoading" class="extension-card__loading"><InkLoading size="sm" /></div>
+      <div v-if="versionLoading" class="extension-card__loading">
+        <InkLoading variant="spinner" size="xs" :label="t('extension.versionsLoading')" />
+      </div>
       <InkDropdown
         v-else
         v-model="versionModel"
@@ -429,6 +478,12 @@ const onUninstall = async () => {
         :error="versionError ?? ''"
         :disabled="!!versionError"
         required
+      />
+      <InkButton
+        v-if="versionError"
+        :text="t('common.retry')"
+        size="sm"
+        @click="onChangeVersionClick"
       />
       <p v-if="operationError" role="alert" class="extension-card__error">{{ operationError }}</p>
     </InkDialog>

@@ -5,7 +5,7 @@
   align-self: stretch;
   gap: sys-var(space, lg);
   min-width: 0;
-  padding: clamp(16px, 4vw, 32px);
+  padding: clamp(1rem, 4vw, 2rem);
   overflow-y: auto;
   box-sizing: border-box;
   background: sys-var(color, surface, base);
@@ -16,16 +16,9 @@
     align-items: end;
     justify-content: space-between;
     gap: sys-var(space, md);
-    border-bottom: 1px solid sys-var(color, border, subtle);
-
-    h1 {
-      @include apply-font(title-lg);
-      margin: 0 0 sys-var(space, sm);
-    }
   }
 
   &__browse-link {
-    margin-bottom: sys-var(space, sm);
     white-space: nowrap;
   }
 
@@ -77,10 +70,14 @@
     min-width: 0;
   }
 
-  &__loading {
+  &__skeleton {
     display: grid;
-    min-height: 10rem;
-    place-items: center;
+    gap: sys-var(space, md);
+    width: 100%;
+    box-sizing: border-box;
+    padding: sys-var(space, lg) sys-var(space, md);
+    margin-bottom: sys-var(space, md);
+    border: 1px solid sys-var(color, border, subtle);
   }
 
   &__notice,

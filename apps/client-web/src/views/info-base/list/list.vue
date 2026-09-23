@@ -2,7 +2,7 @@
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import { InkButton, InkLoading } from '@inkcre/ui-web'
+import { InkButton, InkSkeleton } from '@inkcre/ui-web'
 import {
   getInfoBaseRouter,
   LexicalRetrievalManager,
@@ -81,7 +81,6 @@ function refresh(): void {
 <template>
   <main class="info-base-list-view">
     <header class="info-base-list-view__hero">
-      <p class="info-base-list-view__eyebrow">{{ t('infoBase.list.eyebrow') }}</p>
       <h1>{{ t('infoBase.list.title') }}</h1>
       <form class="info-base-list-view__search" @submit.prevent="search">
         <input
@@ -91,39 +90,64 @@ function refresh(): void {
           :placeholder="t('infoBase.list.searchPlaceholder')"
           autocomplete="off"
         />
-        <InkButton :text="t('infoBase.list.search')" theme="primary" native-type="submit" />
+        <InkButton
+          :text="t('infoBase.list.search')"
+          theme="primary"
+          native-type="submit"
+          :is-loading="status === 'loading'"
+        />
       </form>
+      <details class="info-base-list-view__help">
+        <summary>{{ t('infoBase.list.help') }}</summary>
+        <p>{{ t('infoBase.list.idle') }}</p>
+      </details>
     </header>
 
     <section class="info-base-list-view__results" aria-live="polite">
-      <div v-if="status === 'idle'" class="info-base-list-view__state">
-        <p>{{ t('infoBase.list.idle') }}</p>
-      </div>
-      <div v-else-if="status === 'loading'" class="info-base-list-view__state">
-        <InkLoading />
+      <div
+        v-if="status === 'loading'"
+        class="info-base-list-view__skeletons"
+        :aria-label="t('common.loading')"
+      >
+        <div
+          v-for="index in 3"
+          :key="index"
+          class="info-base-list-view__skeleton"
+          aria-hidden="true"
+        >
+          <InkSkeleton style="width: 40%" /><InkSkeleton style="width: 80%" />
+        </div>
       </div>
       <div v-else-if="status === 'error'" class="info-base-list-view__state">
         <p>{{ t('infoBase.list.error') }}</p>
-        <small>{{ error?.message }}</small>
+        <details>
+          <summary>{{ t('common.errorDetails') }}</summary>
+          {{ error?.message }}
+        </details>
         <InkButton :text="t('infoBase.list.retry')" theme="subtle" @click="refresh" />
       </div>
-      <div v-else-if="matches.length === 0" class="info-base-list-view__state">
+      <div
+        v-else-if="status === 'success' && matches.length === 0"
+        class="info-base-list-view__state"
+      >
         <p>{{ t('infoBase.list.empty', { query: routeQuery }) }}</p>
       </div>
-      <ol v-else class="info-base-list-view__matches">
+      <ol v-else-if="matches.length" class="info-base-list-view__matches">
         <li v-for="match in matches" :key="match.block.id">
           <button type="button" class="info-base-list-view__match" @click="inspect(match)">
             <span class="info-base-list-view__match-heading">
               <strong>{{ match.label }}</strong>
-              <span>#{{ match.block.id }}</span>
             </span>
             <span class="info-base-list-view__excerpt">{{ match.excerpt }}</span>
             <span class="info-base-list-view__evidence">
-              <code>{{ match.block.resolver }}</code>
               <span>{{ t(`infoBase.list.evidence.${match.evidence}`) }}</span>
-              <span>{{ formatRank(match.rank) }}</span>
             </span>
           </button>
+          <details class="info-base-list-view__match-details">
+            <summary>{{ t('common.details') }}</summary>
+            <span>#{{ match.block.id }} · </span><code>{{ match.block.resolver }}</code
+            ><span> · {{ formatRank(match.rank) }}</span>
+          </details>
         </li>
       </ol>
     </section>

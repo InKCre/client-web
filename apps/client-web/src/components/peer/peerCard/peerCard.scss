@@ -51,24 +51,27 @@
     gap: sys-var(space, xs);
   }
 
+  &__details {
+    @include apply-font(body-sm);
+    max-width: 100%;
+    summary {
+      cursor: pointer;
+    }
+    p {
+      margin: sys-var(space, xs) 0;
+    }
+    pre {
+      max-width: 100%;
+      overflow-x: auto;
+    }
+  }
+
   &__item-status {
     @include apply-font(label-md);
     padding: sys-var(space, xs) sys-var(space, sm);
     border-radius: sys-var(radius, none);
 
-    &--online {
-      background-color: sys-var(color, surface, subtle);
-      color: sys-var(color, feedback, success);
-    }
-
-    &--offline {
-      background-color: sys-var(color, surface, subtle);
-      color: sys-var(color, feedback, error);
-    }
-
-    &--unknown {
-      background-color: sys-var(color, surface, subtle);
-      color: sys-var(color, text, subtle);
-    }
+    background-color: sys-var(color, surface, subtle);
+    color: sys-var(color, text, subtle);
   }
 }

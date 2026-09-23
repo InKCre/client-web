@@ -12,12 +12,27 @@
     margin-inline: auto;
   }
 
-  &__eyebrow {
-    @include apply-font(label-md);
+  &__help,
+  &__match-details {
+    @include apply-font(body-sm);
     color: sys-var(color, text, subtle);
-    margin: 0 0 sys-var(space, sm);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    margin-top: sys-var(space, sm);
+    summary {
+      cursor: pointer;
+    }
+    p {
+      margin: sys-var(space, sm) 0;
+    }
+  }
+  &__skeletons {
+    display: grid;
+    gap: sys-var(space, md);
+  }
+  &__skeleton {
+    display: grid;
+    gap: sys-var(space, md);
+    padding: sys-var(space, lg) sys-var(space, md);
+    border: 1px solid sys-var(color, border, subtle);
   }
 
   h1 {

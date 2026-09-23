@@ -4,7 +4,7 @@
   gap: sys-var(space, lg);
   flex: 1;
   min-width: 0;
-  padding: clamp(16px, 4vw, 32px);
+  padding: clamp(1rem, 4vw, 2rem);
   background: sys-var(color, surface, base);
   overflow-y: auto;
   &__header {
@@ -14,9 +14,15 @@
     justify-content: space-between;
     gap: sys-var(space, md);
   }
-  h1 {
-    @include apply-font(title-lg);
-    margin: 0;
+  &__skeletons {
+    display: grid;
+    gap: sys-var(space, md);
+  }
+  &__skeleton {
+    display: grid;
+    gap: sys-var(space, md);
+    padding: sys-var(space, lg) sys-var(space, md);
+    border: 1px solid sys-var(color, border, subtle);
   }
   p {
     @include apply-font(body-md);

@@ -6,6 +6,7 @@ import {
   InkDropdown,
   InkForm,
   InkButton,
+  InkLoading,
   type JsonEditorValidation,
 } from '@inkcre/ui-web'
 import SchemaConfigEditor from '@/components/schemaConfigEditor/schemaConfigEditor.vue'
@@ -83,7 +84,7 @@ defineExpose({ canSave, isDirty, readConfig, sourceTypes })
       :label="t('source.type')"
       :disabled="disabled || typesLoading"
     />
-    <p v-if="typesLoading" role="status">{{ t('source.typesLoading') }}</p>
+    <InkLoading v-if="typesLoading" variant="spinner" size="xs" :label="t('source.typesLoading')" />
     <div v-else-if="typesError" class="source-form__error">
       <p role="alert" class="text-feedback-error">{{ t('source.typesFailed') }}</p>
       <InkButton :text="t('source.retry')" theme="subtle" size="sm" @click="loadTypes()" />

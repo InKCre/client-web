@@ -2,7 +2,7 @@
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import dayjs from 'dayjs'
-import { InkButton, InkLoading, InkPopup } from '@inkcre/ui-web'
+import { InkButton, InkSkeleton, InkPopup } from '@inkcre/ui-web'
 import { Block, getInfoBaseRouter, OrganizationManager, PeerOutcomeUnknown } from '@inkcre/core'
 
 import type { BlockInspectorPopupProps } from './BlockInspectorPopup'
@@ -20,6 +20,7 @@ const error = shallowRef<Error | null>(null)
 const isRuminating = ref(false)
 const ruminationOutcome = ref<'success' | 'error' | 'outcome-unknown' | null>(null)
 let generation = 0
+const retry = ref(0)
 
 const formattedCreatedAt = computed(() =>
   block.value?.created_at ? dayjs(block.value.created_at).format('YYYY-MM-DD HH:mm') : '-'
@@ -29,8 +30,8 @@ const formattedUpdatedAt = computed(() =>
 )
 
 watch(
-  () => props.block,
-  async (blockRef) => {
+  () => [props.block, retry.value] as const,
+  async ([blockRef]) => {
     const current = ++generation
     status.value = 'loading'
     block.value = null
@@ -98,12 +99,28 @@ async function ruminate(): Promise<void> {
         />
       </header>
 
-      <div v-if="status === 'loading'" class="block-inspector-popup__state"><InkLoading /></div>
+      <div
+        v-if="status === 'loading'"
+        class="block-inspector-popup__skeleton"
+        role="status"
+        :aria-label="t('common.loading')"
+      >
+        <InkSkeleton
+          v-for="index in 4"
+          :key="index"
+          :style="{ width: index % 2 ? '40%' : '75%' }"
+        />
+      </div>
       <div v-else-if="status === 'missing'" class="block-inspector-popup__state">
         {{ t('infoBase.blockInspector.missing', { block: props.block }) }}
       </div>
       <div v-else-if="status === 'error'" class="block-inspector-popup__state">
-        {{ error?.message }}
+        <p role="alert">{{ t('infoBase.blockInspector.loadFailed') }}</p>
+        <details>
+          <summary>{{ t('common.errorDetails') }}</summary>
+          {{ error?.message }}
+        </details>
+        <InkButton :text="t('common.retry')" @click="retry++" />
       </div>
 
       <div v-else-if="block" class="block-inspector-popup__body">

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { InkForm, InkInput, InkButton, InkDoubleCheck } from '@inkcre/ui-web'
+import { InkForm, InkInput, InkButton, InkDoubleCheck, InkDropdown } from '@inkcre/ui-web'
 import { configStore, MetaConfigSchema, type MetaConfig } from '@inkcre/core'
 import { z } from 'zod'
 import { setLocale, SUPPORT_LOCALES, LOCALE_NAMES, type SupportLocale } from '@/locales'
@@ -11,18 +11,24 @@ import {
   startConfiguredWebPeerRuntime,
   stopWebPeerRuntime,
   WEB_PEER_IDENTITY,
+  refreshCurrentWebPeer,
 } from '@/core'
 
 const { t } = useI18n()
 
 const metaFormConfig = reactive<MetaConfig>({ ...configStore.metaConfig })
-const saving = ref(false)
+const pendingAction = ref<'save' | 'import' | 'reset' | null>(null)
+const feedback = ref<{
+  action: 'save' | 'import' | 'reset'
+  error: boolean
+  message: string
+} | null>(null)
 const hasConnectedConfig = computed(
   () =>
     Boolean(configStore.metaConfig.INKCRE_PGREST_URL) &&
     Boolean(configStore.metaConfig.INKCRE_JWT_SECRET)
 )
-const formBusy = computed(() => saving.value)
+const formBusy = computed(() => pendingAction.value !== null)
 const SettingsExportSchema = z.object({
   version: z.literal(2),
   metaConfig: MetaConfigSchema,
@@ -56,25 +62,36 @@ const currentLocale = computed({
 
 const onSave = async () => {
   if (formBusy.value) return
-  saving.value = true
+  pendingAction.value = 'save'
+  feedback.value = null
   try {
     const validatedMeta = MetaConfigSchema.parse(metaFormConfig)
     const runtime = await configStore.connectAndSave(validatedMeta, WEB_PEER_IDENTITY)
     adoptWebPeerRuntime(runtime)
+    void refreshCurrentWebPeer()
     Object.assign(metaFormConfig, configStore.metaConfig)
-    alert(t('settings.saveSuccess'))
+    feedback.value = { action: 'save', error: false, message: t('settings.saveSuccess') }
   } catch (error) {
     console.error('Failed to save config:', error)
-    alert('Failed to save configuration')
+    feedback.value = { action: 'save', error: true, message: t('common.saveFailed') }
   } finally {
-    saving.value = false
+    pendingAction.value = null
   }
 }
 
 const onReset = async () => {
-  await stopWebPeerRuntime()
-  await configStore.resetMeta()
-  Object.assign(metaFormConfig, configStore.metaConfig)
+  if (formBusy.value) return
+  pendingAction.value = 'reset'
+  feedback.value = null
+  try {
+    await stopWebPeerRuntime()
+    await configStore.resetMeta()
+    Object.assign(metaFormConfig, configStore.metaConfig)
+  } catch {
+    feedback.value = { action: 'reset', error: true, message: t('common.saveFailed') }
+  } finally {
+    pendingAction.value = null
+  }
 }
 
 const onExport = () => {
@@ -106,29 +123,34 @@ const onFileSelected = async (event: Event) => {
   const file = input.files?.[0]
   if (!file) return
 
-  saving.value = true
+  pendingAction.value = 'import'
+  feedback.value = null
   try {
     const imported = SettingsExportSchema.parse(JSON.parse(await file.text()))
     const runtime = await configStore.connectAndSave(imported.metaConfig, WEB_PEER_IDENTITY)
     adoptWebPeerRuntime(runtime)
+    void refreshCurrentWebPeer()
     await setLocale(imported.locale)
     Object.assign(metaFormConfig, configStore.metaConfig)
-    alert(t('settings.saveSuccess'))
+    feedback.value = { action: 'import', error: false, message: t('settings.importSuccess') }
   } catch (error) {
     console.error('Failed to import config:', error)
-    alert(t('settings.importError'))
+    feedback.value = { action: 'import', error: true, message: t('settings.importError') }
   } finally {
-    saving.value = false
+    pendingAction.value = null
   }
   input.value = ''
 }
 </script>
 
 <template>
-  <main class="settings-view">
-    <h1 class="settings-view__title">{{ t('settings.title') }}</h1>
-
-    <InkForm layout="col" class="settings-view__form" @submit="onSave">
+  <main class="settings-view" :aria-label="t('settings.title')">
+    <InkForm
+      layout="col"
+      class="settings-view__form"
+      :aria-label="t('settings.metaConfig')"
+      @submit="onSave"
+    >
       <h2 class="settings-view__section-title">
         {{ t('settings.metaConfig') }}
       </h2>
@@ -136,6 +158,7 @@ const onFileSelected = async (event: Event) => {
         v-model="metaFormConfig.INKCRE_PGREST_URL"
         :label="t('settings.pgrestUrl')"
         placeholder="https://..."
+        :disabled="formBusy"
       />
       <InkInput
         v-model="metaFormConfig.INKCRE_JWT_SECRET"
@@ -143,43 +166,72 @@ const onFileSelected = async (event: Event) => {
         native-type="password"
         autocomplete="off"
         placeholder="••••••••"
+        :disabled="formBusy"
       />
 
-      <div class="settings-view__identity">
+      <details class="settings-view__identity">
+        <summary>{{ t('settings.connectionDetails') }}</summary>
         <span>{{ t('settings.peerId') }}</span>
         <code>{{ metaFormConfig.INKCRE_PEER_ID }}</code>
-      </div>
-
-      <label class="settings-view__locale">
-        <span>{{ t('settings.languageLabel') }}</span>
-        <select v-model="currentLocale">
-          <option v-for="locale in SUPPORT_LOCALES" :key="locale" :value="locale">
-            {{ LOCALE_NAMES[locale] }}
-          </option>
-        </select>
-      </label>
+      </details>
 
       <div class="settings-view__actions">
         <InkButton
           :text="t('settings.saveConfig')"
           theme="primary"
           :disabled="formBusy"
-          :is-loading="saving"
+          :is-loading="pendingAction === 'save'"
           native-type="submit"
         />
+      </div>
+      <p
+        v-if="feedback?.action === 'save'"
+        :role="feedback.error ? 'alert' : 'status'"
+        :class="{ 'text-feedback-error': feedback.error }"
+      >
+        {{ feedback.message }}
+      </p>
+    </InkForm>
 
+    <section class="settings-view__section" :aria-label="t('settings.languageLabel')">
+      <InkDropdown
+        v-model="currentLocale"
+        :label="t('settings.languageLabel')"
+        :options="SUPPORT_LOCALES.map((locale) => ({ value: locale, label: LOCALE_NAMES[locale] }))"
+        :disabled="formBusy"
+      />
+    </section>
+
+    <section class="settings-view__section" :aria-label="t('settings.backup')">
+      <h2>{{ t('settings.backup') }}</h2>
+      <div class="settings-view__actions">
+        <InkButton :text="t('settings.exportConfig')" :disabled="formBusy" @click="onExport" />
+        <InkButton
+          :text="t('settings.importConfig')"
+          :disabled="formBusy"
+          :is-loading="pendingAction === 'import'"
+          @click="onImport"
+        />
         <InkDoubleCheck
           :title="t('settings.resetConfirmTitle')"
           :message="t('settings.resetConfirmMessage')"
           @confirm="onReset"
         >
-          <InkButton :text="t('settings.resetConfig')" theme="danger" />
+          <InkButton
+            :text="t('settings.resetConfig')"
+            theme="danger"
+            :disabled="formBusy"
+            :is-loading="pendingAction === 'reset'"
+          />
         </InkDoubleCheck>
-
-        <InkButton :text="t('settings.exportConfig')" @click="onExport" />
-        <InkButton :text="t('settings.importConfig')" :disabled="formBusy" @click="onImport" />
       </div>
-      <p class="settings-view__export-note">{{ t('settings.exportIncludesSecret') }}</p>
+      <p
+        v-if="feedback && feedback.action !== 'save'"
+        :role="feedback.error ? 'alert' : 'status'"
+        :class="{ 'text-feedback-error': feedback.error }"
+      >
+        {{ feedback.message }}
+      </p>
 
       <input
         ref="fileInput"
@@ -188,7 +240,7 @@ const onFileSelected = async (event: Event) => {
         style="display: none"
         @change="onFileSelected"
       />
-    </InkForm>
+    </section>
   </main>
 </template>
 

@@ -2,7 +2,8 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { InkButton, InkLoading, InkPlaceholder } from '@inkcre/ui-web'
+import { InkButton, InkLoading, InkSkeleton, InkPlaceholder } from '@inkcre/ui-web'
+import { usePageObjectTitle } from '@/composables/use-page-object-title'
 import { configStore, Peer, PeerManager, type InstalledExtension } from '@inkcre/core'
 import type { ReleaseRecord } from '@inkcre/extension-runtime-client-web'
 import extensionCard from '@/components/extension/extensionCard/extensionCard.vue'
@@ -31,6 +32,13 @@ const installRequested = computed(
   () => route.query.install !== undefined || route.query.version !== undefined
 )
 const installRelease = ref<ReleaseRecord | null>(null)
+usePageObjectTitle(
+  computed(() =>
+    installRequested.value && installRelease.value
+      ? `${installRelease.value.nickname || installRelease.value.name} v${installRelease.value.version}`
+      : undefined
+  )
+)
 const installLoading = ref(false)
 const installError = ref<string | null>(null)
 const installing = ref(false)
@@ -60,6 +68,7 @@ const availablePeers = computed(() =>
 )
 
 async function refreshPeers(): Promise<void> {
+  if (peersLoading.value) return
   peersLoading.value = true
   peerError.value = null
   try {
@@ -67,8 +76,6 @@ async function refreshPeers(): Promise<void> {
     peers.value = allPeers
     livePeerIds.value = new Set(livePeers.map((peer) => peer.id))
   } catch (error) {
-    peers.value = []
-    livePeerIds.value = new Set()
     peerError.value = error instanceof Error ? error.message : String(error)
   } finally {
     peersLoading.value = false
@@ -76,6 +83,7 @@ async function refreshPeers(): Promise<void> {
 }
 
 async function refreshExtensions(): Promise<void> {
+  if (extensionsLoading.value) return
   extensionsLoading.value = true
   extensionError.value = null
   try {
@@ -85,6 +93,11 @@ async function refreshExtensions(): Promise<void> {
   } finally {
     extensionsLoading.value = false
   }
+}
+
+function refreshAll(): void {
+  void refreshExtensions()
+  void refreshPeers()
 }
 
 async function loadBrowseUrl(): Promise<void> {
@@ -103,6 +116,7 @@ async function loadInstallRelease(): Promise<void> {
   const request = ++releaseRequest
   installRelease.value = null
   installError.value = null
+  installLoading.value = false
   if (!installRequested.value) return
   const name = route.query.install
   const version = route.query.version
@@ -162,19 +176,34 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="extensions-view">
+  <main class="extensions-view" :aria-label="t('extension.title')">
     <header class="extensions-view__page-header">
-      <h1>{{ t('extension.title') }}</h1>
       <a v-if="browseUrl" :href="browseUrl" class="extensions-view__browse-link">
         {{ t('extension.browseRegistry') }} ↗
       </a>
+      <InkButton
+        v-if="connected && !installRequested"
+        :text="t('common.refresh')"
+        size="sm"
+        :is-loading="extensionsLoading || peersLoading"
+        @click="refreshAll"
+      />
     </header>
     <p v-if="browseError" role="alert" class="extensions-view__error">
       {{ t('extension.registryUnavailable') }}: {{ browseError }}
     </p>
 
     <section v-if="installRequested" class="extensions-view__install">
-      <div v-if="installLoading" class="extensions-view__loading"><InkLoading /></div>
+      <div
+        v-if="installLoading"
+        class="extensions-view__skeleton"
+        role="status"
+        :aria-label="t('common.loading')"
+      >
+        <InkSkeleton style="width: 55%; height: 1.5rem" /><InkSkeleton
+          style="width: 75%"
+        /><InkSkeleton style="width: 30%" />
+      </div>
       <InkPlaceholder
         v-else-if="installError && !installRelease"
         state="error"
@@ -202,7 +231,6 @@ onMounted(() => {
         </p>
         <p v-if="installedMatch" class="extensions-view__notice">
           {{ t('extension.installedVersion', { version: installedMatch.version }) }}
-          {{ t('extension.alreadyInstalled') }}
         </p>
         <p v-else-if="!connected" class="extensions-view__notice">
           {{ t('extension.connectBeforeInstall') }}
@@ -222,7 +250,8 @@ onMounted(() => {
             :is-loading="installing"
             @click="installReleaseInDeployment"
           />
-          <RouterLink to="/extensions">{{
+          <span v-if="installing" aria-disabled="true">{{ t('common.cancel') }}</span>
+          <RouterLink v-else to="/extensions">{{
             installedMatch ? t('extension.manage') : t('common.cancel')
           }}</RouterLink>
         </div>
@@ -241,7 +270,7 @@ onMounted(() => {
 
     <template v-else>
       <section v-if="peersLoading || peerError" class="extensions-view__peer-status">
-        <InkLoading v-if="peersLoading" size="sm" />
+        <InkLoading v-if="peersLoading" variant="spinner" size="xs" :label="t('common.loading')" />
         <p v-else role="alert" class="extensions-view__error">
           {{ t('extension.peerListUnavailable', { error: peerError }) }}
         </p>
@@ -249,11 +278,17 @@ onMounted(() => {
       </section>
 
       <section class="extensions-view__list">
-        <div v-if="extensionsLoading" class="extensions-view__loading">
-          <InkLoading />
+        <div
+          v-if="extensionsLoading && !extensions.length"
+          role="status"
+          :aria-label="t('common.loading')"
+        >
+          <div v-for="index in 3" :key="index" class="extensions-view__skeleton" aria-hidden="true">
+            <InkSkeleton style="width: 40%" /><InkSkeleton style="width: 65%" />
+          </div>
         </div>
         <InkPlaceholder
-          v-else-if="extensionError"
+          v-else-if="extensionError && !extensions.length"
           state="error"
           :title="t('extension.installedUnavailable')"
           :description="extensionError"
@@ -263,7 +298,7 @@ onMounted(() => {
           </template>
         </InkPlaceholder>
         <InkPlaceholder
-          v-else-if="extensions.length === 0"
+          v-else-if="extensions.length === 0 && !extensionsLoading"
           :title="t('extension.noneInstalled')"
           :description="t('extension.noneInstalledDescription')"
         >
@@ -273,7 +308,6 @@ onMounted(() => {
         </InkPlaceholder>
         <extensionCard
           v-for="extension in extensions"
-          v-else
           :key="extension.name"
           :extension="extension"
           :peers="availablePeers"
@@ -283,6 +317,14 @@ onMounted(() => {
           @updated="updateExtension"
           @uninstalled="refreshExtensions"
         />
+        <div v-if="extensionError && extensions.length" class="extensions-view__error">
+          <p role="alert">{{ t('extension.installedUnavailable') }}</p>
+          <details>
+            <summary>{{ t('common.errorDetails') }}</summary>
+            {{ extensionError }}
+          </details>
+          <InkButton :text="t('common.retry')" size="sm" @click="refreshExtensions" />
+        </div>
       </section>
     </template>
   </main>

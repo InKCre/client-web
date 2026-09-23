@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { Z } from 'zod-class'
-import { DBAPIClient } from '../base/db-api'
+import { APIError, DBAPIClient } from '../base/db-api'
 
 export const JobStatus = {
   PENDING: 'pending',
@@ -57,7 +57,9 @@ export class Job extends Z.class({
   static dbApi = new DBAPIClient<'jobs', Job>('jobs', Job)
 
   static async get(id: JobRef): Promise<Job> {
-    return Job.parse((await this.dbApi.from().select().eq('id', id).single()).data)
+    const { data } = await this.dbApi.from().select().eq('id', id).maybeSingle().throwOnError()
+    if (!data) throw new APIError(`Job #${id} was not found.`, 404)
+    return Job.parse(data)
   }
 
   static async getAll(options: { limit?: number; status?: JobStatusValue } = {}): Promise<Job[]> {

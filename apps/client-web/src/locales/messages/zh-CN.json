@@ -1,5 +1,7 @@
 {
   "common": {
+    "details": "详情",
+    "errorDetails": "错误详情",
     "settings": "设置",
     "language": "语言",
     "save": "保存",
@@ -19,7 +21,24 @@
     "fixJsonBeforeForm": "先修正 JSON，才能切换到表单。"
   },
   "header": {
-    "brand": "第三尺寸"
+    "brand": "InKCre"
+  },
+  "navigation": {
+    "source": "数据源",
+    "job": "任务",
+    "block": "区块",
+    "relation": "关系",
+    "content": "内容",
+    "graph": "信息图"
+  },
+  "recall": {
+    "title": "查找信息",
+    "mode": "搜索模式",
+    "recall": "检索",
+    "findPath": "查找路径",
+    "pathPlaceholder": "查找路径端点",
+    "placeholder": "输入记得的线索",
+    "chooseDestination": "请选择目标 Block。"
   },
   "sidePanel": {
     "managing": "管理",
@@ -31,6 +50,9 @@
     "infoBase": "信息库"
   },
   "settings": {
+    "connectionDetails": "连接详情",
+    "backup": "备份与恢复",
+    "importSuccess": "配置已恢复。",
     "title": "设置",
     "metaConfig": "连接",
     "pgrestUrl": "PostgreSQL REST 地址",
@@ -45,8 +67,7 @@
     "resetConfirmMessage": "确定要重置所有设置为默认值吗？此操作无法撤销。",
     "exportConfig": "导出",
     "importConfig": "导入",
-    "importError": "导入配置失败，请检查文件格式。",
-    "exportIncludesSecret": "包含连接、Peer ID、JWT 密钥和语言。"
+    "importError": "无法恢复配置，请检查文件及部署连接。"
   },
   "source": {
     "deleteConfirmTitle": "删除数据源",
@@ -107,6 +128,10 @@
     "typeUnavailable": "当前数据源类型不可用，请检查已安装的扩展或选择可用类型。"
   },
   "extension": {
+    "versionAndRemoval": "版本与卸载",
+    "versionsLoading": "正在读取版本…",
+    "documentationMissing": "此版本尚未发布文档。",
+    "desiredStateExplanation": "所选 Peer 将在下次同步时应用此修改。",
     "title": "扩展",
     "installed": "已安装",
     "browseRegistry": "浏览 Registry",
@@ -128,7 +153,6 @@
     "hostWeb": "Web",
     "install": "安装",
     "installedVersion": "已安装 v{version}",
-    "alreadyInstalled": "此扩展已安装。",
     "manage": "管理",
     "version": "版本",
     "editConfig": "编辑配置",
@@ -145,7 +169,7 @@
     "enableSelected": "在所选 Peer 上启用",
     "disableSelected": "在所选 Peer 上停用",
     "currentBrowser": "当前浏览器",
-    "desiredStateBrief": "下次协调状态时生效",
+    "desiredStateBrief": "等待 Peer 同步",
     "peerListUnavailable": "无法加载 Peer 列表：{error}",
     "installedUnavailable": "无法读取已安装扩展",
     "noneInstalled": "还没有安装扩展",
@@ -154,6 +178,8 @@
     "uninstallDisabled": "卸载或变更共享版本前，必须先禁用所有 Peer。"
   },
   "job": {
+    "loadFailed": "无法读取此任务。",
+    "sourceLoadFailed": "无法读取来源。",
     "title": "任务详情",
     "jobId": "任务 ID",
     "status": "状态",
@@ -172,6 +198,9 @@
     "sourceNotFound": "未找到数据源"
   },
   "logs": {
+    "loading": "正在读取日志…",
+    "autoUpdating": "自动更新中",
+    "loadFailed": "无法读取日志。",
     "title": "日志",
     "empty": "暂无日志"
   },
@@ -195,8 +224,9 @@
     "deleteFailed": "无法删除该 Peer，请重试。"
   },
   "infoBase": {
+    "relationLoadFailed": "无法读取此关系。",
     "list": {
-      "eyebrow": "文本特征回忆",
+      "help": "搜索说明",
       "title": "找回你记得的信息。",
       "searchLabel": "检索信息库",
       "searchPlaceholder": "一句话、名称、文件名，或仍有印象的细节……",
@@ -213,6 +243,7 @@
       }
     },
     "blockInspector": {
+      "loadFailed": "无法读取此区块。",
       "title": "区块检查器",
       "id": "ID",
       "resolver": "解析器",

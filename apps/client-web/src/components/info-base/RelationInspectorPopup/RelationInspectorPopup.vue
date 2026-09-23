@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { InkButton, InkLoading, InkPopup } from '@inkcre/ui-web'
+import { InkButton, InkSkeleton, InkPopup } from '@inkcre/ui-web'
 import { getInfoBaseRouter, Relation } from '@inkcre/core'
 
 import type { RelationInspectorPopupProps } from './RelationInspectorPopup'
@@ -12,10 +12,11 @@ const { t } = useI18n()
 const status = ref<'loading' | 'success' | 'missing' | 'error'>('loading')
 const relation = shallowRef<Relation | null>(null)
 let generation = 0
+const retry = ref(0)
 
 watch(
-  () => props.relation,
-  async (relationRef) => {
+  () => [props.relation, retry.value] as const,
+  async ([relationRef]) => {
     const current = ++generation
     status.value = 'loading'
     relation.value = null
@@ -58,9 +59,23 @@ function close(): void {
           @click="close"
         />
       </header>
-      <InkLoading v-if="status === 'loading'" />
+      <div
+        v-if="status === 'loading'"
+        class="relation-inspector-popup__skeleton"
+        role="status"
+        :aria-label="t('common.loading')"
+      >
+        <InkSkeleton
+          v-for="index in 3"
+          :key="index"
+          :style="{ width: index % 2 ? '50%' : '75%' }"
+        />
+      </div>
       <p v-else-if="status === 'missing'">This Relation no longer exists.</p>
-      <p v-else-if="status === 'error'">Unable to load this Relation.</p>
+      <div v-else-if="status === 'error'">
+        <p role="alert">{{ t('infoBase.relationLoadFailed') }}</p>
+        <InkButton :text="t('common.retry')" @click="retry++" />
+      </div>
       <dl v-else-if="relation">
         <dt>From</dt>
         <dd>
@@ -99,9 +114,14 @@ function close(): void {
   dl {
     display: grid;
     grid-template-columns: fit-content(30%) minmax(0, 1fr);
-    gap: 8px 16px;
+    gap: sys-var(space, sm) sys-var(space, md);
   }
-  button {
+  &__skeleton {
+    display: grid;
+    gap: sys-var(space, md);
+    padding-block: sys-var(space, lg);
+  }
+  dd button {
     padding: 0;
     border: 0;
     background: transparent;

@@ -10,6 +10,7 @@ import {
 import { useI18n } from 'vue-i18n'
 import {
   InkLoading,
+  InkSkeleton,
   InkButton,
   InkDialog,
   InkPopup,
@@ -22,12 +23,18 @@ import {
 import SourceForm from '@/components/source/sourceForm/sourceForm.vue'
 import JobCard from '@/components/job/JobCard/JobCard.vue'
 import { Cron, CronForm, Job, JobManager, Source } from '@inkcre/core'
+import { usePageObjectTitle } from '@/composables/use-page-object-title'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const sourceId = computed(() => Number(route.params.id))
 const source = ref<Source | null>(null)
+usePageObjectTitle(
+  computed(() =>
+    source.value?.id === sourceId.value ? source.value.nickname || undefined : undefined
+  )
+)
 const draft = ref<Source | null>(null)
 const editor = useTemplateRef('editor')
 const sourceLoading = ref(false)
@@ -305,7 +312,14 @@ async function onDeleteCron() {
     <RouterLink :to="{ path: '/sources', hash: `#source-${sourceId}` }" class="source-view__back">{{
       t('sidePanel.sources')
     }}</RouterLink>
-    <div v-if="sourceLoading"><InkLoading />{{ t('common.loading') }}</div>
+    <div
+      v-if="sourceLoading"
+      class="source-view__skeleton"
+      role="status"
+      :aria-label="t('common.loading')"
+    >
+      <InkSkeleton style="width: 40%; height: 1.5rem" /><InkSkeleton style="width: 65%" />
+    </div>
     <div v-else-if="sourceLoadError" class="source-view__feedback">
       <p role="alert" class="text-feedback-error">{{ t('source.detailFailed') }}</p>
       <InkButton :text="t('source.retry')" theme="subtle" @click="loadSource" />
@@ -354,7 +368,12 @@ async function onDeleteCron() {
                 @click="onNewCron"
               />
             </div>
-            <p v-if="cronsLoading" role="status">{{ t('common.loading') }}</p>
+            <InkLoading
+              v-if="cronsLoading"
+              variant="spinner"
+              size="xs"
+              :label="t('common.loading')"
+            />
             <div v-else-if="cronsError" class="source-view__feedback">
               <p role="alert" class="text-feedback-error">{{ t('source.schedulesFailed') }}</p>
               <InkButton :text="t('source.retry')" theme="subtle" size="sm" @click="loadCrons" />
@@ -394,7 +413,12 @@ async function onDeleteCron() {
                 @click="onNewJob"
               />
             </div>
-            <p v-if="jobsLoading" role="status">{{ t('source.jobsLoading') }}</p>
+            <InkLoading
+              v-if="jobsLoading"
+              variant="spinner"
+              size="xs"
+              :label="t('source.jobsLoading')"
+            />
             <div v-else-if="jobsError" class="source-view__feedback">
               <p role="alert" class="text-feedback-error">{{ t('source.jobsFailed') }}</p>
               <InkButton :text="t('source.retry')" theme="subtle" size="sm" @click="loadJobs" />
