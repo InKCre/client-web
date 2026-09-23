@@ -1,10 +1,4 @@
-import {
-  InstallExtensionInputSchema,
-  ExtensionModel,
-  Peer,
-  type InstalledExtension,
-  type InstallExtensionInput,
-} from '@inkcre/core'
+import { ExtensionModel, Peer, type InstalledExtension } from '@inkcre/core'
 import {
   EXTENSION_MANAGEMENT_CAPABILITY,
   manageExtensionOnPeer,
@@ -24,11 +18,11 @@ export function peerAdvertises(peer: Peer, capability: string): boolean {
 
 export function extensionPeerControlMode(
   peer: Peer,
-  currentPeerId: string
+  currentPeerId: string,
+  livePeerIds: ReadonlySet<string>
 ): ExtensionPeerControlMode {
   if (peer.id === currentPeerId) return 'current-runtime'
-  const live = peer.lease_expires_at !== null && peer.lease_expires_at.getTime() > Date.now()
-  return live && peerAdvertises(peer, EXTENSION_MANAGEMENT_CAPABILITY)
+  return livePeerIds.has(peer.id) && peerAdvertises(peer, EXTENSION_MANAGEMENT_CAPABILITY)
     ? 'remote-host'
     : 'desired-state'
 }
@@ -37,10 +31,11 @@ export async function setExtensionPeerEnabled(input: {
   name: string
   peer: Peer
   currentPeerId: string
+  livePeerIds: ReadonlySet<string>
   enabled: boolean
   manager: ExtensionManager
 }): Promise<InstalledExtension> {
-  const mode = extensionPeerControlMode(input.peer, input.currentPeerId)
+  const mode = extensionPeerControlMode(input.peer, input.currentPeerId, input.livePeerIds)
   if (mode === 'current-runtime') {
     return input.enabled
       ? input.manager.enable(input.name, input.currentPeerId)
@@ -57,40 +52,5 @@ export async function setExtensionPeerEnabled(input: {
   return manageExtensionOnPeer(input.peer.id, {
     action: input.enabled ? 'enable' : 'disable',
     extension: input.name,
-  })
-}
-
-/** Validate with the selected Host; a Python-only Release need not run in the browser. */
-export async function installExtensionForPeer(input: {
-  coordinate: InstallExtensionInput
-  peer: Peer
-  currentPeerId: string
-  manager: ExtensionManager
-  operation: 'install' | 'change-version'
-}): Promise<InstalledExtension> {
-  const coordinate = InstallExtensionInputSchema.parse(input.coordinate)
-  const mode = extensionPeerControlMode(input.peer, input.currentPeerId)
-  if (mode === 'current-runtime') {
-    return input.operation === 'install'
-      ? input.manager.install(coordinate)
-      : input.manager.changeVersion(coordinate.name, coordinate.version)
-  }
-  if (mode !== 'remote-host') {
-    throw new Error(
-      'Installation requires the selected Client to have a live Extension management endpoint.'
-    )
-  }
-  if (input.operation === 'install') {
-    const existing = await ExtensionModel.get(coordinate.name)
-    if (existing && existing.version !== coordinate.version) {
-      throw new Error(
-        `${coordinate.name} is already installed at ${existing.version}. Use Change Version after disabling every Peer.`
-      )
-    }
-  }
-  return manageExtensionOnPeer(input.peer.id, {
-    action: 'install',
-    extension: coordinate.name,
-    version: coordinate.version,
   })
 }

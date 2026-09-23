@@ -1,5 +1,7 @@
 {
   "common": {
+    "details": "详情",
+    "errorDetails": "错误详情",
     "settings": "设置",
     "language": "语言",
     "save": "保存",
@@ -12,31 +14,52 @@
     "saveFailed": "保存失败，请稍后重试。",
     "invalidConfig": "请输入有效的 JSON 配置对象后再保存。",
     "close": "关闭",
-    "refresh": "刷新"
+    "refresh": "刷新",
+    "retry": "重试",
+    "visual": "表单",
+    "json": "JSON",
+    "fixJsonBeforeForm": "先修正 JSON，才能切换到表单。"
+  },
+  "startup": {
+    "loading": "正在启动 InKCre…",
+    "failed": "无法启动 InKCre。请重试，或前往设置检查连接。"
   },
   "header": {
-    "brand": "第三尺寸"
+    "brand": "InKCre"
+  },
+  "navigation": {
+    "source": "数据源",
+    "job": "任务",
+    "block": "区块",
+    "relation": "关系",
+    "content": "内容",
+    "graph": "信息图"
+  },
+  "recall": {
+    "title": "查找信息",
+    "mode": "搜索模式",
+    "recall": "检索",
+    "findPath": "查找路径",
+    "pathPlaceholder": "查找路径端点",
+    "placeholder": "输入记得的线索",
+    "chooseDestination": "请选择目标 Block。"
   },
   "sidePanel": {
     "managing": "管理",
     "sources": "数据源",
     "extensions": "扩展",
+    "peers": "Peer",
     "settings": "设置",
     "explore": "探索",
     "infoBase": "信息库"
   },
   "settings": {
+    "backup": "备份与恢复",
+    "importSuccess": "配置已恢复。",
     "title": "设置",
-    "metaConfig": "运行配置",
-    "coreUrl": "核心 API 地址",
+    "metaConfig": "连接",
     "pgrestUrl": "PostgreSQL REST 地址",
-    "extensionRegistryUrl": "扩展注册表地址",
     "jwtSecret": "JWT 密钥",
-    "clientId": "客户端 ID",
-    "peerId": "客户端 ID",
-    "peerIdGenerated": "由当前浏览器来源自动生成并持久保存。",
-    "peerConfig": "客户端设置",
-    "peerConfigNotice": "配置存储在当前客户端上，并由使用同一客户端 ID 的浏览器会话共享。",
     "languageLabel": "语言",
     "languageDescription": "选择您的首选语言",
     "saveConfig": "保存",
@@ -46,11 +69,7 @@
     "resetConfirmMessage": "确定要重置所有设置为默认值吗？此操作无法撤销。",
     "exportConfig": "导出",
     "importConfig": "导入",
-    "importError": "导入配置失败，请检查文件格式。",
-    "storageNotice": "配置属于当前浏览器来源，并会在重新加载时自动恢复。",
-    "jwtStoredLocally": "仅存储在当前浏览器中，不由构建产物或托管平台提供。",
-    "exportExcludesSecret": "导出文件不包含 JWT 密钥；导入时会保留当前浏览器已存储的密钥。",
-    "language": "语言"
+    "importError": "无法恢复配置，请检查文件及部署连接。"
   },
   "source": {
     "deleteConfirmTitle": "删除数据源",
@@ -111,6 +130,13 @@
     "typeUnavailable": "当前数据源类型不可用，请检查已安装的扩展或选择可用类型。"
   },
   "extension": {
+    "versionAndRemoval": "版本与卸载",
+    "versionsLoading": "正在读取版本…",
+    "documentationMissing": "此版本尚未发布文档。",
+    "desiredStateExplanation": "所选 Peer 将在下次同步时应用此修改。",
+    "title": "扩展",
+    "installed": "已安装",
+    "browseRegistry": "浏览 Registry",
     "documentation": "扩展文档",
     "documentationScope": {
       "global": "扩展指南",
@@ -118,12 +144,19 @@
       "module-federation": "Web 指南"
     },
     "documentationUnavailable": "文档暂时不可用。",
-    "installNew": "安装扩展",
-    "installExtensionTitle": "安装新扩展",
-    "name": "扩展名称",
-    "namePlaceholder": "namespace/name，例如 inkcre/twitter",
+    "registryUnavailable": "Registry 暂时不可用",
+    "releaseUnavailable": "无法读取此扩展",
+    "invalidInstallLink": "安装链接需要包含一个扩展 ID 和一个精确版本。",
+    "connectBeforeInstall": "请先在此处连接自己的部署：",
+    "connectDeployment": "连接自己的部署",
+    "connectDeploymentDescription": "在设置中填入连接信息，即可在此管理扩展。",
+    "installScope": "安装到当前部署后，可以再选择 Peer 启用该扩展。",
+    "hostCore": "Core",
+    "hostWeb": "Web",
+    "install": "安装",
+    "installedVersion": "已安装 v{version}",
+    "manage": "管理",
     "version": "版本",
-    "versionPlaceholder": "精确版本，例如 0.1.0",
     "editConfig": "编辑配置",
     "editConfigTitle": "编辑扩展配置",
     "changeVersion": "变更版本",
@@ -131,18 +164,24 @@
     "uninstall": "卸载",
     "setup": "设置",
     "setupTitle": "设置 {name}",
-    "peerSelector": "控制扩展的客户端",
-    "peerSelectorPlaceholder": "选择客户端",
-    "installOnSelectedClient": "所选客户端负责安装与版本变更的兼容性校验。安装记录由整个实例共享；请在需要运行扩展的客户端上分别启用。",
-    "installRequiresLiveClient": "安装或变更版本需要选择在线且支持扩展管理的客户端。",
-    "peerNotFound": "所选客户端已不存在。",
+    "enableOnPeers": "启用…",
+    "disableOnPeers": "停用…",
+    "enablePeerTitle": "选择要启用 {name} 的 Peer",
+    "disablePeerTitle": "选择要停用 {name} 的 Peer",
+    "enableSelected": "在所选 Peer 上启用",
+    "disableSelected": "在所选 Peer 上停用",
     "currentBrowser": "当前浏览器",
-    "desiredStateOnly": "此客户端没有在线管理端点；操作只更新其持久启用状态，并在该客户端下次协调状态时生效。",
-    "peerListUnavailable": "无法加载客户端列表：{error}",
+    "desiredStateBrief": "等待 Peer 同步",
+    "peerListUnavailable": "无法加载 Peer 列表：{error}",
+    "installedUnavailable": "无法读取已安装扩展",
+    "noneInstalled": "还没有安装扩展",
+    "noneInstalledDescription": "浏览 Registry，选择要安装的扩展。",
     "enabledPeerCount": "已在 {count} 个 Peer 上启用。",
     "uninstallDisabled": "卸载或变更共享版本前，必须先禁用所有 Peer。"
   },
   "job": {
+    "loadFailed": "无法读取此任务。",
+    "sourceLoadFailed": "无法读取来源。",
     "title": "任务详情",
     "jobId": "任务 ID",
     "status": "状态",
@@ -161,25 +200,35 @@
     "sourceNotFound": "未找到数据源"
   },
   "logs": {
+    "loading": "正在读取日志…",
+    "autoUpdating": "自动更新中",
+    "loadFailed": "无法读取日志。",
     "title": "日志",
     "empty": "暂无日志"
   },
-  "client": {
-    "listTitle": "客户端",
+  "peer": {
+    "title": "Peer",
     "refresh": "刷新",
-    "checkHealth": "检查状态",
     "name": "名称",
     "id": "ID",
-    "restUrl": "REST API 地址",
-    "createdAt": "创建时间",
+    "current": "当前浏览器",
+    "versionUnknown": "版本未知",
+    "capabilities": "{count} 项能力",
     "statusOnline": "在线",
     "statusOffline": "离线",
     "statusUnknown": "未知",
-    "noClients": "暂无注册客户端"
+    "empty": "暂无已注册的 Peer",
+    "listFailed": "无法加载 Peer",
+    "editConfig": "编辑配置",
+    "delete": "删除 Peer",
+    "deleteConfirm": "这会从当前部署中移除该 Peer 及其扩展启用记录。若它重新连接，可能会再次注册。",
+    "deleteOnline": "请先停止该 Peer，待它离线后再删除。",
+    "deleteFailed": "无法删除该 Peer，请重试。"
   },
   "infoBase": {
+    "relationLoadFailed": "无法读取此关系。",
     "list": {
-      "eyebrow": "文本特征回忆",
+      "help": "搜索说明",
       "title": "找回你记得的信息。",
       "searchLabel": "检索信息库",
       "searchPlaceholder": "一句话、名称、文件名，或仍有印象的细节……",
@@ -196,6 +245,7 @@
       }
     },
     "blockInspector": {
+      "loadFailed": "无法读取此区块。",
       "title": "区块检查器",
       "id": "ID",
       "resolver": "解析器",

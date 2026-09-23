@@ -11,11 +11,9 @@
   padding: clamp(16px, 4vw, 32px);
   background: sys-var(color, surface, base);
 
-  &__loading {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex: 1;
+  &__skeleton-row {
+    display: grid;
+    gap: sys-var(space, sm);
   }
 
   &__error {
@@ -24,7 +22,8 @@
     gap: sys-var(space, md);
     justify-content: center;
     align-items: center;
-    flex: 1;
+    flex: 1 0 100%;
+    overflow-wrap: anywhere;
     @include apply-font(body-lg);
     color: sys-var(color, text, subtle);
   }

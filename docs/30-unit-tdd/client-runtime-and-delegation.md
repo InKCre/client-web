@@ -47,22 +47,35 @@ proof of non-execution.
 
 ## Browser Configuration and JWT
 
-Before Vue mounts, the browser initializes three bootstrap values owned by the current browser
+Before business views mount, the browser initializes three bootstrap values owned by the current browser
 origin:
 
 - PostgREST base URL;
-- current technical Peer UUID (presented as Client ID only in product-facing UI);
+- current technical Peer UUID;
 - user-owned JWT signing secret.
+
+The application root mounts immediately and shows the three-block loading indicator while Core
+initialization runs. Business views mount only after initialization succeeds. A startup failure
+replaces loading with an error and a Retry action that reloads the current URL, preserving deep-link
+parameters. Settings remains reachable during loading and after failure through a full-page
+navigation: its recovery bootstrap does not wait for the configured Peer. Neither action resets
+stored configuration or reuses a partially initialized runtime; the root does not rerun initialization
+automatically. Existing SDK transport retry behavior is unchanged.
 
 The selected Peer's database row supplies deployment configuration such as Extension Registry URL
 and Peer HTTP timeout. The static artifact contains no environment origin, Peer identity, secret,
 Worker, or runtime-config endpoint fallback.
 
-The signing secret is masked in UI, excluded from logs and portable exports, and retained only in
-browser-owned runtime state. Signed JWTs are memory-only. The auth store derives algorithm,
+The signing secret is masked during ordinary display, excluded from logs, and retained only in
+browser-owned runtime state. The explicit full-browser export includes the secret so importing it can
+restore the same connection, identity, and local preferences in another browser. Signed JWTs are memory-only. The auth store derives algorithm,
 issuer, audience, role, and maximum lifetime from the generated Peer runtime contract, regenerates
 the token when the secret changes, and clears it when the secret is removed. PostgREST JSON access,
 raw byte access, and Peer HTTP delegation reuse this single authentication authority.
+
+Web Peer registration publishes the client-web application version and a best-effort browser/version/system
+default name only when creating a new identity. Later registration refreshes runtime-owned version and schema
+without replacing the Human-owned name or Peer config.
 
 The browser Job worker starts only when a successfully connected Web Peer runtime is adopted.
 Opening an unconfigured Settings page does not start database polling. Saving or importing a valid
@@ -97,7 +110,7 @@ success. `PeerOutcomeUnknown` remains visible and does not trigger reload or aut
 
 ## Invariants
 
-- Technical contracts say **Peer** even where the product UI says **client**.
+- InKCre runtime nodes are **Peers** in technical contracts and product UI; “client” remains only for actual application or protocol client roles.
 - Database facts and capability commands remain distinct paths.
 - Exact-target routing never degrades to best-effort routing.
 - Ambiguous dispatch is never retried automatically.

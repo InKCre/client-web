@@ -1,29 +1,28 @@
 # ExtensionCard
 
-A component that displays extension information and provides controls for toggling enable/disable status and editing configuration.
+A component that displays an installed Extension and opens focused Peer selection for enablement changes.
 
 ## Props
 
 - `extension` (InstalledExtension, required): the canonical installed row
-- `enabled` (boolean, required): whether the selected Client's Peer UUID is in `enabled[]`
-- `controlsCurrentWebRuntime` (boolean, required): whether the switch owns this browser's runtime
-- `canChangeVersion` (boolean, required): whether the selected Host can validate a version change
-- `changeVersion` (function, required): application-level version change through the selected Host
-- `setEnabled` (function, required): application-level selected-Client control operation
+- `peers` (Peer[], required): available Peers, including this browser
+- `livePeerIds` (ReadonlySet<string>, required): server-evaluated online Peers used for management routing
+- `currentPeerId` (string, required): identifies this browser's running Host
+- `peerSelectionDisabled` (boolean): blocks actions while the Peer list is unavailable
 
 ## Emits
 
-- `updated`: Emitted with the canonical row after configuration or version changes
+- `updated`: Emitted with the canonical row after Peer, configuration, or version changes
 - `uninstalled`: Emitted after the canonical row is removed
 
 ## Features
 
 - Display canonical Extension Name, exact version, and optional nickname
-- Toggle enable/disable status with a switch
+- Choose one or more eligible Peers in an enable or disable dialog. Each selected Peer uses the existing current Host, remote Host, or durable-intent path. Partial failures remain visible and trigger a fresh installed-row read; no batch rollback or automatic retry occurs.
 - Mount an Extension-owned setup contribution from this browser's running Web Distribution
-- Keep setup availability independent of which Client is selected for enablement control
+- Keep setup availability independent of the Peer selection dialog; disabling this browser closes its setup surface first
 - Link the exact installed release's available global, Core, and Web documentation even when the extension is disabled or has no browser distribution; distinguish missing documentation from failed discovery
 - Edit extension configuration via JSON editor in a dialog
-- Change the exact shared version through the selected Host only while every Peer is disabled
+- Select a published Registry Release and change the exact shared version only while every Peer is disabled
 - Auto-formats configuration as JSON for easier editing
 - Prevents uninstall while any Peer remains enabled

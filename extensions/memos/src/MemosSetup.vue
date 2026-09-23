@@ -45,7 +45,10 @@ const savedToken = computed(() => (extension.value ? personalAccessToken(extensi
 const enabled = computed(() => extension.value?.enabled.includes(selected.value) ?? false)
 const ready = computed(() => loaded.value && address.value && savedToken.value && enabled.value)
 const options = computed(() =>
-  peers.value.map((candidate) => ({ label: candidate.name, value: candidate.id }))
+  peers.value.map((candidate) => ({
+    label: `${candidate.name} · ${candidate.application_version ? `v${candidate.application_version}` : tr('version unknown', '版本未知')}`,
+    value: candidate.id,
+  }))
 )
 
 async function loadHelp(version: string) {
@@ -70,8 +73,8 @@ async function loadAddress() {
     error.value =
       cause instanceof MemosConnectionError && cause.status === 409
         ? tr(
-            'PAT saved and Memos enabled. Set this Core’s Public HTTP Base URL in Clients → Config, then refresh.',
-            'PAT 已保存，Memos 已启用。请在 Clients → Config 设置此 Core 的公共 HTTP 基址，再刷新。'
+            'PAT saved and Memos enabled. Set this Core’s Public HTTP Base URL in Peers → Edit Config, then refresh.',
+            'PAT 已保存，Memos 已启用。请在 Peer → 编辑配置中设置此 Core 的公共 HTTP 基址，再刷新。'
           )
         : tr(
             'PAT saved and Memos enabled, but its address is unavailable. Check Core and refresh.',
@@ -226,7 +229,14 @@ onMounted(refresh)
           required
           @change="selectPeer"
         />
-        <p v-else>Core: {{ peer.name }}</p>
+        <p v-else>
+          Core: {{ peer.name }} ·
+          {{
+            peer.application_version
+              ? `v${peer.application_version}`
+              : tr('version unknown', '版本未知')
+          }}
+        </p>
         <InkButton
           v-if="!ready"
           native-type="submit"

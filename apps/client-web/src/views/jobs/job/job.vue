@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { computed, ref, watch, onUnmounted } from 'vue'
+import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useAsyncState } from '@vueuse/core'
-import { useEAsyncState } from '@/composables/use-async-state'
-import { InkLoading, InkButton, InkField } from '@inkcre/ui-web'
+import { useAsyncState, useIntervalFn } from '@vueuse/core'
+import { InkLoading, InkButton, InkField, InkSkeleton } from '@inkcre/ui-web'
 import LogsViewer from '@/components/obsrv/LogsViewer/LogsViewer.vue'
-import { Job, JobStatus, Source } from '@inkcre/core'
+import { APIError, Job, JobStatus, Source } from '@inkcre/core'
 import dayjs from 'dayjs'
 
 const route = useRoute()
@@ -15,21 +14,26 @@ const { t } = useI18n()
 // --- data ---
 const jobId = computed(() => Number(route.params.id))
 const pollingInterval = computed(() => (isRunning.value ? 1500 : 5000))
-const jobPollingIntervalId = ref<ReturnType<typeof setInterval> | null>(null)
 
 const {
   state: job,
   isLoading: jobLoading,
-  execute: refetchJob,
-} = useEAsyncState(() => Job.get(jobId.value), null, {
-  immediate: true,
-  useLast: true,
+  error: jobError,
+  executeImmediate: refetchJob,
+} = useAsyncState(() => Job.get(jobId.value), null, {
+  immediate: false,
+  resetOnExecute: false,
+  onError: () => {},
 })
+const jobMissing = computed(
+  () => jobError.value instanceof APIError && jobError.value.status === 404
+)
 
 const {
   state: source,
-  execute: refetchSource,
+  executeImmediate: refetchSource,
   isLoading: sourceLoading,
+  error: sourceError,
 } = useAsyncState(
   async () => {
     const sourceRef = job.value?.parameters.source
@@ -39,7 +43,7 @@ const {
     return null
   },
   null,
-  { shallow: false }
+  { immediate: false, onError: () => {} }
 )
 
 // --- logs ---
@@ -77,68 +81,62 @@ const formatDate = (date: Date | null) => {
 // --- watchers ---
 watch(
   () => job.value?.parameters.source,
-  (newSourceId) => {
-    if (newSourceId) {
-      refetchSource()
-    }
-  },
+  () => void refetchSource(),
   { immediate: true }
 )
 
-watch(
-  [() => job.value?.status, () => job.value?.isTerminal],
-  ([newStatus]) => {
-    if (!newStatus || job.value?.isTerminal) {
-      // Clear polling when job reaches final state or status becomes null
-      if (jobPollingIntervalId.value) {
-        clearInterval(jobPollingIntervalId.value)
-        jobPollingIntervalId.value = null
-      }
-      return
-    }
-
-    // Start polling if not already running
-    if (!jobPollingIntervalId.value) {
-      jobPollingIntervalId.value = setInterval(() => {
-        refetchJob()
-      }, pollingInterval.value)
-    }
+const { pause: pausePolling, resume: resumePolling } = useIntervalFn(
+  () => {
+    if (!jobLoading.value) void refetchJob()
   },
-  { immediate: true }
+  pollingInterval,
+  { immediate: false }
 )
 
-watch(
-  () => pollingInterval.value,
-  (newInterval) => {
-    // Update interval if polling is active and not in final state
-    if (jobPollingIntervalId.value && !job.value?.isTerminal) {
-      clearInterval(jobPollingIntervalId.value)
-      jobPollingIntervalId.value = setInterval(() => {
-        refetchJob()
-      }, newInterval)
-    }
-  }
-)
-
-// Clean up interval on component unmount
-onUnmounted(() => {
-  if (jobPollingIntervalId.value) {
-    clearInterval(jobPollingIntervalId.value)
-  }
+watch([job, jobError], () => {
+  if (job.value && !job.value.isTerminal && !jobError.value) resumePolling()
+  else pausePolling()
 })
+
+watch(
+  jobId,
+  () => {
+    job.value = null
+    void refetchJob()
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
-  <main class="job-view">
-    <div v-if="!job" class="job-view__loading">
-      <InkLoading />
+  <main class="job-view" :aria-label="`${t('navigation.job')} #${jobId}`">
+    <div
+      v-if="jobLoading && !job"
+      class="job-view__metadata"
+      role="status"
+      :aria-label="t('common.loading')"
+    >
+      <InkSkeleton style="width: 45%; height: 1.5rem" />
+      <div v-for="index in 6" :key="index" class="job-view__skeleton-row">
+        <InkSkeleton style="width: 25%" />
+        <InkSkeleton style="width: 65%" />
+      </div>
+    </div>
+    <div v-if="jobError" class="job-view__error" role="alert">
+      <span>{{ jobMissing ? t('job.notFound') : t('job.loadFailed') }}</span>
+      <details v-if="!jobMissing">
+        <summary>{{ t('common.errorDetails') }}</summary>
+        <p>{{ jobError instanceof Error ? jobError.message : String(jobError) }}</p>
+      </details>
+      <InkButton :text="t('common.retry')" :is-loading="jobLoading" @click="refetchJob()" />
+      <InkButton :text="t('common.back')" theme="subtle" size="sm" @click="$router.back()" />
     </div>
     <!-- Content -->
-    <template v-else-if="job">
+    <template v-if="job && !jobMissing">
       <!-- Left Section: Metadata -->
       <section class="job-view__metadata">
         <div class="metadata__header">
-          <h2 class="metadata__title">{{ t('job.title') }}</h2>
+          <h2 class="metadata__title">{{ t('navigation.job') }} #{{ job.id }}</h2>
         </div>
 
         <InkField :label="t('job.jobId')">
@@ -150,13 +148,25 @@ onUnmounted(() => {
             <span class="metadata__value" :class="statusColor">
               {{ job.status }}
             </span>
-            <span class="i-mdi-refresh" :class="{ 'animate-spin': jobLoading }" />
+            <InkLoading
+              v-if="jobLoading"
+              variant="spinner"
+              size="xs"
+              :label="t('common.loading')"
+            />
           </div>
         </InkField>
 
         <InkField :label="t('job.source')">
-          <div v-if="sourceLoading" class="metadata__value">
-            {{ t('common.loading') }}
+          <InkLoading
+            v-if="sourceLoading"
+            variant="spinner"
+            size="sm"
+            :label="t('common.loading')"
+          />
+          <div v-else-if="sourceError" class="metadata__value" role="alert">
+            <span>{{ t('job.sourceLoadFailed') }}</span>
+            <InkButton :text="t('common.retry')" size="sm" @click="refetchSource()" />
           </div>
           <div v-else-if="source" class="metadata__value">
             <div class="source-info">
@@ -199,11 +209,6 @@ onUnmounted(() => {
         />
       </section>
     </template>
-    <!-- TODO: use inkPlaceholder -->
-    <div v-else class="job-view__error">
-      <span>{{ t('job.notFound') }}</span>
-      <InkButton :text="t('common.back')" theme="subtle" size="sm" @click="$router.back()" />
-    </div>
   </main>
 </template>
 

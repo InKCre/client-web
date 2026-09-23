@@ -4,7 +4,7 @@
   gap: sys-var(space, lg);
   flex: 1;
   min-width: 0;
-  padding: clamp(16px, 4vw, 32px);
+  padding: clamp(1rem, 4vw, 2rem);
   overflow-y: auto;
   background: sys-var(color, surface, base);
   overflow-wrap: anywhere;
@@ -33,6 +33,11 @@
     margin-top: sys-var(space, sm);
     @include apply-font(label-md, $mono: true);
     color: sys-var(color, text, subtle);
+  }
+  &__skeleton {
+    display: grid;
+    gap: sys-var(space, md);
+    padding-block: sys-var(space, md);
   }
   &__content {
     display: flex;

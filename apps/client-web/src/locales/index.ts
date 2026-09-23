@@ -1,5 +1,7 @@
 import { createI18n } from 'vue-i18n'
 import { locales as uiLocales } from '@inkcre/ui-web/locales'
+import en from './messages/en.json'
+import zhCN from './messages/zh-CN.json'
 
 export const SUPPORT_LOCALES = ['en', 'zh-CN'] as const
 export type SupportLocale = (typeof SUPPORT_LOCALES)[number]
@@ -37,56 +39,24 @@ function getInitialLocale(): SupportLocale {
   return 'en'
 }
 
-// Create i18n instance with lazy loading
+const initialLocale = getInitialLocale()
+// Both small catalogs ship with the app so its first render never exposes translation keys.
 const i18n = createI18n({
   legacy: false, // Use Composition API
-  locale: getInitialLocale(),
+  locale: initialLocale,
   fallbackLocale: 'en',
-  messages: {}, // Start with empty messages, load lazily
+  messages: {
+    en: { ...en, ui: uiLocales.en },
+    'zh-CN': { ...zhCN, ui: uiLocales['zh-CN'] },
+  },
 })
 
-// Cache loaded locales
-const loadedLanguages: Set<string> = new Set()
-
-// Function to load locale messages
-export async function loadLocaleMessages(locale: SupportLocale) {
-  // Return if already loaded
-  if (loadedLanguages.has(locale)) {
-    return
-  }
-
-  // Load the locale messages
-  try {
-    const messages = await import(`./messages/${locale}.json`)
-    i18n.global.setLocaleMessage(locale, { ...messages.default, ui: uiLocales[locale] })
-    loadedLanguages.add(locale)
-  } catch (error) {
-    console.error(
-      `Failed to load locale "${locale}". Falling back to already loaded locales.`,
-      'Available locales:',
-      Array.from(loadedLanguages),
-      'Error:',
-      error
-    )
-  }
-}
-
-// Function to change locale
-export async function setLocale(locale: SupportLocale) {
-  // Load locale messages if not loaded
-  await loadLocaleMessages(locale)
-
-  // Set the locale
+export function setLocale(locale: SupportLocale) {
   i18n.global.locale.value = locale
-
-  // Save to localStorage
   localStorage.setItem(STORAGE_KEY, locale)
-
-  // Update document lang attribute
-  document.querySelector('html')?.setAttribute('lang', locale)
+  document.documentElement.lang = locale
 }
 
-// Load initial locale on startup
-void loadLocaleMessages(getInitialLocale())
+document.documentElement.lang = initialLocale
 
 export default i18n

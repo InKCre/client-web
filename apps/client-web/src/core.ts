@@ -2,12 +2,13 @@
  * Core Package Integration for client-web
  *
  * This file initializes @inkcre/core with client-web specific configuration.
- * Import this file in main.ts before mounting the Vue app.
+ * Initialize from App.vue before mounting business views.
  */
 
 import {
   configStore,
   ExtensionRegistryOriginResolver,
+  DEFAULT_EXTENSION_REGISTRY_ORIGIN,
   localStorageAdapter,
   registerCoreResolvers,
   TextResolver,
@@ -22,6 +23,7 @@ import {
   PeerManager,
   WebPeerRuntime,
   JobManager,
+  Peer,
   type ExtensionModule,
   type ExtensionSetupContribution,
 } from '@inkcre/core'
@@ -47,6 +49,59 @@ import ContentHtml from '@/components/info-base/resolvers/ContentHtml.vue'
 import ContentAudio from '@/components/info-base/resolvers/ContentAudio.vue'
 import ContentFile from '@/components/info-base/resolvers/ContentFile.vue'
 import ContentPreview from '@/components/info-base/resolvers/ContentPreview.vue'
+
+type NavigatorWithUserAgentData = Navigator & {
+  userAgentData?: { platform?: string }
+}
+
+export function defaultWebPeerName(browser: NavigatorWithUserAgentData = navigator): string {
+  const agent = browser.userAgent
+  const browsers: Array<[string, RegExp]> = [
+    ['Edge', /Edg\/(\d+)/],
+    ['Firefox', /Firefox\/(\d+)/],
+    ['Chrome', /(?:Chrome|CriOS)\/(\d+)/],
+    ['Safari', /Version\/(\d+).*Safari/],
+  ]
+  const matchedBrowser = browsers.find(([, pattern]) => pattern.test(agent)) ?? null
+  const browserLabel = matchedBrowser
+    ? `${matchedBrowser[0]} ${agent.match(matchedBrowser[1])?.[1]}`
+    : 'Web Peer'
+  const platform = browser.userAgentData?.platform || browser.platform || agent
+  const systems: Array<[string, RegExp]> = [
+    ['Windows', /Win/],
+    ['macOS', /Mac/],
+    ['Android', /Android/],
+    ['iOS', /iOS|iPhone|iPad|iPod/],
+    ['Linux', /Linux/],
+  ]
+  const system = systems.find(([, pattern]) => pattern.test(platform))?.[0]
+  return system ? `${browserLabel} · ${system}` : browserLabel
+}
+
+export const WEB_PEER_IDENTITY = {
+  applicationVersion: packageJson.version,
+  defaultName: defaultWebPeerName(),
+}
+
+// Runtime identity for this browser; never persisted as a second copy of the Peer name.
+export const currentWebPeer = Vue.shallowRef<Pick<Peer, 'id' | 'name'> | null>(null)
+
+export async function refreshCurrentWebPeer(): Promise<void> {
+  const peerId = configStore.metaConfig.INKCRE_PEER_ID
+  const origin = configStore.metaConfig.INKCRE_PGREST_URL
+  currentWebPeer.value = null
+  try {
+    const peer = await Peer.getSelf()
+    if (
+      peerId === configStore.metaConfig.INKCRE_PEER_ID &&
+      origin === configStore.metaConfig.INKCRE_PGREST_URL
+    ) {
+      currentWebPeer.value = { id: peer.id, name: peer.name }
+    }
+  } catch {
+    // A display name is best-effort; connection failure remains owned by the connection UI.
+  }
+}
 
 // ============================================================================
 // Resolver Component Registration
@@ -87,20 +142,23 @@ type ClientExtensionManager = ExtensionManager<ClientExtensionModule>
 
 let extensionHost: ClientExtensionManager | null = null
 let extensionHostStartup: Promise<void> | null = null
+let extensionRegistry: RegistryReleaseReader | null = null
+let extensionRegistryOrigin: ExtensionRegistryOriginResolver | null = null
 let moduleFederation: ReturnType<typeof createInstance> | null = null
 let webPeerRuntime: WebPeerRuntime | null = null
 
 export function initializeExtensionHost(): ClientExtensionManager {
   extensionHostStartup = null
-  const registryOrigin = new ExtensionRegistryOriginResolver(
+  extensionRegistryOrigin = new ExtensionRegistryOriginResolver(
     () => configStore.peerConfig.extension_registry_url
   )
   if (!moduleFederation) throw new Error('Module Federation has not been initialized.')
+  extensionRegistry = new RegistryReleaseReader({
+    registryOrigin: getExtensionRegistryOrigin,
+    hostSdk: { name: '@inkcre/core', version: corePackageJson.version },
+  })
   extensionHost = new ExtensionManager<ClientExtensionModule>({
-    releases: new RegistryReleaseReader({
-      registryOrigin: () => registryOrigin.resolve(),
-      hostSdk: { name: '@inkcre/core', version: corePackageJson.version },
-    }),
+    releases: extensionRegistry,
     moduleFederation,
   })
   return extensionHost
@@ -124,6 +182,23 @@ export function getExtensionHost(): ClientExtensionManager {
   return extensionHost
 }
 
+export function getExtensionRegistry(): RegistryReleaseReader {
+  if (!extensionRegistry) {
+    throw new Error('Extension Registry reader has not been initialized.')
+  }
+  return extensionRegistry
+}
+
+export function getExtensionRegistryOrigin(): Promise<string> {
+  if (!configStore.metaConfig.INKCRE_PGREST_URL) {
+    return Promise.resolve(DEFAULT_EXTENSION_REGISTRY_ORIGIN)
+  }
+  if (!extensionRegistryOrigin) {
+    throw new Error('Extension Registry origin has not been initialized.')
+  }
+  return extensionRegistryOrigin.resolve()
+}
+
 /** Project the running native module into the Client-owned setup popup contract. */
 export function getExtensionSetupContribution(name: string): ExtensionSetupContribution | null {
   return getExtensionHost().getModule(name)?.setup ?? null
@@ -139,16 +214,20 @@ export function adoptWebPeerRuntime(runtime: WebPeerRuntime): void {
 export async function stopWebPeerRuntime(): Promise<void> {
   webPeerRuntime?.stop()
   webPeerRuntime = null
+  currentWebPeer.value = null
   await JobManager.stopWorker()
 }
 
 /** Start the lease after Settings has mounted and loaded recovery configuration. */
 export async function startConfiguredWebPeerRuntime(): Promise<void> {
   if (!configStore.metaConfig.INKCRE_PGREST_URL || !configStore.metaConfig.INKCRE_JWT_SECRET) return
-  const candidate = new WebPeerRuntime(configStore.metaConfig.INKCRE_PEER_ID)
+  const candidate = new WebPeerRuntime(configStore.metaConfig.INKCRE_PEER_ID, WEB_PEER_IDENTITY)
   try {
+    const peer = await candidate.register()
+    await configStore.loadPeerConfig()
     await candidate.start()
     adoptWebPeerRuntime(candidate)
+    currentWebPeer.value = { id: peer.id, name: peer.name }
   } catch (error) {
     candidate.stop()
     throw error
@@ -236,7 +315,7 @@ export function initializeModuleFederation(): void {
 
 /**
  * Initialize all core systems.
- * Call this in main.ts before creating the Vue app.
+ * Call this from App.vue before mounting business views.
  */
 export function shouldLoadPeerConfigAtBootstrap(pathname: string): boolean {
   return !/^\/settings(?:\/|$)/.test(pathname)
@@ -251,12 +330,13 @@ export async function initializeCore(options: { loadPeerConfig?: boolean } = {})
     configStore.metaConfig.INKCRE_PGREST_URL &&
     configStore.metaConfig.INKCRE_JWT_SECRET
   ) {
-    const candidate = new WebPeerRuntime(configStore.metaConfig.INKCRE_PEER_ID)
+    const candidate = new WebPeerRuntime(configStore.metaConfig.INKCRE_PEER_ID, WEB_PEER_IDENTITY)
     try {
-      await candidate.register()
+      const peer = await candidate.register()
       await configStore.loadPeerConfig()
       await candidate.start()
       adoptWebPeerRuntime(candidate)
+      currentWebPeer.value = { id: peer.id, name: peer.name }
     } catch (error) {
       candidate.stop()
       throw error

@@ -1,0 +1,9 @@
+.peers-view {
+  flex: 1;
+  min-width: 0;
+  padding: sys-var(space, lg);
+  display: flex;
+  flex-direction: column;
+  gap: sys-var(space, lg);
+  overflow-y: auto;
+}

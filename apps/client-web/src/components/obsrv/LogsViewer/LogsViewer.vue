@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted, nextTick } from 'vue'
+import { computed, ref, watch, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIntervalFn } from '@vueuse/core'
-import { InkLoading } from '@inkcre/ui-web'
+import { InkButton, InkLoading } from '@inkcre/ui-web'
 import LogEntry from '@/components/obsrv/LogEntry/LogEntry.vue'
 import { Log } from '@inkcre/core'
 import { logsViewerEmits, logsViewerProps } from './LogsViewer'
@@ -16,11 +16,8 @@ const logs = ref<Log[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const tailMarker = ref<HTMLDivElement>()
-
-// --- lifecycle ---
-onMounted(async () => {
-  await loadLogs()
-})
+let generation = 0
+onUnmounted(() => generation++)
 
 // --- methods ---
 /**
@@ -32,19 +29,26 @@ const loadLogs = async () => {
   }
   isLoading.value = true
   error.value = null
+  const current = generation
   try {
     const fetched = await Log.getByTraceId(props.traceId || '', {
       cursor: logs.value[logs.value.length - 1]?.id,
     })
+    if (current !== generation) return
     logs.value.push(...fetched)
     logs.value = logs.value.sort((a, b) => a.id - b.id)
-    setTimeout(() => {
+    if (fetched.length) {
+      await nextTick()
+      if (current !== generation) return
       tailMarker.value?.scrollIntoView({ behavior: 'smooth' })
-    }, 200)
+    }
+    if (props.enablePolling) resumePolling()
   } catch (e) {
+    if (current !== generation) return
     error.value = e instanceof Error ? e.message : 'Failed to load logs'
+    pausePolling()
   } finally {
-    isLoading.value = false
+    if (current === generation) isLoading.value = false
   }
 }
 
@@ -53,13 +57,13 @@ const {
   pause: pausePolling,
   resume: resumePolling,
   isActive,
-} = useIntervalFn(loadLogs, props.pollingInterval, { immediateCallback: true })
+} = useIntervalFn(loadLogs, () => props.pollingInterval, { immediate: false })
 
 // --- watchers ---
 watch(
   () => props.enablePolling,
   (enabled) => {
-    if (enabled && !isActive.value) {
+    if (enabled && !error.value && !isActive.value) {
       resumePolling()
     } else if (!enabled && isActive.value) {
       pausePolling()
@@ -70,36 +74,38 @@ watch(
 
 watch(
   () => props.traceId,
-  async () => {
+  () => {
+    generation++
     pausePolling()
     logs.value = []
-    await loadLogs()
-    if (props.enablePolling) {
-      resumePolling()
-    }
-  }
+    isLoading.value = false
+    void loadLogs()
+  },
+  { immediate: true }
 )
 
 // --- computed ---
-const isEmpty = computed(
-  () => logs.value.length === 0 && !isActive.value && !isLoading.value && !error.value
-)
+const isEmpty = computed(() => logs.value.length === 0 && !isLoading.value && !error.value)
 </script>
 
 <template>
   <div class="logs-viewer">
-    <div v-if="error" class="logs-viewer__error">
-      <span>{{ error }}</span>
+    <LogEntry v-for="log in logs" :key="log.id" :log="log" />
+    <div ref="tailMarker"></div>
+    <div v-if="error" class="logs-viewer__error" role="alert">
+      <span>{{ t('logs.loadFailed') }}</span>
+      <details>
+        <summary>{{ t('common.errorDetails') }}</summary>
+        <p>{{ error }}</p>
+      </details>
+      <InkButton :text="t('common.retry')" @click="loadLogs" />
     </div>
-    <template v-else>
-      <LogEntry v-for="log in logs" :key="log.id" :log="log" />
-      <div ref="tailMarker"></div>
-      <div v-if="isActive || isLoading" class="logs-viewer__loading">
-        <InkLoading size="sm" density="sm" />
-      </div>
-    </template>
+    <div v-if="isLoading" class="logs-viewer__loading">
+      <InkLoading variant="spinner" size="sm" density="sm" :label="t('logs.loading')" />
+    </div>
+    <span v-else-if="isActive" class="logs-viewer__polling">{{ t('logs.autoUpdating') }}</span>
     <div v-if="isEmpty" class="logs-viewer__empty">
-      {{ t('logs.empty') || 'No logs' }}
+      {{ t('logs.empty') }}
     </div>
   </div>
 </template>

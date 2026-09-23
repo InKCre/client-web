@@ -73,7 +73,7 @@ const setupReady = computed(() =>
 const peerOptions = computed<DropdownOption[]>(() =>
   candidates.value.map((item) => ({
     value: item.peer.id,
-    label: `${item.peer.name}${item.enabled ? ' — enabled' : ''}`,
+    label: `${item.peer.name} · ${item.peer.application_version ? `v${item.peer.application_version}` : 'version unknown'}${item.enabled ? ' — enabled' : ''}`,
   }))
 )
 const sourceOptions = computed<DropdownOption[]>(() => [
@@ -339,19 +339,19 @@ onBeforeUnmount(() => {
     <template v-else>
       <p v-if="error" class="twitter-setup__error" role="alert">{{ error }}</p>
       <div v-if="currentStep === 0" class="twitter-setup__panel">
-        <h3>Choose a collection client</h3>
+        <h3>Choose a collection Peer</h3>
         <p class="twitter-setup__hint">
-          This Core client handles authorization and bookmark collection.
+          This Core Peer handles authorization and bookmark collection.
         </p>
         <InkForm v-if="candidates.length" layout="col">
           <InkDropdown
             v-model="selectedPeerId"
             :options="peerOptions"
-            label="Core client"
+            label="Core Peer"
             :editable="!busy"
           />
         </InkForm>
-        <p v-else>No available Core client has the Twitter extension installed.</p>
+        <p v-else>No available Core Peer has the Twitter extension installed.</p>
         <div class="twitter-setup__actions">
           <InkButton
             v-if="selectedCandidate && !selectedCoreEnabled"
@@ -481,7 +481,7 @@ onBeforeUnmount(() => {
               (value: Date) => value.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             "
           />
-          <p class="twitter-setup__hint">Time uses the collection client's timezone.</p>
+          <p class="twitter-setup__hint">Time uses the collection Peer's timezone.</p>
           <InkButton
             text="Continue"
             theme="primary"
@@ -500,7 +500,7 @@ onBeforeUnmount(() => {
           <dd>{{ selectedSource?.nickname || `#${selectedSource?.id}` }}</dd>
           <dt>Collection</dt>
           <dd>
-            Daily at {{ collectionTime }} <span class="twitter-setup__hint">· client timezone</span>
+            Daily at {{ collectionTime }} <span class="twitter-setup__hint">· Peer timezone</span>
           </dd>
         </dl>
         <p v-if="setupReady" role="status">Bookmarks will be collected on this schedule.</p>

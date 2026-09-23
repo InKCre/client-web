@@ -37,6 +37,18 @@
     flex-wrap: wrap;
     gap: sys-var(space, sm);
   }
+  &__details {
+    @include apply-font(body-sm);
+    summary {
+      cursor: pointer;
+    }
+    &[open] > summary {
+      margin-bottom: sys-var(space, sm);
+    }
+    .extension-card__hint {
+      margin-top: sys-var(space, sm);
+    }
+  }
 
   &__hint {
     @include apply-font(body-sm);
@@ -48,6 +60,38 @@
     @include apply-font(body-sm);
     color: sys-var(color, feedback, error);
     margin: 0;
+  }
+
+  &__peer-options {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, sm);
+    max-height: min(50vh, 24rem);
+    overflow-y: auto;
+  }
+
+  &__peer-option {
+    display: flex;
+    align-items: start;
+    gap: sys-var(space, sm);
+    padding: sys-var(space, sm);
+    border: 1px solid sys-var(color, border, subtle);
+    cursor: pointer;
+
+    input {
+      margin-top: 0.15em;
+    }
+  }
+
+  &__peer-note {
+    display: block;
+    color: sys-var(color, text, subtle);
+  }
+
+  &__loading {
+    display: grid;
+    min-height: 5rem;
+    place-items: center;
   }
 }
 

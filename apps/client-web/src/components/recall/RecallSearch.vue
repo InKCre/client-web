@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, shallowRef } from 'vue'
+import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import { InkButton, InkLoading, InkPopup } from '@inkcre/ui-web'
+import { InkButton, InkInput, InkPopup, InkSkeleton, InkTabs } from '@inkcre/ui-web'
 import { LexicalRetrievalManager, type BlockRef, type LexicalRetrievalMatch } from '@inkcre/core'
 
 import router from '@/router'
 import { closeRecallSearch, openRecallSearch, recallSearchOpen } from './recall-search'
 
 const route = useRoute()
+const { t } = useI18n()
 const open = computed({
   get: () => recallSearchOpen.value,
   set: (value: boolean) => (value ? openRecallSearch() : closeRecallSearch()),
@@ -33,7 +35,15 @@ onUnmounted(() => window.removeEventListener('keydown', onShortcut))
 
 async function search(): Promise<void> {
   const value = query.value.trim()
-  if (!value) return
+  if (!value || status.value === 'loading') return
+  if (mode.value === 'recall') {
+    await router.push({
+      name: isGraphActive.value ? 'InfoBaseGraphOverview' : 'InfoBaseListOverview',
+      query: { q: value },
+    })
+    closeRecallSearch()
+    return
+  }
   const current = ++generation
   status.value = 'loading'
   matches.value = []
@@ -42,13 +52,6 @@ async function search(): Promise<void> {
     if (current !== generation) return
     matches.value = result.matches
     status.value = 'ready'
-    if (mode.value === 'recall') {
-      await router.push({
-        name: isGraphActive.value ? 'InfoBaseGraphOverview' : 'InfoBaseListOverview',
-        query: { q: value },
-      })
-      closeRecallSearch()
-    }
   } catch (cause) {
     if (current !== generation) return
     console.error('[Recall] Search failed.', cause)
@@ -68,48 +71,86 @@ async function choosePathBlock(block: BlockRef): Promise<void> {
   selected.value = []
 }
 
-function setMode(value: 'recall' | 'path'): void {
-  mode.value = value
-  selected.value = []
-  matches.value = []
-  status.value = 'idle'
+function setMode(value: string): void {
+  if (value === 'recall' || value === 'path') mode.value = value
 }
+
+watch(
+  [mode, open],
+  () => {
+    generation++
+    selected.value = []
+    matches.value = []
+    status.value = 'idle'
+  },
+  { flush: 'sync' }
+)
+
+watch(
+  query,
+  () => {
+    generation++
+    matches.value = []
+    status.value = 'idle'
+  },
+  { flush: 'sync' }
+)
 </script>
 
 <template>
   <InkPopup
     v-model:open="open"
     position="top"
-    aria-label="Recall information"
+    :aria-label="t('recall.title')"
     style="width: 640px; max-width: calc(100vw - 2 * var(--sys-space-md))"
   >
-    <section class="recall-search" aria-label="Recall information">
+    <section class="recall-search" :aria-label="t('recall.title')">
       <header>
-        <div class="recall-search__modes">
-          <button type="button" :aria-pressed="mode === 'recall'" @click="setMode('recall')">
-            Recall
-          </button>
-          <button type="button" :aria-pressed="mode === 'path'" @click="setMode('path')">
-            Find path
-          </button>
-        </div>
+        <InkTabs
+          :model-value="mode"
+          :label="t('recall.mode')"
+          :tabs="[
+            { value: 'recall', label: t('recall.recall') },
+            { value: 'path', label: t('recall.findPath') },
+          ]"
+          @update:model-value="setMode"
+        />
         <small>Ctrl K</small>
       </header>
       <form @submit.prevent="search">
-        <input
-          v-model="query"
-          type="search"
-          aria-label="Search query"
-          autofocus
-          autocomplete="off"
-          :placeholder="mode === 'path' ? 'Find path endpoints' : 'Recall a clue'"
+        <div class="recall-search__input">
+          <InkInput
+            v-model="query"
+            native-type="search"
+            :aria-label="t('infoBase.list.searchLabel')"
+            autofocus
+            autocomplete="off"
+            :placeholder="mode === 'path' ? t('recall.pathPlaceholder') : t('recall.placeholder')"
+          />
+        </div>
+        <InkButton
+          :text="t('infoBase.list.search')"
+          theme="primary"
+          native-type="submit"
+          :is-loading="status === 'loading'"
+          :disabled="!query.trim()"
         />
-        <InkButton text="Search" theme="primary" native-type="submit" />
       </form>
-      <div v-if="mode === 'path'" class="recall-search__results" aria-live="polite">
-        <InkLoading v-if="status === 'loading'" />
-        <p v-else-if="status === 'error'">Recall is temporarily unavailable.</p>
-        <p v-else-if="selected.length === 1">Choose the destination Block.</p>
+      <div v-if="mode === 'path'" class="recall-search__results">
+        <div v-if="status === 'loading'" role="status" :aria-label="t('common.loading')">
+          <div v-for="index in 3" :key="index" class="recall-search__skeleton">
+            <InkSkeleton style="width: 40%" />
+            <InkSkeleton />
+          </div>
+        </div>
+        <div v-else-if="status === 'error'" class="recall-search__feedback" role="alert">
+          <p>{{ t('infoBase.list.error') }}</p>
+          <InkButton :text="t('common.retry')" @click="search" />
+        </div>
+        <p v-else-if="status === 'ready' && matches.length === 0" role="status">
+          {{ t('infoBase.list.empty', { query: query.trim() }) }}
+        </p>
+        <p v-if="selected.length === 1">{{ t('recall.chooseDestination') }}</p>
         <button
           v-for="match in matches"
           :key="match.block.id"
@@ -144,35 +185,17 @@ function setMode(value: 'recall' | 'path'): void {
     @include apply-font(label-md);
     color: sys-var(color, text, subtle);
   }
-  form input {
+  &__input {
     flex: 1;
     min-width: 0;
-    padding: sys-var(space, sm) sys-var(space, md);
-    border: 1px solid sys-var(color, border, base);
-    border-radius: sys-var(radius, none);
-    color: sys-var(color, text, base);
-    background: sys-var(color, surface, base);
-    @include apply-font(body-md);
-  }
-  form input:focus {
-    outline: 1px solid sys-var(color, border, strong);
   }
 
-  &__modes {
-    display: flex;
-    gap: 2px;
-    button {
-      @include apply-font(label-lg);
-      border: 0;
-      padding: 4px 8px;
-      color: sys-var(color, text, subtle);
-      background: transparent;
-      cursor: pointer;
-    }
-    button[aria-pressed='true'] {
-      color: sys-var(color, text, base);
-      background: sys-var(color, surface, subtle);
-    }
+  &__skeleton,
+  &__feedback {
+    display: grid;
+    gap: sys-var(space, sm);
+    padding: sys-var(space, sm);
+    background: sys-var(color, surface, base);
   }
 
   &__results {

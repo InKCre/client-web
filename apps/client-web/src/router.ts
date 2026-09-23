@@ -9,6 +9,7 @@ import job from '@/views/jobs/job/job.vue'
 import extensions from '@/views/extensions/extensions.vue'
 import infoBaseGraph from '@/views/info-base/graph/graph.vue'
 import settings from '@/views/settings/settings.vue'
+import peers from '@/views/peers/peers.vue'
 import { computed } from 'vue'
 
 const router = createRouter({
@@ -42,50 +43,61 @@ const router = createRouter({
       path: '/sources',
       name: 'Sources',
       component: sources,
+      meta: { titleKey: 'sidePanel.sources' },
     },
     {
       path: '/jobs/:id',
       name: 'Job',
       component: job,
+      meta: { titleKey: 'job.title' },
     },
     {
       path: '/sources/:id',
       name: 'Source',
       component: source,
+      meta: { titleKey: 'sidePanel.sources' },
     },
     {
       path: '/extensions',
       name: 'Extensions',
       component: extensions,
+      meta: { titleKey: 'sidePanel.extensions' },
     },
     {
       path: '/info-base/graph',
       name: 'InfoBaseGraphOverview',
       component: infoBaseGraph,
-      meta: { title: 'Info Base' },
+      meta: { titleKey: 'navigation.graph' },
     },
     {
       path: '/info-base/graph/blocks/:block/content',
       name: 'InfoBaseGraphSolvedContent',
       component: infoBaseGraph,
-      meta: { title: 'Info Base' },
+      meta: { titleKey: 'navigation.graph' },
     },
     {
       path: '/info-base/graph/blocks/:block',
       name: 'InfoBaseGraphBlock',
       component: infoBaseGraph,
-      meta: { title: 'Info Base' },
+      meta: { titleKey: 'navigation.graph' },
     },
     {
       path: '/info-base/graph/relations/:relation',
       name: 'InfoBaseGraphRelation',
       component: infoBaseGraph,
-      meta: { title: 'Info Base' },
+      meta: { titleKey: 'navigation.graph' },
+    },
+    {
+      path: '/peers',
+      name: 'Peers',
+      component: peers,
+      meta: { titleKey: 'sidePanel.peers' },
     },
     {
       path: '/settings',
       name: 'Settings',
       component: settings,
+      meta: { titleKey: 'sidePanel.settings' },
     },
   ],
 })

@@ -1,18 +1,18 @@
 import { z } from 'zod'
 import { signDatabaseToken } from '../auth'
 import { APIError, DBAPIClient } from '../base'
-import {
-  MetaConfigSchema,
-  PeerConfigSchema,
-  type MetaConfig,
-  type PeerConfig,
-} from '../config/schema'
+import { MetaConfigSchema, PeerConfigSchema, type MetaConfig } from '../config/schema'
 import { Peer } from './peer'
 
 export const WEB_PEER_LEASE_TTL_SECONDS = 90
 export const WEB_PEER_LEASE_RENEW_INTERVAL_MS = 30_000
 
 type PeerDatabase = DBAPIClient<'peers', Peer>
+
+export interface WebPeerIdentity {
+  applicationVersion: string
+  defaultName: string
+}
 
 /** Browser ownership for one durable Peer identity and its database-time lease. */
 export class WebPeerRuntime {
@@ -21,20 +21,30 @@ export class WebPeerRuntime {
 
   constructor(
     readonly peerId: string,
+    private readonly identity: WebPeerIdentity,
     private readonly database: PeerDatabase = Peer.dbApi,
     private readonly warn: (message: string) => void = console.warn
   ) {}
 
   async register(): Promise<Peer> {
-    const response = await this.database
-      .upsert({
-        id: this.peerId,
-        name: 'Client Web',
-        config_schema: z.toJSONSchema(PeerConfigSchema),
-        capabilities: [],
-      })
-      .select()
-      .single()
+    const existing = await this.database.from().select('id').eq('id', this.peerId).maybeSingle()
+    assertSuccess(existing, 'find registration')
+
+    const runtimeFields = {
+      application_version: this.identity.applicationVersion,
+      config_schema: PeerConfigSchema.toJSONSchema(),
+    }
+    const response = existing.data
+      ? await this.database.update(runtimeFields).eq('id', this.peerId).select().single()
+      : await this.database
+          .insert({
+            id: this.peerId,
+            name: this.identity.defaultName,
+            ...runtimeFields,
+            capabilities: [],
+          })
+          .select()
+          .single()
     assertSuccess(response, 'register')
     const peer = Peer.parse(response.data)
     this.registered = true
@@ -48,16 +58,6 @@ export class WebPeerRuntime {
     })
     assertSuccess(response, 'renew lease')
     return z.coerce.date().parse(response.data)
-  }
-
-  async saveConfig(config: PeerConfig): Promise<Peer> {
-    const response = await this.database
-      .update({ config: PeerConfigSchema.parse(config) })
-      .eq('id', this.peerId)
-      .select()
-      .single()
-    assertSuccess(response, 'save config')
-    return Peer.parse(response.data)
   }
 
   async start(): Promise<void> {
@@ -81,10 +81,9 @@ export class WebPeerRuntime {
 
   static async connect(
     meta: MetaConfig,
-    config: PeerConfig
+    identity: WebPeerIdentity
   ): Promise<{ peer: Peer; runtime: WebPeerRuntime }> {
     const exactMeta = MetaConfigSchema.parse(meta)
-    const exactConfig = PeerConfigSchema.parse(config)
     const database = new DBAPIClient<'peers', Peer>(
       'peers',
       Peer,
@@ -92,9 +91,8 @@ export class WebPeerRuntime {
       exactMeta.INKCRE_PGREST_URL,
       () => signDatabaseToken(exactMeta.INKCRE_JWT_SECRET)
     )
-    const runtime = new WebPeerRuntime(exactMeta.INKCRE_PEER_ID, database)
-    await runtime.register()
-    const peer = await runtime.saveConfig(exactConfig)
+    const runtime = new WebPeerRuntime(exactMeta.INKCRE_PEER_ID, identity, database)
+    const peer = await runtime.register()
     await runtime.start()
     return { peer, runtime }
   }

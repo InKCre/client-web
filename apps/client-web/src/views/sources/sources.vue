@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { nextTick } from 'vue'
+import { computed, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 import { useAsyncState } from '@vueuse/core'
 import SourceCard from '@/components/source/sourceCard/sourceCard.vue'
 import CreateSource from '@/components/source/createSource/createSource.vue'
-import { InkLoading, InkButton } from '@inkcre/ui-web'
-import { Source } from '@inkcre/core'
+import { InkSkeleton, InkButton, InkPlaceholder } from '@inkcre/ui-web'
+import { Source, configStore } from '@inkcre/core'
 
 const { t } = useI18n()
 const route = useRoute()
+const connected = computed(
+  () => !!configStore.metaConfig.INKCRE_PGREST_URL && !!configStore.metaConfig.INKCRE_JWT_SECRET
+)
 const {
   state: sources,
   execute: refetchSources,
@@ -17,6 +20,7 @@ const {
   error,
 } = useAsyncState(() => Source.getAll(), [], {
   resetOnExecute: false,
+  immediate: connected.value,
   // The region renders error and retry; this handled failure must not reach reportError.
   onError: () => undefined,
   onSuccess: () => {
@@ -36,17 +40,36 @@ async function onCreateSource(source: Source) {
 </script>
 
 <template>
-  <main class="sources-view">
-    <header class="sources-view__header">
-      <h1>{{ t('sidePanel.sources') }}</h1>
+  <main class="sources-view" :aria-label="t('sidePanel.sources')">
+    <header v-if="connected" class="sources-view__header">
       <CreateSource @create="onCreateSource" />
+      <InkButton
+        :text="t('common.refresh')"
+        size="sm"
+        :is-loading="isLoading"
+        @click="refetchSources()"
+      />
     </header>
-    <div v-if="isLoading"><InkLoading />{{ t('common.loading') }}</div>
+    <InkPlaceholder v-if="!connected" :title="t('extension.connectDeployment')"
+      ><template #actions
+        ><RouterLink to="/settings">{{ t('common.settings') }}</RouterLink></template
+      ></InkPlaceholder
+    >
+    <div
+      v-else-if="isLoading && !sources.length"
+      class="sources-view__skeletons"
+      role="status"
+      :aria-label="t('common.loading')"
+    >
+      <div v-for="index in 3" :key="index" class="sources-view__skeleton" aria-hidden="true">
+        <InkSkeleton style="width: 40%" /><InkSkeleton style="width: 65%" />
+      </div>
+    </div>
     <div v-else-if="error" class="sources-view__feedback">
       <p role="alert" class="text-feedback-error">{{ t('source.listFailed') }}</p>
       <InkButton :text="t('source.retry')" theme="subtle" @click="refetchSources()" />
     </div>
-    <p v-else-if="!sources.length">{{ t('source.empty') }}</p>
+    <p v-else-if="!sources.length && !isLoading">{{ t('source.empty') }}</p>
     <div class="sources-view__list">
       <SourceCard
         v-for="source in sources"
