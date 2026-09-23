@@ -18,12 +18,12 @@
 
 完整依赖与返回见 [task-map.md](task-map.md)。
 
-| Track                                                | 状态           | 当前返回                                                     | Human 注意         |
-| ---------------------------------------------------- | -------------- | ------------------------------------------------------------ | ------------------ |
-| [Peer 身份与生命周期](track-peer-lifecycle.md)       | 环境兼容已闭环 | 升级 fork 后 Settings→刷新→Peers 在真实 Heroku 部署通过      | E2E 补空浏览器路径 |
-| [Extension 发现与安装](track-extension-discovery.md) | 已实现待远端验收 | Registry Web 浏览并回跳精确 Release 确认安装 | 跨站回跳验证       |
-| [Schema 表单](track-schema-forms.md)                 | UI 修正待发布 | Source/Peer 共用可视化编辑器；InkButton 修正在 UI 独立 worktree | UI 包修复与发布    |
-| [交互质量](track-interaction-quality.md)             | 已完成布局审计 | 两处宿主错位；联网安装态已补验                               | 不先建抽象框架     |
+| Track                                                | 状态             | 当前返回                                                        | Human 注意         |
+| ---------------------------------------------------- | ---------------- | --------------------------------------------------------------- | ------------------ |
+| [Peer 身份与生命周期](track-peer-lifecycle.md)       | 环境兼容已闭环   | 升级 fork 后 Settings→刷新→Peers 在真实 Heroku 部署通过         | E2E 补空浏览器路径 |
+| [Extension 发现与安装](track-extension-discovery.md) | 已实现待远端验收 | Registry Web 浏览并回跳精确 Release 确认安装                    | 跨站回跳验证       |
+| [Schema 表单](track-schema-forms.md)                 | UI 修正待发布    | Source/Peer 共用可视化编辑器；InkButton 修正在 UI 独立 worktree | UI 包修复与发布    |
+| [交互质量](track-interaction-quality.md)             | 已完成布局审计   | 两处宿主错位；联网安装态已补验                                  | 不先建抽象框架     |
 
 ## 已确认决定
 
