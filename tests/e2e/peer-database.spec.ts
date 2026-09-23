@@ -101,11 +101,11 @@ test('startup shows pending and failed states without trapping a deep link', asy
       new URL(route.request().url()).searchParams.get('select') === 'id'
     ) {
       await gate
-      // A terminal API failure avoids coupling this UI check to the SDK's network retry delays.
+      // 401 is terminal; network failures and 503 retain the SDK's transport retries.
       await route.fulfill({
-        status: 503,
+        status: 401,
         headers: { 'Access-Control-Allow-Origin': '*' },
-        json: { message: 'Startup service unavailable' },
+        json: { message: 'Startup credentials rejected' },
       })
     } else await route.continue()
   })
