@@ -41,6 +41,7 @@ function close(): void {
 
 <template>
   <InkPopup
+    class="info-base-inspector-surface"
     style="width: 360px; max-width: calc(100vw - 2 * var(--sys-space-md))"
     :open="true"
     :scrim="false"

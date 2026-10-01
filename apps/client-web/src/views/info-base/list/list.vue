@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { InkButton, InkSkeleton } from '@inkcre/ui-web'
 import {
+  CapabilityDelegationUnavailable,
   getInfoBaseRouter,
   LexicalRetrievalManager,
   type LexicalRetrievalMatch,
@@ -22,6 +23,7 @@ const input = ref('')
 const status = ref<'idle' | 'loading' | 'success' | 'error'>('idle')
 const matches = shallowRef<LexicalRetrievalMatch[]>([])
 const error = shallowRef<Error | null>(null)
+const delegationUnavailable = computed(() => error.value instanceof CapabilityDelegationUnavailable)
 let generation = 0
 
 const currentInfoBaseRoute = computed(() => infoBaseRouter.current.value)
@@ -97,10 +99,7 @@ function refresh(): void {
           :is-loading="status === 'loading'"
         />
       </form>
-      <details class="info-base-list-view__help">
-        <summary>{{ t('infoBase.list.help') }}</summary>
-        <p>{{ t('infoBase.list.idle') }}</p>
-      </details>
+      <p class="info-base-list-view__help">{{ t('infoBase.list.idle') }}</p>
     </header>
 
     <section class="info-base-list-view__results" aria-live="polite">
@@ -119,7 +118,7 @@ function refresh(): void {
         </div>
       </div>
       <div v-else-if="status === 'error'" class="info-base-list-view__state">
-        <p>{{ t('infoBase.list.error') }}</p>
+        <p>{{ t(delegationUnavailable ? 'infoBase.list.unavailable' : 'infoBase.list.error') }}</p>
         <details>
           <summary>{{ t('common.errorDetails') }}</summary>
           {{ error?.message }}

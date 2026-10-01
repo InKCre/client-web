@@ -45,6 +45,20 @@ the manager must not retry it, the UI must distinguish it from ordinary failure,
 not report it as success. A malformed response after a readable dispatch is a protocol error, not
 proof of non-execution.
 
+## Public Readiness Observation
+
+`probePeerReadiness(Peer)` observes only the explicitly configured `http_public_base_url` and its
+`readyz` path. It sends no authentication and uses a five-second deadline. The shared core schema
+keeps ready/not_ready, runtime phase/reason, optional bootstrap step, and public database component
+status/problems. Older Peers may omit step. Missing or invalid endpoints and failed/unsupported
+responses are distinct unavailable observations; they do not imply an expired lease.
+
+PeerList refreshes this observation alongside database facts and shows public diagnostics directly.
+The probe never writes Peer state, changes advertisements, or grants routing/scheduling eligibility.
+Read-only retrieval keeps the query and offers an explicit Retry after delegation unavailability;
+that action repeats the existing live-lease selection. Outcome-unknown and exact-target safety remain
+unchanged.
+
 ## Browser Configuration and JWT
 
 Before business views mount, the browser initializes three bootstrap values owned by the current browser

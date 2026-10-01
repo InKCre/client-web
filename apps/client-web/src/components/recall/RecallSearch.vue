@@ -3,7 +3,12 @@ import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { InkButton, InkInput, InkPopup, InkSkeleton, InkTabs } from '@inkcre/ui-web'
-import { LexicalRetrievalManager, type BlockRef, type LexicalRetrievalMatch } from '@inkcre/core'
+import {
+  CapabilityDelegationUnavailable,
+  LexicalRetrievalManager,
+  type BlockRef,
+  type LexicalRetrievalMatch,
+} from '@inkcre/core'
 
 import router from '@/router'
 import { closeRecallSearch, openRecallSearch, recallSearchOpen } from './recall-search'
@@ -19,6 +24,7 @@ const mode = ref<'recall' | 'path'>('recall')
 const status = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
 const matches = shallowRef<LexicalRetrievalMatch[]>([])
 const selected = ref<BlockRef[]>([])
+const delegationUnavailable = ref(false)
 let generation = 0
 
 const isGraphActive = computed(() => String(route.name ?? '').startsWith('InfoBaseGraph'))
@@ -46,6 +52,7 @@ async function search(): Promise<void> {
   }
   const current = ++generation
   status.value = 'loading'
+  delegationUnavailable.value = false
   matches.value = []
   try {
     const result = await LexicalRetrievalManager.retrieve({ query: value, limit: 20 })
@@ -55,6 +62,7 @@ async function search(): Promise<void> {
   } catch (cause) {
     if (current !== generation) return
     console.error('[Recall] Search failed.', cause)
+    delegationUnavailable.value = cause instanceof CapabilityDelegationUnavailable
     status.value = 'error'
   }
 }
@@ -144,7 +152,9 @@ watch(
           </div>
         </div>
         <div v-else-if="status === 'error'" class="recall-search__feedback" role="alert">
-          <p>{{ t('infoBase.list.error') }}</p>
+          <p>
+            {{ t(delegationUnavailable ? 'infoBase.list.unavailable' : 'infoBase.list.error') }}
+          </p>
           <InkButton :text="t('common.retry')" @click="search" />
         </div>
         <p v-else-if="status === 'ready' && matches.length === 0" role="status">

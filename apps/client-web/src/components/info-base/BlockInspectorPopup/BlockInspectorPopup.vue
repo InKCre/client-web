@@ -80,6 +80,7 @@ async function ruminate(): Promise<void> {
 
 <template>
   <InkPopup
+    class="info-base-inspector-surface"
     style="width: 420px; max-width: calc(100vw - 2 * var(--sys-space-md)); padding: 0"
     :open="open"
     :scrim="false"

@@ -5,16 +5,19 @@
 
   &__header {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
-    padding-bottom: sys-var(space, md);
-    border-bottom: 1px solid sys-var(color, border, base);
+    gap: sys-var(space, md);
+    h1 {
+      @include apply-font(title-lg);
+      margin: 0;
+    }
   }
 
   &__list {
     display: flex;
     flex-direction: column;
-    gap: sys-var(space, sm);
+    gap: sys-var(space, lg);
   }
   &__skeleton {
     display: grid;

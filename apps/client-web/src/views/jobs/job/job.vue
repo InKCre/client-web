@@ -144,16 +144,11 @@ watch(
         </InkField>
 
         <InkField :label="t('job.status')">
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2" :aria-busy="jobLoading">
             <span class="metadata__value" :class="statusColor">
               {{ job.status }}
             </span>
-            <InkLoading
-              v-if="jobLoading"
-              variant="spinner"
-              size="xs"
-              :label="t('common.loading')"
-            />
+            <InkLoading v-if="jobLoading" variant="spinner" size="xs" aria-hidden="true" />
           </div>
         </InkField>
 
@@ -193,7 +188,7 @@ watch(
         </InkField>
 
         <InkField :label="t('job.state')">
-          <pre class="metadata__value whitespace-pre">{{ formattedState }}</pre>
+          <pre class="metadata__value">{{ formattedState }}</pre>
         </InkField>
       </section>
 

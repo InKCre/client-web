@@ -1,14 +1,9 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, shallowRef, watch } from 'vue'
-import {
-  VueFlow,
-  useNodesInitialized,
-  useVueFlow,
-  type GraphNode,
-  type NodeDragEvent,
-} from '@vue-flow/core'
+import { VueFlow, useNodesInitialized, useVueFlow, type NodeDragEvent } from '@vue-flow/core'
 import { InkButton, InkDropdown, InkForm, InkLoading } from '@inkcre/ui-web'
 import {
+  CapabilityDelegationUnavailable,
   getInfoBaseRouter,
   GraphNavigationRetrievalManager,
   LexicalRetrievalManager,
@@ -38,14 +33,18 @@ const currentRoute = computed(() => infoBaseRouter.current.value)
 const nodes = shallowRef<BlockNode[]>([])
 const edges = shallowRef<RelationEdge[]>([])
 const status = ref<SceneStatus>('loading')
+const delegationUnavailable = ref(false)
 const scale = ref<SceneScale>('standard')
 const direction = ref<GraphDirection>('both')
 const previewReady = ref(false)
 const pendingCamera = ref(false)
 const positionCache = new Map<string, { x: number; y: number }>()
+const draggedNodes = new Set<string>()
 let generation = 0
+let realizing = false
+let realizationRequested = false
 
-const { fitView, zoomIn, zoomOut, getNodes, onMoveStart } = useVueFlow()
+const { fitView, zoomIn, zoomOut, getNodes, onMoveStart, updateNodeInternals } = useVueFlow()
 const nodesInitialized = useNodesInitialized()
 onMoveStart(() => {
   pendingCamera.value = false
@@ -199,6 +198,7 @@ async function loadPreviews(
 async function loadScene(): Promise<void> {
   const current = ++generation
   status.value = 'loading'
+  delegationUnavailable.value = false
   previewReady.value = false
   pendingCamera.value = true
   try {
@@ -252,6 +252,7 @@ async function loadScene(): Promise<void> {
     console.error('[InfoBase] Failed to load Graph scene.', cause)
     nodes.value = []
     edges.value = []
+    delegationUnavailable.value = cause instanceof CapabilityDelegationUnavailable
     status.value = 'error'
   }
 }
@@ -260,37 +261,82 @@ function layoutMeasuredNodes(): void {
   const measured = getNodes.value
   if (measured.length === 0) return
   const byId = new Map(measured.map((node) => [node.id, node]))
-  const focalId =
-    focalBlock.value !== null
-      ? String(focalBlock.value)
-      : (measured.find((node) => !positionCache.has(node.id))?.id ?? measured[0]!.id)
-  const focalPosition = positionCache.get(focalId) ?? { x: 0, y: 0 }
-  const neighbors = [...nodes.value]
-    .filter((node) => node.id !== focalId && !positionCache.has(node.id))
-    .sort((left, right) => Number(left.id) - Number(right.id))
-  const measuredWidth = (node: GraphNode): number => {
-    if (node.dimensions.width > 0) return node.dimensions.width
-    return typeof node.width === 'number' ? node.width : 180
+  const focalId = focalBlock.value !== null ? String(focalBlock.value) : measured[0]!.id
+  const dimensions = (id: string) => {
+    const node = byId.get(id)!
+    return { width: node.dimensions.width, height: node.dimensions.height }
   }
-  const maxWidth = Math.max(180, ...measured.map(measuredWidth))
-  const radius = Math.max(280, (neighbors.length * maxWidth) / (Math.PI * 2))
-  nodes.value = nodes.value.map((node) => {
-    const cached = positionCache.get(node.id)
-    if (cached) return { ...node, position: cached }
-    if (node.id === focalId) {
-      positionCache.set(node.id, focalPosition)
-      return { ...node, position: focalPosition }
-    }
-    const index = neighbors.findIndex((neighbor) => neighbor.id === node.id)
-    const angle = -Math.PI / 2 + (Math.PI * 2 * index) / Math.max(1, neighbors.length)
-    const measuredNode = byId.get(node.id)
-    const position = {
-      x: focalPosition.x + Math.cos(angle) * radius - (measuredNode?.dimensions.width ?? 0) / 2,
-      y: focalPosition.y + Math.sin(angle) * radius - (measuredNode?.dimensions.height ?? 0) / 2,
-    }
+  const gap = 32
+  const occupied: Array<{ x: number; y: number; width: number; height: number }> = []
+  const positions = new Map<string, { x: number; y: number }>()
+  const overlaps = (box: { x: number; y: number; width: number; height: number }) =>
+    occupied.some(
+      (other) =>
+        box.x < other.x + other.width + gap &&
+        box.x + box.width + gap > other.x &&
+        box.y < other.y + other.height + gap &&
+        box.y + box.height + gap > other.y
+    )
+  // User drag owns its coordinates. Keep automatic positions too unless a changed preview now collides.
+  const retained = [...nodes.value].sort(
+    (left, right) => Number(draggedNodes.has(right.id)) - Number(draggedNodes.has(left.id))
+  )
+  for (const node of retained) {
+    const position = draggedNodes.has(node.id)
+      ? byId.get(node.id)?.position
+      : positionCache.get(node.id)
+    if (!position) continue
+    const box = { ...position, ...dimensions(node.id) }
+    if (!draggedNodes.has(node.id) && overlaps(box)) continue
+    positions.set(node.id, position)
     positionCache.set(node.id, position)
-    return { ...node, position }
-  })
+    occupied.push(box)
+  }
+  const focalSize = dimensions(focalId)
+  const focalPosition = positions.get(focalId) ?? positionCache.get(focalId) ?? { x: 0, y: 0 }
+  const center = {
+    x: focalPosition.x + focalSize.width / 2,
+    y: focalPosition.y + focalSize.height / 2,
+  }
+  const largest = Math.max(
+    ...measured.map((node) => Math.hypot(node.dimensions.width, node.dimensions.height))
+  )
+  const step = Math.max(220, largest / 2 + gap)
+  const farthest = Math.max(
+    0,
+    ...occupied.map((box) => Math.hypot(box.x - center.x, box.y - center.y) + largest)
+  )
+  // Beyond existing bounds, two more rings per new rectangle always provide an empty candidate.
+  const maxRing = Math.ceil(farthest / step) + nodes.value.length * 2 + 2
+  const unplaced = nodes.value
+    .filter((node) => !positions.has(node.id))
+    .sort((left, right) =>
+      left.id === focalId ? -1 : right.id === focalId ? 1 : Number(left.id) - Number(right.id)
+    )
+  for (const node of unplaced) {
+    const size = dimensions(node.id)
+    let placed = false
+    for (let ring = node.id === focalId ? 0 : 1; ring <= maxRing && !placed; ring++) {
+      const radius = ring * step
+      const slots = ring === 0 ? 1 : Math.max(8, Math.ceil((2 * Math.PI * radius) / 212))
+      for (let slot = 0; slot < slots; slot++) {
+        const angle = -Math.PI / 2 + (2 * Math.PI * slot) / slots
+        const position = {
+          x: center.x + Math.cos(angle) * radius - size.width / 2,
+          y: center.y + Math.sin(angle) * radius - size.height / 2,
+        }
+        const box = { ...position, ...size }
+        if (overlaps(box)) continue
+        positions.set(node.id, position)
+        positionCache.set(node.id, position)
+        occupied.push(box)
+        placed = true
+        break
+      }
+    }
+    if (!placed) throw new Error('Graph layout exceeded its scene bound')
+  }
+  nodes.value = nodes.value.map((node) => ({ ...node, position: positions.get(node.id)! }))
 }
 
 function routeEdges(): void {
@@ -322,33 +368,63 @@ function routeEdges(): void {
 }
 
 async function realizeScene(): Promise<void> {
-  await nextTick()
-  layoutMeasuredNodes()
-  await nextTick()
-  routeEdges()
-  await nextTick()
-  if (!pendingCamera.value) return
-  pendingCamera.value = false
-  const narrow = (container.value?.clientWidth ?? 0) < 640
-  const focalId =
-    focalBlock.value ?? (sceneAddress.value?.type === 'path' ? sceneAddress.value.from : null)
-  // A phone-sized canvas starts with a readable focal object; panning reveals its neighborhood.
-  const visibleNodes =
-    narrow && focalId !== null ? [String(focalId)] : nodes.value.map((node) => node.id)
-  await fitView({
-    nodes: visibleNodes,
-    minZoom: 0.75,
-    padding: 0.18,
-    maxZoom: 1.25,
-    duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 260,
-  })
+  if (!previewReady.value || !nodesInitialized.value) return
+  if (realizing) {
+    realizationRequested = true
+    return
+  }
+  realizing = true
+  const current = generation
+  try {
+    await nextTick()
+    updateNodeInternals(nodes.value.map((node) => node.id))
+    // VueFlow's public update schedules measurement on the next animation frame.
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+    )
+    if (current !== generation || !previewReady.value || !nodesInitialized.value) return
+    layoutMeasuredNodes()
+    await nextTick()
+    routeEdges()
+    await nextTick()
+    if (current !== generation || !pendingCamera.value) return
+    pendingCamera.value = false
+    const narrow = (container.value?.clientWidth ?? 0) < 640
+    const focalId =
+      focalBlock.value ?? (sceneAddress.value?.type === 'path' ? sceneAddress.value.from : null)
+    const visibleNodes =
+      narrow && focalId !== null ? [String(focalId)] : nodes.value.map((node) => node.id)
+    await fitView({
+      nodes: visibleNodes,
+      minZoom: narrow && focalId !== null ? 0.75 : 0.05,
+      padding: 0.18,
+      maxZoom: 1.25,
+      duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 260,
+    })
+  } finally {
+    realizing = false
+    if (realizationRequested) {
+      realizationRequested = false
+      void realizeScene()
+    }
+  }
 }
 
 watch([sceneKey, scale], () => void loadScene(), { immediate: true })
 watch(direction, applyPresentation)
-watch([nodesInitialized, previewReady], ([initialized, ready]) => {
-  if (initialized && ready) void realizeScene()
-})
+watch(
+  [
+    nodesInitialized,
+    previewReady,
+    () =>
+      getNodes.value
+        .map((node) => `${node.id}:${node.dimensions.width}:${node.dimensions.height}`)
+        .join(','),
+  ],
+  () => {
+    if (nodesInitialized.value && previewReady.value) void realizeScene()
+  }
+)
 
 function focusBlock(block: number): void {
   pendingCamera.value = true
@@ -366,6 +442,11 @@ function inspectBlock(block: number): void {
 
 function inspectRelation(relation: number): void {
   void infoBaseRouter.push({ name: 'relation', relation })
+}
+
+function onNodeDragStart(event: NodeDragEvent): void {
+  pendingCamera.value = false
+  draggedNodes.add(event.node.id)
 }
 
 function onNodeDragStop(event: NodeDragEvent): void {
@@ -431,6 +512,10 @@ function isRoute(route: InfoBaseRoute | null, name: InfoBaseRoute['name']): bool
         <p v-if="status === 'empty' || status === 'missing'">Search for another starting point.</p>
         <p v-else-if="status === 'limit'">Try two closer starting points.</p>
         <p v-else-if="status === 'not-found'">Try another pair of blocks.</p>
+        <p v-else-if="delegationUnavailable">
+          No retrieval Peer is available right now. Your query is preserved. Wait for a Peer to
+          become ready, then retry to check live Peers again.
+        </p>
         <p v-else>Your current location is preserved. You can try loading it again.</p>
         <InkButton v-if="status === 'error'" text="Retry" theme="primary" @click="loadScene" />
         <InkButton v-else text="Search information" theme="subtle" @click="openRecallSearch" />
@@ -442,9 +527,10 @@ function isRoute(route: InfoBaseRoute | null, name: InfoBaseRoute['name']): bool
       v-model:nodes="nodes"
       v-model:edges="edges"
       class="graph-view__flow"
-      :min-zoom="0.18"
+      :min-zoom="0.05"
       :max-zoom="2.4"
       :nodes-draggable="true"
+      @node-drag-start="onNodeDragStart"
       @node-drag-stop="onNodeDragStop"
     >
       <template #node-block="nodeProps">

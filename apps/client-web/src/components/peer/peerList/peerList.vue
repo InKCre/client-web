@@ -4,12 +4,19 @@ import { useI18n } from 'vue-i18n'
 import { InkButton, InkSkeleton, InkPlaceholder } from '@inkcre/ui-web'
 import { RouterLink } from 'vue-router'
 import { currentWebPeer } from '@/core'
-import { configStore, Peer, PeerManager } from '@inkcre/core'
+import {
+  configStore,
+  Peer,
+  PeerManager,
+  probePeerReadiness,
+  type PeerReadinessObservation,
+} from '@inkcre/core'
 import PeerCard from '../peerCard/peerCard.vue'
 
 const { t } = useI18n()
 const peers = ref<Peer[]>([])
 const livePeers = ref(new Set<string>())
+const readiness = ref(new Map<string, PeerReadinessObservation>())
 const loading = ref(false)
 const error = ref('')
 const currentPeerId = configStore.metaConfig.INKCRE_PEER_ID
@@ -27,6 +34,9 @@ const refreshPeers = async () => {
     livePeers.value = new Set(live.map((peer) => peer.id))
     const self = all.find((peer) => peer.id === currentPeerId)
     if (self) currentWebPeer.value = { id: self.id, name: self.name }
+    readiness.value = new Map(
+      await Promise.all(all.map(async (peer) => [peer.id, await probePeerReadiness(peer)] as const))
+    )
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : String(cause)
   } finally {
@@ -45,6 +55,7 @@ onMounted(refreshPeers)
 <template>
   <section class="peer-list">
     <div v-if="connected" class="peer-list__header">
+      <h1>{{ t('peer.title') }}</h1>
       <InkButton :text="t('peer.refresh')" size="sm" :is-loading="loading" @click="refreshPeers" />
     </div>
 
@@ -81,6 +92,7 @@ onMounted(refreshPeers)
         :peer="peer"
         :status="getPeerStatus(peer)"
         :current="peer.id === currentPeerId"
+        :readiness="readiness.get(peer.id)"
         @updated="refreshPeers"
       />
     </div>

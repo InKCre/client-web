@@ -126,7 +126,8 @@
     "collectionIntent": "Collection intent",
     "typesLoading": "Loading source types…",
     "typesFailed": "Unable to load source types. Configuration cannot be saved until its schema is available.",
-    "typeUnavailable": "This source type is unavailable. Check installed extensions or choose an available type."
+    "typeUnavailable": "This source type is unavailable. Check installed extensions or choose an available type.",
+    "backToSources": "Back to Sources"
   },
   "extension": {
     "versionAndRemoval": "Version and removal",
@@ -176,7 +177,8 @@
     "noneInstalled": "No Extensions installed",
     "noneInstalledDescription": "Browse the Registry to add an Extension.",
     "enabledPeerCount": "Enabled on {count} Peer(s).",
-    "uninstallDisabled": "Disable every Peer before uninstalling or changing the shared version."
+    "uninstallDisabled": "Disable every Peer before uninstalling or changing the shared version.",
+    "uninstallConfirm": "Uninstall removes this extension from the deployment. Its configuration will be deleted."
   },
   "job": {
     "loadFailed": "Unable to load this job.",
@@ -222,7 +224,23 @@
     "delete": "Delete Peer",
     "deleteConfirm": "This removes the Peer and its extension enablement from this deployment. A running Peer may register again when it reconnects.",
     "deleteOnline": "Stop this Peer and wait for it to go offline before deleting it.",
-    "deleteFailed": "Unable to delete this Peer. Please try again."
+    "deleteFailed": "Unable to delete this Peer. Please try again.",
+    "readiness": "Runtime readiness",
+    "phase": "Phase",
+    "reason": "Reason",
+    "step": "Bootstrap step",
+    "database": "Database",
+    "readinessStatus": {
+      "ready": "Ready",
+      "not_ready": "Not ready"
+    },
+    "readinessUnavailable": {
+      "no_endpoint": "No public readiness endpoint is configured.",
+      "invalid_endpoint": "The public readiness URL is invalid.",
+      "transport_error": "Readiness could not be reached. Refresh to check again.",
+      "http_error": "Readiness returned an unexpected HTTP status.",
+      "invalid_response": "Readiness returned an unsupported response."
+    }
   },
   "infoBase": {
     "relationLoadFailed": "Unable to load this Relation.",
@@ -241,7 +259,8 @@
         "label_substring": "Label fragment",
         "text_substring": "Text fragment",
         "terms": "Matching terms"
-      }
+      },
+      "unavailable": "No retrieval Peer is available right now. Your query is preserved. Wait for a Peer to become ready, then retry to check live Peers again."
     },
     "blockInspector": {
       "loadFailed": "Unable to load this Block.",

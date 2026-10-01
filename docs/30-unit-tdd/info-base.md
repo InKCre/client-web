@@ -113,10 +113,16 @@ entity changes focal identity, while Inspect is an explicit secondary route. Blo
 and solved content are modeless route outlets whose close action delegates to browser/router `back()`.
 
 Graph shells render before bounded Resolver previews. Intrinsic DOM dimensions inform deterministic
-local layout; shared positions survive scene changes and user drag is session-only. Direction is soft
+local layout. Resolved previews explicitly refresh VueFlow internals before measurement. New nodes,
+including a new focal node, avoid occupied measured rectangles with a gap. Cached automatic positions
+survive scene changes unless changed preview dimensions collide; user-dragged coordinates stay owned
+by the user, including during preview settlement. Candidate rings expand within the current scene
+bound rather than estimating one radius from the number of new neighbors. User drag is session-only. Direction is soft
 presentation state: muted entities remain present and interactive and changing direction performs no
 retrieval. Automatic camera movement follows explicit focal/path/refocus actions only; manual movement
-cancels pending ownership.
+cancels pending ownership, including node drag start. Refocus waits for the same ready-preview and
+node-measurement boundary; later dimension changes can repair automatic positions and edge handles
+but cannot reacquire the viewport.
 
 Application Recall/Search is not part of an InfoBase View, but an active View may realize its selected
 destination. Recall defaults to List outside a View; Find path supplies two Block references to Graph.

@@ -103,7 +103,7 @@
     outline-offset: 2px;
   }
   &__popup {
-    width: min(32rem, 80vw);
+    width: 100%;
     max-width: 100%;
     min-width: 0;
     gap: sys-var(space, md);

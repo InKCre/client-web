@@ -14,13 +14,13 @@ import {
   InkButton,
   InkDialog,
   InkPopup,
-  InkJsonEditor,
   InkDropdown,
   InkInput,
   InkForm,
   type JsonEditorValidation,
 } from '@inkcre/ui-web'
 import SourceForm from '@/components/source/sourceForm/sourceForm.vue'
+import SchemaConfigEditor from '@/components/schemaConfigEditor/schemaConfigEditor.vue'
 import JobCard from '@/components/job/JobCard/JobCard.vue'
 import { Cron, CronForm, Job, JobManager, Source } from '@inkcre/core'
 import { usePageObjectTitle } from '@/composables/use-page-object-title'
@@ -309,9 +309,11 @@ async function onDeleteCron() {
 
 <template>
   <main class="source-view">
-    <RouterLink :to="{ path: '/sources', hash: `#source-${sourceId}` }" class="source-view__back">{{
-      t('sidePanel.sources')
-    }}</RouterLink>
+    <nav :aria-label="t('common.back')">
+      <RouterLink :to="{ path: '/sources', hash: `#source-${sourceId}` }" class="source-view__back">
+        <span aria-hidden="true">←</span> {{ t('source.backToSources') }}
+      </RouterLink>
+    </nav>
     <div
       v-if="sourceLoading"
       class="source-view__skeleton"
@@ -467,6 +469,7 @@ async function onDeleteCron() {
   <InkPopup
     :open="newJobOpen"
     position="center"
+    style="width: min(56rem, calc(100vw - 2 * var(--sys-space-md)))"
     :aria-label="t('source.newJobTitle')"
     :close-on-scrim="!jobSaving"
     :close-on-escape="!jobSaving"
@@ -485,11 +488,10 @@ async function onDeleteCron() {
         :label="t('source.collectionIntent')"
         :disabled="jobSaving"
       />
-      <InkJsonEditor
+      <SchemaConfigEditor
         v-model="jobConfig"
         :schema="jobSchema ?? undefined"
         :label="t('job.config')"
-        :rows="6"
         :disabled="jobSaving"
         @validation="jobValidation = $event"
       />
