@@ -1,5 +1,15 @@
 # @inkcre/client-web
 
+## 0.1.3
+
+### Patch Changes
+
+- 7307dda: 按任务精简 Settings、Peer 与 Extension 界面，统一页面和浏览器标题，补齐场景化加载、刷新失败保留、保存与取消的动作反馈。修正重复检索、任务不存在及日志读取失败的可观察结果，保留失败后的恢复入口。
+- 7307dda: Source 与 Peer 配置使用可视化表单，保留完整 JSON 编辑模式；Peers 页面可确认删除离线 Peer 并清理其扩展启用记录。Extension 浏览与版本选择交由 Registry，Web 接收精确版本并确认安装；Web 与 Module Federation 扩展统一升级正式 UI 2.2.0，Peer AI 凭据在 schema 中标记为密码输入。
+- Updated dependencies [7307dda]
+- Updated dependencies [7307dda]
+  - @inkcre/core@0.3.1
+
 ## 0.1.2
 
 ### Patch Changes
