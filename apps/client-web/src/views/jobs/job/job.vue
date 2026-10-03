@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useAsyncState, useIntervalFn } from '@vueuse/core'
 import { InkLoading, InkButton, InkField, InkSkeleton } from '@inkcre/ui-web'
 import LogsViewer from '@/components/obsrv/LogsViewer/LogsViewer.vue'
-import { APIError, Job, JobStatus, Source } from '@inkcre/core'
+import { APIError, Job, JobStatus, Source, telemetryDiagnosticsUrl } from '@inkcre/core'
 import dayjs from 'dayjs'
 
 const route = useRoute()
@@ -146,6 +146,14 @@ watch(
         <InkField :label="t('job.jobId')">
           <span class="metadata__value">{{ job.id }}</span>
         </InkField>
+
+        <a
+          v-if="telemetryDiagnosticsUrl"
+          :href="telemetryDiagnosticsUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          >{{ t('job.openDiagnostics') }}</a
+        >
 
         <InkField :label="t('job.status')">
           <div class="flex items-center gap-2" :aria-busy="jobLoading">

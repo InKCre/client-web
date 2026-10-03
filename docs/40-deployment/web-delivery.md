@@ -58,3 +58,36 @@ acceptance is a separate black-box activity.
 When an eligible internal PR closes, [`.github/workflows/pages-cleanup.yml`](../../.github/workflows/pages-cleanup.yml)
 replaces only that exact preview alias with a closed-page tombstone. Manual cleanup accepts an
 explicit positive PR number and applies the same closed internal-PR identity checks.
+
+## 浏览器可选观测出口
+
+部署 owner 先通过 core-py 的部署配置流程创建 `inkcre.observability.v1`，保留稳定的
+`deployment_id`，并按需填写 traces、logs、metrics 完整 OTLP/HTTP URL 与诊断入口。
+浏览器不会因这些 URL 存在而自动启用；在连接设置中勾选遥测并保存后才接入。
+只启用部分信号时其余信号不远端导出；没有有效共享配置时保留本地固定原因诊断，
+修复配置后重新保存连接。取消勾选并保存可以停止新采集，PG 历史和 Job 查询不受影响。
+
+浏览器出口必须是部署 owner 已验证的公开受限写入入口，或受控按请求转发入口；
+不得把 Grafana/其他 SaaS 的服务端 ingest token 放入浏览器配置、URL、静态环境变量
+或前端代码。URL 校验拒绝 userinfo、query 和 fragment，不接受任意自定义认证 headers。
+如使用 core-py 的受控中转，在浏览器连接设置显式填写 `telemetry_peer_relay_url`，例如
+`https://peer.example/telemetry`。SDK 追加 `/v1/{traces,logs,metrics}`，每批请求用现有
+签名 authority 产生此连接的短期 Peer JWT；私密 SaaS headers 仍只在服务器。
+浏览器三信号统一使用官方 OTLP/HTTP protobuf exporter 和 `application/x-protobuf`；
+core 中转只接受此格式，Trace/Span ID 与 Links 由标准 protobuf 消息保留，不经过通用
+JSON 字节转换。该地址需属于可信部署 Peer；填写地址不会启用遥测，失败也不会切回公开出口。
+留空时沿用共享公开出口且不附加 Peer JWT。
+负责入口的部署 owner 须验证 CORS、写入权限、部署归属、配额和失效行为。浏览器自报的
+部署 ID 只是关联属性，不能作为授权依据。客户端不提供常驻 Collector，也不代表某个
+SaaS 的真实账号、免费额度或入口已经验收。
+
+Peer HTTP 入口需要在原有认证和 CORS 配置下允许 `traceparent`、`tracestate`；CORS
+本身不授予调用权限。开启遥测的 Peer endpoint 必须直接响应，浏览器不跟随重定向，
+避免向配置边界外的地址转发内部 context。OTLP 只包含操作名、固定结果、状态码、Job/Peer/部署标识与计时，
+不包含请求 URL/query、prompt、工具原文或任意异常 message。受信部署 owner 配置出口，
+外部观测服务获取这些元数据；误把私密凭据交给公开浏览器会跨越凭据边界，因此首次出口
+验收只使用合成数据，直到公开入口和保留策略获得独立验证。
+
+浏览器正常关闭 SDK 的等待上限为 1.5 秒；刷新、断网和进程终止仍可丢遥测。OTLP
+失败不会重放业务请求，Peer 的 not-executed、unknown 和 exact-target 规则不变。
+新增 Job carrier schema 按共享契约协调升级，旧页面重新连接前需刷新到匹配版本。

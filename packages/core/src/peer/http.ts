@@ -1,3 +1,10 @@
+import {
+  observeOperation,
+  injectPeerContext,
+  SpanKind,
+  SpanStatusCode,
+  type Context,
+} from '../obsrv/telemetry'
 import { z } from 'zod'
 import { authStore } from '../auth'
 import { configStore } from '../config'
@@ -66,71 +73,94 @@ export class PeerHTTPOutbound {
     this.parameters = parsed.data
   }
 
-  async execute(payload: JsonValue): Promise<JsonValue> {
-    const parsed = PeerProtocolRequestSchema.safeParse(payload)
-    if (!parsed.success) throw new PeerProtocolError('Invalid Peer HTTP request envelope')
-    const request = parsed.data
-    const url = new URL(this.parameters.url)
-    for (const [name, values] of Object.entries(request.query)) {
-      for (const value of values) url.searchParams.append(name, value)
-    }
+  async execute(payload: JsonValue, parent?: Context): Promise<JsonValue> {
+    return observeOperation(
+      'peer.http',
+      async (active, span, result) => {
+        const parsed = PeerProtocolRequestSchema.safeParse(payload)
+        if (!parsed.success) throw new PeerProtocolError('Invalid Peer HTTP request envelope')
+        const request = parsed.data
+        const url = new URL(this.parameters.url)
+        for (const [name, values] of Object.entries(request.query)) {
+          for (const value of values) url.searchParams.append(name, value)
+        }
 
-    const headers = new Headers()
-    for (const [name, values] of Object.entries(request.headers)) {
-      if (RESERVED_REQUEST_HEADERS.has(name)) {
-        throw new PeerProtocolError(`Peer HTTP payload attempted reserved header: ${name}`)
-      }
-      for (const value of values) headers.append(name, value)
-    }
-    headers.set('Authorization', `Bearer ${await authStore.getToken()}`)
+        const headers = new Headers()
+        for (const [name, values] of Object.entries(request.headers)) {
+          if (RESERVED_REQUEST_HEADERS.has(name)) {
+            throw new PeerProtocolError(`Peer HTTP payload attempted reserved header: ${name}`)
+          }
+          for (const value of values) headers.append(name, value)
+        }
+        headers.set('Authorization', `Bearer ${await authStore.getToken()}`)
 
-    let body: string | undefined
-    if (Object.prototype.hasOwnProperty.call(request, 'body')) {
-      body = JSON.stringify(request.body)
-      if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
-    }
+        let body: string | undefined
+        if (Object.prototype.hasOwnProperty.call(request, 'body')) {
+          body = JSON.stringify(request.body)
+          if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
+        }
 
-    let response: Response
-    try {
-      response = await this.fetcher(url, {
-        method: this.parameters.method,
-        headers,
-        body,
-        signal: AbortSignal.timeout(configStore.peerConfig.peer_http_timeout_ms),
-      })
-    } catch (error) {
-      throw new PeerOutcomeUnknown(
-        `Peer ${this.peer.id} dispatch may have executed: ${error instanceof Error ? error.message : 'fetch failed'}`
-      )
-    }
+        const propagating = injectPeerContext(active, headers)
+        let response: Response
+        try {
+          response = await this.fetcher(url, {
+            method: this.parameters.method,
+            // A redirect could disclose deployment context beyond the configured Peer endpoint.
+            ...(propagating ? { redirect: 'error' as const } : {}),
+            headers,
+            body,
+            signal: AbortSignal.timeout(configStore.peerConfig.peer_http_timeout_ms),
+          })
+        } catch (error) {
+          throw new PeerOutcomeUnknown(
+            `Peer ${this.peer.id} dispatch may have executed: ${error instanceof Error ? error.message : 'fetch failed'}`
+          )
+        }
 
-    if (response.headers.get(PEER_EXECUTION_HEADER)?.trim().toLowerCase() === PEER_NOT_EXECUTED) {
-      throw new PeerRequestNotExecuted(`Peer ${this.peer.id} reported non-execution`)
-    }
+        span?.setAttribute('http.response.status_code', response.status)
+        if (response.status >= 400) {
+          result.outcome = 'error'
+          span?.setStatus({ code: SpanStatusCode.ERROR })
+        }
+        if (
+          response.headers.get(PEER_EXECUTION_HEADER)?.trim().toLowerCase() === PEER_NOT_EXECUTED
+        ) {
+          throw new PeerRequestNotExecuted(`Peer ${this.peer.id} reported non-execution`)
+        }
 
-    const responseHeaders: Record<string, string[]> = {}
-    response.headers.forEach((value, name) => {
-      responseHeaders[name.toLowerCase()] = [value]
-    })
-    const responseEnvelope: Record<string, unknown> = {
-      status: response.status,
-      headers: responseHeaders,
-    }
-    let text: string
-    try {
-      text = await response.text()
-    } catch (error) {
-      throw new PeerOutcomeUnknown(
-        `Peer ${this.peer.id} response could not be read after dispatch: ${error instanceof Error ? error.message : 'response read failed'}`
-      )
-    }
-    if (text) {
-      try {
-        responseEnvelope.body = JSON.parse(text)
-      } catch {
-        throw new PeerProtocolError(`Peer ${this.peer.id} returned a non-JSON HTTP body`)
-      }
-    }
-    return PeerProtocolResponseSchema.parse(responseEnvelope) as JsonValue
+        const responseHeaders: Record<string, string[]> = {}
+        response.headers.forEach((value, name) => {
+          responseHeaders[name.toLowerCase()] = [value]
+        })
+        const responseEnvelope: Record<string, unknown> = {
+          status: response.status,
+          headers: responseHeaders,
+        }
+        let text: string
+        try {
+          text = await response.text()
+        } catch (error) {
+          throw new PeerOutcomeUnknown(
+            `Peer ${this.peer.id} response could not be read after dispatch: ${error instanceof Error ? error.message : 'response read failed'}`
+          )
+        }
+        if (text) {
+          try {
+            responseEnvelope.body = JSON.parse(text)
+          } catch {
+            throw new PeerProtocolError(`Peer ${this.peer.id} returned a non-JSON HTTP body`)
+          }
+        }
+        return PeerProtocolResponseSchema.parse(responseEnvelope) as JsonValue
+      },
+      {
+        kind: SpanKind.CLIENT,
+        attributes: {
+          'inkcre.peer.target.id': this.peer.id,
+          'http.request.method': this.parameters.method,
+        },
+      },
+      parent
+    )
   }
 }

@@ -67,7 +67,7 @@ const onSave = async () => {
   try {
     const validatedMeta = MetaConfigSchema.parse(metaFormConfig)
     const runtime = await configStore.connectAndSave(validatedMeta, WEB_PEER_IDENTITY)
-    adoptWebPeerRuntime(runtime)
+    await adoptWebPeerRuntime(runtime)
     void refreshCurrentWebPeer()
     Object.assign(metaFormConfig, configStore.metaConfig)
     feedback.value = { action: 'save', error: false, message: t('settings.saveSuccess') }
@@ -128,7 +128,7 @@ const onFileSelected = async (event: Event) => {
   try {
     const imported = SettingsExportSchema.parse(JSON.parse(await file.text()))
     const runtime = await configStore.connectAndSave(imported.metaConfig, WEB_PEER_IDENTITY)
-    adoptWebPeerRuntime(runtime)
+    await adoptWebPeerRuntime(runtime)
     void refreshCurrentWebPeer()
     await setLocale(imported.locale)
     Object.assign(metaFormConfig, configStore.metaConfig)
@@ -168,6 +168,19 @@ const onFileSelected = async (event: Event) => {
         placeholder="••••••••"
         :disabled="formBusy"
       />
+
+      <label class="flex items-center gap-2">
+        <input v-model="metaFormConfig.telemetry_enabled" type="checkbox" :disabled="formBusy" />
+        {{ t('settings.telemetryEnabled') }}
+      </label>
+      <p>{{ t('settings.telemetryHelp') }}</p>
+      <InkInput
+        v-model="metaFormConfig.telemetry_peer_relay_url"
+        :label="t('settings.telemetryRelay')"
+        placeholder="https://..."
+        :disabled="formBusy"
+      />
+      <p>{{ t('settings.telemetryRelayHelp') }}</p>
 
       <div class="settings-view__actions">
         <InkButton

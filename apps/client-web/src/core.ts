@@ -7,6 +7,9 @@
 
 import {
   configStore,
+  initializeTelemetry,
+  shutdownTelemetry,
+  flushTelemetry,
   ExtensionRegistryOriginResolver,
   DEFAULT_EXTENSION_REGISTRY_ORIGIN,
   localStorageAdapter,
@@ -205,9 +208,10 @@ export function getExtensionSetupContribution(name: string): ExtensionSetupContr
 }
 
 /** Replace the browser-owned lease runtime after a validated Settings cutover. */
-export function adoptWebPeerRuntime(runtime: WebPeerRuntime): void {
+export async function adoptWebPeerRuntime(runtime: WebPeerRuntime): Promise<void> {
   webPeerRuntime?.stop()
   webPeerRuntime = runtime
+  await initializeTelemetry(configStore.metaConfig, WEB_PEER_IDENTITY.applicationVersion)
   JobManager.startWorker()
 }
 
@@ -216,6 +220,7 @@ export async function stopWebPeerRuntime(): Promise<void> {
   webPeerRuntime = null
   currentWebPeer.value = null
   await JobManager.stopWorker()
+  await shutdownTelemetry()
 }
 
 /** Start the lease after Settings has mounted and loaded recovery configuration. */
@@ -226,7 +231,7 @@ export async function startConfiguredWebPeerRuntime(): Promise<void> {
     const peer = await candidate.register()
     await configStore.loadPeerConfig()
     await candidate.start()
-    adoptWebPeerRuntime(candidate)
+    await adoptWebPeerRuntime(candidate)
     currentWebPeer.value = { id: peer.id, name: peer.name }
   } catch (error) {
     candidate.stop()
@@ -335,7 +340,7 @@ export async function initializeCore(options: { loadPeerConfig?: boolean } = {})
       const peer = await candidate.register()
       await configStore.loadPeerConfig()
       await candidate.start()
-      adoptWebPeerRuntime(candidate)
+      await adoptWebPeerRuntime(candidate)
       currentWebPeer.value = { id: peer.id, name: peer.name }
     } catch (error) {
       candidate.stop()
@@ -353,3 +358,8 @@ export async function initializeCore(options: { loadPeerConfig?: boolean } = {})
 export async function shutdownCore(): Promise<void> {
   await stopWebPeerRuntime()
 }
+
+// Page termination is best effort; normal connection shutdown awaits bounded SDK drain.
+window.addEventListener('pagehide', () => {
+  void flushTelemetry()
+})

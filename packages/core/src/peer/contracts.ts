@@ -1,3 +1,4 @@
+import type { Context } from '../obsrv/telemetry'
 import { z } from 'zod'
 
 export type JsonValue =
@@ -88,7 +89,7 @@ export type PeerProtocolRequest = z.infer<typeof PeerProtocolRequestSchema>
 export type PeerProtocolResponse = z.infer<typeof PeerProtocolResponseSchema>
 
 export interface PeerOutbound {
-  execute(payload: JsonValue): Promise<JsonValue>
+  execute(payload: JsonValue, parent?: Context): Promise<JsonValue>
 }
 
 export class PeerError extends Error {}

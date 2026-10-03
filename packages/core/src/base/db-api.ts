@@ -1,3 +1,4 @@
+import { observeOperation, SpanKind, SpanStatusCode } from '../obsrv/telemetry'
 import { configStore as sharedConfigStore } from '../config'
 import { authStore } from '../auth'
 import { PostgrestClient } from '@supabase/postgrest-js'
@@ -65,7 +66,19 @@ export async function rawPostgrestFetch(
   headers.set('Accept-Profile', schema)
   headers.set('Content-Profile', schema)
 
-  const response = await fetch(url, { ...init, headers })
+  const response = await observeOperation(
+    'postgrest.http',
+    async (_active, span, outcome) => {
+      const result = await fetch(url, { ...init, headers })
+      span?.setAttribute('http.response.status_code', result.status)
+      if (result.status >= 400) {
+        outcome.outcome = 'error'
+        span?.setStatus({ code: SpanStatusCode.ERROR })
+      }
+      return result
+    },
+    { kind: SpanKind.CLIENT }
+  )
   if (!response.ok) {
     const errorResponse = response.clone()
     let details: unknown
@@ -121,7 +134,19 @@ export class DBAPIClient<
         const token = await tokenProvider()
         const headers = new Headers(init?.headers)
         headers.set('Authorization', `Bearer ${token}`)
-        return fetch(input, { ...init, headers })
+        return observeOperation(
+          'postgrest.http',
+          async (_active, span, outcome) => {
+            const response = await fetch(input, { ...init, headers })
+            span?.setAttribute('http.response.status_code', response.status)
+            if (response.status >= 400) {
+              outcome.outcome = 'error'
+              span?.setStatus({ code: SpanStatusCode.ERROR })
+            }
+            return response
+          },
+          { kind: SpanKind.CLIENT }
+        )
       },
     })
 

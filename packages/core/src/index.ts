@@ -130,7 +130,14 @@ export {
 export { Cron, CronForm } from './cron'
 
 // Observability
-export { Log, type LogRef } from './obsrv'
+export {
+  Log,
+  type LogRef,
+  initializeTelemetry,
+  shutdownTelemetry,
+  flushTelemetry,
+  telemetryDiagnosticsUrl,
+} from './obsrv'
 
 // Info-Base (Blocks, Relations, Storage, Resolvers)
 export {

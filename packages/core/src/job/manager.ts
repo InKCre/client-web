@@ -1,3 +1,12 @@
+import {
+  observeOperation,
+  emitJobEvent,
+  SpanStatusCode,
+  captureSubmission,
+  submissionLinks,
+  ROOT_CONTEXT,
+  type Context,
+} from '../obsrv/telemetry'
 import { z } from 'zod'
 import { Job, JobStatus, JobType, type JobRef, type JobTypeRef } from './job'
 
@@ -36,25 +45,37 @@ export class JobManager {
   static async create(
     type: JobTypeRef,
     parameters: Record<string, unknown>,
-    timeoutSeconds?: number
+    timeoutSeconds?: number,
+    parent?: Context
   ): Promise<Job> {
-    const jobType = await JobType.get(type)
-    const handler = this.handlers.get(type)
-    const normalized = handler ? handler.parameters.parse(parameters) : parameters
-    const timeout = timeoutSeconds ?? jobType.default_timeout_seconds
-    if (!Number.isInteger(timeout) || timeout <= 0) {
-      throw new TypeError('Job timeout must be a positive number of seconds')
-    }
-    const result = await Job.dbApi
-      .insert({
-        type,
-        parameters: normalized,
-        timeout_seconds: timeout,
-        state: {},
-      })
-      .select()
-      .single()
-    return Job.parse(result.data)
+    return observeOperation(
+      'job.submit',
+      async (active, span) => {
+        const jobType = await JobType.get(type)
+        const handler = this.handlers.get(type)
+        const normalized = handler ? handler.parameters.parse(parameters) : parameters
+        const timeout = timeoutSeconds ?? jobType.default_timeout_seconds
+        if (!Number.isInteger(timeout) || timeout <= 0) {
+          throw new TypeError('Job timeout must be a positive number of seconds')
+        }
+        const result = await Job.dbApi
+          .insert({
+            type,
+            parameters: normalized,
+            timeout_seconds: timeout,
+            state: {},
+            ...captureSubmission(active),
+          })
+          .select()
+          .single()
+        const job = Job.parse(result.data)
+        span?.setAttribute('inkcre.job.id', job.id)
+        emitJobEvent('job.submitted', job.id, active)
+        return job
+      },
+      {},
+      parent
+    )
   }
 
   private static async prepare(job: Job): Promise<[JobHandler, unknown] | null> {
@@ -80,7 +101,9 @@ export class JobManager {
       .eq('id', job.id)
       .eq('status', JobStatus.RUNNING)
       .select('id')
-    return (result.data?.length ?? 0) > 0
+    const closed = (result.data?.length ?? 0) > 0
+    if (closed) job.status = status as Job['status']
+    return closed
   }
 
   static async run(id: JobRef): Promise<boolean> {
@@ -96,7 +119,7 @@ export class JobManager {
       if (!claimed) return false
       console.error('Persisted Job parameters are invalid', id, error)
       claimed.state = { ...claimed.state, error: error.message }
-      await this.close(claimed, JobStatus.FAILED)
+      await this.observeExecution(claimed, () => this.close(claimed, JobStatus.FAILED))
       return true
     }
     if (!prepared) return false
@@ -105,13 +128,15 @@ export class JobManager {
     // stopWorker may have run while claim was in flight. Do not start a handler
     // after its Extension resources have been disposed.
     if (!this.accepting) {
-      await this.close(claimed, JobStatus.ABORTED)
+      await this.observeExecution(claimed, () => this.close(claimed, JobStatus.ABORTED))
       return true
     }
 
     const [handler, parameters] = prepared
     const controller = new AbortController()
-    const completion = this.execute(claimed, handler, parameters, controller)
+    const completion = this.observeExecution(claimed, () =>
+      this.execute(claimed, handler, parameters, controller)
+    )
     this.active.set(id, { controller, completion })
     try {
       await completion
@@ -119,6 +144,38 @@ export class JobManager {
       this.active.delete(id)
     }
     return true
+  }
+
+  private static async observeExecution(
+    claimed: Job,
+    execute: () => Promise<unknown>
+  ): Promise<void> {
+    await observeOperation(
+      'job.execute',
+      async (active, span, result) => {
+        emitJobEvent('job.started', claimed.id, active)
+        await execute()
+        switch (claimed.status) {
+          case JobStatus.FINISHED:
+            result.outcome = 'success'
+            break
+          case JobStatus.ABORTED:
+            result.outcome = 'cancelled'
+            break
+          case JobStatus.TIMED_OUT:
+            result.outcome = 'timeout'
+            break
+          default:
+            result.outcome = 'error'
+        }
+        span?.setAttribute('inkcre.job.status', claimed.status)
+        if (claimed.status === JobStatus.FAILED || claimed.status === JobStatus.TIMED_OUT)
+          span?.setStatus({ code: SpanStatusCode.ERROR })
+        if (claimed.isTerminal) emitJobEvent('job.closed', claimed.id, active, claimed.status)
+      },
+      { ...submissionLinks(claimed), attributes: { 'inkcre.job.id': claimed.id } },
+      ROOT_CONTEXT
+    )
   }
 
   private static async execute(
