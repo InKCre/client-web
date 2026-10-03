@@ -162,6 +162,11 @@ const sidebarExpanded = ref(false)
 </style>
 
 <style>
+.info-base-inspector-surface {
+  border: 1px solid var(--sys-color-border-base);
+  box-shadow: 0 3px 12px rgb(0 0 0 / 16%);
+}
+
 body {
   margin: 0;
   font-family: var(--sys-typo-family-sans);

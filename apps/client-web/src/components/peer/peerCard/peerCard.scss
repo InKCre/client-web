@@ -6,8 +6,7 @@
   justify-content: space-between;
   align-items: center;
   padding: sys-var(space, md);
-  border: 1px solid sys-var(color, border, base);
-  background-color: sys-var(color, surface, base);
+  background-color: sys-var(color, surface, subtle);
 
   &__item-info {
     min-width: 0;
@@ -31,8 +30,7 @@
   }
 
   &__current {
-    padding-inline-start: sys-var(space, sm);
-    border-inline-start: 1px solid sys-var(color, border, base);
+    white-space: nowrap;
   }
 
   &__item-id {
@@ -49,6 +47,18 @@
     display: flex;
     flex-wrap: wrap;
     gap: sys-var(space, xs);
+  }
+
+  &__readiness {
+    @include apply-font(body-sm);
+    max-width: 100%;
+    p {
+      margin: sys-var(space, xs) 0;
+    }
+    ul {
+      margin: sys-var(space, xs) 0;
+      padding-left: sys-var(space, md);
+    }
   }
 
   &__details {

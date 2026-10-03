@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { InkButton, InkLoading, InkSkeleton, InkPlaceholder } from '@inkcre/ui-web'
+import { InkButton, InkSkeleton, InkPlaceholder } from '@inkcre/ui-web'
 import { usePageObjectTitle } from '@/composables/use-page-object-title'
 import { configStore, Peer, PeerManager, type InstalledExtension } from '@inkcre/core'
 import type { ReleaseRecord } from '@inkcre/extension-runtime-client-web'
@@ -269,9 +269,8 @@ onMounted(() => {
     </InkPlaceholder>
 
     <template v-else>
-      <section v-if="peersLoading || peerError" class="extensions-view__peer-status">
-        <InkLoading v-if="peersLoading" variant="spinner" size="xs" :label="t('common.loading')" />
-        <p v-else role="alert" class="extensions-view__error">
+      <section v-if="peerError" class="extensions-view__peer-status">
+        <p role="alert" class="extensions-view__error">
           {{ t('extension.peerListUnavailable', { error: peerError }) }}
         </p>
         <InkButton v-if="peerError" :text="t('common.retry')" size="sm" @click="refreshPeers" />

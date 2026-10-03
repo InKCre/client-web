@@ -5,7 +5,6 @@ import {
   InkButton,
   InkDialog,
   InkDropdown,
-  InkJsonEditor,
   InkLoading,
   type JsonEditorValidation,
 } from '@inkcre/ui-web'
@@ -18,6 +17,7 @@ import {
 } from '@inkcre/extension-runtime-client-web'
 import { extensionCardProps, extensionCardEmits } from './extensionCard'
 import { extensionPeerControlMode, setExtensionPeerEnabled } from '@/extension-peer-control'
+import SchemaConfigEditor from '@/components/schemaConfigEditor/schemaConfigEditor.vue'
 
 const props = defineProps(extensionCardProps)
 const emit = defineEmits(extensionCardEmits)
@@ -28,6 +28,11 @@ const configPopupOpen = ref(false)
 const configSaving = ref(false)
 const configValidation = ref<JsonEditorValidation>()
 const versionPopupOpen = ref<boolean | Promise<boolean>>(false)
+const managementOpen = ref(false)
+function openManagement(): void {
+  operationError.value = null
+  managementOpen.value = true
+}
 const setupPopupOpen = ref(false)
 const setupComponent = shallowRef<Component | null>(null)
 const setupContribution = shallowRef(getExtensionSetupContribution(props.extension.name))
@@ -44,7 +49,6 @@ const versionOptions = ref<{ label: string; value: string; description?: string 
 const versionLoading = ref(false)
 const versionError = ref<string | null>(null)
 const documentation = shallowRef<ExtensionDocumentationLink[]>([])
-const documentationOpen = ref(false)
 const documentationRetry = ref(0)
 const documentationStatus = ref<'loading' | 'available' | 'missing' | 'unavailable'>('loading')
 const canSaveConfig = computed(
@@ -54,15 +58,8 @@ const canSaveConfig = computed(
 
 // --- computed ---
 watch(
-  () =>
-    [
-      props.extension.name,
-      props.extension.version,
-      documentationOpen.value,
-      documentationRetry.value,
-    ] as const,
-  async ([name, version, open], _previous, onCleanup) => {
-    if (!open) return
+  () => [props.extension.name, props.extension.version, documentationRetry.value] as const,
+  async ([name, version], _previous, onCleanup) => {
     let current = true
     onCleanup(() => {
       current = false
@@ -182,6 +179,7 @@ const onSetupClick = () => {
 }
 
 const onChangeVersionClick = async () => {
+  managementOpen.value = false
   versionModel.value = props.extension.version
   versionOptions.value = []
   versionError.value = null
@@ -250,6 +248,7 @@ const onUninstall = async () => {
   isUninstalling.value = true
   try {
     await getExtensionHost().uninstall(props.extension.name)
+    managementOpen.value = false
     emit('uninstalled')
   } catch (error) {
     operationError.value = error instanceof Error ? error.message : String(error)
@@ -298,12 +297,24 @@ const onUninstall = async () => {
         @click="onSetupClick"
       />
       <InkButton @click="onEditConfigClick" :text="t('extension.editConfig')" size="sm" />
+      <InkButton
+        :text="t('extension.versionAndRemoval')"
+        size="sm"
+        theme="subtle"
+        @click="openManagement"
+      />
     </div>
     <p class="extension-card__hint">
       {{ t('extension.enabledPeerCount', { count: extension.enabled.length }) }}
     </p>
-    <details class="extension-card__details">
-      <summary>{{ t('extension.versionAndRemoval') }}</summary>
+    <InkDialog
+      v-model="managementOpen"
+      :title="t('extension.versionAndRemoval')"
+      :subtitle="`${extension.nickname ?? extension.name} · v${extension.version}`"
+      :show-confirm="false"
+      :cancel-text="t('common.close')"
+      :is-loading="isUninstalling"
+    >
       <div class="extension-card__actions">
         <InkButton
           @click="onChangeVersionClick"
@@ -324,13 +335,10 @@ const onUninstall = async () => {
       <p v-if="extension.enabled.length > 0" class="extension-card__hint">
         {{ t('extension.uninstallDisabled') }}
       </p>
-    </details>
-    <p v-if="operationError" role="alert" class="extension-card__error">{{ operationError }}</p>
-    <details
-      class="extension-card__details"
-      @toggle="documentationOpen = ($event.target as HTMLDetailsElement).open"
-    >
-      <summary>{{ t('extension.documentation') }}</summary>
+      <p v-else class="extension-card__hint">{{ t('extension.uninstallConfirm') }}</p>
+      <p v-if="operationError" role="alert" class="extension-card__error">{{ operationError }}</p>
+    </InkDialog>
+    <div class="extension-card__documentation">
       <InkLoading
         v-if="documentationStatus === 'loading'"
         variant="spinner"
@@ -350,6 +358,7 @@ const onUninstall = async () => {
           rel="noopener noreferrer"
         >
           {{ t(`extension.documentationScope.${link.scope}`) }}
+          <span aria-hidden="true"> ↗</span>
         </a>
       </nav>
       <p v-else-if="documentationStatus === 'unavailable'" class="extension-card__hint">
@@ -364,7 +373,7 @@ const onUninstall = async () => {
         size="sm"
         @click="documentationRetry++"
       />
-    </details>
+    </div>
 
     <InkDialog
       v-model="peerDialogOpen"
@@ -440,8 +449,9 @@ const onUninstall = async () => {
       v-model="configPopupOpen"
       :title="t('extension.editConfigTitle')"
       :is-loading="configSaving"
+      style="width: min(48rem, calc(100vw - 2 * var(--sys-space-md)))"
     >
-      <InkJsonEditor
+      <SchemaConfigEditor
         v-model="configModel"
         :schema="extension.config_schema ?? undefined"
         :label="t('extension.editConfigTitle')"

@@ -87,14 +87,13 @@
     color: sys-var(color, text, base);
     flex: 1 1 12rem;
     min-width: 0;
-    word-break: break-all;
-    overflow-x: scroll;
+    overflow-wrap: anywhere;
 
     &--code {
       padding: sys-var(space, xs);
       border-radius: sys-var(radius, none);
       margin: 0;
-      white-space: pre;
+      white-space: pre-wrap;
     }
   }
 }
