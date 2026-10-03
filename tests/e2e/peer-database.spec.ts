@@ -369,6 +369,8 @@ test('Settings export restores the complete browser experience', async ({ page }
         INKCRE_PGREST_URL: postgrestUrl,
         INKCRE_JWT_SECRET: jwtSecret,
         INKCRE_PEER_ID: '00000000-0000-4000-8000-000000000001',
+        telemetry_enabled: false,
+        telemetry_peer_relay_url: '',
       },
       locale: 'en',
     })
@@ -398,6 +400,9 @@ test('Settings export restores the complete browser experience', async ({ page }
         }))
       )
       .toEqual({ metaConfig: exported.metaConfig, locale: 'en' })
+    await expect(
+      page.getByRole('checkbox', { name: 'Enable telemetry for this browser Peer', exact: true })
+    ).not.toBeChecked()
   } finally {
     const cleanup = await fetch(endpoint, {
       method: 'DELETE',
