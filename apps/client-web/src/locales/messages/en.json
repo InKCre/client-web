@@ -69,7 +69,11 @@
     "resetConfirmMessage": "Are you sure you want to reset all settings to default? This action cannot be undone.",
     "exportConfig": "Export",
     "importConfig": "Import",
-    "importError": "Unable to restore configuration. Check the file and deployment connection."
+    "importError": "Unable to restore configuration. Check the file and deployment connection.",
+    "telemetryEnabled": "Enable telemetry for this browser Peer",
+    "telemetryHelp": "Takes effect after saving the connection. Requires deployment observability endpoints; existing Job logs remain available.",
+    "telemetryRelay": "Peer telemetry relay URL (optional)",
+    "telemetryRelayHelp": "Use only a trusted deployment Peer relay. This connection’s short-lived Peer identity authenticates requests; leave empty to use deployment public observability endpoints."
   },
   "source": {
     "deleteConfirmTitle": "Delete Source",
@@ -198,7 +202,8 @@
     "retry": "Retry",
     "notAvailable": "N/A",
     "notFound": "Job not found",
-    "sourceNotFound": "Source not found"
+    "sourceNotFound": "Source not found",
+    "openDiagnostics": "Open diagnostics (search by Job ID)"
   },
   "logs": {
     "loading": "Loading logs…",

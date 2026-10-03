@@ -50,6 +50,8 @@ export class Job extends Z.class({
     JobStatus.TIMED_OUT,
     JobStatus.ABORTED,
   ]),
+  submission_traceparent: z.string().nullable().default(null),
+  submission_tracestate: z.string().nullable().default(null),
   created_at: z.coerce.date(),
   started_at: z.coerce.date().nullable(),
   closed_at: z.coerce.date().nullable(),

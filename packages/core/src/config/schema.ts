@@ -47,6 +47,22 @@ const CurrentMetaConfigSchema = z.object({
   INKCRE_PGREST_URL: UnconfiguredUrlSchema.default(''),
   INKCRE_JWT_SECRET: z.string().default(''),
   INKCRE_PEER_ID: GeneratedPeerIdSchema,
+  telemetry_enabled: z.boolean().default(false),
+  telemetry_peer_relay_url: z
+    .union([
+      z.literal(''),
+      z.url().refine((value) => {
+        const url = new URL(value)
+        return (
+          ['http:', 'https:'].includes(url.protocol) &&
+          !url.username &&
+          !url.password &&
+          !url.search &&
+          !url.hash
+        )
+      }, 'Peer relay URL must be HTTP(S) without credentials, query or fragment'),
+    ])
+    .default(''),
 })
 
 /** Preserve one browser origin's old technical identity during the Peer cutover. */

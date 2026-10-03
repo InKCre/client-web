@@ -69,7 +69,11 @@
     "resetConfirmMessage": "确定要重置所有设置为默认值吗？此操作无法撤销。",
     "exportConfig": "导出",
     "importConfig": "导入",
-    "importError": "无法恢复配置，请检查文件及部署连接。"
+    "importError": "无法恢复配置，请检查文件及部署连接。",
+    "telemetryEnabled": "启用此浏览器 Peer 的遥测",
+    "telemetryHelp": "保存连接后生效。需要部署配置观测出口；原有 Job 日志继续保留。",
+    "telemetryRelay": "Peer 遥测中转地址（可选）",
+    "telemetryRelayHelp": "仅填写可信部署 Peer 的中转地址。此连接的短期 Peer 身份将用于认证；留空使用部署的公开观测出口。"
   },
   "source": {
     "deleteConfirmTitle": "删除数据源",
@@ -199,7 +203,8 @@
     "retry": "重试",
     "notAvailable": "不可用",
     "notFound": "未找到任务",
-    "sourceNotFound": "未找到数据源"
+    "sourceNotFound": "未找到数据源",
+    "openDiagnostics": "打开诊断入口（使用 Job ID 查询）"
   },
   "logs": {
     "loading": "正在读取日志…",

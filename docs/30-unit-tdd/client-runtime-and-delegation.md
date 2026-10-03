@@ -129,3 +129,37 @@ success. `PeerOutcomeUnknown` remains visible and does not trigger reload or aut
 - Exact-target routing never degrades to best-effort routing.
 - Ambiguous dispatch is never retried automatically.
 - Browser bootstrap state is runtime authority; portable build bytes stay environment-neutral.
+
+## 可选遥测
+
+浏览器连接配置的 `telemetry_enabled` 缺省为 false。关闭时不读取共享观测配置、不初始化
+新增 SDK、不捕获 Job 提交 carrier，也不发出新增传播头。保存连接后重新初始化；配置文件
+导入、导出保留此浏览器本地选择。现有 `job.<id>` PostgreSQL 日志查询始终保留。
+
+开启后只读取 `configs` 中 `inkcre.observability` / `inkcre.observability.v1` 的公共投影。
+`deployment_id` 由部署 owner 创建，浏览器不分配部署身份。三个 OTLP/HTTP 完整信号 URL
+分别启用标准浏览器 SDK 的 OTLP/HTTP protobuf exporter。连接还可显式指定 `telemetry_peer_relay_url`，
+从此 base 的 `/v1/traces`、`/v1/logs`、`/v1/metrics` 经现有短期 Peer JWT 认证导出；
+JWT 签名闭包绑定初始化时的连接，旧批次不会借用新连接凭据。此地址不是启用开关，
+也没有自动推导或失败回退。配置不可用或初始化失败不会阻止业务启动。配置读取、
+exporter 超时和正常关闭排空均有界，页面退出只能 best effort。Job 页面提供可选
+`diagnostics_url` 链接，用户以 Job ID 在诊断端查询，不把 Grafana 查询语法写入业务层。
+
+`JobManager.create` 在同一个 PostgREST INSERT 中写入 SDK 注入的提交 carrier。超出
+512 UTF-8 bytes 的可选 tracestate 会被省略并计数。执行成功 claim 后创建独立 trace，
+通过 SDK Span Link 关联提交；claim、取消和 close 不重写提交列。Job ID 是诊断关联字段，
+不是 trace ID。`job.submitted`、`job.started`、`job.closed` 只从明确的业务边界发出结构化
+事件；既有应用日志、异常 message、参数和内容不会桥接到新增 OTLP。
+
+浏览器原生 `await` 不能依赖 StackContextManager 或 ZoneContextManager 自动保留当前
+span。本实现显式传递标准 OTel Context：`PeerManager.delegate` 的 context 传给 outbound，
+`PeerHTTPOutbound` 在真实请求边界注入；Job submit 的 context 在 await 后仍显式用于
+carrier 捕获。执行 trace 自身携带 Job ID 与 Link。扩展 handler 内部、独立 PostgREST 请求
+和任意 provider 的原生 async 调用尚不自动继承执行 context；不得将这些独立 span 宣称为
+完整执行树。新的调用者可以使用 `JobManager.create` / `PeerManager.delegate` 的可选
+Context 参数接续已有 SDK context。
+
+Peer HTTP 是唯一新增 W3C 传播 owner，目标来自已验证的 Peer advertisement。普通
+PostgREST 请求只生成本地 client span，不注入传播头，也不冒充远端 server/SQL span。
+开启传播的 Peer 请求使用 `redirect: error`，包括同 origin 跳转也不跟随；重定向失败仍为
+`PeerOutcomeUnknown` 且不重试，关闭态保留既有 fetch 行为。无全局 fetch patch；外部 provider、Source 和内容读取不会意外携带内部 trace 或 baggage。

@@ -1,3 +1,4 @@
+import { observeOperation, type Context } from '../obsrv/telemetry'
 import { APIError } from '../base'
 import { configStore } from '../config'
 import { ZodError } from 'zod'
@@ -50,34 +51,42 @@ export class PeerManager {
   static async delegate(
     capability: CapabilityID,
     payload: JsonValue,
-    routeToPeer: PeerRef | null = null
+    routeToPeer: PeerRef | null = null,
+    parent?: Context
   ): Promise<JsonValue> {
-    const candidates = await PeerManager.candidates(capability, routeToPeer)
-    let attempted = 0
-    for (const candidate of candidates) {
-      const factory = PeerManager.outbounds.get(candidate.protocol)
-      if (!factory) continue
-      let outbound: PeerOutbound
-      try {
-        outbound = factory(candidate.peer, candidate.parameters)
-      } catch (error) {
-        if (error instanceof PeerProtocolConfigurationError) continue
-        throw error
-      }
-      attempted += 1
-      try {
-        return await outbound.execute(payload)
-      } catch (error) {
-        if (error instanceof PeerRequestNotExecuted) {
-          if (routeToPeer !== null) break
-          continue
+    return observeOperation(
+      'peer.delegate',
+      async (active) => {
+        const candidates = await PeerManager.candidates(capability, routeToPeer)
+        let attempted = 0
+        for (const candidate of candidates) {
+          const factory = PeerManager.outbounds.get(candidate.protocol)
+          if (!factory) continue
+          let outbound: PeerOutbound
+          try {
+            outbound = factory(candidate.peer, candidate.parameters)
+          } catch (error) {
+            if (error instanceof PeerProtocolConfigurationError) continue
+            throw error
+          }
+          attempted += 1
+          try {
+            return await outbound.execute(payload, active)
+          } catch (error) {
+            if (error instanceof PeerRequestNotExecuted) {
+              if (routeToPeer !== null) break
+              continue
+            }
+            if (error instanceof PeerOutcomeUnknown) throw error
+            throw error
+          }
         }
-        if (error instanceof PeerOutcomeUnknown) throw error
-        throw error
-      }
-    }
-    throw new CapabilityDelegationUnavailable(
-      `No eligible Peer completed capability ${capability}; attempted=${attempted}`
+        throw new CapabilityDelegationUnavailable(
+          `No eligible Peer completed capability ${capability}; attempted=${attempted}`
+        )
+      },
+      {},
+      parent
     )
   }
 

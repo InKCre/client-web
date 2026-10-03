@@ -427,6 +427,8 @@ export type Database = {
           started_at: string | null
           state: Json
           status: Database['inkcre']['Enums']['jobstatus']
+          submission_traceparent: string | null
+          submission_tracestate: string | null
           timeout_seconds: number
           type: string
         }
@@ -439,6 +441,8 @@ export type Database = {
           started_at?: string | null
           state?: Json
           status?: Database['inkcre']['Enums']['jobstatus']
+          submission_traceparent?: string | null
+          submission_tracestate?: string | null
           timeout_seconds: number
           type: string
         }
@@ -451,6 +455,8 @@ export type Database = {
           started_at?: string | null
           state?: Json
           status?: Database['inkcre']['Enums']['jobstatus']
+          submission_traceparent?: string | null
+          submission_tracestate?: string | null
           timeout_seconds?: number
           type?: string
         }
