@@ -753,7 +753,7 @@ test('an empty browser saves its connection across refresh and reads Peers', asy
   }
 })
 
-test('Job distinguishes failed and missing reads and preserves logs after a polling failure', async ({
+test('Job preserves readable errors and logs and distinguishes failed and missing reads', async ({
   page,
 }) => {
   const authorization = `Bearer ${await token()}`
@@ -836,6 +836,46 @@ test('Job distinguishes failed and missing reads and preserves logs after a poll
     await logs.getByRole('button', { name: 'Retry', exact: true }).click()
     await expect(logs.getByText('Updating automatically')).toBeVisible()
     await expect(logs.getByText('Existing log survives failure')).toHaveCount(1)
+
+    const longUrl = `https://example.invalid/${'long-path-'.repeat(30)}`
+    const failureDetails = `Validation failed\n${longUrl}\nLiteral escape: \\n\nEnd of error`
+    const failedState = { error: failureDetails, attempt: 1 }
+    const failedJob = await fetch(`${postgrestUrl}jobs?id=eq.${jobId}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({
+        status: 'failed',
+        closed_at: new Date().toISOString(),
+        state: failedState,
+      }),
+    })
+    expect(failedJob.status).toBe(204)
+    await page.reload()
+    const errorDetails = page.getByLabel('Error details', { exact: true })
+    const state = page.getByLabel('State', { exact: true })
+    await expect(errorDetails).toHaveJSProperty('textContent', failureDetails)
+    await expect(state).toHaveJSProperty('textContent', JSON.stringify(failedState, null, 2))
+    await page.setViewportSize({ width: 375, height: 812 })
+    await expect(errorDetails).toBeVisible()
+    expect(await errorDetails.evaluate((element) => getComputedStyle(element).whiteSpace)).toBe(
+      'pre-wrap'
+    )
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
+    ).toBe(true)
+    await expect(errorDetails).toHaveJSProperty('textContent', failureDetails)
+
+    const structuredFailure = { error: { message: failureDetails } }
+    const updatedState = await fetch(`${postgrestUrl}jobs?id=eq.${jobId}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ state: structuredFailure }),
+    })
+    expect(updatedState.status).toBe(204)
+    await page.reload()
+    await expect(errorDetails).toHaveCount(0)
+    await expect(state).toHaveJSProperty('textContent', JSON.stringify(structuredFailure, null, 2))
+
     await page.goto('/jobs/-1')
     await expect(page.getByText('Job not found', { exact: true })).toBeVisible()
     await expect(page.getByRole('status', { name: 'Loading...' })).toHaveCount(0)
@@ -889,7 +929,8 @@ test('Source titles follow saved names across navigation and refresh', async ({ 
       page.getByRole('region', { name: 'Edit Config', exact: true }).getByRole('status')
     ).toHaveText('Changes saved.')
     await expect(page).toHaveTitle(`${savedName} - Sources - InKCre`)
-    await page.getByRole('link', { name: 'Sources', exact: true }).click()
+    await page.getByRole('link', { name: 'Back to Sources', exact: true }).click()
+    await expect(page).toHaveURL(new RegExp(`/sources#source-${sourceId}$`))
     await expect(page).toHaveTitle('Sources - InKCre')
     await page.goBack()
     await expect(page).toHaveURL(new RegExp(`/sources/${sourceId}$`))

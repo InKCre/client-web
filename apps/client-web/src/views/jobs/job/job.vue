@@ -55,6 +55,10 @@ const isRunning = computed(() => job.value?.status === JobStatus.RUNNING)
 const formattedState = computed(() => {
   return JSON.stringify(job.value?.state || {}, null, 2)
 })
+const jobFailureDetails = computed(() => {
+  const error = job.value?.state.error
+  return typeof error === 'string' ? error : null
+})
 
 const statusColor = computed(() => {
   if (!job.value) return ''
@@ -187,8 +191,14 @@ watch(
           <span class="metadata__value">{{ formatDate(job.closed_at) }}</span>
         </InkField>
 
+        <InkField v-if="jobFailureDetails !== null" :label="t('common.errorDetails')">
+          <pre class="metadata__value" :aria-label="t('common.errorDetails')">{{
+            jobFailureDetails
+          }}</pre>
+        </InkField>
+
         <InkField :label="t('job.state')">
-          <pre class="metadata__value">{{ formattedState }}</pre>
+          <pre class="metadata__value" :aria-label="t('job.state')">{{ formattedState }}</pre>
         </InkField>
       </section>
 
