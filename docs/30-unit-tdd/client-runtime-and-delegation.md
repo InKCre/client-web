@@ -151,7 +151,9 @@ exporter 为 10 秒，经 relay 为 35 秒，以覆盖服务端最多 32 秒的�
 `JobManager.create` 在同一个 PostgREST INSERT 中写入 SDK 注入的提交 carrier。超出
 512 UTF-8 bytes 的可选 tracestate 会被省略并计数。执行成功 claim 后创建独立 trace，
 通过 SDK Span Link 关联提交；claim、取消和 close 不重写提交列。Job ID 是诊断关联字段，
-不是 trace ID。`job.submitted`、`job.started`、`job.closed` 只从明确的业务边界发出结构化
+不是 trace ID。时延指标 `inkcre.operation.duration` 使用与 Core 一致的 `operation` /
+`outcome` 标签和 5ms 至 300s 的显式秒分桶，便于跨 Peer 聚合；日志保留 `inkcre.*` 属性。
+`job.submitted`、`job.started`、`job.closed` 只从明确的业务边界发出结构化
 事件；既有应用日志、异常 message、参数和内容不会桥接到新增 OTLP。
 
 浏览器原生 `await` 不能依赖 StackContextManager 或 ZoneContextManager 自动保留当前

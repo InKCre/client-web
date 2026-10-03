@@ -177,11 +177,23 @@ export async function configureTelemetry(
     logger = provider.getLogger('inkcre.browser')
   }
   if (endpoints.metrics) {
-    const { MeterProvider, PeriodicExportingMetricReader } =
+    const { MeterProvider, PeriodicExportingMetricReader, AggregationType } =
       await import('@opentelemetry/sdk-metrics')
     const { OTLPMetricExporter } = await import('@opentelemetry/exporter-metrics-otlp-proto')
     const provider = new MeterProvider({
       resource,
+      // Match the Core histogram so cross-Peer aggregation keeps seconds and buckets aligned.
+      views: [
+        {
+          instrumentName: 'inkcre.operation.duration',
+          aggregation: {
+            type: AggregationType.EXPLICIT_BUCKET_HISTOGRAM,
+            options: {
+              boundaries: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30, 60, 300],
+            },
+          },
+        },
+      ],
       readers: [
         new PeriodicExportingMetricReader({
           exporter: new OTLPMetricExporter({
@@ -255,7 +267,10 @@ export async function observeOperation<T>(
   } finally {
     span.end()
     const attributes = { 'inkcre.operation': name, 'inkcre.outcome': result.outcome }
-    operationDuration?.record((performance.now() - started) / 1000, attributes)
+    operationDuration?.record((performance.now() - started) / 1000, {
+      operation: name,
+      outcome: result.outcome,
+    })
     operationLogger?.emit({
       context: active,
       eventName: 'inkcre.operation.completed',
