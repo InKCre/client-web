@@ -80,7 +80,7 @@ export function initializeTelemetry(meta: MetaConfig, version: string): Promise<
         .from()
         .select('schema,value')
         .eq('key', 'inkcre.observability')
-        .abortSignal(AbortSignal.timeout(1500))
+        .abortSignal(AbortSignal.timeout(10_000))
         .maybeSingle()
       if (error || !data || data.schema !== 'inkcre.observability.v1') {
         console.warn('[Telemetry] Shared observability configuration is unavailable.')
@@ -112,6 +112,9 @@ export async function configureTelemetry(
   const config = ObservabilityConfigSchema.parse(value)
   telemetryDiagnosticsUrl.value = config.diagnostics_url ?? null
   const relayBase = relay ? PublicUrl.parse(relay.url).replace(/\/+$/, '') : null
+  // The relay may spend up to 32 seconds forwarding a batch; allow network headroom.
+  const transportTimeoutMs = relay ? 35_000 : 10_000
+  const exportTimeoutMs = transportTimeoutMs + 5_000
   const endpoints = relayBase
     ? {
         traces: `${relayBase}/v1/traces`,
@@ -142,8 +145,12 @@ export async function configureTelemetry(
     spanProcessors: endpoints.traces
       ? [
           new BatchSpanProcessor(
-            new OTLPTraceExporter({ url: endpoints.traces, timeoutMillis: 1000, headers }),
-            { exportTimeoutMillis: 1200 }
+            new OTLPTraceExporter({
+              url: endpoints.traces,
+              timeoutMillis: transportTimeoutMs,
+              headers,
+            }),
+            { exportTimeoutMillis: exportTimeoutMs }
           ),
         ]
       : [],
@@ -157,8 +164,12 @@ export async function configureTelemetry(
       resource,
       processors: [
         new BatchLogRecordProcessor({
-          exporter: new OTLPLogExporter({ url: endpoints.logs, timeoutMillis: 1000, headers }),
-          exportTimeoutMillis: 1200,
+          exporter: new OTLPLogExporter({
+            url: endpoints.logs,
+            timeoutMillis: transportTimeoutMs,
+            headers,
+          }),
+          exportTimeoutMillis: exportTimeoutMs,
         }),
       ],
     })
@@ -175,11 +186,11 @@ export async function configureTelemetry(
         new PeriodicExportingMetricReader({
           exporter: new OTLPMetricExporter({
             url: endpoints.metrics,
-            timeoutMillis: 1000,
+            timeoutMillis: transportTimeoutMs,
             headers,
           }),
           exportIntervalMillis: 60_000,
-          exportTimeoutMillis: 1200,
+          exportTimeoutMillis: exportTimeoutMs,
         }),
       ],
     })

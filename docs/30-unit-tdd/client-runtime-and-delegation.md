@@ -142,7 +142,10 @@ success. `PeerOutcomeUnknown` remains visible and does not trigger reload or aut
 从此 base 的 `/v1/traces`、`/v1/logs`、`/v1/metrics` 经现有短期 Peer JWT 认证导出；
 JWT 签名闭包绑定初始化时的连接，旧批次不会借用新连接凭据。此地址不是启用开关，
 也没有自动推导或失败回退。配置不可用或初始化失败不会阻止业务启动。配置读取、
-exporter 超时和正常关闭排空均有界，页面退出只能 best effort。Job 页面提供可选
+exporter 超时和正常关闭排空均有界：配置读取最多等待 10 秒后放弃观测初始化；直发
+exporter 为 10 秒，经 relay 为 35 秒，以覆盖服务端最多 32 秒的转发预算和网络余量。
+处理器的等待比对应 exporter 多 5 秒。flush/shutdown 的调用方只等待 1.5 秒，这不会
+取消已开始的 SDK 导出，也不证明排空成功；页面退出只能 best effort。Job 页面提供可选
 `diagnostics_url` 链接，用户以 Job ID 在诊断端查询，不把 Grafana 查询语法写入业务层。
 
 `JobManager.create` 在同一个 PostgREST INSERT 中写入 SDK 注入的提交 carrier。超出
