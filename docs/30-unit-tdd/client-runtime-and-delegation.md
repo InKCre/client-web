@@ -48,12 +48,18 @@ proof of non-execution.
 ## Public Readiness Observation
 
 `probePeerReadiness(Peer)` observes only the explicitly configured `http_public_base_url` and its
-`readyz` path. It sends no authentication and uses a five-second deadline. The shared core schema
+`readyz` path. It sends no authentication. Browser-owned MetaConfig
+`peer_readiness_timeout_seconds` sets the request deadline: five seconds by default, configurable
+in Settings as an integer from one to 300 seconds and preserved by configuration import/export.
+An older configuration without this field uses the default. The shared core schema
 keeps ready/not_ready, runtime phase/reason, optional bootstrap step, and public database component
 status/problems. Older Peers may omit step. Missing or invalid endpoints and failed/unsupported
 responses are distinct unavailable observations; they do not imply an expired lease.
 
-PeerList refreshes this observation alongside database facts and shows public diagnostics directly.
+PeerList refresh sends the public probes to all configured Peers, including expired leases, then
+reads live leases again so a Peer awakened by its hosting provider can appear online in that refresh.
+The deadline bounds a single observation; it does not retry failed bootstrap or guarantee that a
+sleeping host has completed startup. PeerList shows public diagnostics directly.
 The probe never writes Peer state, changes advertisements, or grants routing/scheduling eligibility.
 Read-only retrieval keeps the query and offers an explicit Retry after delegation unavailability;
 that action repeats the existing live-lease selection. Outcome-unknown and exact-target safety remain
@@ -68,13 +74,30 @@ origin:
 - current technical Peer UUID;
 - user-owned JWT signing secret.
 
-The application root mounts immediately and shows the three-block loading indicator while Core
-initialization runs. Business views mount only after initialization succeeds. A startup failure
-replaces loading with an error and a Retry action that reloads the current URL, preserving deep-link
-parameters. Settings remains reachable during loading and after failure through a full-page
-navigation: its recovery bootstrap does not wait for the configured Peer. Neither action resets
-stored configuration or reuses a partially initialized runtime; the root does not rerun initialization
-automatically. Existing SDK transport retry behavior is unchanged.
+The application shell mounts immediately with its header and menu. A configured browser reads its
+complete canonical Peer row once before business views mount; a new identity must first be
+inserted. Business pages then remain available while runtime-owned version/schema registration and
+the initial database-time lease complete in the background. The browser Job worker starts only after
+that lease succeeds. The application shell also restores the Extension Host only after lease
+success; the Extensions management page can read installed state earlier but does not independently
+restore runtimes. A connecting or failed notice distinguishes page access from a running Peer;
+failure preserves the database view and offers Retry and Settings. Optional telemetry runs after
+lease adoption and does not delay either business views or the worker. Route views load on demand.
+
+Each startup runtime binds its database URL and JWT signing closure to the captured connection.
+Stopping or replacing the runtime invalidates pending work: a completed old request cannot perform
+a subsequent registration write, renew another lease, install a timer, or start the worker. The
+background registration updates only application version and config schema; its returned row never
+overwrites the configuration or name read for the page. Already dispatched writes can still finish
+against their original database. Shutdown drains queued telemetry initialization before closing its
+SDK, preventing a late read from reopening it.
+
+Failure before the initial Peer read or insertion replaces loading with an error. Retry reloads the
+current URL, preserving deep-link parameters. Settings remains reachable through full-page navigation
+and its independent recovery bootstrap. Saving or importing a connection still verifies registration
+and lease before adopting it. Neither recovery action resets stored configuration unless explicitly
+requested, and the root does not rerun initialization automatically. Existing SDK transport retry
+behavior is unchanged.
 
 The selected Peer's database row supplies deployment configuration such as Extension Registry URL
 and Peer HTTP timeout. The static artifact contains no environment origin, Peer identity, secret,
@@ -91,7 +114,7 @@ Web Peer registration publishes the client-web application version and a best-ef
 default name only when creating a new identity. Later registration refreshes runtime-owned version and schema
 without replacing the Human-owned name or Peer config.
 
-The browser Job worker starts only when a successfully connected Web Peer runtime is adopted.
+The browser Job worker starts only when a Web Peer runtime with a successful initial lease is adopted.
 Opening an unconfigured Settings page does not start database polling. Saving or importing a valid
 connection uses that same adoption path; repeated saves reuse the worker's existing timer. Reset
 waits for worker shutdown before clearing configuration, so in-flight work can finish cleanup

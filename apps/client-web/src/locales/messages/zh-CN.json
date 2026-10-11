@@ -22,7 +22,9 @@
   },
   "startup": {
     "loading": "正在启动 InKCre…",
-    "failed": "无法启动 InKCre。请重试，或前往设置检查连接。"
+    "failed": "无法启动 InKCre。请重试，或前往设置检查连接。",
+    "peerConnecting": "正在连接此 Web Peer；数据库页面已可使用，本地任务尚未运行。",
+    "peerFailed": "此 Web Peer 连接失败。数据库页面仍可使用，本地任务已停止。"
   },
   "header": {
     "brand": "InKCre"
@@ -70,6 +72,9 @@
     "exportConfig": "导出",
     "importConfig": "导入",
     "importError": "无法恢复配置，请检查文件及部署连接。",
+    "peerReadinessTimeout": "Peer 就绪探测超时（秒）",
+    "peerReadinessTimeoutHelp": "默认 5 秒。刷新 Peers 页面时，可延长等待时间以便休眠的托管 Peer 启动。",
+    "peerReadinessTimeoutInvalid": "请输入 1 至 300 秒之间的整数。",
     "telemetryEnabled": "启用此浏览器 Peer 的遥测",
     "telemetryHelp": "保存连接后生效。需要部署配置观测出口；原有 Job 日志继续保留。",
     "telemetryRelay": "Peer 遥测中转地址（可选）",

@@ -11,7 +11,6 @@ import {
   getExtensionHost,
   getExtensionRegistry,
   getExtensionRegistryOrigin,
-  startExtensionHost,
   WEB_PEER_IDENTITY,
 } from '@/core'
 
@@ -165,9 +164,6 @@ watch(() => [route.query.install, route.query.version], loadInstallRelease, { im
 
 onMounted(() => {
   if (connected.value) {
-    void startExtensionHost().catch(() => {
-      // The app shell owns runtime-startup reporting; this page remains a recovery surface.
-    })
     void refreshExtensions()
     void refreshPeers()
   }

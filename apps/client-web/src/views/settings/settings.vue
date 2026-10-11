@@ -29,6 +29,19 @@ const hasConnectedConfig = computed(
     Boolean(configStore.metaConfig.INKCRE_JWT_SECRET)
 )
 const formBusy = computed(() => pendingAction.value !== null)
+const readinessTimeoutInput = computed({
+  get: () => String(metaFormConfig.peer_readiness_timeout_seconds),
+  set: (value: string) => {
+    metaFormConfig.peer_readiness_timeout_seconds = Number(value)
+  },
+})
+const readinessTimeoutError = computed(() => {
+  const result = MetaConfigSchema.safeParse(metaFormConfig)
+  return !result.success &&
+    result.error.issues.some((issue) => issue.path[0] === 'peer_readiness_timeout_seconds')
+    ? t('settings.peerReadinessTimeoutInvalid')
+    : ''
+})
 const SettingsExportSchema = z.object({
   version: z.literal(2),
   metaConfig: MetaConfigSchema,
@@ -168,6 +181,18 @@ const onFileSelected = async (event: Event) => {
         placeholder="••••••••"
         :disabled="formBusy"
       />
+
+      <InkInput
+        v-model="readinessTimeoutInput"
+        :label="t('settings.peerReadinessTimeout')"
+        :error="readinessTimeoutError"
+        native-type="number"
+        min="1"
+        max="300"
+        step="1"
+        :disabled="formBusy"
+      />
+      <p>{{ t('settings.peerReadinessTimeoutHelp') }}</p>
 
       <label class="flex items-center gap-2">
         <input v-model="metaFormConfig.telemetry_enabled" type="checkbox" :disabled="formBusy" />

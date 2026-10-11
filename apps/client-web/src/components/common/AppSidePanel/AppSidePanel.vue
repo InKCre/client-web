@@ -21,7 +21,8 @@ const onExtensionsClick = () => {
 }
 
 const onSettingsClick = () => {
-  router.push('/settings')
+  if (!props.ready) window.location.assign('/settings')
+  else router.push('/settings')
 }
 
 const onPeersClick = () => {
@@ -45,15 +46,35 @@ watch(
   <aside class="app-side-panel" v-show="props.expanded">
     <div class="app-side-panel__content">
       <h2 class="app-side-panel__title">{{ t('sidePanel.managing') }}</h2>
-      <InkButton :text="t('sidePanel.sources')" class="w-full" @click="onSourcesClick" />
-      <InkButton :text="t('sidePanel.extensions')" class="w-full" @click="onExtensionsClick" />
-      <InkButton :text="t('sidePanel.peers')" class="w-full" @click="onPeersClick" />
+      <InkButton
+        :text="t('sidePanel.sources')"
+        class="w-full"
+        :disabled="!props.ready"
+        @click="onSourcesClick"
+      />
+      <InkButton
+        :text="t('sidePanel.extensions')"
+        class="w-full"
+        :disabled="!props.ready"
+        @click="onExtensionsClick"
+      />
+      <InkButton
+        :text="t('sidePanel.peers')"
+        class="w-full"
+        :disabled="!props.ready"
+        @click="onPeersClick"
+      />
       <InkButton :text="t('sidePanel.settings')" class="w-full" @click="onSettingsClick" />
     </div>
 
     <div class="app-side-panel__content">
       <h2 class="app-side-panel__title">{{ t('sidePanel.infoBase') }}</h2>
-      <InkButton :text="t('sidePanel.explore')" class="w-full" @click="onExploreClick" />
+      <InkButton
+        :text="t('sidePanel.explore')"
+        class="w-full"
+        :disabled="!props.ready"
+        @click="onExploreClick"
+      />
     </div>
   </aside>
 </template>

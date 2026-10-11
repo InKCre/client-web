@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, provide, watchEffect, onMounted } from 'vue'
+import { computed, ref, provide, watchEffect, watch, onMounted } from 'vue'
 import { InkButton, InkHeader, InkLoading } from '@inkcre/ui-web'
 import AppSidePanel from './components/common/AppSidePanel/AppSidePanel.vue'
 import router from './router'
@@ -11,6 +11,7 @@ import { useI18n } from 'vue-i18n'
 import { configStore } from '@inkcre/core'
 import {
   currentWebPeer,
+  webPeerConnectionState,
   initializeCore,
   shouldLoadPeerConfigAtBootstrap,
   getExtensionHost,
@@ -36,17 +37,19 @@ onMounted(async () => {
   startupState.value = 'ready'
 
   const extensionHost = getExtensionHost()
-  if (loadPeerConfig) {
-    startExtensionHost().catch((error) => {
-      console.error('[Web Extension Host] Startup failed:', error)
-    })
-  }
   window.addEventListener('beforeunload', () => {
     // Browsers may end the page before cleanup completes, but never deliberately
     // dispose Extension resources while our Job handlers are still draining.
     void shutdownCore()
       .then(() => extensionHost.shutdown())
       .catch((error: unknown) => console.error('[Core] Shutdown failed', error))
+  })
+})
+
+watch([startupState, webPeerConnectionState], ([startup, connection]) => {
+  if (startup !== 'ready' || connection !== 'ready') return
+  void startExtensionHost().catch((error: unknown) => {
+    console.error('[Web Extension Host] Startup failed:', error)
   })
 })
 
@@ -86,32 +89,44 @@ const sidebarExpanded = ref(false)
 </script>
 
 <template>
-  <div v-if="startupState === 'ready'" class="app">
+  <div class="app">
     <InkHeader
       title="InKCre"
       :page-title="pageLabel"
       logo-src="/logo/32.svg"
       @menu-click="sidebarExpanded = !sidebarExpanded"
-      @title-click="router.push('/')"
+      @title-click="startupState === 'ready' && router.push('/')"
     />
-    <div class="app-content">
-      <router-view />
-      <AppSidePanel v-model:expanded="sidebarExpanded" />
-    </div>
-    <RecallSearch />
-  </div>
-  <main v-else class="app-startup">
-    <h1>InKCre</h1>
-    <InkLoading v-if="startupState === 'loading'" :label="t('startup.loading')" />
-    <p v-else role="alert">{{ t('startup.failed') }}</p>
-    <div class="app-startup__actions">
-      <InkButton v-if="startupState === 'failed'" @click="reload">
+    <div
+      v-if="startupState === 'ready' && ['connecting', 'failed'].includes(webPeerConnectionState)"
+      class="app-connection"
+      :role="webPeerConnectionState === 'failed' ? 'alert' : 'status'"
+    >
+      <span>{{
+        t(`startup.peer${webPeerConnectionState === 'failed' ? 'Failed' : 'Connecting'}`)
+      }}</span>
+      <InkButton v-if="webPeerConnectionState === 'failed'" @click="reload">
         {{ t('common.retry') }}
       </InkButton>
-      <!-- Full navigation leaves the partial runtime and opens Settings' recovery bootstrap. -->
       <a href="/settings">{{ t('common.settings') }}</a>
     </div>
-  </main>
+    <div class="app-content">
+      <router-view v-if="startupState === 'ready'" />
+      <main v-else class="app-startup">
+        <InkLoading v-if="startupState === 'loading'" :label="t('startup.loading')" />
+        <p v-else role="alert">{{ t('startup.failed') }}</p>
+        <div class="app-startup__actions">
+          <InkButton v-if="startupState === 'failed'" @click="reload">
+            {{ t('common.retry') }}
+          </InkButton>
+          <!-- Full navigation opens Settings' recovery bootstrap without the partial runtime. -->
+          <a href="/settings">{{ t('common.settings') }}</a>
+        </div>
+      </main>
+      <AppSidePanel v-model:expanded="sidebarExpanded" :ready="startupState === 'ready'" />
+    </div>
+    <RecallSearch v-if="startupState === 'ready'" />
+  </div>
 </template>
 
 <style lang="scss" scoped>
@@ -120,7 +135,7 @@ const sidebarExpanded = ref(false)
 
 .app-startup {
   box-sizing: border-box;
-  min-height: 100dvh;
+  flex: 1;
   padding: sys-var(space, lg);
   display: flex;
   flex-direction: column;
@@ -128,11 +143,6 @@ const sidebarExpanded = ref(false)
   justify-content: center;
   gap: sys-var(space, md);
   text-align: center;
-
-  h1 {
-    @include apply-font(title-lg);
-    margin: 0;
-  }
 
   p {
     margin: 0;
@@ -151,6 +161,15 @@ const sidebarExpanded = ref(false)
   display: flex;
   flex-direction: column;
   height: 100vh;
+}
+
+.app-connection {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: sys-var(space, sm);
+  padding: sys-var(space, sm) sys-var(space, md);
+  border-bottom: 1px solid sys-var(color, border, base);
 }
 
 .app-content {

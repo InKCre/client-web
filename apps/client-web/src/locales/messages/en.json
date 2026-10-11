@@ -22,7 +22,9 @@
   },
   "startup": {
     "loading": "Starting InKCre…",
-    "failed": "Unable to start InKCre. Retry or check your connection in Settings."
+    "failed": "Unable to start InKCre. Retry or check your connection in Settings.",
+    "peerConnecting": "Connecting this Web Peer; database pages are available, local jobs are not running yet.",
+    "peerFailed": "This Web Peer could not connect. Database pages remain available; local jobs are stopped."
   },
   "header": {
     "brand": "InKCre"
@@ -70,6 +72,9 @@
     "exportConfig": "Export",
     "importConfig": "Import",
     "importError": "Unable to restore configuration. Check the file and deployment connection.",
+    "peerReadinessTimeout": "Peer readiness timeout (seconds)",
+    "peerReadinessTimeoutHelp": "Default: 5 seconds. Increase this to wait longer for sleeping hosted Peers when refreshing the Peers page.",
+    "peerReadinessTimeoutInvalid": "Enter a whole number between 1 and 300 seconds.",
     "telemetryEnabled": "Enable telemetry for this browser Peer",
     "telemetryHelp": "Takes effect after saving the connection. Requires deployment observability endpoints; existing Job logs remain available.",
     "telemetryRelay": "Peer telemetry relay URL (optional)",

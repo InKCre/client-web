@@ -18,6 +18,8 @@ export interface WebPeerIdentity {
 export class WebPeerRuntime {
   private timer: ReturnType<typeof setInterval> | null = null
   private registered = false
+  private preparedPeer: Peer | null = null
+  private stopped = false
 
   constructor(
     readonly peerId: string,
@@ -26,44 +28,69 @@ export class WebPeerRuntime {
     private readonly warn: (message: string) => void = console.warn
   ) {}
 
-  async register(): Promise<Peer> {
-    const existing = await this.database.from().select('id').eq('id', this.peerId).maybeSingle()
+  /** Read canonical configuration before the browser's lease runtime is ready. */
+  async prepare(): Promise<Peer> {
+    this.assertActive()
+    if (this.preparedPeer) return this.preparedPeer
+    const existing = await this.database.from().select().eq('id', this.peerId).maybeSingle()
     assertSuccess(existing, 'find registration')
-
-    const runtimeFields = {
-      application_version: this.identity.applicationVersion,
-      config_schema: PeerConfigSchema.toJSONSchema(),
+    this.assertActive()
+    if (existing.data) {
+      this.preparedPeer = Peer.parse(existing.data)
+      return this.preparedPeer
     }
-    const response = existing.data
-      ? await this.database.update(runtimeFields).eq('id', this.peerId).select().single()
-      : await this.database
-          .insert({
-            id: this.peerId,
-            name: this.identity.defaultName,
-            ...runtimeFields,
-            capabilities: [],
-          })
-          .select()
-          .single()
+    const response = await this.database
+      .insert({
+        id: this.peerId,
+        name: this.identity.defaultName,
+        application_version: this.identity.applicationVersion,
+        config_schema: PeerConfigSchema.toJSONSchema(),
+        capabilities: [],
+      })
+      .select()
+      .single()
     assertSuccess(response, 'register')
-    const peer = Peer.parse(response.data)
+    this.assertActive()
+    this.preparedPeer = Peer.parse(response.data)
     this.registered = true
-    return peer
+    return this.preparedPeer
+  }
+
+  async register(): Promise<Peer> {
+    const peer = await this.prepare()
+    this.assertActive()
+    if (this.registered) return peer
+    const response = await this.database
+      .update({
+        application_version: this.identity.applicationVersion,
+        config_schema: PeerConfigSchema.toJSONSchema(),
+      })
+      .eq('id', this.peerId)
+      .select()
+      .single()
+    assertSuccess(response, 'register')
+    this.assertActive()
+    this.registered = true
+    return Peer.parse(response.data)
   }
 
   async renew(): Promise<Date> {
+    this.assertActive()
     const response = await this.database.rpc('renew_peer_lease', {
       peer: this.peerId,
       ttl_seconds: WEB_PEER_LEASE_TTL_SECONDS,
     })
     assertSuccess(response, 'renew lease')
+    this.assertActive()
     return z.coerce.date().parse(response.data)
   }
 
   async start(): Promise<void> {
+    this.assertActive()
     if (this.timer !== null) return
     if (!this.registered) await this.register()
     await this.renew()
+    this.assertActive()
     this.timer = setInterval(() => {
       void this.renew().catch((error: unknown) => {
         this.warn(
@@ -74,15 +101,17 @@ export class WebPeerRuntime {
   }
 
   stop(): void {
+    this.stopped = true
     if (this.timer === null) return
     clearInterval(this.timer)
     this.timer = null
   }
 
-  static async connect(
-    meta: MetaConfig,
-    identity: WebPeerIdentity
-  ): Promise<{ peer: Peer; runtime: WebPeerRuntime }> {
+  private assertActive(): void {
+    if (this.stopped) throw new Error('Web Peer runtime has stopped.')
+  }
+
+  static forConnection(meta: MetaConfig, identity: WebPeerIdentity): WebPeerRuntime {
     const exactMeta = MetaConfigSchema.parse(meta)
     const database = new DBAPIClient<'peers', Peer>(
       'peers',
@@ -91,10 +120,22 @@ export class WebPeerRuntime {
       exactMeta.INKCRE_PGREST_URL,
       () => signDatabaseToken(exactMeta.INKCRE_JWT_SECRET)
     )
-    const runtime = new WebPeerRuntime(exactMeta.INKCRE_PEER_ID, identity, database)
-    const peer = await runtime.register()
-    await runtime.start()
-    return { peer, runtime }
+    return new WebPeerRuntime(exactMeta.INKCRE_PEER_ID, identity, database)
+  }
+
+  static async connect(
+    meta: MetaConfig,
+    identity: WebPeerIdentity
+  ): Promise<{ peer: Peer; runtime: WebPeerRuntime }> {
+    const runtime = WebPeerRuntime.forConnection(meta, identity)
+    try {
+      const peer = await runtime.register()
+      await runtime.start()
+      return { peer, runtime }
+    } catch (error) {
+      runtime.stop()
+      throw error
+    }
   }
 }
 

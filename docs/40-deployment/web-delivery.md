@@ -17,6 +17,12 @@ first-party Extensions.
 The browser-side authority behind this invariant belongs to
 [Client Runtime and Delegation](../30-unit-tdd/client-runtime-and-delegation.md).
 
+`public/_headers` gives Vite's content-hashed `/assets/` files a one-year immutable browser
+cache. HTML keeps Pages' revalidation policy so a new visit discovers the current asset names.
+Do not place mutable files, Registry Release responses, or Extension executables in this cache
+scope: their own delivery authority determines freshness and readability. Route views are split
+into chunks and fetched on first navigation; repeat visits can reuse unchanged bytes.
+
 ## Production Pages
 
 [`.github/workflows/pages-deploy.yml`](../../.github/workflows/pages-deploy.yml) owns production

@@ -2,14 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import type { Router, RouteLocationNormalizedLoaded } from 'vue-router'
 import type { InkRouter } from '@inkcre/ui-web'
 import type { InfoBaseRoute, InfoBaseRouter, InfoBaseSceneAddress } from '@inkcre/core'
-import infoBaseList from '@/views/info-base/list/list.vue'
-import sources from '@/views/sources/sources.vue'
-import source from '@/views/sources/source/source.vue'
-import job from '@/views/jobs/job/job.vue'
-import extensions from '@/views/extensions/extensions.vue'
-import infoBaseGraph from '@/views/info-base/graph/graph.vue'
-import settings from '@/views/settings/settings.vue'
-import peers from '@/views/peers/peers.vue'
 import { computed } from 'vue'
 
 const router = createRouter({
@@ -18,85 +10,85 @@ const router = createRouter({
     {
       path: '/',
       name: 'InfoBaseListOverview',
-      component: infoBaseList,
+      component: () => import('@/views/info-base/list/list.vue'),
       meta: { title: 'Info Base' },
     },
     {
       path: '/info-base/list/blocks/:block/content',
       name: 'InfoBaseListSolvedContent',
-      component: infoBaseList,
+      component: () => import('@/views/info-base/list/list.vue'),
       meta: { title: 'Info Base' },
     },
     {
       path: '/info-base/list/blocks/:block',
       name: 'InfoBaseListBlock',
-      component: infoBaseList,
+      component: () => import('@/views/info-base/list/list.vue'),
       meta: { title: 'Info Base' },
     },
     {
       path: '/info-base/list/relations/:relation',
       name: 'InfoBaseListRelation',
-      component: infoBaseList,
+      component: () => import('@/views/info-base/list/list.vue'),
       meta: { title: 'Info Base' },
     },
     {
       path: '/sources',
       name: 'Sources',
-      component: sources,
+      component: () => import('@/views/sources/sources.vue'),
       meta: { titleKey: 'sidePanel.sources' },
     },
     {
       path: '/jobs/:id',
       name: 'Job',
-      component: job,
+      component: () => import('@/views/jobs/job/job.vue'),
       meta: { titleKey: 'job.title' },
     },
     {
       path: '/sources/:id',
       name: 'Source',
-      component: source,
+      component: () => import('@/views/sources/source/source.vue'),
       meta: { titleKey: 'sidePanel.sources' },
     },
     {
       path: '/extensions',
       name: 'Extensions',
-      component: extensions,
+      component: () => import('@/views/extensions/extensions.vue'),
       meta: { titleKey: 'sidePanel.extensions' },
     },
     {
       path: '/info-base/graph',
       name: 'InfoBaseGraphOverview',
-      component: infoBaseGraph,
+      component: () => import('@/views/info-base/graph/graph.vue'),
       meta: { titleKey: 'navigation.graph' },
     },
     {
       path: '/info-base/graph/blocks/:block/content',
       name: 'InfoBaseGraphSolvedContent',
-      component: infoBaseGraph,
+      component: () => import('@/views/info-base/graph/graph.vue'),
       meta: { titleKey: 'navigation.graph' },
     },
     {
       path: '/info-base/graph/blocks/:block',
       name: 'InfoBaseGraphBlock',
-      component: infoBaseGraph,
+      component: () => import('@/views/info-base/graph/graph.vue'),
       meta: { titleKey: 'navigation.graph' },
     },
     {
       path: '/info-base/graph/relations/:relation',
       name: 'InfoBaseGraphRelation',
-      component: infoBaseGraph,
+      component: () => import('@/views/info-base/graph/graph.vue'),
       meta: { titleKey: 'navigation.graph' },
     },
     {
       path: '/peers',
       name: 'Peers',
-      component: peers,
+      component: () => import('@/views/peers/peers.vue'),
       meta: { titleKey: 'sidePanel.peers' },
     },
     {
       path: '/settings',
       name: 'Settings',
-      component: settings,
+      component: () => import('@/views/settings/settings.vue'),
       meta: { titleKey: 'sidePanel.settings' },
     },
   ],
