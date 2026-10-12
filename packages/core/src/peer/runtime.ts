@@ -25,7 +25,8 @@ export class WebPeerRuntime {
     readonly peerId: string,
     private readonly identity: WebPeerIdentity,
     private readonly database: PeerDatabase = Peer.dbApi,
-    private readonly warn: (message: string) => void = console.warn
+    private readonly warn: (message: string) => void = console.warn,
+    readonly renewIntervalSeconds = WEB_PEER_LEASE_RENEW_INTERVAL_MS / 1000
   ) {}
 
   /** Read canonical configuration before the browser's lease runtime is ready. */
@@ -76,9 +77,11 @@ export class WebPeerRuntime {
 
   async renew(): Promise<Date> {
     this.assertActive()
+    if (this.renewIntervalSeconds === 0)
+      throw new Error('Web Peer background participation is disabled.')
     const response = await this.database.rpc('renew_peer_lease', {
       peer: this.peerId,
-      ttl_seconds: WEB_PEER_LEASE_TTL_SECONDS,
+      ttl_seconds: this.renewIntervalSeconds * 3,
     })
     assertSuccess(response, 'renew lease')
     this.assertActive()
@@ -89,6 +92,7 @@ export class WebPeerRuntime {
     this.assertActive()
     if (this.timer !== null) return
     if (!this.registered) await this.register()
+    if (this.renewIntervalSeconds === 0) return
     await this.renew()
     this.assertActive()
     this.timer = setInterval(() => {
@@ -97,7 +101,7 @@ export class WebPeerRuntime {
           `Web Peer lease renewal failed: ${error instanceof Error ? error.message : String(error)}`
         )
       })
-    }, WEB_PEER_LEASE_RENEW_INTERVAL_MS)
+    }, this.renewIntervalSeconds * 1000)
   }
 
   stop(): void {
@@ -120,7 +124,13 @@ export class WebPeerRuntime {
       exactMeta.INKCRE_PGREST_URL,
       () => signDatabaseToken(exactMeta.INKCRE_JWT_SECRET)
     )
-    return new WebPeerRuntime(exactMeta.INKCRE_PEER_ID, identity, database)
+    return new WebPeerRuntime(
+      exactMeta.INKCRE_PEER_ID,
+      identity,
+      database,
+      undefined,
+      exactMeta.peer_lease_renew_interval_seconds
+    )
   }
 
   static async connect(

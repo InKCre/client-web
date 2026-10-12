@@ -8,6 +8,8 @@ import { setLocale, SUPPORT_LOCALES, LOCALE_NAMES, type SupportLocale } from '@/
 import i18n from '@/locales'
 import {
   adoptWebPeerRuntime,
+  prepareWebPeerConfigurationChange,
+  webPeerConnectionState,
   startConfiguredWebPeerRuntime,
   stopWebPeerRuntime,
   WEB_PEER_IDENTITY,
@@ -40,6 +42,23 @@ const readinessTimeoutError = computed(() => {
   return !result.success &&
     result.error.issues.some((issue) => issue.path[0] === 'peer_readiness_timeout_seconds')
     ? t('settings.peerReadinessTimeoutInvalid')
+    : ''
+})
+const leaseRenewIntervalInput = computed({
+  get: () =>
+    Number.isNaN(metaFormConfig.peer_lease_renew_interval_seconds)
+      ? ''
+      : String(metaFormConfig.peer_lease_renew_interval_seconds),
+  set: (value: string) => {
+    metaFormConfig.peer_lease_renew_interval_seconds =
+      value.trim() === '' ? Number.NaN : Number(value)
+  },
+})
+const leaseRenewIntervalError = computed(() => {
+  const result = MetaConfigSchema.safeParse(metaFormConfig)
+  return !result.success &&
+    result.error.issues.some((issue) => issue.path[0] === 'peer_lease_renew_interval_seconds')
+    ? t('settings.peerLeaseRenewIntervalInvalid')
     : ''
 })
 const SettingsExportSchema = z.object({
@@ -79,12 +98,15 @@ const onSave = async () => {
   feedback.value = null
   try {
     const validatedMeta = MetaConfigSchema.parse(metaFormConfig)
+    await prepareWebPeerConfigurationChange(validatedMeta)
     const runtime = await configStore.connectAndSave(validatedMeta, WEB_PEER_IDENTITY)
     await adoptWebPeerRuntime(runtime)
     void refreshCurrentWebPeer()
     Object.assign(metaFormConfig, configStore.metaConfig)
     feedback.value = { action: 'save', error: false, message: t('settings.saveSuccess') }
   } catch (error) {
+    if (webPeerConnectionState.value === 'idle' && hasConnectedConfig.value)
+      webPeerConnectionState.value = 'failed'
     console.error('Failed to save config:', error)
     feedback.value = { action: 'save', error: true, message: t('common.saveFailed') }
   } finally {
@@ -140,6 +162,7 @@ const onFileSelected = async (event: Event) => {
   feedback.value = null
   try {
     const imported = SettingsExportSchema.parse(JSON.parse(await file.text()))
+    await prepareWebPeerConfigurationChange(imported.metaConfig)
     const runtime = await configStore.connectAndSave(imported.metaConfig, WEB_PEER_IDENTITY)
     await adoptWebPeerRuntime(runtime)
     void refreshCurrentWebPeer()
@@ -147,6 +170,8 @@ const onFileSelected = async (event: Event) => {
     Object.assign(metaFormConfig, configStore.metaConfig)
     feedback.value = { action: 'import', error: false, message: t('settings.importSuccess') }
   } catch (error) {
+    if (webPeerConnectionState.value === 'idle' && hasConnectedConfig.value)
+      webPeerConnectionState.value = 'failed'
     console.error('Failed to import config:', error)
     feedback.value = { action: 'import', error: true, message: t('settings.importError') }
   } finally {
@@ -193,6 +218,18 @@ const onFileSelected = async (event: Event) => {
         :disabled="formBusy"
       />
       <p>{{ t('settings.peerReadinessTimeoutHelp') }}</p>
+
+      <InkInput
+        v-model="leaseRenewIntervalInput"
+        :label="t('settings.peerLeaseRenewInterval')"
+        :error="leaseRenewIntervalError"
+        native-type="number"
+        min="0"
+        max="86400"
+        step="1"
+        :disabled="formBusy"
+      />
+      <p>{{ t('settings.peerLeaseRenewIntervalHelp') }}</p>
 
       <label class="flex items-center gap-2">
         <input v-model="metaFormConfig.telemetry_enabled" type="checkbox" :disabled="formBusy" />

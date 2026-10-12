@@ -24,7 +24,8 @@
     "loading": "Starting InKCre…",
     "failed": "Unable to start InKCre. Retry or check your connection in Settings.",
     "peerConnecting": "Connecting this Web Peer; database pages are available, local jobs are not running yet.",
-    "peerFailed": "This Web Peer could not connect. Database pages remain available; local jobs are stopped."
+    "peerFailed": "This Web Peer could not connect. Database pages remain available; local jobs are stopped.",
+    "peerDisabled": "Background participation is disabled for this Web Peer. Database pages and delegation remain available."
   },
   "header": {
     "brand": "InKCre"
@@ -78,7 +79,10 @@
     "telemetryEnabled": "Enable telemetry for this browser Peer",
     "telemetryHelp": "Takes effect after saving the connection. Requires deployment observability endpoints; existing Job logs remain available.",
     "telemetryRelay": "Peer telemetry relay URL (optional)",
-    "telemetryRelayHelp": "Use only a trusted deployment Peer relay. This connection’s short-lived Peer identity authenticates requests; leave empty to use deployment public observability endpoints."
+    "telemetryRelayHelp": "Use only a trusted deployment Peer relay. This connection’s short-lived Peer identity authenticates requests; leave empty to use deployment public observability endpoints.",
+    "peerLeaseRenewInterval": "Background participation interval (seconds)",
+    "peerLeaseRenewIntervalInvalid": "Enter a whole number from 0 to 86400.",
+    "peerLeaseRenewIntervalHelp": "Default: 30 seconds. Positive values renew the lease and check pending local jobs at this interval; the lease expires after three intervals. Longer intervals delay accepting jobs and detecting an offline Peer. Zero disables background participation, stops active local jobs after cleanup, and pauses automatic Web Extension execution and optional telemetry (without clearing their saved settings). An existing lease expires naturally, so this Peer may briefly remain online. Manual actions and Job detail polling can still send requests."
   },
   "source": {
     "deleteConfirmTitle": "Delete Source",

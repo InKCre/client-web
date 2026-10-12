@@ -24,7 +24,8 @@
     "loading": "正在启动 InKCre…",
     "failed": "无法启动 InKCre。请重试，或前往设置检查连接。",
     "peerConnecting": "正在连接此 Web Peer；数据库页面已可使用，本地任务尚未运行。",
-    "peerFailed": "此 Web Peer 连接失败。数据库页面仍可使用，本地任务已停止。"
+    "peerFailed": "此 Web Peer 连接失败。数据库页面仍可使用，本地任务已停止。",
+    "peerDisabled": "此 Web Peer 的后台参与已关闭；数据库页面和能力委派仍可使用。"
   },
   "header": {
     "brand": "InKCre"
@@ -78,7 +79,10 @@
     "telemetryEnabled": "启用此浏览器 Peer 的遥测",
     "telemetryHelp": "保存连接后生效。需要部署配置观测出口；原有 Job 日志继续保留。",
     "telemetryRelay": "Peer 遥测中转地址（可选）",
-    "telemetryRelayHelp": "仅填写可信部署 Peer 的中转地址。此连接的短期 Peer 身份将用于认证；留空使用部署的公开观测出口。"
+    "telemetryRelayHelp": "仅填写可信部署 Peer 的中转地址。此连接的短期 Peer 身份将用于认证；留空使用部署的公开观测出口。",
+    "peerLeaseRenewInterval": "后台参与间隔（秒）",
+    "peerLeaseRenewIntervalInvalid": "请输入 0 到 86400 之间的整数。",
+    "peerLeaseRenewIntervalHelp": "默认 30 秒。正数同时控制 lease 续租和本地待执行任务扫描，lease 在三个间隔后过期；较长间隔会延迟接单和离线识别。0 关闭后台参与，并等待活跃本地任务停止及清理；自动 Web Extension 运行和可选遥测也会暂停，其保存的设置仍保留。既有 lease 自然过期，因此此 Peer 可能短暂仍显示在线。手动操作和 Job 详情轮询仍可能发送请求。"
   },
   "source": {
     "deleteConfirmTitle": "删除数据源",

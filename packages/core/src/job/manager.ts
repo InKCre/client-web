@@ -26,6 +26,7 @@ export class JobManager {
   >()
   private static worker: ReturnType<typeof setInterval> | null = null
   private static abortWatcher: ReturnType<typeof setInterval> | null = null
+  private static workerIntervalMilliseconds: number | null = null
   private static accepting = true
 
   static registerHandler<Parameters extends z.ZodType>(
@@ -232,13 +233,16 @@ export class JobManager {
   }
 
   static startWorker(intervalMilliseconds = 30_000): void {
-    if (this.worker) return
+    if (this.worker && this.workerIntervalMilliseconds === intervalMilliseconds) return
+    if (this.worker) clearInterval(this.worker)
+    this.workerIntervalMilliseconds = intervalMilliseconds
     this.accepting = true
     const scan = () => {
       void this.check().catch((error: unknown) => console.error('Job scan failed', error))
     }
     scan()
     this.worker = setInterval(scan, intervalMilliseconds)
+    if (this.abortWatcher !== null) return
     this.abortWatcher = setInterval(() => {
       void this.checkAbortRequests().catch((error: unknown) =>
         console.error('Job abort observation failed', error)
@@ -251,6 +255,7 @@ export class JobManager {
     if (this.worker) clearInterval(this.worker)
     if (this.abortWatcher) clearInterval(this.abortWatcher)
     this.worker = null
+    this.workerIntervalMilliseconds = null
     this.abortWatcher = null
     const active = [...this.active.values()]
     for (const execution of active) execution.controller.abort(JobStatus.ABORTED)

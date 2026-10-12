@@ -124,6 +124,30 @@ The browser signer backdates `iat` by five seconds and derives `exp` from that a
 absorbs ordinary sub-second or small deployment clock skew at the authentication boundary without
 increasing the shared maximum lifetime or leaking retries into PostgREST/domain callers.
 
+## Browser Background Participation
+
+Browser-owned MetaConfig `peer_lease_renew_interval_seconds` is an integer from zero to 86400,
+defaulting to 30 for older configuration files. Positive values control both lease renewal and
+pending Job scans. Adoption immediately renews the lease and starts a scan; the lease TTL is three
+times this interval, preserving the default 30-second renewal and 90-second expiry. Longer intervals
+delay accepting pending Jobs and recognizing an offline browser.
+
+Zero disables background participation. The browser still registers its canonical Peer identity and
+can use database pages and outbound capability delegation, but does not renew its lease, start the
+Job worker, initialize optional telemetry, or automatically restore the Extension Host. Disabling an
+existing runtime cancels local active Jobs and waits for cleanup before closing Extension resources.
+It does not revoke an existing lease: PostgreSQL expiry still controls when others see the Peer as
+offline. Explicit actions, open Job detail polling, and normal page queries remain possible requests.
+
+Saving or importing configuration persists this value and exports include it. Changing only a
+positive interval reorders the worker's scan timer without cancelling active Jobs or replacing their
+abort watcher. Disabling participation or changing database authority drains work against the original
+connection before saving the new configuration; if validation of the new connection fails, stored
+configuration remains intact but the stopped background runtime requires Retry or a successful save.
+Pending startup checks the captured connection and interval before adopting background services.
+This preference belongs to each browser; another open tab or browser can still renew the same
+technical Peer identity. No cross-tab lease coordination is implied.
+
 ## Application Hosts
 
 ### Job execution and shutdown

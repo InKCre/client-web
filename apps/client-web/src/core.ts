@@ -152,7 +152,9 @@ let extensionRegistryOrigin: ExtensionRegistryOriginResolver | null = null
 let moduleFederation: ReturnType<typeof createInstance> | null = null
 let webPeerRuntime: WebPeerRuntime | null = null
 let webPeerTelemetryInitialization: Promise<void> | null = null
-export const webPeerConnectionState = Vue.ref<'idle' | 'connecting' | 'ready' | 'failed'>('idle')
+export const webPeerConnectionState = Vue.ref<
+  'idle' | 'connecting' | 'ready' | 'disabled' | 'failed'
+>('idle')
 
 export function initializeExtensionHost(): ClientExtensionManager {
   extensionHostStartup = null
@@ -218,9 +220,32 @@ export function getExtensionSetupContribution(name: string): ExtensionSetupContr
 export async function adoptWebPeerRuntime(runtime: WebPeerRuntime): Promise<void> {
   if (webPeerRuntime !== runtime) webPeerRuntime?.stop()
   webPeerRuntime = runtime
+  await applyWebPeerParticipation(runtime, { ...configStore.metaConfig })
+}
+
+async function applyWebPeerParticipation(runtime: WebPeerRuntime, meta: MetaConfig): Promise<void> {
+  if (!ownsWebPeerConnection(runtime, meta)) return
+  if (meta.peer_lease_renew_interval_seconds === 0) {
+    webPeerConnectionState.value = 'connecting'
+    await JobManager.stopWorker()
+    if (!ownsWebPeerConnection(runtime, meta)) return
+    await webPeerTelemetryInitialization?.catch(() => {
+      console.error('[Core] Optional telemetry initialization failed during shutdown.')
+    })
+    if (!ownsWebPeerConnection(runtime, meta)) return
+    await shutdownTelemetry()
+    if (!ownsWebPeerConnection(runtime, meta)) return
+    await extensionHostStartup?.catch(() => {})
+    if (!ownsWebPeerConnection(runtime, meta)) return
+    await extensionHost?.shutdown()
+    if (!ownsWebPeerConnection(runtime, meta)) return
+    extensionHostStartup = null
+    webPeerConnectionState.value = 'disabled'
+    return
+  }
   webPeerConnectionState.value = 'ready'
-  JobManager.startWorker()
-  startWebPeerTelemetry(runtime, { ...configStore.metaConfig })
+  JobManager.startWorker(meta.peer_lease_renew_interval_seconds * 1000)
+  startWebPeerTelemetry(runtime, meta)
 }
 
 function startWebPeerTelemetry(runtime: WebPeerRuntime, meta: MetaConfig): void {
@@ -237,7 +262,8 @@ function ownsWebPeerConnection(runtime: WebPeerRuntime, meta: MetaConfig): boole
     webPeerRuntime === runtime &&
     current.INKCRE_PEER_ID === meta.INKCRE_PEER_ID &&
     current.INKCRE_PGREST_URL === meta.INKCRE_PGREST_URL &&
-    current.INKCRE_JWT_SECRET === meta.INKCRE_JWT_SECRET
+    current.INKCRE_JWT_SECRET === meta.INKCRE_JWT_SECRET &&
+    current.peer_lease_renew_interval_seconds === meta.peer_lease_renew_interval_seconds
   )
 }
 
@@ -245,9 +271,7 @@ async function finishWebPeerConnection(runtime: WebPeerRuntime, meta: MetaConfig
   try {
     await runtime.start()
     if (!ownsWebPeerConnection(runtime, meta)) return
-    webPeerConnectionState.value = 'ready'
-    JobManager.startWorker()
-    startWebPeerTelemetry(runtime, meta)
+    await applyWebPeerParticipation(runtime, meta)
   } catch (error) {
     if (webPeerRuntime !== runtime) return
     runtime.stop()
@@ -265,12 +289,29 @@ export async function stopWebPeerRuntime(): Promise<void> {
   webPeerConnectionState.value = 'idle'
   currentWebPeer.value = null
   await JobManager.stopWorker()
+  if (webPeerRuntime !== null) return
   // Finish queued initialization before shutdown so a late read cannot reopen telemetry.
-  try {
-    await webPeerTelemetryInitialization
-  } finally {
-    await shutdownTelemetry()
-  }
+  await webPeerTelemetryInitialization?.catch(() => {
+    console.error('[Core] Optional telemetry initialization failed during shutdown.')
+  })
+  if (webPeerRuntime !== null) return
+  await shutdownTelemetry()
+  if (webPeerRuntime !== null) return
+  await extensionHostStartup?.catch(() => {})
+  if (webPeerRuntime !== null) return
+  await extensionHost?.shutdown()
+  if (webPeerRuntime !== null) return
+  extensionHostStartup = null
+}
+
+/** Drain work against the old connection before configuration changes its database authority. */
+export async function prepareWebPeerConfigurationChange(next: MetaConfig): Promise<void> {
+  const current = configStore.metaConfig
+  const sameConnection =
+    next.INKCRE_PGREST_URL === current.INKCRE_PGREST_URL &&
+    next.INKCRE_PEER_ID === current.INKCRE_PEER_ID &&
+    next.INKCRE_JWT_SECRET === current.INKCRE_JWT_SECRET
+  if (!sameConnection || next.peer_lease_renew_interval_seconds === 0) await stopWebPeerRuntime()
 }
 
 /** Settings can recover its connection independently of the business bootstrap. */

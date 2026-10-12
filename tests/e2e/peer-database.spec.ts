@@ -500,6 +500,152 @@ test('a new browser identity waits for insertion before opening business pages',
   }
 })
 
+test('zero participation persists, stays idle, and a custom interval resumes lease and scans', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const config = JSON.parse(localStorage.getItem('inkcre_app_config')!)
+    if (config.peer_lease_renew_interval_seconds === undefined)
+      localStorage.setItem(
+        'inkcre_app_config',
+        JSON.stringify({ ...config, peer_lease_renew_interval_seconds: 0 })
+      )
+  })
+  await page.clock.install()
+  await page.clock.setFixedTime(new Date())
+  const leaseTtls: number[] = []
+  let scans = 0
+  let extensionReads = 0
+  await page.route('**/rpc/renew_peer_lease', async (route) => {
+    leaseTtls.push(route.request().postDataJSON().ttl_seconds)
+    await route.fulfill({
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      json: new Date(Date.now() + 90_000).toISOString(),
+    })
+  })
+  await page.route('**/jobs?**', async (route) => {
+    if (new URL(route.request().url()).searchParams.get('status') === 'eq.pending') scans++
+    await route.fulfill({ headers: { 'Access-Control-Allow-Origin': '*' }, json: [] })
+  })
+  await page.route('**/extensions?**', async (route) => {
+    extensionReads++
+    await route.fulfill({ headers: { 'Access-Control-Allow-Origin': '*' }, json: [] })
+  })
+  await page.goto('/sources')
+  await expect(page.getByRole('main', { name: 'Sources', exact: true })).toBeVisible()
+  await expect(
+    page.getByText(
+      'Background participation is disabled for this Web Peer. Database pages and delegation remain available.'
+    )
+  ).toBeVisible()
+  await page.clock.fastForward(35_000)
+  expect(leaseTtls).toEqual([])
+  expect(scans).toBe(0)
+  expect(extensionReads).toBe(0)
+  await page.reload()
+  await expect(
+    page.getByText(
+      'Background participation is disabled for this Web Peer. Database pages and delegation remain available.'
+    )
+  ).toBeVisible()
+  await page.getByRole('button', { name: 'Menu', exact: true }).click()
+  await page.getByRole('button', { name: 'Settings', exact: true }).click()
+  await expect(page.getByLabel('Background participation interval (seconds)')).toHaveValue('0')
+  await page.getByLabel('Background participation interval (seconds)').fill('')
+  await expect(page.getByText('Enter a whole number from 0 to 86400.')).toBeVisible()
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  expect(leaseTtls).toEqual([])
+  await page.getByLabel('Background participation interval (seconds)').fill('2')
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await expect(page.getByRole('status')).toContainText('Configuration saved successfully')
+  await expect.poll(() => scans).toBeGreaterThan(0)
+  expect(leaseTtls.length).toBeGreaterThan(0)
+  expect(leaseTtls.every((ttl) => ttl === 6)).toBe(true)
+  await expect.poll(() => extensionReads).toBeGreaterThan(0)
+  const scansBefore = scans
+  await page.clock.runFor(2_000)
+  await expect.poll(() => scans).toBeGreaterThan(scansBefore)
+  expect(leaseTtls.every((ttl) => ttl === 6)).toBe(true)
+  expect(leaseTtls.length).toBeGreaterThan(1)
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Export', exact: true }).click()
+  const path = await (await downloadPromise).path()
+  const exported = JSON.parse(readFileSync(path!, 'utf8'))
+  expect(exported.metaConfig.peer_lease_renew_interval_seconds).toBe(2)
+  await page.getByLabel('Background participation interval (seconds)').fill('0')
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await expect(
+    page.getByText(
+      'Background participation is disabled for this Web Peer. Database pages and delegation remain available.'
+    )
+  ).toBeVisible()
+  const stoppedScans = scans,
+    stoppedLeases = leaseTtls.length
+  await page.clock.fastForward(35_000)
+  expect(scans).toBe(stoppedScans)
+  expect(leaseTtls.length).toBe(stoppedLeases)
+  await page.locator('input[type="file"]').setInputFiles(path!)
+  await expect(page.getByLabel('Background participation interval (seconds)')).toHaveValue('2')
+  await expect.poll(() => leaseTtls.length).toBeGreaterThan(stoppedLeases)
+})
+
+test('disabling while registration is pending prevents its later lease or worker', async ({
+  page,
+}) => {
+  let release!: () => void
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  let patches = 0,
+    leases = 0,
+    scans = 0,
+    firstPatchFinished = false
+  await page.route('**/peers?**', async (route) => {
+    if (route.request().method() !== 'PATCH' || ++patches > 1) {
+      await route.continue()
+      return
+    }
+    await gate
+    const response = await route.fetch()
+    await route.fulfill({ response })
+    firstPatchFinished = true
+  })
+  await page.route('**/rpc/renew_peer_lease', async (route) => {
+    leases++
+    await route.continue()
+  })
+  await page.route('**/jobs?**', async (route) => {
+    scans++
+    await route.continue()
+  })
+  try {
+    await page.goto('/sources')
+    await expect(page.getByRole('main', { name: 'Sources', exact: true })).toBeVisible()
+    await page.getByRole('button', { name: 'Menu', exact: true }).click()
+    await page.getByRole('button', { name: 'Settings', exact: true }).click()
+    await page.getByLabel('Background participation interval (seconds)').fill('0')
+    await page.getByRole('button', { name: 'Save', exact: true }).click()
+    await expect(
+      page.getByText(
+        'Background participation is disabled for this Web Peer. Database pages and delegation remain available.'
+      )
+    ).toBeVisible()
+    release()
+    await expect.poll(() => firstPatchFinished).toBe(true)
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+        )
+    )
+    expect(leases).toBe(0)
+    expect(scans).toBe(0)
+  } finally {
+    release()
+    await page.unrouteAll({ behavior: 'wait' })
+  }
+})
+
 test('Registry install and multi-Peer enablement require explicit confirmation', async ({
   page,
 }) => {
@@ -726,6 +872,7 @@ test('Settings export restores the complete browser experience', async ({ page }
         INKCRE_JWT_SECRET: jwtSecret,
         INKCRE_PEER_ID: '00000000-0000-4000-8000-000000000001',
         peer_readiness_timeout_seconds: 5,
+        peer_lease_renew_interval_seconds: 30,
         telemetry_enabled: false,
         telemetry_peer_relay_url: '',
       },

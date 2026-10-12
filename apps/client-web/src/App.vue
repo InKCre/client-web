@@ -14,7 +14,6 @@ import {
   webPeerConnectionState,
   initializeCore,
   shouldLoadPeerConfigAtBootstrap,
-  getExtensionHost,
   startExtensionHost,
   shutdownCore,
 } from './core'
@@ -23,6 +22,11 @@ import { pageObjectTitle } from './composables/use-page-object-title'
 const route = useRoute()
 const { t } = useI18n()
 const startupState = ref<'loading' | 'ready' | 'failed'>('loading')
+const connectionNoticeKey = computed(() => {
+  if (webPeerConnectionState.value === 'failed') return 'startup.peerFailed'
+  if (webPeerConnectionState.value === 'disabled') return 'startup.peerDisabled'
+  return 'startup.peerConnecting'
+})
 const reload = () => window.location.reload()
 
 onMounted(async () => {
@@ -36,13 +40,10 @@ onMounted(async () => {
   }
   startupState.value = 'ready'
 
-  const extensionHost = getExtensionHost()
   window.addEventListener('beforeunload', () => {
     // Browsers may end the page before cleanup completes, but never deliberately
     // dispose Extension resources while our Job handlers are still draining.
-    void shutdownCore()
-      .then(() => extensionHost.shutdown())
-      .catch((error: unknown) => console.error('[Core] Shutdown failed', error))
+    void shutdownCore().catch((error: unknown) => console.error('[Core] Shutdown failed', error))
   })
 })
 
@@ -98,13 +99,14 @@ const sidebarExpanded = ref(false)
       @title-click="startupState === 'ready' && router.push('/')"
     />
     <div
-      v-if="startupState === 'ready' && ['connecting', 'failed'].includes(webPeerConnectionState)"
+      v-if="
+        startupState === 'ready' &&
+        ['connecting', 'disabled', 'failed'].includes(webPeerConnectionState)
+      "
       class="app-connection"
       :role="webPeerConnectionState === 'failed' ? 'alert' : 'status'"
     >
-      <span>{{
-        t(`startup.peer${webPeerConnectionState === 'failed' ? 'Failed' : 'Connecting'}`)
-      }}</span>
+      <span>{{ t(connectionNoticeKey) }}</span>
       <InkButton v-if="webPeerConnectionState === 'failed'" @click="reload">
         {{ t('common.retry') }}
       </InkButton>
