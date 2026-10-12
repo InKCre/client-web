@@ -57,7 +57,11 @@ The Toolkit places read-only native Extension snapshots and preview Releases bes
 app build, using the stable alias branch `preview/client-web/pr-<number>`. This is a preview
 projection, not Registry publication: the workflow has no
 `INKCRE_EXTENSION_REGISTRY_TOKEN`. It registers a transient GitHub `preview` deployment, deploys
-through Pages and reports the provider deployment result. It does not turn edge propagation,
+through Pages and reports the provider deployment result. The GitHub environment links to the
+Pages branch alias; the job summary includes that alias, the deployment-specific URL, and the exact
+source SHA. This reporting reads Wrangler outputs without adding network acceptance checks.
+Because `pull_request_target` uses the trusted base workflow, reporting changes take effect after
+they reach `main`; they cannot rewrite summaries of completed runs. It does not turn edge propagation,
 deep route traversal, cache behavior, or byte comparison into synchronous delivery gates; consumer
 acceptance is a separate black-box activity.
 
