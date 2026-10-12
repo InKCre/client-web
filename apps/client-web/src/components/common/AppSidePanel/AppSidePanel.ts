@@ -5,6 +5,7 @@ import { makeBooleanProp } from '@/utils/vue-props'
 // --- Props ---
 export const appSidePanelProps = {
   expanded: makeBooleanProp(false),
+  ready: makeBooleanProp(true),
 } as const
 
 // --- Emits ---

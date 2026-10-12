@@ -58,7 +58,9 @@ jobs:
       packages: read
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    environment: preview
+    environment:
+      name: preview
+      url: ${{ steps.pages.outputs.pages-deployment-alias-url }}
     steps:
       - name: Checkout the trusted preview controller
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -136,3 +138,10 @@ jobs:
             --branch=${{ needs.identity.outputs.branch }}
             --commit-hash=${{ needs.identity.outputs.head_sha }}
             --commit-dirty=false
+
+      - name: Report preview links
+        run: node controller/scripts/report-pages-preview.mjs
+        env:
+          INKCRE_PREVIEW_URL: ${{ steps.pages.outputs.pages-deployment-alias-url }}
+          INKCRE_PREVIEW_DEPLOYMENT_URL: ${{ steps.pages.outputs.deployment-url }}
+          INKCRE_PREVIEW_SOURCE_SHA: ${{ needs.identity.outputs.head_sha }}

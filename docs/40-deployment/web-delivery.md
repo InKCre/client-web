@@ -17,6 +17,12 @@ first-party Extensions.
 The browser-side authority behind this invariant belongs to
 [Client Runtime and Delegation](../30-unit-tdd/client-runtime-and-delegation.md).
 
+`public/_headers` gives Vite's content-hashed `/assets/` files a one-year immutable browser
+cache. HTML keeps Pages' revalidation policy so a new visit discovers the current asset names.
+Do not place mutable files, Registry Release responses, or Extension executables in this cache
+scope: their own delivery authority determines freshness and readability. Route views are split
+into chunks and fetched on first navigation; repeat visits can reuse unchanged bytes.
+
 ## Production Pages
 
 [`.github/workflows/pages-deploy.yml`](../../.github/workflows/pages-deploy.yml) owns production
@@ -51,7 +57,11 @@ The Toolkit places read-only native Extension snapshots and preview Releases bes
 app build, using the stable alias branch `preview/client-web/pr-<number>`. This is a preview
 projection, not Registry publication: the workflow has no
 `INKCRE_EXTENSION_REGISTRY_TOKEN`. It registers a transient GitHub `preview` deployment, deploys
-through Pages and reports the provider deployment result. It does not turn edge propagation,
+through Pages and reports the provider deployment result. The GitHub environment links to the
+Pages branch alias; the job summary includes that alias, the deployment-specific URL, and the exact
+source SHA. This reporting reads Wrangler outputs without adding network acceptance checks.
+Because `pull_request_target` uses the trusted base workflow, reporting changes take effect after
+they reach `main`; they cannot rewrite summaries of completed runs. It does not turn edge propagation,
 deep route traversal, cache behavior, or byte comparison into synchronous delivery gates; consumer
 acceptance is a separate black-box activity.
 

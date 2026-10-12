@@ -98,7 +98,8 @@ test('startup shows pending and failed states without trapping a deep link', asy
   await page.route('**/peers?**', async (route) => {
     if (
       route.request().method() === 'GET' &&
-      new URL(route.request().url()).searchParams.get('select') === 'id'
+      new URL(route.request().url()).searchParams.get('id') ===
+        'eq.00000000-0000-4000-8000-000000000001'
     ) {
       await gate
       // 401 is terminal; network failures and 503 retain the SDK's transport retries.
@@ -114,7 +115,10 @@ test('startup shows pending and failed states without trapping a deep link', asy
     await page.goto(path)
     const loading = page.getByRole('status', { name: 'Starting InKCre…' })
     await expect(loading).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Menu', exact: true })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Menu', exact: true })).toBeVisible()
+    await page.getByRole('button', { name: 'Menu', exact: true }).click()
+    await expect(page.getByRole('button', { name: 'Sources', exact: true })).toBeDisabled()
+    await expect(page.getByRole('button', { name: 'Settings', exact: true })).toBeEnabled()
     await expect(page.getByRole('link', { name: 'Settings', exact: true })).toBeVisible()
     release()
     await expect(page.getByRole('alert')).toHaveText(
@@ -128,8 +132,8 @@ test('startup shows pending and failed states without trapping a deep link', asy
     await expect(page).toHaveURL(new RegExp(`${path.replace('?', '\\?')}$`))
     await page.getByRole('link', { name: 'Settings', exact: true }).click()
     await expect(page).toHaveURL(/\/settings$/)
-    await expect(page.getByLabel('PostgreSQL REST URL')).toHaveValue(postgrestUrl)
-    await expect(page.getByLabel('JWT Secret')).toHaveValue(jwtSecret)
+    await expect(page.getByLabel('PostgREST URL')).toHaveValue(postgrestUrl)
+    await expect(page.getByLabel('JWT signing secret')).toHaveValue(jwtSecret)
     release()
     await page.unrouteAll({ behavior: 'wait' })
 
@@ -141,6 +145,648 @@ test('startup shows pending and failed states without trapping a deep link', asy
   } finally {
     release()
     await page.unrouteAll({ behavior: 'wait' })
+  }
+})
+
+test('optional telemetry does not delay opening a business page', async ({ page }) => {
+  await page.addInitScript(() => {
+    const config = JSON.parse(localStorage.getItem('inkcre_app_config')!)
+    localStorage.setItem(
+      'inkcre_app_config',
+      JSON.stringify({ ...config, telemetry_enabled: true })
+    )
+  })
+  let release!: () => void
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  let observingTelemetry = false
+  await page.route('**/configs?**', async (route) => {
+    if (new URL(route.request().url()).searchParams.get('key') !== 'eq.inkcre.observability') {
+      await route.continue()
+      return
+    }
+    observingTelemetry = true
+    await gate
+    await route.fulfill({
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      json: null,
+    })
+  })
+  try {
+    await page.goto('/sources')
+    await expect.poll(() => observingTelemetry).toBe(true)
+    await expect(page.getByRole('main', { name: 'Sources', exact: true })).toBeVisible()
+    await expect(page.getByRole('status', { name: 'Starting InKCre…' })).toHaveCount(0)
+  } finally {
+    release()
+    await page.unrouteAll({ behavior: 'wait' })
+  }
+})
+
+test('existing Peer pages open before registration finishes and report a background failure', async ({
+  page,
+}) => {
+  let release!: () => void
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  let leaseRequests = 0
+  let workerRequests = 0
+  await page.route('**/rpc/renew_peer_lease', async (route) => {
+    leaseRequests++
+    await route.continue()
+  })
+  await page.route('**/jobs?**', async (route) => {
+    workerRequests++
+    await route.continue()
+  })
+  await page.route('**/peers?**', async (route) => {
+    if (route.request().method() !== 'PATCH') {
+      await route.continue()
+      return
+    }
+    await gate
+    await route.fulfill({
+      status: 503,
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      json: { message: 'Registration unavailable' },
+    })
+  })
+  try {
+    await page.goto('/sources')
+    await expect(page.getByRole('main', { name: 'Sources', exact: true })).toBeVisible()
+    await expect(
+      page.getByText(
+        'Connecting this Web Peer; database pages are available, local jobs are not running yet.'
+      )
+    ).toBeVisible()
+    expect(leaseRequests).toBe(0)
+    expect(workerRequests).toBe(0)
+    release()
+    await expect(page.getByRole('alert')).toContainText('This Web Peer could not connect.')
+    await expect(page.getByRole('main', { name: 'Sources', exact: true })).toBeVisible()
+    expect(leaseRequests).toBe(0)
+    expect(workerRequests).toBe(0)
+  } finally {
+    release()
+    await page.unrouteAll({ behavior: 'wait' })
+  }
+})
+
+test('a pending initial lease does not block pages or admit the browser worker', async ({
+  page,
+}) => {
+  let release!: () => void
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  let workerRequests = 0
+  let extensionReads = 0
+  let enabledReleaseReads = 0
+  let leasePending = false
+  await page.route('**/extensions?**', async (route) => {
+    extensionReads++
+    await route.fulfill({
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      json: [
+        {
+          name: 'e2e/lease-order',
+          version: '1.0.0',
+          enabled: ['00000000-0000-4000-8000-000000000001'],
+          nickname: null,
+          config: {},
+          config_schema: null,
+        },
+      ],
+    })
+  })
+  await page.route('**/v1/extensions/e2e/lease-order/releases/1.0.0', async (route) => {
+    enabledReleaseReads++
+    await route.fulfill({
+      status: 404,
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      json: { detail: 'isolated missing release' },
+    })
+  })
+  await page.route('**/jobs?**', async (route) => {
+    workerRequests++
+    await route.continue()
+  })
+  await page.route('**/rpc/renew_peer_lease', async (route) => {
+    leasePending = true
+    await gate
+    await route.continue()
+  })
+  try {
+    await page.goto('/sources')
+    await expect(page.getByRole('main', { name: 'Sources', exact: true })).toBeVisible()
+    await expect.poll(() => leasePending).toBe(true)
+    expect(workerRequests).toBe(0)
+    expect(extensionReads).toBe(0)
+    expect(enabledReleaseReads).toBe(0)
+    release()
+    await expect.poll(() => workerRequests).toBeGreaterThan(0)
+    await expect.poll(() => extensionReads).toBeGreaterThan(0)
+    await expect.poll(() => enabledReleaseReads).toBe(1)
+    await expect(
+      page.getByText(
+        'Connecting this Web Peer; database pages are available, local jobs are not running yet.'
+      )
+    ).toHaveCount(0)
+  } finally {
+    release()
+    await page.unrouteAll({ behavior: 'wait' })
+  }
+})
+
+test('reset invalidates pending registration before it can renew or start the worker', async ({
+  page,
+}) => {
+  let release!: () => void
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  let registrationFinished = false
+  let leaseRequests = 0
+  let workerRequests = 0
+  await page.route('**/rpc/renew_peer_lease', async (route) => {
+    leaseRequests++
+    await route.continue()
+  })
+  await page.route('**/jobs?**', async (route) => {
+    workerRequests++
+    await route.continue()
+  })
+  await page.route('**/peers?**', async (route) => {
+    if (route.request().method() !== 'PATCH') {
+      await route.continue()
+      return
+    }
+    await gate
+    const response = await route.fetch()
+    await route.fulfill({ response })
+    registrationFinished = true
+  })
+  try {
+    await page.goto('/sources')
+    await expect(page.getByRole('main', { name: 'Sources', exact: true })).toBeVisible()
+    await page.getByRole('button', { name: 'Menu', exact: true }).click()
+    await page.getByRole('button', { name: 'Settings', exact: true }).click()
+    await page.getByRole('button', { name: 'Reset', exact: true }).click()
+    await page.getByRole('button', { name: 'Confirm', exact: true }).click()
+    await expect(
+      page.getByRole('group', { name: 'Deployment connection', exact: true })
+    ).toBeVisible()
+    await expect(page.getByRole('group', { name: 'Peer runtime', exact: true })).toBeVisible()
+    await expect(page.getByRole('group', { name: 'Telemetry', exact: true })).toBeVisible()
+    await expect(page.getByLabel('PostgREST URL')).toHaveValue('')
+    release()
+    await expect.poll(() => registrationFinished).toBe(true)
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+        )
+    )
+    // Observe beyond completion of the old request, rather than merely before the gate opens.
+    await expect(page.getByLabel('PostgREST URL')).toHaveValue('')
+    expect(leaseRequests).toBe(0)
+    expect(workerRequests).toBe(0)
+    await expect(page.getByText('This Web Peer could not connect.')).toHaveCount(0)
+  } finally {
+    release()
+    await page.unrouteAll({ behavior: 'wait' })
+  }
+})
+
+test('switching connections cannot renew a pending old registration against either database', async ({
+  page,
+}) => {
+  const alternateUrl = 'https://startup-cutover.invalid/'
+  const alternateSecret = 'isolated-cutover-key-at-least-32-bytes'
+  let release!: () => void
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  let registrationFinished = false
+  let oldLeaseRequests = 0
+  let newLeaseRequests = 0
+  await page.route('**/rpc/renew_peer_lease', async (route) => {
+    oldLeaseRequests++
+    await route.continue()
+  })
+  await page.route('**/peers?**', async (route) => {
+    if (route.request().method() !== 'PATCH') {
+      await route.continue()
+      return
+    }
+    await gate
+    const response = await route.fetch()
+    await route.fulfill({ response })
+    registrationFinished = true
+  })
+  await page.route(`${alternateUrl}**`, async (route) => {
+    const request = route.request()
+    const url = new URL(request.url())
+    const headers = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers':
+        'Authorization, Content-Type, Accept-Profile, Content-Profile, Prefer',
+      'Access-Control-Allow-Methods': '*',
+    }
+    if (request.method() === 'OPTIONS') {
+      await route.fulfill({ status: 204, headers })
+      return
+    }
+    let json: unknown = []
+    if (url.pathname === '/peers') {
+      const row = {
+        id: '00000000-0000-4000-8000-000000000001',
+        name: 'Alternate connection',
+        config: {},
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      json = request.method() === 'GET' ? [row] : row
+    } else if (url.pathname.endsWith('/renew_peer_lease')) {
+      newLeaseRequests++
+      json = new Date(Date.now() + 90_000).toISOString()
+    }
+    await route.fulfill({ headers, json })
+  })
+  try {
+    await page.goto('/sources')
+    await expect(page.getByRole('main', { name: 'Sources', exact: true })).toBeVisible()
+    await page.getByRole('button', { name: 'Menu', exact: true }).click()
+    await page.getByRole('button', { name: 'Settings', exact: true }).click()
+    await page.getByLabel('PostgREST URL').fill(alternateUrl)
+    await page.getByLabel('JWT signing secret').fill(alternateSecret)
+    await page.getByRole('button', { name: 'Save', exact: true }).click()
+    await expect(page.getByRole('status')).toContainText('Configuration saved')
+    expect(newLeaseRequests).toBe(1)
+    release()
+    await expect.poll(() => registrationFinished).toBe(true)
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+        )
+    )
+    await expect(page.getByLabel('PostgREST URL')).toHaveValue(alternateUrl)
+    expect(oldLeaseRequests).toBe(0)
+    expect(newLeaseRequests).toBe(1)
+  } finally {
+    release()
+    await page.unrouteAll({ behavior: 'wait' })
+  }
+})
+
+test('a new browser identity waits for insertion before opening business pages', async ({
+  page,
+}) => {
+  const peerId = crypto.randomUUID()
+  await page.addInitScript((peerId) => {
+    const config = JSON.parse(localStorage.getItem('inkcre_app_config')!)
+    localStorage.setItem('inkcre_app_config', JSON.stringify({ ...config, INKCRE_PEER_ID: peerId }))
+  }, peerId)
+  let release!: () => void
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  let inserting = false
+  let leaseRequests = 0
+  await page.route('**/peers?**', async (route) => {
+    const query = new URL(route.request().url()).searchParams
+    if (route.request().method() === 'GET' && query.get('id') === `eq.${peerId}`) {
+      await route.fulfill({ headers: { 'Access-Control-Allow-Origin': '*' }, json: [] })
+    } else await route.continue()
+  })
+  await page.route('**/peers?select=*', async (route) => {
+    if (route.request().method() !== 'POST') {
+      await route.fallback()
+      return
+    }
+    inserting = true
+    const inserted = route.request().postDataJSON()
+    expect(inserted.id).toBe(peerId)
+    expect(inserted.application_version).toBe(clientVersion)
+    expect(inserted.capabilities).toEqual([])
+    await gate
+    await route.fulfill({
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      json: {
+        ...inserted,
+        config: {},
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    })
+  })
+  await page.route('**/rpc/renew_peer_lease', async (route) => {
+    leaseRequests++
+    await route.fulfill({
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      json: new Date(Date.now() + 90_000).toISOString(),
+    })
+  })
+  try {
+    await page.goto('/sources')
+    await expect.poll(() => inserting).toBe(true)
+    await expect(page.getByRole('status', { name: 'Starting InKCre…' })).toBeVisible()
+    await expect(page.getByRole('main', { name: 'Sources', exact: true })).toHaveCount(0)
+    expect(leaseRequests).toBe(0)
+    release()
+    await expect(page.getByRole('main', { name: 'Sources', exact: true })).toBeVisible()
+    await expect.poll(() => leaseRequests).toBe(1)
+  } finally {
+    release()
+    await page.unrouteAll({ behavior: 'wait' })
+  }
+})
+
+test('zero participation persists, stays idle, and a custom interval resumes lease and scans', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const config = JSON.parse(localStorage.getItem('inkcre_app_config')!)
+    if (config.peer_lease_renew_interval_seconds === undefined)
+      localStorage.setItem(
+        'inkcre_app_config',
+        JSON.stringify({ ...config, peer_lease_renew_interval_seconds: 0 })
+      )
+  })
+  await page.clock.install()
+  await page.clock.setFixedTime(new Date())
+  const leaseTtls: number[] = []
+  let scans = 0
+  let extensionReads = 0
+  await page.route('**/rpc/renew_peer_lease', async (route) => {
+    leaseTtls.push(route.request().postDataJSON().ttl_seconds)
+    await route.fulfill({
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      json: new Date(Date.now() + 90_000).toISOString(),
+    })
+  })
+  await page.route('**/jobs?**', async (route) => {
+    if (new URL(route.request().url()).searchParams.get('status') === 'eq.pending') scans++
+    await route.fulfill({ headers: { 'Access-Control-Allow-Origin': '*' }, json: [] })
+  })
+  await page.route('**/extensions?**', async (route) => {
+    extensionReads++
+    await route.fulfill({ headers: { 'Access-Control-Allow-Origin': '*' }, json: [] })
+  })
+  await page.goto('/sources')
+  await expect(page.getByRole('main', { name: 'Sources', exact: true })).toBeVisible()
+  await expect(
+    page.getByText(
+      'Background participation is disabled for this Web Peer. Database pages and delegation remain available.'
+    )
+  ).toBeVisible()
+  await page.clock.fastForward(35_000)
+  expect(leaseTtls).toEqual([])
+  expect(scans).toBe(0)
+  expect(extensionReads).toBe(0)
+  await page.reload()
+  await expect(
+    page.getByText(
+      'Background participation is disabled for this Web Peer. Database pages and delegation remain available.'
+    )
+  ).toBeVisible()
+  await page.getByRole('button', { name: 'Menu', exact: true }).click()
+  await page.getByRole('button', { name: 'Settings', exact: true }).click()
+  await expect(
+    page.getByLabel('Lease renewal and job check interval (seconds; 0 disables)')
+  ).toHaveValue('0')
+  await page.getByLabel('Lease renewal and job check interval (seconds; 0 disables)').fill('')
+  await expect(page.getByText('Enter a whole number from 0 to 86400.')).toBeVisible()
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  expect(leaseTtls).toEqual([])
+  await page.getByLabel('Lease renewal and job check interval (seconds; 0 disables)').fill('2')
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await expect(page.getByRole('status')).toContainText('Configuration saved successfully')
+  await expect.poll(() => scans).toBeGreaterThan(0)
+  expect(leaseTtls.length).toBeGreaterThan(0)
+  expect(leaseTtls.every((ttl) => ttl === 6)).toBe(true)
+  await expect.poll(() => extensionReads).toBeGreaterThan(0)
+  const scansBefore = scans
+  await page.clock.runFor(2_000)
+  await expect.poll(() => scans).toBeGreaterThan(scansBefore)
+  expect(leaseTtls.every((ttl) => ttl === 6)).toBe(true)
+  expect(leaseTtls.length).toBeGreaterThan(1)
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Export', exact: true }).click()
+  const path = await (await downloadPromise).path()
+  const exported = JSON.parse(readFileSync(path!, 'utf8'))
+  expect(exported.metaConfig.peer_lease_renew_interval_seconds).toBe(2)
+  await page.getByLabel('Lease renewal and job check interval (seconds; 0 disables)').fill('0')
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await expect(
+    page.getByText(
+      'Background participation is disabled for this Web Peer. Database pages and delegation remain available.'
+    )
+  ).toBeVisible()
+  const stoppedScans = scans,
+    stoppedLeases = leaseTtls.length
+  await page.clock.fastForward(35_000)
+  expect(scans).toBe(stoppedScans)
+  expect(leaseTtls.length).toBe(stoppedLeases)
+  await page.locator('input[type="file"]').setInputFiles(path!)
+  await expect(
+    page.getByLabel('Lease renewal and job check interval (seconds; 0 disables)')
+  ).toHaveValue('2')
+  await expect.poll(() => leaseTtls.length).toBeGreaterThan(stoppedLeases)
+})
+
+test('disabling while registration is pending prevents its later lease or worker', async ({
+  page,
+}) => {
+  let release!: () => void
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  let patches = 0,
+    leases = 0,
+    scans = 0,
+    firstPatchFinished = false
+  await page.route('**/peers?**', async (route) => {
+    if (route.request().method() !== 'PATCH' || ++patches > 1) {
+      await route.continue()
+      return
+    }
+    await gate
+    const response = await route.fetch()
+    await route.fulfill({ response })
+    firstPatchFinished = true
+  })
+  await page.route('**/rpc/renew_peer_lease', async (route) => {
+    leases++
+    await route.continue()
+  })
+  await page.route('**/jobs?**', async (route) => {
+    scans++
+    await route.continue()
+  })
+  try {
+    await page.goto('/sources')
+    await expect(page.getByRole('main', { name: 'Sources', exact: true })).toBeVisible()
+    await page.getByRole('button', { name: 'Menu', exact: true }).click()
+    await page.getByRole('button', { name: 'Settings', exact: true }).click()
+    await page.getByLabel('Lease renewal and job check interval (seconds; 0 disables)').fill('0')
+    await page.getByRole('button', { name: 'Save', exact: true }).click()
+    await expect(
+      page.getByText(
+        'Background participation is disabled for this Web Peer. Database pages and delegation remain available.'
+      )
+    ).toBeVisible()
+    release()
+    await expect.poll(() => firstPatchFinished).toBe(true)
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+        )
+    )
+    expect(leases).toBe(0)
+    expect(scans).toBe(0)
+  } finally {
+    release()
+    await page.unrouteAll({ behavior: 'wait' })
+  }
+})
+
+test('disabling participation drains a dispatched claim before saving configuration', async ({
+  page,
+}) => {
+  const authorization = `Bearer ${await token()}`
+  const headers = { Authorization: authorization, 'Content-Type': 'application/json' }
+  const type = `e2e.claim-drain.${crypto.randomUUID()}`
+  const createdType = await fetch(`${postgrestUrl}job_types`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      id: type,
+      description: 'Claim drain regression',
+      parameters_schema: {},
+      default_timeout_seconds: 3600,
+    }),
+  })
+  expect(createdType.status).toBe(201)
+  let id: number | undefined, release!: () => void
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  let claimStored = false
+  try {
+    await page.goto('/sources')
+    await expect(page.getByRole('main', { name: 'Sources', exact: true })).toBeVisible()
+    await expect(
+      page.getByText(
+        'Connecting this Web Peer; database pages are available, local jobs are not running yet.'
+      )
+    ).toHaveCount(0)
+    const created = await fetch(`${postgrestUrl}jobs`, {
+      method: 'POST',
+      headers: { ...headers, Prefer: 'return=representation' },
+      body: JSON.stringify({ type, parameters: {}, timeout_seconds: 3600 }),
+    })
+    expect(created.status).toBe(201)
+    id = (await created.json())[0].id
+    await page.route('**/jobs?**', async (route) => {
+      if (
+        route.request().method() !== 'PATCH' ||
+        route.request().postDataJSON().status !== 'running' ||
+        new URL(route.request().url()).searchParams.get('id') !== `eq.${id}`
+      ) {
+        await route.continue()
+        return
+      }
+      const response = await route.fetch()
+      expect(response.ok()).toBe(true)
+      claimStored = true
+      await gate
+      await route.fulfill({ response })
+    })
+    // Native extensions use this same shared SDK; the fixture adds no production test hook.
+    await page.evaluate(
+      async ({ id, type }) => {
+        type Sdk = typeof import('../../packages/core/src/index')
+        const globals = globalThis as typeof globalThis & {
+          __FEDERATION__: {
+            __INSTANCES__: Array<{
+              options: { name: string }
+              loadShare(name: string): Promise<() => Sdk>
+            }>
+          }
+          __claimDrain: { stop(): Promise<void>; handlerRuns: number; stopCompleted: boolean }
+        }
+        const host = globals.__FEDERATION__.__INSTANCES__.find(
+          (instance) => instance.options.name === 'host'
+        )!
+        const sdk = (await host.loadShare('@inkcre/core'))()
+        globals.__claimDrain = {
+          stop: () => sdk.JobManager.stopWorker(),
+          handlerRuns: 0,
+          stopCompleted: false,
+        }
+        sdk.JobManager.registerHandler(type, {
+          parameters: sdk.MetaConfigSchema,
+          canHandle: () => true,
+          handle: async () => {
+            globals.__claimDrain.handlerRuns++
+          },
+        })
+        void sdk.JobManager.run(id!)
+      },
+      { id, type }
+    )
+    await expect.poll(() => claimStored).toBe(true)
+    const stoppedBeforeClaimReturned = await page.evaluate(async () => {
+      const fixture = (
+        globalThis as typeof globalThis & {
+          __claimDrain: { stop(): Promise<void>; handlerRuns: number; stopCompleted: boolean }
+        }
+      ).__claimDrain
+      void fixture.stop().then(() => {
+        fixture.stopCompleted = true
+      })
+      await Promise.resolve()
+      await Promise.resolve()
+      return fixture.stopCompleted
+    })
+    expect(stoppedBeforeClaimReturned).toBe(false)
+    await page.getByRole('button', { name: 'Menu', exact: true }).click()
+    await page.getByRole('button', { name: 'Settings', exact: true }).click()
+    await page.getByLabel('Lease renewal and job check interval (seconds; 0 disables)').fill('0')
+    await page.getByRole('button', { name: 'Save', exact: true }).click()
+    await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeDisabled()
+    expect(
+      await page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem('inkcre_app_config')!).peer_lease_renew_interval_seconds
+      )
+    ).toBe(30)
+    release()
+    await expect(
+      page.getByText(
+        'Background participation is disabled for this Web Peer. Database pages and delegation remain available.'
+      )
+    ).toBeVisible()
+    const closed = await fetch(`${postgrestUrl}jobs?id=eq.${id}&select=status`, { headers })
+    expect((await closed.json())[0].status).toBe('aborted')
+    expect(
+      await page.evaluate(
+        () =>
+          (globalThis as typeof globalThis & { __claimDrain: { handlerRuns: number } }).__claimDrain
+            .handlerRuns
+      )
+    ).toBe(0)
+  } finally {
+    release()
+    await page.unrouteAll({ behavior: 'wait' })
+    if (id !== undefined)
+      await fetch(`${postgrestUrl}jobs?id=eq.${id}`, { method: 'DELETE', headers })
+    await fetch(`${postgrestUrl}job_types?id=eq.${type}`, { method: 'DELETE', headers })
   }
 })
 
@@ -369,6 +1015,8 @@ test('Settings export restores the complete browser experience', async ({ page }
         INKCRE_PGREST_URL: postgrestUrl,
         INKCRE_JWT_SECRET: jwtSecret,
         INKCRE_PEER_ID: '00000000-0000-4000-8000-000000000001',
+        peer_readiness_timeout_seconds: 5,
+        peer_lease_renew_interval_seconds: 30,
         telemetry_enabled: false,
         telemetry_peer_relay_url: '',
       },
@@ -401,7 +1049,7 @@ test('Settings export restores the complete browser experience', async ({ page }
       )
       .toEqual({ metaConfig: exported.metaConfig, locale: 'en' })
     await expect(
-      page.getByRole('checkbox', { name: 'Enable telemetry for this browser Peer', exact: true })
+      page.getByRole('checkbox', { name: 'Enable telemetry', exact: true })
     ).not.toBeChecked()
   } finally {
     const cleanup = await fetch(endpoint, {
@@ -733,15 +1381,18 @@ test('an empty browser saves its connection across refresh and reads Peers', asy
     expect(firstText).toBeTruthy()
     expect(firstText).not.toContain('settings.')
     expect(firstText).not.toContain('startup.')
-    await page.getByLabel('PostgreSQL REST URL').fill(postgrestUrl)
-    await page.getByLabel('JWT Secret').fill(jwtSecret)
+    await page.getByLabel('PostgREST URL').fill(postgrestUrl)
+    await page.getByLabel('JWT signing secret').fill(jwtSecret)
+    await expect(page.getByLabel('Peer readiness wait timeout (seconds)')).toHaveValue('5')
+    await page.getByLabel('Peer readiness wait timeout (seconds)').fill('45')
     await page.getByRole('button', { name: 'Save', exact: true }).click()
     await expect(page.getByRole('status')).toHaveText('Configuration saved successfully')
     id = await page.evaluate(
       () => JSON.parse(localStorage.getItem('inkcre_app_config')!).INKCRE_PEER_ID
     )
     await page.reload()
-    await expect(page.getByLabel('PostgreSQL REST URL')).toHaveValue(postgrestUrl)
+    await expect(page.getByLabel('PostgREST URL')).toHaveValue(postgrestUrl)
+    await expect(page.getByLabel('Peer readiness wait timeout (seconds)')).toHaveValue('45')
     await expect(page.getByRole('main')).not.toContainText(id!)
     await expect(page.getByRole('main')).not.toContainText('Peer ID')
     await page.goto('/peers')

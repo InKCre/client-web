@@ -7,6 +7,8 @@
 
 import {
   configStore,
+  PeerConfigSchema,
+  type MetaConfig,
   initializeTelemetry,
   shutdownTelemetry,
   flushTelemetry,
@@ -149,6 +151,10 @@ let extensionRegistry: RegistryReleaseReader | null = null
 let extensionRegistryOrigin: ExtensionRegistryOriginResolver | null = null
 let moduleFederation: ReturnType<typeof createInstance> | null = null
 let webPeerRuntime: WebPeerRuntime | null = null
+let webPeerTelemetryInitialization: Promise<void> | null = null
+export const webPeerConnectionState = Vue.ref<
+  'idle' | 'connecting' | 'ready' | 'disabled' | 'failed'
+>('idle')
 
 export function initializeExtensionHost(): ClientExtensionManager {
   extensionHostStartup = null
@@ -169,6 +175,9 @@ export function initializeExtensionHost(): ClientExtensionManager {
 
 /** Share one initial runtime restore across the app shell and management view. */
 export function startExtensionHost(): Promise<void> {
+  if (webPeerConnectionState.value !== 'ready') {
+    return Promise.reject(new Error('Web Peer lease is not ready for Extension Host startup.'))
+  }
   if (extensionHostStartup) return extensionHostStartup
   const startup = getExtensionHost().startup(configStore.metaConfig.INKCRE_PEER_ID)
   extensionHostStartup = startup.catch((error: unknown) => {
@@ -209,32 +218,123 @@ export function getExtensionSetupContribution(name: string): ExtensionSetupContr
 
 /** Replace the browser-owned lease runtime after a validated Settings cutover. */
 export async function adoptWebPeerRuntime(runtime: WebPeerRuntime): Promise<void> {
-  webPeerRuntime?.stop()
+  if (webPeerRuntime !== runtime) webPeerRuntime?.stop()
   webPeerRuntime = runtime
-  await initializeTelemetry(configStore.metaConfig, WEB_PEER_IDENTITY.applicationVersion)
-  JobManager.startWorker()
+  await applyWebPeerParticipation(runtime, { ...configStore.metaConfig })
+}
+
+async function applyWebPeerParticipation(runtime: WebPeerRuntime, meta: MetaConfig): Promise<void> {
+  if (!ownsWebPeerConnection(runtime, meta)) return
+  if (meta.peer_lease_renew_interval_seconds === 0) {
+    webPeerConnectionState.value = 'connecting'
+    await JobManager.stopWorker()
+    if (!ownsWebPeerConnection(runtime, meta)) return
+    await webPeerTelemetryInitialization?.catch(() => {
+      console.error('[Core] Optional telemetry initialization failed during shutdown.')
+    })
+    if (!ownsWebPeerConnection(runtime, meta)) return
+    await shutdownTelemetry()
+    if (!ownsWebPeerConnection(runtime, meta)) return
+    await extensionHostStartup?.catch(() => {})
+    if (!ownsWebPeerConnection(runtime, meta)) return
+    await extensionHost?.shutdown()
+    if (!ownsWebPeerConnection(runtime, meta)) return
+    extensionHostStartup = null
+    webPeerConnectionState.value = 'disabled'
+    return
+  }
+  webPeerConnectionState.value = 'ready'
+  JobManager.startWorker(meta.peer_lease_renew_interval_seconds * 1000)
+  startWebPeerTelemetry(runtime, meta)
+}
+
+function startWebPeerTelemetry(runtime: WebPeerRuntime, meta: MetaConfig): void {
+  if (webPeerRuntime !== runtime) return
+  webPeerTelemetryInitialization = initializeTelemetry(meta, WEB_PEER_IDENTITY.applicationVersion)
+  void webPeerTelemetryInitialization.catch(() => {
+    console.error('[Core] Optional telemetry initialization failed.')
+  })
+}
+
+function ownsWebPeerConnection(runtime: WebPeerRuntime, meta: MetaConfig): boolean {
+  const current = configStore.metaConfig
+  return (
+    webPeerRuntime === runtime &&
+    current.INKCRE_PEER_ID === meta.INKCRE_PEER_ID &&
+    current.INKCRE_PGREST_URL === meta.INKCRE_PGREST_URL &&
+    current.INKCRE_JWT_SECRET === meta.INKCRE_JWT_SECRET &&
+    current.peer_lease_renew_interval_seconds === meta.peer_lease_renew_interval_seconds
+  )
+}
+
+async function finishWebPeerConnection(runtime: WebPeerRuntime, meta: MetaConfig): Promise<void> {
+  try {
+    await runtime.start()
+    if (!ownsWebPeerConnection(runtime, meta)) return
+    await applyWebPeerParticipation(runtime, meta)
+  } catch (error) {
+    if (webPeerRuntime !== runtime) return
+    runtime.stop()
+    webPeerConnectionState.value = 'failed'
+    console.error(
+      '[Core] Web Peer registration or lease failed; database views remain available.',
+      error
+    )
+  }
 }
 
 export async function stopWebPeerRuntime(): Promise<void> {
   webPeerRuntime?.stop()
   webPeerRuntime = null
+  webPeerConnectionState.value = 'idle'
   currentWebPeer.value = null
   await JobManager.stopWorker()
+  if (webPeerRuntime !== null) return
+  // Finish queued initialization before shutdown so a late read cannot reopen telemetry.
+  await webPeerTelemetryInitialization?.catch(() => {
+    console.error('[Core] Optional telemetry initialization failed during shutdown.')
+  })
+  if (webPeerRuntime !== null) return
   await shutdownTelemetry()
+  if (webPeerRuntime !== null) return
+  await extensionHostStartup?.catch(() => {})
+  if (webPeerRuntime !== null) return
+  await extensionHost?.shutdown()
+  if (webPeerRuntime !== null) return
+  extensionHostStartup = null
 }
 
-/** Start the lease after Settings has mounted and loaded recovery configuration. */
+/** Drain work against the old connection before configuration changes its database authority. */
+export async function prepareWebPeerConfigurationChange(next: MetaConfig): Promise<void> {
+  const current = configStore.metaConfig
+  const sameConnection =
+    next.INKCRE_PGREST_URL === current.INKCRE_PGREST_URL &&
+    next.INKCRE_PEER_ID === current.INKCRE_PEER_ID &&
+    next.INKCRE_JWT_SECRET === current.INKCRE_JWT_SECRET
+  if (!sameConnection || next.peer_lease_renew_interval_seconds === 0) await stopWebPeerRuntime()
+}
+
+/** Settings can recover its connection independently of the business bootstrap. */
 export async function startConfiguredWebPeerRuntime(): Promise<void> {
-  if (!configStore.metaConfig.INKCRE_PGREST_URL || !configStore.metaConfig.INKCRE_JWT_SECRET) return
-  const candidate = new WebPeerRuntime(configStore.metaConfig.INKCRE_PEER_ID, WEB_PEER_IDENTITY)
+  if (
+    webPeerRuntime ||
+    !configStore.metaConfig.INKCRE_PGREST_URL ||
+    !configStore.metaConfig.INKCRE_JWT_SECRET
+  )
+    return
+  const meta = { ...configStore.metaConfig }
+  const candidate = WebPeerRuntime.forConnection(meta, WEB_PEER_IDENTITY)
+  webPeerRuntime = candidate
+  webPeerConnectionState.value = 'connecting'
   try {
-    const peer = await candidate.register()
-    await configStore.loadPeerConfig()
-    await candidate.start()
-    await adoptWebPeerRuntime(candidate)
+    const peer = await candidate.prepare()
+    if (!ownsWebPeerConnection(candidate, meta)) return
+    configStore.peerConfig = PeerConfigSchema.parse(peer.config)
     currentWebPeer.value = { id: peer.id, name: peer.name }
+    void finishWebPeerConnection(candidate, meta)
   } catch (error) {
     candidate.stop()
+    if (webPeerRuntime === candidate) webPeerConnectionState.value = 'failed'
     throw error
   }
 }
@@ -335,15 +435,19 @@ export async function initializeCore(options: { loadPeerConfig?: boolean } = {})
     configStore.metaConfig.INKCRE_PGREST_URL &&
     configStore.metaConfig.INKCRE_JWT_SECRET
   ) {
-    const candidate = new WebPeerRuntime(configStore.metaConfig.INKCRE_PEER_ID, WEB_PEER_IDENTITY)
+    const meta = { ...configStore.metaConfig }
+    const candidate = WebPeerRuntime.forConnection(meta, WEB_PEER_IDENTITY)
+    webPeerRuntime = candidate
+    webPeerConnectionState.value = 'connecting'
     try {
-      const peer = await candidate.register()
-      await configStore.loadPeerConfig()
-      await candidate.start()
-      await adoptWebPeerRuntime(candidate)
+      const peer = await candidate.prepare()
+      if (!ownsWebPeerConnection(candidate, meta)) return
+      configStore.peerConfig = PeerConfigSchema.parse(peer.config)
       currentWebPeer.value = { id: peer.id, name: peer.name }
+      void finishWebPeerConnection(candidate, meta)
     } catch (error) {
       candidate.stop()
+      if (webPeerRuntime === candidate) webPeerConnectionState.value = 'failed'
       throw error
     }
   }
@@ -351,7 +455,6 @@ export async function initializeCore(options: { loadPeerConfig?: boolean } = {})
   setupResolvers()
   initializeModuleFederation()
   initializeExtensionHost()
-  if (webPeerRuntime) await webPeerRuntime.start()
   console.log('[Core] Initialization complete')
 }
 

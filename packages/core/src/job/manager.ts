@@ -20,12 +20,14 @@ export class DuplicateJobHandlerError extends Error {}
 
 export class JobManager {
   private static handlers = new Map<JobTypeRef, JobHandler>()
+  private static admissions = new Map<JobRef, Promise<boolean>>()
   private static active = new Map<
     JobRef,
     { controller: AbortController; completion: Promise<void> }
   >()
   private static worker: ReturnType<typeof setInterval> | null = null
   private static abortWatcher: ReturnType<typeof setInterval> | null = null
+  private static workerIntervalMilliseconds: number | null = null
   private static accepting = true
 
   static registerHandler<Parameters extends z.ZodType>(
@@ -106,23 +108,34 @@ export class JobManager {
     return closed
   }
 
-  static async run(id: JobRef): Promise<boolean> {
-    if (!this.accepting || this.active.has(id)) return false
+  static run(id: JobRef): Promise<boolean> {
+    if (!this.accepting || this.admissions.has(id)) return Promise.resolve(false)
+    const completion = this.runAdmitted(id).finally(() => this.admissions.delete(id))
+    this.admissions.set(id, completion)
+    return completion
+  }
+
+  private static async runAdmitted(id: JobRef): Promise<boolean> {
     const candidate = await Job.get(id)
-    if (candidate.status !== JobStatus.PENDING) return false
+    if (!this.accepting || candidate.status !== JobStatus.PENDING) return false
     let prepared: [JobHandler, unknown] | null
     try {
       prepared = await this.prepare(candidate)
     } catch (error) {
       if (!(error instanceof z.ZodError)) throw error
+      if (!this.accepting) return false
       const claimed = await this.claim(candidate)
       if (!claimed) return false
+      if (!this.accepting) {
+        await this.observeExecution(claimed, () => this.close(claimed, JobStatus.ABORTED))
+        return true
+      }
       console.error('Persisted Job parameters are invalid', id, error)
       claimed.state = { ...claimed.state, error: error.message }
       await this.observeExecution(claimed, () => this.close(claimed, JobStatus.FAILED))
       return true
     }
-    if (!prepared) return false
+    if (!this.accepting || !prepared) return false
     const claimed = await this.claim(candidate)
     if (!claimed) return false
     // stopWorker may have run while claim was in flight. Do not start a handler
@@ -211,14 +224,15 @@ export class JobManager {
   }
 
   static async checkAbortRequests(): Promise<void> {
-    if (this.active.size === 0) return
+    const active = new Map(this.active)
+    if (active.size === 0) return
     const result = await Job.dbApi
       .from()
       .select('id')
-      .in('id', [...this.active.keys()])
+      .in('id', [...active.keys()])
       .eq('abort_requested', true)
     for (const job of result.data ?? []) {
-      this.active.get(job.id)?.controller.abort(JobStatus.ABORTED)
+      active.get(job.id)?.controller.abort(JobStatus.ABORTED)
     }
   }
 
@@ -232,13 +246,16 @@ export class JobManager {
   }
 
   static startWorker(intervalMilliseconds = 30_000): void {
-    if (this.worker) return
+    if (this.worker && this.workerIntervalMilliseconds === intervalMilliseconds) return
+    if (this.worker) clearInterval(this.worker)
+    this.workerIntervalMilliseconds = intervalMilliseconds
     this.accepting = true
     const scan = () => {
       void this.check().catch((error: unknown) => console.error('Job scan failed', error))
     }
     scan()
     this.worker = setInterval(scan, intervalMilliseconds)
+    if (this.abortWatcher !== null) return
     this.abortWatcher = setInterval(() => {
       void this.checkAbortRequests().catch((error: unknown) =>
         console.error('Job abort observation failed', error)
@@ -251,9 +268,11 @@ export class JobManager {
     if (this.worker) clearInterval(this.worker)
     if (this.abortWatcher) clearInterval(this.abortWatcher)
     this.worker = null
+    this.workerIntervalMilliseconds = null
     this.abortWatcher = null
     const active = [...this.active.values()]
     for (const execution of active) execution.controller.abort(JobStatus.ABORTED)
-    await Promise.allSettled(active.map((execution) => execution.completion))
+    // Admission can still be reading or claiming a Job; drain it before changing its connection.
+    await Promise.allSettled(this.admissions.values())
   }
 }

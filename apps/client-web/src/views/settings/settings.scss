@@ -22,6 +22,26 @@
     max-inline-size: 42rem;
   }
 
+  &__form {
+    gap: sys-var('space', 'lg');
+  }
+
+  &__group {
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    display: flex;
+    flex-direction: column;
+    gap: sys-var('space', 'md');
+
+    legend {
+      @include apply-font(title-sm);
+      padding: 0;
+      margin-block-end: sys-var('space', 'md');
+    }
+  }
+
   p {
     margin: 0;
     color: sys-var('color', 'text', 'subtle');

@@ -22,7 +22,10 @@
   },
   "startup": {
     "loading": "Starting InKCre…",
-    "failed": "Unable to start InKCre. Retry or check your connection in Settings."
+    "failed": "Unable to start InKCre. Retry or check your connection in Settings.",
+    "peerConnecting": "Connecting this Web Peer; database pages are available, local jobs are not running yet.",
+    "peerFailed": "This Web Peer could not connect. Database pages remain available; local jobs are stopped.",
+    "peerDisabled": "Background participation is disabled for this Web Peer. Database pages and delegation remain available."
   },
   "header": {
     "brand": "InKCre"
@@ -57,11 +60,10 @@
     "backup": "Backup and restore",
     "importSuccess": "Configuration restored.",
     "title": "Settings",
-    "metaConfig": "Connection",
-    "pgrestUrl": "PostgreSQL REST URL",
-    "jwtSecret": "JWT Secret",
+    "metaConfig": "Connection and runtime settings",
+    "pgrestUrl": "PostgREST URL",
+    "jwtSecret": "JWT signing secret",
     "languageLabel": "Language",
-    "languageDescription": "Select your preferred language",
     "saveConfig": "Save",
     "saveSuccess": "Configuration saved successfully",
     "resetConfig": "Reset",
@@ -70,10 +72,17 @@
     "exportConfig": "Export",
     "importConfig": "Import",
     "importError": "Unable to restore configuration. Check the file and deployment connection.",
-    "telemetryEnabled": "Enable telemetry for this browser Peer",
-    "telemetryHelp": "Takes effect after saving the connection. Requires deployment observability endpoints; existing Job logs remain available.",
-    "telemetryRelay": "Peer telemetry relay URL (optional)",
-    "telemetryRelayHelp": "Use only a trusted deployment Peer relay. This connection’s short-lived Peer identity authenticates requests; leave empty to use deployment public observability endpoints."
+    "peerReadinessTimeout": "Peer readiness wait timeout (seconds)",
+    "peerReadinessTimeoutInvalid": "Enter a whole number between 1 and 300 seconds.",
+    "telemetryEnabled": "Enable telemetry",
+    "telemetryRelay": "Trusted Peer relay URL (optional)",
+    "peerLeaseRenewInterval": "Lease renewal and job check interval (seconds; 0 disables)",
+    "peerLeaseRenewIntervalInvalid": "Enter a whole number from 0 to 86400.",
+    "deploymentConnection": "Deployment connection",
+    "peerRuntime": "Peer runtime",
+    "telemetry": "Telemetry",
+    "telemetryRelayDefault": "Leave empty to use deployment telemetry endpoints.",
+    "backgroundDisabledEffect": "Saving stops local tasks and pauses automatic Extensions and telemetry."
   },
   "source": {
     "deleteConfirmTitle": "Delete Source",

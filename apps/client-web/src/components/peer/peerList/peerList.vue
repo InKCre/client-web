@@ -29,14 +29,16 @@ const refreshPeers = async () => {
   loading.value = true
   error.value = ''
   try {
-    const [all, live] = await Promise.all([Peer.list(), PeerManager.listLive()])
+    const all = await Peer.list()
     peers.value = all
-    livePeers.value = new Set(live.map((peer) => peer.id))
     const self = all.find((peer) => peer.id === currentPeerId)
     if (self) currentWebPeer.value = { id: self.id, name: self.name }
     readiness.value = new Map(
       await Promise.all(all.map(async (peer) => [peer.id, await probePeerReadiness(peer)] as const))
     )
+    // Public requests can wake hosted Peers; read their leases after the probes finish.
+    const live = await PeerManager.listLive()
+    livePeers.value = new Set(live.map((peer) => peer.id))
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : String(cause)
   } finally {
@@ -45,8 +47,9 @@ const refreshPeers = async () => {
 }
 
 const getPeerStatus = (peer: Peer): 'online' | 'offline' | 'unknown' => {
+  if (livePeers.value.has(peer.id)) return 'online'
   if (peer.lease_expires_at === null) return 'unknown'
-  return livePeers.value.has(peer.id) ? 'online' : 'offline'
+  return 'offline'
 }
 
 onMounted(refreshPeers)

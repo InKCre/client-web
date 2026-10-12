@@ -47,6 +47,8 @@ const CurrentMetaConfigSchema = z.object({
   INKCRE_PGREST_URL: UnconfiguredUrlSchema.default(''),
   INKCRE_JWT_SECRET: z.string().default(''),
   INKCRE_PEER_ID: GeneratedPeerIdSchema,
+  peer_lease_renew_interval_seconds: z.number().int().min(0).max(86400).default(30),
+  peer_readiness_timeout_seconds: z.number().int().min(1).max(300).default(5),
   telemetry_enabled: z.boolean().default(false),
   telemetry_peer_relay_url: z
     .union([

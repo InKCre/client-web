@@ -22,7 +22,10 @@
   },
   "startup": {
     "loading": "正在启动 InKCre…",
-    "failed": "无法启动 InKCre。请重试，或前往设置检查连接。"
+    "failed": "无法启动 InKCre。请重试，或前往设置检查连接。",
+    "peerConnecting": "正在连接此 Web Peer；数据库页面已可使用，本地任务尚未运行。",
+    "peerFailed": "此 Web Peer 连接失败。数据库页面仍可使用，本地任务已停止。",
+    "peerDisabled": "此 Web Peer 的后台参与已关闭；数据库页面和能力委派仍可使用。"
   },
   "header": {
     "brand": "InKCre"
@@ -57,11 +60,10 @@
     "backup": "备份与恢复",
     "importSuccess": "配置已恢复。",
     "title": "设置",
-    "metaConfig": "连接",
-    "pgrestUrl": "PostgreSQL REST 地址",
-    "jwtSecret": "JWT 密钥",
+    "metaConfig": "连接与运行设置",
+    "pgrestUrl": "PostgREST 地址",
+    "jwtSecret": "JWT 签名密钥",
     "languageLabel": "语言",
-    "languageDescription": "选择您的首选语言",
     "saveConfig": "保存",
     "saveSuccess": "配置保存成功",
     "resetConfig": "重置",
@@ -70,10 +72,17 @@
     "exportConfig": "导出",
     "importConfig": "导入",
     "importError": "无法恢复配置，请检查文件及部署连接。",
-    "telemetryEnabled": "启用此浏览器 Peer 的遥测",
-    "telemetryHelp": "保存连接后生效。需要部署配置观测出口；原有 Job 日志继续保留。",
-    "telemetryRelay": "Peer 遥测中转地址（可选）",
-    "telemetryRelayHelp": "仅填写可信部署 Peer 的中转地址。此连接的短期 Peer 身份将用于认证；留空使用部署的公开观测出口。"
+    "peerReadinessTimeout": "Peer 就绪等待超时（秒）",
+    "peerReadinessTimeoutInvalid": "请输入 1 至 300 秒之间的整数。",
+    "telemetryEnabled": "启用遥测",
+    "telemetryRelay": "可信 Peer 中转地址（可选）",
+    "peerLeaseRenewInterval": "续租与任务检查间隔（秒，0 关闭）",
+    "peerLeaseRenewIntervalInvalid": "请输入 0 到 86400 之间的整数。",
+    "deploymentConnection": "部署连接",
+    "peerRuntime": "Peer 运行",
+    "telemetry": "遥测",
+    "telemetryRelayDefault": "留空使用部署的遥测出口。",
+    "backgroundDisabledEffect": "保存后停止本地任务，并暂停自动扩展和遥测。"
   },
   "source": {
     "deleteConfirmTitle": "删除数据源",

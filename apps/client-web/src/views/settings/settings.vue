@@ -8,6 +8,8 @@ import { setLocale, SUPPORT_LOCALES, LOCALE_NAMES, type SupportLocale } from '@/
 import i18n from '@/locales'
 import {
   adoptWebPeerRuntime,
+  prepareWebPeerConfigurationChange,
+  webPeerConnectionState,
   startConfiguredWebPeerRuntime,
   stopWebPeerRuntime,
   WEB_PEER_IDENTITY,
@@ -29,6 +31,36 @@ const hasConnectedConfig = computed(
     Boolean(configStore.metaConfig.INKCRE_JWT_SECRET)
 )
 const formBusy = computed(() => pendingAction.value !== null)
+const readinessTimeoutInput = computed({
+  get: () => String(metaFormConfig.peer_readiness_timeout_seconds),
+  set: (value: string) => {
+    metaFormConfig.peer_readiness_timeout_seconds = Number(value)
+  },
+})
+const readinessTimeoutError = computed(() => {
+  const result = MetaConfigSchema.safeParse(metaFormConfig)
+  return !result.success &&
+    result.error.issues.some((issue) => issue.path[0] === 'peer_readiness_timeout_seconds')
+    ? t('settings.peerReadinessTimeoutInvalid')
+    : ''
+})
+const leaseRenewIntervalInput = computed({
+  get: () =>
+    Number.isNaN(metaFormConfig.peer_lease_renew_interval_seconds)
+      ? ''
+      : String(metaFormConfig.peer_lease_renew_interval_seconds),
+  set: (value: string) => {
+    metaFormConfig.peer_lease_renew_interval_seconds =
+      value.trim() === '' ? Number.NaN : Number(value)
+  },
+})
+const leaseRenewIntervalError = computed(() => {
+  const result = MetaConfigSchema.safeParse(metaFormConfig)
+  return !result.success &&
+    result.error.issues.some((issue) => issue.path[0] === 'peer_lease_renew_interval_seconds')
+    ? t('settings.peerLeaseRenewIntervalInvalid')
+    : ''
+})
 const SettingsExportSchema = z.object({
   version: z.literal(2),
   metaConfig: MetaConfigSchema,
@@ -66,12 +98,15 @@ const onSave = async () => {
   feedback.value = null
   try {
     const validatedMeta = MetaConfigSchema.parse(metaFormConfig)
+    await prepareWebPeerConfigurationChange(validatedMeta)
     const runtime = await configStore.connectAndSave(validatedMeta, WEB_PEER_IDENTITY)
     await adoptWebPeerRuntime(runtime)
     void refreshCurrentWebPeer()
     Object.assign(metaFormConfig, configStore.metaConfig)
     feedback.value = { action: 'save', error: false, message: t('settings.saveSuccess') }
   } catch (error) {
+    if (webPeerConnectionState.value === 'idle' && hasConnectedConfig.value)
+      webPeerConnectionState.value = 'failed'
     console.error('Failed to save config:', error)
     feedback.value = { action: 'save', error: true, message: t('common.saveFailed') }
   } finally {
@@ -127,6 +162,7 @@ const onFileSelected = async (event: Event) => {
   feedback.value = null
   try {
     const imported = SettingsExportSchema.parse(JSON.parse(await file.text()))
+    await prepareWebPeerConfigurationChange(imported.metaConfig)
     const runtime = await configStore.connectAndSave(imported.metaConfig, WEB_PEER_IDENTITY)
     await adoptWebPeerRuntime(runtime)
     void refreshCurrentWebPeer()
@@ -134,6 +170,8 @@ const onFileSelected = async (event: Event) => {
     Object.assign(metaFormConfig, configStore.metaConfig)
     feedback.value = { action: 'import', error: false, message: t('settings.importSuccess') }
   } catch (error) {
+    if (webPeerConnectionState.value === 'idle' && hasConnectedConfig.value)
+      webPeerConnectionState.value = 'failed'
     console.error('Failed to import config:', error)
     feedback.value = { action: 'import', error: true, message: t('settings.importError') }
   } finally {
@@ -151,36 +189,65 @@ const onFileSelected = async (event: Event) => {
       :aria-label="t('settings.metaConfig')"
       @submit="onSave"
     >
-      <h2 class="settings-view__section-title">
-        {{ t('settings.metaConfig') }}
-      </h2>
-      <InkInput
-        v-model="metaFormConfig.INKCRE_PGREST_URL"
-        :label="t('settings.pgrestUrl')"
-        placeholder="https://..."
-        :disabled="formBusy"
-      />
-      <InkInput
-        v-model="metaFormConfig.INKCRE_JWT_SECRET"
-        :label="t('settings.jwtSecret')"
-        native-type="password"
-        autocomplete="off"
-        placeholder="••••••••"
-        :disabled="formBusy"
-      />
+      <fieldset class="settings-view__group">
+        <legend>{{ t('settings.deploymentConnection') }}</legend>
+        <InkInput
+          v-model="metaFormConfig.INKCRE_PGREST_URL"
+          :label="t('settings.pgrestUrl')"
+          placeholder="https://..."
+          :disabled="formBusy"
+        />
+        <InkInput
+          v-model="metaFormConfig.INKCRE_JWT_SECRET"
+          :label="t('settings.jwtSecret')"
+          native-type="password"
+          autocomplete="off"
+          placeholder="••••••••"
+          :disabled="formBusy"
+        />
+      </fieldset>
 
-      <label class="flex items-center gap-2">
-        <input v-model="metaFormConfig.telemetry_enabled" type="checkbox" :disabled="formBusy" />
-        {{ t('settings.telemetryEnabled') }}
-      </label>
-      <p>{{ t('settings.telemetryHelp') }}</p>
-      <InkInput
-        v-model="metaFormConfig.telemetry_peer_relay_url"
-        :label="t('settings.telemetryRelay')"
-        placeholder="https://..."
-        :disabled="formBusy"
-      />
-      <p>{{ t('settings.telemetryRelayHelp') }}</p>
+      <fieldset class="settings-view__group">
+        <legend>{{ t('settings.peerRuntime') }}</legend>
+        <InkInput
+          v-model="readinessTimeoutInput"
+          :label="t('settings.peerReadinessTimeout')"
+          :error="readinessTimeoutError"
+          native-type="number"
+          min="1"
+          max="300"
+          step="1"
+          :disabled="formBusy"
+        />
+        <InkInput
+          v-model="leaseRenewIntervalInput"
+          :label="t('settings.peerLeaseRenewInterval')"
+          :error="leaseRenewIntervalError"
+          native-type="number"
+          min="0"
+          max="86400"
+          step="1"
+          :disabled="formBusy"
+        />
+        <p v-if="metaFormConfig.peer_lease_renew_interval_seconds === 0">
+          {{ t('settings.backgroundDisabledEffect') }}
+        </p>
+      </fieldset>
+
+      <fieldset class="settings-view__group">
+        <legend>{{ t('settings.telemetry') }}</legend>
+        <label class="flex items-center gap-2">
+          <input v-model="metaFormConfig.telemetry_enabled" type="checkbox" :disabled="formBusy" />
+          {{ t('settings.telemetryEnabled') }}
+        </label>
+        <InkInput
+          v-model="metaFormConfig.telemetry_peer_relay_url"
+          :label="t('settings.telemetryRelay')"
+          placeholder="https://..."
+          :disabled="formBusy"
+        />
+        <p>{{ t('settings.telemetryRelayDefault') }}</p>
+      </fieldset>
 
       <div class="settings-view__actions">
         <InkButton

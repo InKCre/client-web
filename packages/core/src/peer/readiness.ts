@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { Peer } from './peer'
+import { configStore } from '../config'
 
 const DatabaseComponentSchema = z.object({
   status: z.string(),
@@ -65,7 +66,10 @@ export async function probePeerReadiness(peer: Peer): Promise<PeerReadinessObser
     return { status: 'unavailable', reason: 'invalid_endpoint' }
   }
   try {
-    const response = await fetch(url, { signal: AbortSignal.timeout(5000), credentials: 'omit' })
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(configStore.metaConfig.peer_readiness_timeout_seconds * 1000),
+      credentials: 'omit',
+    })
     if (!response.ok && response.status !== 503)
       return { status: 'unavailable', reason: 'http_error' }
     let body: unknown

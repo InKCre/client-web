@@ -48,12 +48,18 @@ proof of non-execution.
 ## Public Readiness Observation
 
 `probePeerReadiness(Peer)` observes only the explicitly configured `http_public_base_url` and its
-`readyz` path. It sends no authentication and uses a five-second deadline. The shared core schema
+`readyz` path. It sends no authentication. Browser-owned MetaConfig
+`peer_readiness_timeout_seconds` sets the request deadline: five seconds by default, configurable
+in Settings as an integer from one to 300 seconds and preserved by configuration import/export.
+An older configuration without this field uses the default. The shared core schema
 keeps ready/not_ready, runtime phase/reason, optional bootstrap step, and public database component
 status/problems. Older Peers may omit step. Missing or invalid endpoints and failed/unsupported
 responses are distinct unavailable observations; they do not imply an expired lease.
 
-PeerList refreshes this observation alongside database facts and shows public diagnostics directly.
+PeerList refresh sends the public probes to all configured Peers, including expired leases, then
+reads live leases again so a Peer awakened by its hosting provider can appear online in that refresh.
+The deadline bounds a single observation; it does not retry failed bootstrap or guarantee that a
+sleeping host has completed startup. PeerList shows public diagnostics directly.
 The probe never writes Peer state, changes advertisements, or grants routing/scheduling eligibility.
 Read-only retrieval keeps the query and offers an explicit Retry after delegation unavailability;
 that action repeats the existing live-lease selection. Outcome-unknown and exact-target safety remain
@@ -68,13 +74,31 @@ origin:
 - current technical Peer UUID;
 - user-owned JWT signing secret.
 
-The application root mounts immediately and shows the three-block loading indicator while Core
-initialization runs. Business views mount only after initialization succeeds. A startup failure
-replaces loading with an error and a Retry action that reloads the current URL, preserving deep-link
-parameters. Settings remains reachable during loading and after failure through a full-page
-navigation: its recovery bootstrap does not wait for the configured Peer. Neither action resets
-stored configuration or reuses a partially initialized runtime; the root does not rerun initialization
-automatically. Existing SDK transport retry behavior is unchanged.
+The application shell mounts immediately with its header and menu. A configured browser reads its
+complete canonical Peer row once before business views mount; a new identity must first be
+inserted. Business pages then remain available while runtime-owned version/schema registration and
+the initial database-time lease complete in the background. The browser Job worker starts only after
+that lease succeeds. The application shell also restores the Extension Host only after lease
+success; the Extensions management page can read installed state earlier but does not independently
+restore runtimes. A connecting or failed notice distinguishes page access from a running Peer;
+failure preserves the database view and offers Retry and Settings. Optional telemetry runs after
+lease adoption and does not delay either business views or the worker. Route views load on demand.
+
+Each startup runtime binds its database URL and JWT signing closure to the captured connection.
+Stopping or replacing the runtime invalidates pending work: a completed old request cannot perform
+a subsequent registration write, renew another lease, install a timer, or start the worker. The
+background registration updates only application version and config schema; its returned row never
+overwrites the configuration or name read for the page. Already dispatched writes can still finish
+against their original database. Shutdown drains queued telemetry initialization before closing its
+SDK, preventing a late read from reopening it.
+
+Failure before the initial Peer read or insertion replaces loading with an error. Retry reloads the
+current URL, preserving deep-link parameters. Settings remains reachable through full-page navigation
+and its independent recovery bootstrap. Saving or importing a connection verifies registration before
+adoption; with positive background participation it also verifies the initial lease. Zero participation
+does not renew a lease. Neither recovery action resets stored configuration unless explicitly
+requested, and the root does not rerun initialization automatically. Existing SDK transport retry
+behavior is unchanged.
 
 The selected Peer's database row supplies deployment configuration such as Extension Registry URL
 and Peer HTTP timeout. The static artifact contains no environment origin, Peer identity, secret,
@@ -91,7 +115,7 @@ Web Peer registration publishes the client-web application version and a best-ef
 default name only when creating a new identity. Later registration refreshes runtime-owned version and schema
 without replacing the Human-owned name or Peer config.
 
-The browser Job worker starts only when a successfully connected Web Peer runtime is adopted.
+The browser Job worker starts only when a Web Peer runtime with a successful initial lease is adopted.
 Opening an unconfigured Settings page does not start database polling. Saving or importing a valid
 connection uses that same adoption path; repeated saves reuse the worker's existing timer. Reset
 waits for worker shutdown before clearing configuration, so in-flight work can finish cleanup
@@ -101,16 +125,44 @@ The browser signer backdates `iat` by five seconds and derives `exp` from that a
 absorbs ordinary sub-second or small deployment clock skew at the authentication boundary without
 increasing the shared maximum lifetime or leaking retries into PostgREST/domain callers.
 
+## Browser Background Participation
+
+Browser-owned MetaConfig `peer_lease_renew_interval_seconds` is an integer from zero to 86400,
+defaulting to 30 for older configuration files. Positive values control both lease renewal and
+pending Job scans. Adoption immediately renews the lease and starts a scan; the lease TTL is three
+times this interval, preserving the default 30-second renewal and 90-second expiry. Longer intervals
+delay accepting pending Jobs and recognizing an offline browser.
+
+Zero disables background participation. The browser still registers its canonical Peer identity and
+can use database pages and outbound capability delegation, but does not renew its lease, start the
+Job worker, initialize optional telemetry, or automatically restore the Extension Host. Disabling an
+existing runtime cancels local active Jobs and waits for cleanup before closing Extension resources.
+It does not revoke an existing lease: PostgreSQL expiry still controls when others see the Peer as
+offline. Explicit actions, open Job detail polling, and normal page queries remain possible requests.
+
+Saving or importing configuration persists this value and exports include it. Changing only a
+positive interval reorders the worker's scan timer without cancelling active Jobs or replacing their
+abort watcher. Disabling participation or changing database authority drains work against the original
+connection before saving the new configuration; if validation of the new connection fails, stored
+configuration remains intact but the stopped background runtime requires Retry or a successful save.
+Pending startup checks the captured connection and interval before adopting background services.
+This preference belongs to each browser; another open tab or browser can still renew the same
+technical Peer identity. No cross-tab lease coordination is implied.
+
 ## Application Hosts
 
 ### Job execution and shutdown
 
 JobManager filters by registered handler and eligibility before its conditional database claim. The active execution owns
-an AbortController and a completion promise. A two-second batch read observes `abort_requested` for those active IDs; Source
-handlers do not poll the Job table. Abort and timeout signal the handler and preserve their distinct reasons. The record closes
+an AbortController and a completion promise. A two-second batch read observes `abort_requested` for
+a snapshot of those executions; a late response cannot cancel a new execution that reuses an ID
+after connection cutover. Source handlers do not poll the Job table. Abort and timeout signal the handler and preserve their distinct reasons. The record closes
 only after the handler settles, not when a Promise.race stops observing it.
 
-`stopWorker()` stops admission, requests cancellation and awaits active cleanup before Extension shutdown. Browser page
+`stopWorker()` stops admission, requests cancellation and awaits every admitted Job pipeline, including
+pending reads, eligibility checks, claims, handler cleanup and closure, before Extension shutdown or
+connection cutover. A stopped pipeline cannot begin another claim; an already dispatched successful
+claim closes as aborted against the original connection before the stop completes. Browser page
 termination can still end JavaScript execution before asynchronous cleanup finishes; this protocol does not promise process
 survival, rollback or automatic retry. A persisted stop request alone is not proof that running work has exited.
 
