@@ -132,8 +132,8 @@ test('startup shows pending and failed states without trapping a deep link', asy
     await expect(page).toHaveURL(new RegExp(`${path.replace('?', '\\?')}$`))
     await page.getByRole('link', { name: 'Settings', exact: true }).click()
     await expect(page).toHaveURL(/\/settings$/)
-    await expect(page.getByLabel('PostgreSQL REST URL')).toHaveValue(postgrestUrl)
-    await expect(page.getByLabel('JWT Secret')).toHaveValue(jwtSecret)
+    await expect(page.getByLabel('PostgREST URL')).toHaveValue(postgrestUrl)
+    await expect(page.getByLabel('JWT signing secret')).toHaveValue(jwtSecret)
     release()
     await page.unrouteAll({ behavior: 'wait' })
 
@@ -335,7 +335,12 @@ test('reset invalidates pending registration before it can renew or start the wo
     await page.getByRole('button', { name: 'Settings', exact: true }).click()
     await page.getByRole('button', { name: 'Reset', exact: true }).click()
     await page.getByRole('button', { name: 'Confirm', exact: true }).click()
-    await expect(page.getByLabel('PostgreSQL REST URL')).toHaveValue('')
+    await expect(
+      page.getByRole('group', { name: 'Deployment connection', exact: true })
+    ).toBeVisible()
+    await expect(page.getByRole('group', { name: 'Peer runtime', exact: true })).toBeVisible()
+    await expect(page.getByRole('group', { name: 'Telemetry', exact: true })).toBeVisible()
+    await expect(page.getByLabel('PostgREST URL')).toHaveValue('')
     release()
     await expect.poll(() => registrationFinished).toBe(true)
     await page.evaluate(
@@ -345,7 +350,7 @@ test('reset invalidates pending registration before it can renew or start the wo
         )
     )
     // Observe beyond completion of the old request, rather than merely before the gate opens.
-    await expect(page.getByLabel('PostgreSQL REST URL')).toHaveValue('')
+    await expect(page.getByLabel('PostgREST URL')).toHaveValue('')
     expect(leaseRequests).toBe(0)
     expect(workerRequests).toBe(0)
     await expect(page.getByText('This Web Peer could not connect.')).toHaveCount(0)
@@ -415,8 +420,8 @@ test('switching connections cannot renew a pending old registration against eith
     await expect(page.getByRole('main', { name: 'Sources', exact: true })).toBeVisible()
     await page.getByRole('button', { name: 'Menu', exact: true }).click()
     await page.getByRole('button', { name: 'Settings', exact: true }).click()
-    await page.getByLabel('PostgreSQL REST URL').fill(alternateUrl)
-    await page.getByLabel('JWT Secret').fill(alternateSecret)
+    await page.getByLabel('PostgREST URL').fill(alternateUrl)
+    await page.getByLabel('JWT signing secret').fill(alternateSecret)
     await page.getByRole('button', { name: 'Save', exact: true }).click()
     await expect(page.getByRole('status')).toContainText('Configuration saved')
     expect(newLeaseRequests).toBe(1)
@@ -428,7 +433,7 @@ test('switching connections cannot renew a pending old registration against eith
           requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
         )
     )
-    await expect(page.getByLabel('PostgreSQL REST URL')).toHaveValue(alternateUrl)
+    await expect(page.getByLabel('PostgREST URL')).toHaveValue(alternateUrl)
     expect(oldLeaseRequests).toBe(0)
     expect(newLeaseRequests).toBe(1)
   } finally {
@@ -550,12 +555,14 @@ test('zero participation persists, stays idle, and a custom interval resumes lea
   ).toBeVisible()
   await page.getByRole('button', { name: 'Menu', exact: true }).click()
   await page.getByRole('button', { name: 'Settings', exact: true }).click()
-  await expect(page.getByLabel('Background participation interval (seconds)')).toHaveValue('0')
-  await page.getByLabel('Background participation interval (seconds)').fill('')
+  await expect(
+    page.getByLabel('Lease renewal and job check interval (seconds; 0 disables)')
+  ).toHaveValue('0')
+  await page.getByLabel('Lease renewal and job check interval (seconds; 0 disables)').fill('')
   await expect(page.getByText('Enter a whole number from 0 to 86400.')).toBeVisible()
   await page.getByRole('button', { name: 'Save', exact: true }).click()
   expect(leaseTtls).toEqual([])
-  await page.getByLabel('Background participation interval (seconds)').fill('2')
+  await page.getByLabel('Lease renewal and job check interval (seconds; 0 disables)').fill('2')
   await page.getByRole('button', { name: 'Save', exact: true }).click()
   await expect(page.getByRole('status')).toContainText('Configuration saved successfully')
   await expect.poll(() => scans).toBeGreaterThan(0)
@@ -572,7 +579,7 @@ test('zero participation persists, stays idle, and a custom interval resumes lea
   const path = await (await downloadPromise).path()
   const exported = JSON.parse(readFileSync(path!, 'utf8'))
   expect(exported.metaConfig.peer_lease_renew_interval_seconds).toBe(2)
-  await page.getByLabel('Background participation interval (seconds)').fill('0')
+  await page.getByLabel('Lease renewal and job check interval (seconds; 0 disables)').fill('0')
   await page.getByRole('button', { name: 'Save', exact: true }).click()
   await expect(
     page.getByText(
@@ -585,7 +592,9 @@ test('zero participation persists, stays idle, and a custom interval resumes lea
   expect(scans).toBe(stoppedScans)
   expect(leaseTtls.length).toBe(stoppedLeases)
   await page.locator('input[type="file"]').setInputFiles(path!)
-  await expect(page.getByLabel('Background participation interval (seconds)')).toHaveValue('2')
+  await expect(
+    page.getByLabel('Lease renewal and job check interval (seconds; 0 disables)')
+  ).toHaveValue('2')
   await expect.poll(() => leaseTtls.length).toBeGreaterThan(stoppedLeases)
 })
 
@@ -623,7 +632,7 @@ test('disabling while registration is pending prevents its later lease or worker
     await expect(page.getByRole('main', { name: 'Sources', exact: true })).toBeVisible()
     await page.getByRole('button', { name: 'Menu', exact: true }).click()
     await page.getByRole('button', { name: 'Settings', exact: true }).click()
-    await page.getByLabel('Background participation interval (seconds)').fill('0')
+    await page.getByLabel('Lease renewal and job check interval (seconds; 0 disables)').fill('0')
     await page.getByRole('button', { name: 'Save', exact: true }).click()
     await expect(
       page.getByText(
@@ -905,7 +914,7 @@ test('Settings export restores the complete browser experience', async ({ page }
       )
       .toEqual({ metaConfig: exported.metaConfig, locale: 'en' })
     await expect(
-      page.getByRole('checkbox', { name: 'Enable telemetry for this browser Peer', exact: true })
+      page.getByRole('checkbox', { name: 'Enable telemetry', exact: true })
     ).not.toBeChecked()
   } finally {
     const cleanup = await fetch(endpoint, {
@@ -1237,18 +1246,18 @@ test('an empty browser saves its connection across refresh and reads Peers', asy
     expect(firstText).toBeTruthy()
     expect(firstText).not.toContain('settings.')
     expect(firstText).not.toContain('startup.')
-    await page.getByLabel('PostgreSQL REST URL').fill(postgrestUrl)
-    await page.getByLabel('JWT Secret').fill(jwtSecret)
-    await expect(page.getByLabel('Peer readiness timeout (seconds)')).toHaveValue('5')
-    await page.getByLabel('Peer readiness timeout (seconds)').fill('45')
+    await page.getByLabel('PostgREST URL').fill(postgrestUrl)
+    await page.getByLabel('JWT signing secret').fill(jwtSecret)
+    await expect(page.getByLabel('Peer readiness wait timeout (seconds)')).toHaveValue('5')
+    await page.getByLabel('Peer readiness wait timeout (seconds)').fill('45')
     await page.getByRole('button', { name: 'Save', exact: true }).click()
     await expect(page.getByRole('status')).toHaveText('Configuration saved successfully')
     id = await page.evaluate(
       () => JSON.parse(localStorage.getItem('inkcre_app_config')!).INKCRE_PEER_ID
     )
     await page.reload()
-    await expect(page.getByLabel('PostgreSQL REST URL')).toHaveValue(postgrestUrl)
-    await expect(page.getByLabel('Peer readiness timeout (seconds)')).toHaveValue('45')
+    await expect(page.getByLabel('PostgREST URL')).toHaveValue(postgrestUrl)
+    await expect(page.getByLabel('Peer readiness wait timeout (seconds)')).toHaveValue('45')
     await expect(page.getByRole('main')).not.toContainText(id!)
     await expect(page.getByRole('main')).not.toContainText('Peer ID')
     await page.goto('/peers')

@@ -189,60 +189,65 @@ const onFileSelected = async (event: Event) => {
       :aria-label="t('settings.metaConfig')"
       @submit="onSave"
     >
-      <h2 class="settings-view__section-title">
-        {{ t('settings.metaConfig') }}
-      </h2>
-      <InkInput
-        v-model="metaFormConfig.INKCRE_PGREST_URL"
-        :label="t('settings.pgrestUrl')"
-        placeholder="https://..."
-        :disabled="formBusy"
-      />
-      <InkInput
-        v-model="metaFormConfig.INKCRE_JWT_SECRET"
-        :label="t('settings.jwtSecret')"
-        native-type="password"
-        autocomplete="off"
-        placeholder="••••••••"
-        :disabled="formBusy"
-      />
+      <fieldset class="settings-view__group">
+        <legend>{{ t('settings.deploymentConnection') }}</legend>
+        <InkInput
+          v-model="metaFormConfig.INKCRE_PGREST_URL"
+          :label="t('settings.pgrestUrl')"
+          placeholder="https://..."
+          :disabled="formBusy"
+        />
+        <InkInput
+          v-model="metaFormConfig.INKCRE_JWT_SECRET"
+          :label="t('settings.jwtSecret')"
+          native-type="password"
+          autocomplete="off"
+          placeholder="••••••••"
+          :disabled="formBusy"
+        />
+      </fieldset>
 
-      <InkInput
-        v-model="readinessTimeoutInput"
-        :label="t('settings.peerReadinessTimeout')"
-        :error="readinessTimeoutError"
-        native-type="number"
-        min="1"
-        max="300"
-        step="1"
-        :disabled="formBusy"
-      />
-      <p>{{ t('settings.peerReadinessTimeoutHelp') }}</p>
+      <fieldset class="settings-view__group">
+        <legend>{{ t('settings.peerRuntime') }}</legend>
+        <InkInput
+          v-model="readinessTimeoutInput"
+          :label="t('settings.peerReadinessTimeout')"
+          :error="readinessTimeoutError"
+          native-type="number"
+          min="1"
+          max="300"
+          step="1"
+          :disabled="formBusy"
+        />
+        <InkInput
+          v-model="leaseRenewIntervalInput"
+          :label="t('settings.peerLeaseRenewInterval')"
+          :error="leaseRenewIntervalError"
+          native-type="number"
+          min="0"
+          max="86400"
+          step="1"
+          :disabled="formBusy"
+        />
+        <p v-if="metaFormConfig.peer_lease_renew_interval_seconds === 0">
+          {{ t('settings.backgroundDisabledEffect') }}
+        </p>
+      </fieldset>
 
-      <InkInput
-        v-model="leaseRenewIntervalInput"
-        :label="t('settings.peerLeaseRenewInterval')"
-        :error="leaseRenewIntervalError"
-        native-type="number"
-        min="0"
-        max="86400"
-        step="1"
-        :disabled="formBusy"
-      />
-      <p>{{ t('settings.peerLeaseRenewIntervalHelp') }}</p>
-
-      <label class="flex items-center gap-2">
-        <input v-model="metaFormConfig.telemetry_enabled" type="checkbox" :disabled="formBusy" />
-        {{ t('settings.telemetryEnabled') }}
-      </label>
-      <p>{{ t('settings.telemetryHelp') }}</p>
-      <InkInput
-        v-model="metaFormConfig.telemetry_peer_relay_url"
-        :label="t('settings.telemetryRelay')"
-        placeholder="https://..."
-        :disabled="formBusy"
-      />
-      <p>{{ t('settings.telemetryRelayHelp') }}</p>
+      <fieldset class="settings-view__group">
+        <legend>{{ t('settings.telemetry') }}</legend>
+        <label class="flex items-center gap-2">
+          <input v-model="metaFormConfig.telemetry_enabled" type="checkbox" :disabled="formBusy" />
+          {{ t('settings.telemetryEnabled') }}
+        </label>
+        <InkInput
+          v-model="metaFormConfig.telemetry_peer_relay_url"
+          :label="t('settings.telemetryRelay')"
+          placeholder="https://..."
+          :disabled="formBusy"
+        />
+        <p>{{ t('settings.telemetryRelayDefault') }}</p>
+      </fieldset>
 
       <div class="settings-view__actions">
         <InkButton
