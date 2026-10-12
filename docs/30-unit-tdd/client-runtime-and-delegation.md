@@ -94,8 +94,9 @@ SDK, preventing a late read from reopening it.
 
 Failure before the initial Peer read or insertion replaces loading with an error. Retry reloads the
 current URL, preserving deep-link parameters. Settings remains reachable through full-page navigation
-and its independent recovery bootstrap. Saving or importing a connection still verifies registration
-and lease before adopting it. Neither recovery action resets stored configuration unless explicitly
+and its independent recovery bootstrap. Saving or importing a connection verifies registration before
+adoption; with positive background participation it also verifies the initial lease. Zero participation
+does not renew a lease. Neither recovery action resets stored configuration unless explicitly
 requested, and the root does not rerun initialization automatically. Existing SDK transport retry
 behavior is unchanged.
 
@@ -153,11 +154,15 @@ technical Peer identity. No cross-tab lease coordination is implied.
 ### Job execution and shutdown
 
 JobManager filters by registered handler and eligibility before its conditional database claim. The active execution owns
-an AbortController and a completion promise. A two-second batch read observes `abort_requested` for those active IDs; Source
-handlers do not poll the Job table. Abort and timeout signal the handler and preserve their distinct reasons. The record closes
+an AbortController and a completion promise. A two-second batch read observes `abort_requested` for
+a snapshot of those executions; a late response cannot cancel a new execution that reuses an ID
+after connection cutover. Source handlers do not poll the Job table. Abort and timeout signal the handler and preserve their distinct reasons. The record closes
 only after the handler settles, not when a Promise.race stops observing it.
 
-`stopWorker()` stops admission, requests cancellation and awaits active cleanup before Extension shutdown. Browser page
+`stopWorker()` stops admission, requests cancellation and awaits every admitted Job pipeline, including
+pending reads, eligibility checks, claims, handler cleanup and closure, before Extension shutdown or
+connection cutover. A stopped pipeline cannot begin another claim; an already dispatched successful
+claim closes as aborted against the original connection before the stop completes. Browser page
 termination can still end JavaScript execution before asynchronous cleanup finishes; this protocol does not promise process
 survival, rollback or automatic retry. A persisted stop request alone is not proof that running work has exited.
 

@@ -655,6 +655,141 @@ test('disabling while registration is pending prevents its later lease or worker
   }
 })
 
+test('disabling participation drains a dispatched claim before saving configuration', async ({
+  page,
+}) => {
+  const authorization = `Bearer ${await token()}`
+  const headers = { Authorization: authorization, 'Content-Type': 'application/json' }
+  const type = `e2e.claim-drain.${crypto.randomUUID()}`
+  const createdType = await fetch(`${postgrestUrl}job_types`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      id: type,
+      description: 'Claim drain regression',
+      parameters_schema: {},
+      default_timeout_seconds: 3600,
+    }),
+  })
+  expect(createdType.status).toBe(201)
+  let id: number | undefined, release!: () => void
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  let claimStored = false
+  try {
+    await page.goto('/sources')
+    await expect(page.getByRole('main', { name: 'Sources', exact: true })).toBeVisible()
+    await expect(
+      page.getByText(
+        'Connecting this Web Peer; database pages are available, local jobs are not running yet.'
+      )
+    ).toHaveCount(0)
+    const created = await fetch(`${postgrestUrl}jobs`, {
+      method: 'POST',
+      headers: { ...headers, Prefer: 'return=representation' },
+      body: JSON.stringify({ type, parameters: {}, timeout_seconds: 3600 }),
+    })
+    expect(created.status).toBe(201)
+    id = (await created.json())[0].id
+    await page.route('**/jobs?**', async (route) => {
+      if (
+        route.request().method() !== 'PATCH' ||
+        route.request().postDataJSON().status !== 'running' ||
+        new URL(route.request().url()).searchParams.get('id') !== `eq.${id}`
+      ) {
+        await route.continue()
+        return
+      }
+      const response = await route.fetch()
+      expect(response.ok()).toBe(true)
+      claimStored = true
+      await gate
+      await route.fulfill({ response })
+    })
+    // Native extensions use this same shared SDK; the fixture adds no production test hook.
+    await page.evaluate(
+      async ({ id, type }) => {
+        type Sdk = typeof import('../../packages/core/src/index')
+        const globals = globalThis as typeof globalThis & {
+          __FEDERATION__: {
+            __INSTANCES__: Array<{
+              options: { name: string }
+              loadShare(name: string): Promise<() => Sdk>
+            }>
+          }
+          __claimDrain: { stop(): Promise<void>; handlerRuns: number; stopCompleted: boolean }
+        }
+        const host = globals.__FEDERATION__.__INSTANCES__.find(
+          (instance) => instance.options.name === 'host'
+        )!
+        const sdk = (await host.loadShare('@inkcre/core'))()
+        globals.__claimDrain = {
+          stop: () => sdk.JobManager.stopWorker(),
+          handlerRuns: 0,
+          stopCompleted: false,
+        }
+        sdk.JobManager.registerHandler(type, {
+          parameters: sdk.MetaConfigSchema,
+          canHandle: () => true,
+          handle: async () => {
+            globals.__claimDrain.handlerRuns++
+          },
+        })
+        void sdk.JobManager.run(id!)
+      },
+      { id, type }
+    )
+    await expect.poll(() => claimStored).toBe(true)
+    const stoppedBeforeClaimReturned = await page.evaluate(async () => {
+      const fixture = (
+        globalThis as typeof globalThis & {
+          __claimDrain: { stop(): Promise<void>; handlerRuns: number; stopCompleted: boolean }
+        }
+      ).__claimDrain
+      void fixture.stop().then(() => {
+        fixture.stopCompleted = true
+      })
+      await Promise.resolve()
+      await Promise.resolve()
+      return fixture.stopCompleted
+    })
+    expect(stoppedBeforeClaimReturned).toBe(false)
+    await page.getByRole('button', { name: 'Menu', exact: true }).click()
+    await page.getByRole('button', { name: 'Settings', exact: true }).click()
+    await page.getByLabel('Lease renewal and job check interval (seconds; 0 disables)').fill('0')
+    await page.getByRole('button', { name: 'Save', exact: true }).click()
+    await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeDisabled()
+    expect(
+      await page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem('inkcre_app_config')!).peer_lease_renew_interval_seconds
+      )
+    ).toBe(30)
+    release()
+    await expect(
+      page.getByText(
+        'Background participation is disabled for this Web Peer. Database pages and delegation remain available.'
+      )
+    ).toBeVisible()
+    const closed = await fetch(`${postgrestUrl}jobs?id=eq.${id}&select=status`, { headers })
+    expect((await closed.json())[0].status).toBe('aborted')
+    expect(
+      await page.evaluate(
+        () =>
+          (globalThis as typeof globalThis & { __claimDrain: { handlerRuns: number } }).__claimDrain
+            .handlerRuns
+      )
+    ).toBe(0)
+  } finally {
+    release()
+    await page.unrouteAll({ behavior: 'wait' })
+    if (id !== undefined)
+      await fetch(`${postgrestUrl}jobs?id=eq.${id}`, { method: 'DELETE', headers })
+    await fetch(`${postgrestUrl}job_types?id=eq.${type}`, { method: 'DELETE', headers })
+  }
+})
+
 test('Registry install and multi-Peer enablement require explicit confirmation', async ({
   page,
 }) => {
