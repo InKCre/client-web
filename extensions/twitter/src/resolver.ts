@@ -27,10 +27,6 @@ export class TweetResolver extends Resolver<string, Tweet> {
   static readonly previewRenderer = markRaw(ContentTweetPreview)
   static readonly solvedContentRenderer = markRaw(ContentTweet)
 
-  static {
-    Resolver.register(TweetResolver.type, TweetResolver)
-  }
-
   protected async _getSolvedContent(options: ProjectionOptions): Promise<Tweet> {
     const rawContent = await this.getRawContent(options)
     const tweet = TweetSchema.parse(JSON.parse(rawContent))

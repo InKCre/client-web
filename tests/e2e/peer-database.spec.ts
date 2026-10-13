@@ -1208,18 +1208,19 @@ test('core Peer publishes and serves its exact capability inbounds', async ({ pa
       )
       const peers = await peersResponse.json()
       const management = peers[0]?.capabilities?.find(
-        (capability: { id: string }) => capability.id === 'core.extension.management.v1'
+        (capability: { id: string }) => capability.id === 'core.extension.management.v2'
       )
       const execution = await fetch(management.inbound.parameters.url, {
         method: management.inbound.parameters.method,
         headers: { Authorization: authorization, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'disable', extension: 'e2e/not-installed' }),
+        body: JSON.stringify({ action: 'status', extension: 'e2e/not-installed' }),
       })
       return {
         peersStatus: peersResponse.status,
         capabilities: peers[0]?.capabilities,
         leaseExpiresAt: peers[0]?.lease_expires_at,
         executionStatus: execution.status,
+        executionBody: await execution.json(),
       }
     },
     { postgrestUrl, authorization }
@@ -1229,10 +1230,10 @@ test('core Peer publishes and serves its exact capability inbounds', async ({ pa
   expect(Date.parse(result.leaseExpiresAt)).toBeGreaterThan(Date.now())
   expect(result.capabilities).toEqual([
     {
-      id: 'core.extension.management.v1',
+      id: 'core.extension.management.v2',
       inbound: {
         protocol: 'core.peer.protocol.http.v1',
-        parameters: { method: 'POST', url: `${coreUrl}extension-management` },
+        parameters: { method: 'POST', url: `${coreUrl}extension-management/v2` },
       },
     },
     {
@@ -1257,7 +1258,12 @@ test('core Peer publishes and serves its exact capability inbounds', async ({ pa
       },
     },
   ])
-  expect(result.executionStatus).toBe(404)
+  expect(result.executionStatus).toBe(200)
+  expect(result.executionBody).toEqual({
+    peer_id: '00000000-0000-4000-8000-000000000002',
+    supported_distributions: ['python'],
+    extensions: [],
+  })
 })
 
 test('Block Inspector delegates rumination through the discovered Peer', async ({ page }) => {

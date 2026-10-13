@@ -30,7 +30,7 @@ export const CORE_PEER_ID = '00000000-0000-4000-8000-000000000002'
 const CORE_CAPABILITIES = new Map([
   ['core.semantic_retrieval.v1', { method: 'POST', path: '/semantic-retrieval' }],
   ['core.organization.rumination.v1', { method: 'POST', path: '/organization/ruminate' }],
-  ['core.extension.management.v1', { method: 'POST', path: '/extension-management' }],
+  ['core.extension.management.v2', { method: 'POST', path: '/extension-management/v2' }],
 ])
 
 export function validateInstance(instance) {

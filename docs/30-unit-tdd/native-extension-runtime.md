@@ -112,6 +112,8 @@ The normal lifecycle is:
 load --> initialize --> activate --> deactivate --> dispose
 ```
 
+Mail and Twitter define their resolver classes at module import, register them during `initialize`, and unregister only their exact classes during `dispose`. A partially failed initialization is cleaned up by the Host’s existing compensation path without removing another module’s registrations. Module import therefore does not leave capabilities from a failed or stopped runtime behind. Memos has no resolver registrations.
+
 The Host records a runtime as running only after initialization and activation finish. If either
 start phase fails, it compensates through the available reverse lifecycle and preserves both the
 original and cleanup failures when cleanup also fails. Stop deactivates only an active module and

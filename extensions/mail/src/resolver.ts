@@ -73,10 +73,6 @@ export class EmailResolver extends Resolver<string, SolvedEmail> {
   static readonly previewRenderer = markRaw(ContentEmailPreview)
   static readonly solvedContentRenderer = markRaw(ContentEmail)
 
-  static {
-    Resolver.register(EmailResolver.type, EmailResolver)
-  }
-
   protected async _getSolvedContent(options: ProjectionOptions): Promise<SolvedEmail> {
     const root = CanonicalEmailSchema.parse(parseJson(await this.getRawContent(options)))
     const relations = await this.getRelations({ refresh: options.refresh })
@@ -208,10 +204,6 @@ export class MailboxResolver extends JsonMailResolver<CanonicalMailbox> {
   static readonly previewRenderer = markRaw(ContentMailFactPreview)
   static readonly solvedContentRenderer = markRaw(ContentMailFact)
   readonly schema = CanonicalMailboxSchema
-
-  static {
-    Resolver.register(MailboxResolver.type, MailboxResolver)
-  }
 }
 
 export class EmailAddressResolver extends JsonMailResolver<CanonicalEmailAddress> {
@@ -219,10 +211,6 @@ export class EmailAddressResolver extends JsonMailResolver<CanonicalEmailAddress
   static readonly previewRenderer = markRaw(ContentMailFactPreview)
   static readonly solvedContentRenderer = markRaw(ContentMailFact)
   readonly schema = CanonicalEmailAddressSchema
-
-  static {
-    Resolver.register(EmailAddressResolver.type, EmailAddressResolver)
-  }
 }
 
 export class MailFlagResolver extends JsonMailResolver<CanonicalMailFlag> {
@@ -230,20 +218,12 @@ export class MailFlagResolver extends JsonMailResolver<CanonicalMailFlag> {
   static readonly previewRenderer = markRaw(ContentMailFactPreview)
   static readonly solvedContentRenderer = markRaw(ContentMailFact)
   readonly schema = CanonicalMailFlagSchema
-
-  static {
-    Resolver.register(MailFlagResolver.type, MailFlagResolver)
-  }
 }
 
 export class MailMimePartResolver extends Resolver<string, SolvedMimePart> {
   static readonly type = 'extensions.mail.mime_part.v1'
   static readonly previewRenderer = markRaw(ContentMimePartPreview)
   static readonly solvedContentRenderer = markRaw(ContentMimePart)
-
-  static {
-    Resolver.register(MailMimePartResolver.type, MailMimePartResolver)
-  }
 
   protected async _getSolvedContent(options: ProjectionOptions): Promise<SolvedMimePart> {
     const root = CanonicalMimePartSchema.parse(parseJson(await this.getRawContent(options)))
