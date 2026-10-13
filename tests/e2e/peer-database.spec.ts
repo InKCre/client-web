@@ -1304,7 +1304,7 @@ test('Settings export restores the complete browser experience', async ({ page }
     ).not.toBeChecked()
     // Import changes Peer identity without reloading this document: the Host must bind the new ID.
     await page.getByRole('button', { name: 'Menu', exact: true }).click()
-    await page.getByRole('link', { name: 'Extensions', exact: true }).click()
+    await page.getByRole('button', { name: 'Extensions', exact: true }).click()
     const row = page
       .getByRole('article', { name: 'Host identity switch', exact: true })
       .getByRole('region', { name: /This browser/ })

@@ -341,9 +341,12 @@ async function saveVersion(): Promise<void> {
   const name = props.extension.name
   const meta = { ...configStore.metaConfig }
   const host = getExtensionHost()
+  const pickerRequest = versionRequest
   const ownsSelection = () =>
     ownsConnection(meta) &&
     getExtensionHost() === host &&
+    versionOpen.value &&
+    versionRequest === pickerRequest &&
     selectedPeer.value?.id === peer.id &&
     distributionModel.value === distribution &&
     versionModel.value === version
