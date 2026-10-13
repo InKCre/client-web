@@ -179,17 +179,24 @@ async function perform(peer: Peer, operation: () => Promise<unknown>): Promise<v
   if (busyPeer.value) return
   busyPeer.value = peer.id
   delete errors.value[peer.id]
+  let operationError: string | undefined
   try {
     if (currentHostRestoring(peer)) await startExtensionHost().catch(() => {})
     await operation()
-    emit('participationChanged')
-    await refreshRuntime()
   } catch (error) {
-    errors.value[peer.id] = error instanceof Error ? error.message : String(error)
+    operationError = error instanceof Error ? error.message : String(error)
   } finally {
-    busyPeer.value = ''
+    // A failed command may still have persisted its desired intent.
+    emit('participationChanged')
+    try {
+      await refreshRuntime()
+    } finally {
+      if (operationError) errors.value[peer.id] = operationError
+      busyPeer.value = ''
+    }
   }
 }
+
 async function togglePeer(peer: Peer, enabled: boolean): Promise<void> {
   if (!enabled && peer.id === props.currentPeerId) await closeSetup()
   await perform(peer, () =>
@@ -403,11 +410,17 @@ onMounted(refreshRuntime)
         />
         <InkButton
           v-if="pin?.distribution"
-          :text="t(pin.enabled ? 'extension.disableSelected' : 'extension.enableSelected')"
+          :text="
+            t(
+              pin.enabled || status?.running
+                ? 'extension.disableSelected'
+                : 'extension.enableSelected'
+            )
+          "
           size="sm"
           :is-loading="busyPeer === peer.id || (currentHostRestoring(peer) && pin.enabled)"
           :disabled="!!busyPeer || peerSelectionDisabled || currentHostRestoring(peer)"
-          @click="togglePeer(peer, !pin.enabled)"
+          @click="togglePeer(peer, !(pin.enabled || status?.running))"
         />
         <InkButton
           v-if="pin?.distribution"
