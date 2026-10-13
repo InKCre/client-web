@@ -20,6 +20,7 @@ import {
 import {
   manageExtensionOnPeer,
   sortPublishedReleases,
+  preferredPublishedRelease,
   RegistryReleaseError,
   getExtensionDocumentation,
   type ExtensionDocumentationLink,
@@ -229,7 +230,7 @@ async function loadVersions(): Promise<void> {
     )
     versionModel.value = versionOptions.value.some((option) => option.value === previous?.version)
       ? previous!.version
-      : ''
+      : (preferredPublishedRelease(catalog.releases ?? [])?.version ?? '')
     if (!versionOptions.value.length) versionError.value = t('extension.noDistributionRelease')
   } catch (error) {
     if (request === versionRequest)
@@ -442,6 +443,7 @@ onMounted(refreshRuntime)
       :show-cancel="false"
     >
       <InkDropdown
+        v-if="distributionOptions.length > 1"
         v-model="distributionModel"
         :label="t('extension.distribution')"
         :options="distributionOptions"
