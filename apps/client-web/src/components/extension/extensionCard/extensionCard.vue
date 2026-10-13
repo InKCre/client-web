@@ -172,11 +172,15 @@ async function refreshRuntime(): Promise<void> {
     refreshing.value = false
   }
 }
+function currentHostRestoring(peer: Peer): boolean {
+  return peer.id === props.currentPeerId && extensionHostRestoreState.value === 'restoring'
+}
 async function perform(peer: Peer, operation: () => Promise<unknown>): Promise<void> {
   if (busyPeer.value) return
   busyPeer.value = peer.id
   delete errors.value[peer.id]
   try {
+    if (currentHostRestoring(peer)) await startExtensionHost().catch(() => {})
     await operation()
     emit('participationChanged')
     await refreshRuntime()
@@ -394,15 +398,15 @@ onMounted(refreshRuntime)
           v-if="supportedFormats(peer).length"
           :text="t(pin ? 'extension.changeVersion' : 'extension.install')"
           size="sm"
-          :disabled="!!busyPeer || peerSelectionDisabled"
+          :disabled="!!busyPeer || peerSelectionDisabled || currentHostRestoring(peer)"
           @click="openVersion(peer)"
         />
         <InkButton
           v-if="pin?.distribution"
           :text="t(pin.enabled ? 'extension.disableSelected' : 'extension.enableSelected')"
           size="sm"
-          :is-loading="busyPeer === peer.id"
-          :disabled="!!busyPeer || peerSelectionDisabled"
+          :is-loading="busyPeer === peer.id || (currentHostRestoring(peer) && pin.enabled)"
+          :disabled="!!busyPeer || peerSelectionDisabled || currentHostRestoring(peer)"
           @click="togglePeer(peer, !pin.enabled)"
         />
         <InkButton
@@ -417,7 +421,7 @@ onMounted(refreshRuntime)
           :text="t('extension.removeFromPeer')"
           size="sm"
           theme="subtle"
-          :disabled="!!busyPeer"
+          :disabled="!!busyPeer || currentHostRestoring(peer)"
           @click="removePeer(peer)"
         />
       </div>
