@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "revision": "peer-runtime-identity-v1",
+  "revision": "extension-peer-participation-v2",
   "protocol": {
     "format": 1,
     "schema": "inkcre"
