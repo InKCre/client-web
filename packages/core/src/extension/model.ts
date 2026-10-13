@@ -2,6 +2,8 @@ import { parse as parseSemVer } from 'semver'
 import type { Component } from 'vue'
 import { z } from 'zod'
 import { APIError, DBAPIClient } from '../base'
+import { MetaConfigSchema, type MetaConfig } from '../config'
+import { signDatabaseToken } from '../auth'
 
 const EXTENSION_NAME_PATTERN =
   /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?\/[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/
@@ -195,6 +197,30 @@ export class ExtensionParticipationModel implements ExtensionParticipation {
       .maybeSingle()
     assertSuccess(response, 'read participation')
     return response.data === null ? null : this.fromRow(response.data)
+  }
+
+  /** Read a selection snapshot from the original connection, without creating a cross-connection mutator. */
+  static async readForConnection(
+    meta: MetaConfig,
+    peerId: string,
+    name: string
+  ): Promise<ExtensionParticipation | null> {
+    const exact = MetaConfigSchema.parse(meta)
+    const database = new DBAPIClient<'extension_peer_participations'>(
+      'extension_peer_participations',
+      undefined,
+      'inkcre',
+      exact.INKCRE_PGREST_URL,
+      () => signDatabaseToken(exact.INKCRE_JWT_SECRET)
+    )
+    const response = await database
+      .from()
+      .select(PARTICIPATION_PROJECTION)
+      .eq('peer_id', peerId)
+      .eq('name', name)
+      .maybeSingle()
+    assertSuccess(response, 'observe selection')
+    return response.data === null ? null : ExtensionParticipationSchema.parse(response.data)
   }
 
   static async select(input: {
