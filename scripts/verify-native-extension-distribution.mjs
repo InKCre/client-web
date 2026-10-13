@@ -172,7 +172,11 @@ export async function verifyPublicModuleFederation({
     artifactDirectory,
   })
   const registry = new URL(registryUrl)
-  assert.equal(registry.protocol, 'https:', 'Registry URL must use HTTPS')
+  const loopback = ['127.0.0.1', 'localhost', '[::1]'].includes(registry.hostname)
+  assert.ok(
+    registry.protocol === 'https:' || (registry.protocol === 'http:' && loopback),
+    'Registry URL must use HTTPS or loopback HTTP'
+  )
   const [namespace, name] = local.name.split('/')
   const releaseUrl = new URL(
     `/v2/extensions/${encodeURIComponent(namespace)}/${encodeURIComponent(name)}/distributions/module_federation/releases/${encodeURIComponent(local.version)}`,
