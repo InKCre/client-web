@@ -1307,7 +1307,8 @@ test('Settings export restores the complete browser experience', async ({ page }
     await page.getByRole('button', { name: 'Extensions', exact: true }).click()
     const row = page
       .getByRole('article', { name: 'Host identity switch', exact: true })
-      .getByRole('region', { name: /This browser/ })
+      .getByRole('region')
+      .filter({ hasText: 'This browser' })
     await expect(row.getByRole('button', { name: 'Install', exact: true })).toBeEnabled()
     await expect(
       row.getByText('The runtime belongs to a different Peer.', { exact: true })
