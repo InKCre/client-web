@@ -3,7 +3,7 @@
 ## Boundary
 
 The native Extension Runtime spans the browser Web Extension Host, its SDK-owned durable models, and
-independently versioned Module Federation producers. It owns compatibility preflight, executable
+independently built Module Federation producers. It owns compatibility preflight, executable
 loading, runtime lifecycle, and reconciliation with durable enabled intent. Release publication,
 Registry delivery, and deployment workflow remain outside this Unit TDD; cross-unit Extension and
 Registry contracts remain in [`../_shared/`](../_shared/).
@@ -20,7 +20,7 @@ manifest.
 
 ## Producer and Host Contract
 
-Each producer is an independently versioned package. Its default export preserves the optional
+Each producer is an independent build package; the unified Extension release plan supplies its version. Its default export preserves the optional
 native lifecycle methods `initialize`, `activate`, `deactivate`, and `dispose`; host-consumed
 capabilities come from its package entry rather than playground bootstrap code. Extension code
 imports `@inkcre/core` directly.

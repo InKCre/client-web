@@ -8,15 +8,17 @@ Host/producer runtime contracts belong to
 
 ## Local Tripwires
 
-- Keep each directory an independently versioned package. Its directory name is the local ID;
+- Keep each directory an independent build package. Its directory name is the local ID;
   `package.json#inkcre.name`, version, nickname, and `module_federation` association are Registry
   identity and compatibility inputs, not playground metadata.
 - Keep production remotes relocatable: `vite.config.ts` must retain `base: './'`, emit the native
   `mf-manifest.json`, and write `dist/client-web`.
 - Export host-consumed capabilities from `src/index.ts`; keep `src/main.ts` limited to the local
   playground. Do not make the Host depend on playground bootstrap behavior.
-- Changes to a native producer must preserve the asset-closure validation and select only affected
-  independently releasable packages in `pnpm changeset`.
+- Changes to a native producer must preserve the asset-closure validation. Record its Release intent
+  in the corresponding core-py Extension release fragment; do not select it in Changesets.
+- The unified Core release plan generates native package versions in the isolated build checkout.
+  Committed native package versions are development metadata, not a second Release authority.
 
 ## Required Check
 

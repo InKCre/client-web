@@ -7,7 +7,7 @@
   "access": "restricted",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": [],
+  "ignore": ["@inkcre/ext-mail", "@inkcre/ext-memos", "@inkcre/ext-twitter"],
   "privatePackages": {
     "version": true,
     "tag": false

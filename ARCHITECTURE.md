@@ -1,7 +1,7 @@
 # Repository Architecture
 
 This monorepo implements three logical client-side units across shared packages, applications, and
-independently versioned Extension producers.
+independently built Extension producers.
 
 ```text
 Vue web application -----------+
@@ -41,7 +41,7 @@ locations, not Unit boundaries.
   configuration/authentication, and Extension Host.
 - `apps/client-web/` - Vue SPA, graph/list surfaces, settings, and static Vite artifact.
 - `apps/client-webext/` - WXT browser surfaces and content scripts.
-- `extensions/` - independently versioned native Module Federation producers.
+- `extensions/` - independently built native Module Federation producers.
 - `packages/ext-dev-utils/` - producer development support consumed by applications.
 
 The package graph is ESM-first. Workspace Vite and WXT applications consume `@inkcre/core` source
