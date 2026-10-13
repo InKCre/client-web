@@ -25,7 +25,14 @@ import {
   getExtensionDocumentation,
   type ExtensionDocumentationLink,
 } from '@inkcre/extension-runtime-client-web'
-import { getExtensionHost, getExtensionRegistry, getExtensionSetupContribution } from '@/core'
+import {
+  extensionHostRestoreState,
+  getExtensionHost,
+  getExtensionRegistry,
+  getExtensionSetupContribution,
+  startExtensionHost,
+  webPeerConnectionState,
+} from '@/core'
 import { extensionCardProps, extensionCardEmits } from './extensionCard'
 import {
   extensionPeerControlMode,
@@ -137,6 +144,7 @@ async function refreshRuntime(): Promise<void> {
   if (refreshing.value) return
   refreshing.value = true
   try {
+    if (webPeerConnectionState.value === 'ready') await startExtensionHost()
     await Promise.all(
       props.peers.map(async (peer) => {
         try {
@@ -326,6 +334,9 @@ async function closeSetup(): Promise<void> {
   await nextTick()
 }
 watch(() => props.livePeerIds, refreshRuntime)
+watch(extensionHostRestoreState, (state) => {
+  if (state === 'restored') void refreshRuntime()
+})
 onMounted(refreshRuntime)
 </script>
 
