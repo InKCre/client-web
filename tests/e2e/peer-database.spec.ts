@@ -535,7 +535,7 @@ test('zero participation persists, stays idle, and a custom interval resumes lea
     if (new URL(route.request().url()).searchParams.get('status') === 'eq.pending') scans++
     await route.fulfill({ headers: { 'Access-Control-Allow-Origin': '*' }, json: [] })
   })
-  await page.route('**/extensions?**', async (route) => {
+  await page.route('**/extension_peer_participations?**', async (route) => {
     extensionReads++
     await route.fulfill({ headers: { 'Access-Control-Allow-Origin': '*' }, json: [] })
   })
@@ -827,7 +827,9 @@ test('Registry confirmation selects one Peer and offline enablement preserves ot
       `${selections}&select=peer_id,distribution,version,enabled&order=peer_id`,
       { headers }
     )
-    return response.ok ? await response.json() : null
+    const body = await response.json()
+    expect(response.ok, JSON.stringify({ status: response.status, body })).toBe(true)
+    return body
   }
   try {
     await page.goto(
@@ -886,7 +888,9 @@ test('Registry confirmation selects one Peer and offline enablement preserves ot
     })
     expect(pins.status).toBe(201)
     await page.reload()
-    const first = page.getByRole('region', { name: 'E2E Peer 1' })
+    const first = page
+      .getByRole('article', { name: 'Handoff check' })
+      .getByRole('region', { name: 'E2E Peer 1' })
     // Each row is its explicit target; one mutation cannot move the other Peer’s pin.
     await first.getByRole('button', { name: 'Enable', exact: true }).click()
     await expect

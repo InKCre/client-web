@@ -330,7 +330,7 @@ onMounted(refreshRuntime)
 </script>
 
 <template>
-  <article class="extension-card">
+  <article class="extension-card" :aria-label="extension.nickname ?? extension.name">
     <header class="extension-card__header">
       <div>
         <span class="extension-card__id">{{ extension.nickname ?? extension.name }}</span>
