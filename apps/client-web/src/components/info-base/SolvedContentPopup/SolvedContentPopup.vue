@@ -38,7 +38,7 @@ async function load(refresh = false): Promise<void> {
       status.value = 'missing'
       return
     }
-    lookupBeforeRestore = extensionHostRestoreState.value !== 'restored'
+    lookupBeforeRestore = ['idle', 'restoring'].includes(extensionHostRestoreState.value)
     const resolverClass = Resolver.getClass(block.resolver)
     next = new resolverClass(block)
     const solved = await next.getSolvedContent({ refresh, materializeMissing: false })
@@ -65,7 +65,11 @@ watch(
 // A deep link can arrive before enabled native modules register their resolvers.
 // Retry only that lookup failure when restore finishes; preserve other read failures.
 watch([extensionHostRestoreState, error], ([state, cause]) => {
-  if (state === 'restored' && lookupBeforeRestore && cause instanceof UnknownResolverError) {
+  if (
+    ['restored', 'failed'].includes(state) &&
+    lookupBeforeRestore &&
+    cause instanceof UnknownResolverError
+  ) {
     void load()
   }
 })

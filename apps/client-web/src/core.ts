@@ -185,18 +185,23 @@ export function startExtensionHost(): Promise<void> {
   }
   if (extensionHostStartup) return extensionHostStartup
   extensionHostRestoreState.value = 'restoring'
-  const startup = getExtensionHost().startup(configStore.metaConfig.INKCRE_PEER_ID)
-  extensionHostStartup = startup.then(
+  const host = getExtensionHost()
+  const startup = host.startup(configStore.metaConfig.INKCRE_PEER_ID)
+  const restore = startup.then(
     () => {
+      if (extensionHost !== host || extensionHostStartup !== restore) return
       extensionHostRestoreState.value = 'restored'
     },
     (error: unknown) => {
-      extensionHostRestoreState.value = 'failed'
-      extensionHostStartup = null
+      if (extensionHost === host && extensionHostStartup === restore) {
+        extensionHostRestoreState.value = 'failed'
+        extensionHostStartup = null
+      }
       throw error
     }
   )
-  return extensionHostStartup
+  extensionHostStartup = restore
+  return restore
 }
 
 export function getExtensionHost(): ClientExtensionManager {

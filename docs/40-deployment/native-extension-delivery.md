@@ -164,5 +164,3 @@ node scripts/verify-native-extension-distribution.mjs inspect-local \
   --core-package packages/core/package.json \
   --artifact-directory extensions/<extension>/dist/client-web
 ```
-
-The Client Web shell opens database views before native Extension restore finishes. A cold deep link can therefore encounter an unregistered Extension resolver. The content popup retries that specific lookup failure after the Host completes restore, while preserving other read failures. Extension cards wait for the same restore before observing current-Peer runtime status; a persisted enabled intent alone does not establish that the module is running.

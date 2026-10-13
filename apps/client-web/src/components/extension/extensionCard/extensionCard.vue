@@ -144,7 +144,10 @@ async function refreshRuntime(): Promise<void> {
   if (refreshing.value) return
   refreshing.value = true
   try {
-    if (webPeerConnectionState.value === 'ready') await startExtensionHost()
+    if (webPeerConnectionState.value === 'ready' && extensionHostRestoreState.value !== 'failed') {
+      // Restore attempts every enabled module; a failure still leaves per-module status to inspect.
+      await startExtensionHost().catch(() => {})
+    }
     await Promise.all(
       props.peers.map(async (peer) => {
         try {
@@ -335,7 +338,7 @@ async function closeSetup(): Promise<void> {
 }
 watch(() => props.livePeerIds, refreshRuntime)
 watch(extensionHostRestoreState, (state) => {
-  if (state === 'restored') void refreshRuntime()
+  if (state === 'restored' || state === 'failed') void refreshRuntime()
 })
 onMounted(refreshRuntime)
 </script>

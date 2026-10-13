@@ -128,6 +128,10 @@ Combined failures retain both the persistence and compensation errors; they must
 into apparent success. Startup isolates failures per enabled extension, retains each runtime error
 for inspection, and reports an aggregate after attempting the remaining entries.
 
+The Client Web shell opens database views before native Extension restore finishes. A cold deep link can therefore encounter an unregistered Extension resolver. The content popup retries that specific lookup failure after the Host completes restore, while preserving other read failures. Extension cards wait for the same restore before observing current-Peer runtime status; a persisted enabled intent alone does not establish that the module is running.
+
+A restore attempt isolates module failures. Completing the attempt, including an aggregate failure, allows registered resolvers to serve content and exposes each module’s actual status; an unknown resolver after that attempt remains a visible error.
+
 ## Invariants
 
 - Shared identity/configuration and per-Peer native selection have separate SDK models.
