@@ -96,6 +96,14 @@ saved token and enabled state. Opening, selecting, and refreshing only read stat
 outcomes require refreshing before another attempt. The PAT is masked by default; a normal help
 link opens the current browser participation's exact MF release connection guide.
 
+The Twitter setup contribution selects an authorization Peer for OAuth requests and callbacks. It
+can open from the browser's running MF distribution before the selected Peer has installed Twitter;
+an explicit enable action selects an available Python release when no pin exists, then enables that
+Peer. Existing exact selections are not replaced by that action. Source, Cron and collection Jobs
+remain shared deployment records; choosing the authorization entry does not bind their future
+execution to that Peer. The interface does not call this a collection-Peer binding or attribute its
+schedule timezone to the selected OAuth entry.
+
 ## Lifecycle and Compensation
 
 The normal lifecycle is:
