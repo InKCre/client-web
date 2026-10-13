@@ -167,6 +167,7 @@ export function initializeExtensionHost(): ClientExtensionManager {
     hostSdk: { name: '@inkcre/core', version: corePackageJson.version },
   })
   extensionHost = new ExtensionManager<ClientExtensionModule>({
+    peerId: configStore.metaConfig.INKCRE_PEER_ID,
     releases: extensionRegistry,
     moduleFederation,
   })

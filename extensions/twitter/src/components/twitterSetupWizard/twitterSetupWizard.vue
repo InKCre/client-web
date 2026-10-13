@@ -182,8 +182,7 @@ async function enableSelectedCore(): Promise<void> {
   if (!api.value || !selectedCandidate.value) return
   await run('enable-core', async () => {
     const extension = await api.value!.enableCore(lifecycle.signal)
-    selectedCandidate.value!.extension = extension
-    selectedCandidate.value!.enabled = extension.enabled.includes(selectedCandidate.value!.peer.id)
+    selectedCandidate.value!.enabled = extension.enabled
     await reloadStatus()
   })
 }

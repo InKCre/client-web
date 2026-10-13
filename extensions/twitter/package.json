@@ -1,6 +1,6 @@
 {
   "name": "@inkcre/ext-twitter",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,7 +10,8 @@
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@inkcre/core": "workspace:*"
+    "@inkcre/core": "workspace:*",
+    "@inkcre/extension-runtime-client-web": "github:InKCre/ext-reg#ff599f32e8d6e186974cf342a95fee306d9e60f8&path:/runtimes/client-web"
   },
   "devDependencies": {
     "@inkcre/ext-dev-utils": "workspace:*",
@@ -36,7 +37,7 @@
     "nickname": "Twitter",
     "module_federation": {
       "host_sdk": "@inkcre/core",
-      "host_sdk_version": ">=0.2.0 <0.4.0"
+      "host_sdk_version": ">=0.4.0 <0.5.0"
     }
   },
   "intent": {

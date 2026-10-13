@@ -9,7 +9,7 @@ import { SignJWT } from 'jose'
 import {
   inspectCoreRelease,
   readJson,
-  resolveCoreRelease,
+  resolveConfiguredCoreRelease,
   stableJson,
   validateCoreReleaseConfig,
 } from './core-release-lib.mjs'
@@ -229,7 +229,7 @@ export async function runtimeState(instance, { create = false } = {}) {
   const runDocker = (args, options) => runDatabaseDocker(provider, args, options)
   const release = process.env.INKCRE_CORE_IMAGE
     ? inspectCoreRelease(runDocker, process.env.INKCRE_CORE_IMAGE)
-    : resolveCoreRelease(runDocker, releaseConfig.stable_image)
+    : resolveConfiguredCoreRelease(runDocker, releaseConfig)
   const localPorts = {
     postgres: await availablePort(),
     core: await availablePort(),

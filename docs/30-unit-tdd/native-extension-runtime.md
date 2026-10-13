@@ -12,15 +12,15 @@ Resolver/content producer semantics belong to [Info-Base](info-base.md). Registr
 artifact delivery belong to
 [First-party Extension Delivery](../40-deployment/native-extension-delivery.md).
 
-There is one native format: an Extension Release may associate a Module Federation distribution.
-The Host consumes that association directly. `@inkcre/extension-runtime-client-web`, maintained in
+The browser supports the Module Federation native distribution. Registry v2 resolves an exact
+`(name, module_federation, version)` release; other Peers independently select their native distributions. `@inkcre/extension-runtime-client-web`, maintained in
 ext-reg, owns the Web Host and Registry consumers. `@inkcre/core` owns the shared models, Peer
 transport, and browser configuration. There is no generic target matcher or cross-format artifact
 manifest.
 
 ## Producer and Host Contract
 
-Each producer is an independent build package; the unified Extension release plan supplies its version. Its default export preserves the optional
+Each producer is an independent build package; its package version owns its MF release. Its default export preserves the optional
 native lifecycle methods `initialize`, `activate`, `deactivate`, and `dispose`; host-consumed
 capabilities come from its package entry rather than playground bootstrap code. Extension code
 imports `@inkcre/core` directly.
@@ -50,36 +50,33 @@ passes directly to the current native Module Federation implementation.
 
 ## Durable State and Peer Intent
 
-The Runtime uses `ExtensionModel` from the shared `@inkcre/core` instance for installed state,
-configuration, and per-Peer enabled intent. There is no application-owned `ExtensionStatePort` or
-second PostgREST adapter. The application chooses the targeted Peers for each enable or disable
-action: current-runtime operations use its local Host, online remote Hosts receive management
-commands, and offline enablement changes update desired state through the SDK model. The browser
-uses `PeerManager.listLive()` for this routing decision, matching the Peers page rather than
-comparing a lease timestamp with the browser clock. Selecting
-several Peers performs independent per-Peer operations, preserves successful changes when another
-Peer fails, then reads the canonical installed row before offering another decision. It does not
-invent a batch transaction or retry an ambiguous remote outcome.
+The shared `ExtensionModel` owns one deployment identity, display name and configuration. Business
+state remains deployment-scoped and is never cleared by native version changes. The
+`ExtensionParticipationModel` owns each `(name, peer_id)` selection: exact distribution/version,
+enabled intent and configuration schema from that exact selection. No global package version or
+shared enabled array remains writable.
 
-`listAdvertisedExtensionManagementPeers` and `manageExtensionOnPeer` in the Runtime own the shared
-management capability contract. The latter delegates once to the exact Peer through the SDK's
-`PeerManager`, validates the installed-row response, and preserves unknown outcomes. Consumers do
-not retry mutations or choose a replacement Peer automatically. Response bodies are not included
-in management errors because configuration validation may echo credentials.
+The Extension card displays a single plugin with a row for each Peer. Installation and version
+changes explicitly target that row. The current browser uses its local Host; an online remote Peer
+uses `core.extension.management.v2`; offline operations update an existing exact participation.
+A new remote installation requires a real supported-distribution observation. Peer names and
+application versions do not imply format support. Missing MF releases remain unavailable choices;
+a Python-only plugin does not get a failing browser enable action.
 
-Installed state records exact name and version plus the set of enabled Peer IDs. Registry Web owns
-catalog search and version browsing; its link returns only a name and exact version to the
-client-web Extensions page. Opening the link reads the published Release from this deployment's
-configured Registry and shows a confirmation, but does not write installed state. Confirmation
-uses the deployment-scoped Web Runtime install operation without selecting a Peer or requiring a
-particular Host distribution. A Python-only Release can therefore be installed from the Web
-interface. Installation does not enable either Host, and the shared version still affects every
-Peer. Reopening an installed version does not silently change it; version changes remain an
-explicit management operation.
+Management responses contain supported distributions and actual loaded versions, running state,
+restart requirements and errors. Database enabled intent is not proof that a sleeping Peer is running.
+The consumer sends each mutation once to its exact target and preserves unknown outcomes. It does
+not retry mutations on another Peer. Configuration forms identify the selected Peer/distribution/
+version that provided their schema; shared configuration has no global last-started schema.
 
-Version change and uninstall are refused while any Peer remains enabled or a local runtime is
-running. Startup reads canonical installed state and starts only entries enabled for the current
-Peer. Shutdown stops volatile runtimes without changing durable enabled intent.
+Registry installation links carry `name`, `distribution` and exact `version`. Opening a link only
+reads the release and presents the target Peer choice; confirmation persists that exact target's
+selection without enabling it. Startup reads only current-Peer enabled selections and never follows
+latest. Legacy records with unresolved distribution retain their exact version until the upgraded
+Host resolves its own native format. A missing release requires an explicit replacement selection.
+
+Removing a participation requires it to be disabled and does not remove the plugin's shared identity,
+configuration, authorization state, Sources or info-base content. Another Peer's selection is unchanged.
 
 ## Documentation and Memos Connection
 
@@ -97,7 +94,7 @@ runtime assumption. The contribution obtains the complete server URL from `memos
 it does not read Peer configuration or construct a Memos route. Address-read failures preserve the
 saved token and enabled state. Opening, selecting, and refreshing only read state. Unknown mutation
 outcomes require refreshing before another attempt. The PAT is masked by default; a normal help
-link opens the exact MF release's connection guide.
+link opens the current browser participation's exact MF release connection guide.
 
 ## Lifecycle and Compensation
 
@@ -112,9 +109,9 @@ start phase fails, it compensates through the available reverse lifecycle and pr
 original and cleanup failures when cleanup also fails. Stop deactivates only an active module and
 then disposes it; disposal releases the loaded runtime.
 
-Enable starts the exact runtime before adding the current Peer to durable enabled intent. If
+Enable starts the exact runtime before setting that participation’s enabled intent. If
 persistence fails, the Host stops and removes that runtime. If the persisted version changed during
-enable, the Host rolls back the just-added Peer intent and requires a retry against the new exact
+enable, the Host rolls back that participation’s enabled intent and requires a retry against the new exact
 Release.
 
 Disable reverses the order: it stops the runtime before removing durable enabled intent. If state
@@ -125,7 +122,7 @@ for inspection, and reports an aggregate after attempting the remaining entries.
 
 ## Invariants
 
-- Canonical installed/enabled state is accessed through the shared SDK's `ExtensionModel`.
+- Shared identity/configuration and per-Peer native selection have separate SDK models.
 - Compatibility is proven before native executable fetch.
 - The exact Release and native manifest association remain stable through one start attempt.
 - Durable enabled intent and volatile runtime are reconciled with explicit compensation.

@@ -1,55 +1,158 @@
 # First-party Extension Delivery
 
-This document owns Web native build delivery. Host runtime contracts belong to
-[Native Extension Runtime](../30-unit-tdd/native-extension-runtime.md). Each `extensions/*/package.json`
-with `inkcre.module_federation` owns its canonical identity, nickname and compatible `@inkcre/core`
-range. Its committed package version is development metadata; the Core release plan generates the
-exact shared Release version in an isolated build checkout.
+This document owns the operational Release and Registry delivery contract for first-party client-web
+Extensions. Extension lifecycle and Host internals belong to
+[Native Extension Runtime](../30-unit-tdd/native-extension-runtime.md). A producer is an
+`extensions/*/package.json` declaring `inkcre.module_federation`; its package version is the
+exact Registry Release version, and its `inkcre` metadata owns the canonical Extension identity and
+compatible `@inkcre/core` Host SDK range.
 
-## One Release Decision
+## Release Intent and Versioning
 
-Core's first-party Extension release workflow owns version selection, fixed Core and Web source
-revisions, candidate retention and Registry publication. A native Web change requires a release
-fragment for the corresponding Extension in core-py. Select the Web source revision containing that
-change when assembling the Release. App and SDK packages continue using Changesets and the package
-Version PR; native producers are excluded from that version decision.
+Contributors record intent with `pnpm changeset`, selecting only affected independently releasable
+Extension packages. On a protected `main` push,
+[`.github/workflows/extension-release.yml`](../../.github/workflows/extension-release.yml) runs the
+**First-party Extension release** lifecycle:
 
-The Core workflow invokes the Web consumer after checking out its fixed source revision:
+- With pending changesets, Changesets Action runs `pnpm release:version` and creates or updates the
+  Extension Version PR. That PR owns generated package versions and changelogs; contributors do not
+  edit those outputs separately. The reconciliation step does not publish, create GitHub Releases,
+  or push tags.
+- After the Version PR is merged and no changesets remain, the candidate job checks out that exact
+  release revision, installs the frozen workspace, and builds `@inkcre/core` plus every
+  `extensions/*` producer itself. It saves the selected plan, original prepare descriptors, full ZIP
+  snapshots and SHA-256 digests as the immutable `first-party-extension-candidate` Actions artifact.
+  No Registry writes occur until that artifact is retained and checked.
+- Producers are discovered from package metadata. A published Release with an existing Module
+  Federation association is a historical no-op at candidate selection. Missing MF native coordinates become
+  fixed candidates; the publish job downloads this run's exact artifact, prepares them with their
+  saved provenance, uploads, publishes, and verifies every candidate from the public Registry.
+  It never consumes pull-request CI artifacts or rebuilds a publication candidate.
+
+The repository must enable **Allow GitHub Actions to create and approve pull requests** for
+Changesets to create its Version PR. GitHub combines these capabilities in one setting; this
+workflow only creates PRs and must never approve reviews. Default workflow-token permissions stay
+read-only, with write permissions confined to reconciliation. GitHub may require a maintainer to
+select **Approve workflows to run** on a token-created Version PR before its checks execute; do not
+replace this gate with an empty-check merge or a broader credential.
+
+Client checks, Pages production, and Pages preview are separate application lifecycles. They cannot
+publish first-party Extensions. Local development and local verification must never publish either.
+
+Python and Module Federation are independent native releases. Each producer owns
+`(extension name, distribution, version)` and publishes only that distribution through Registry v2.
+The Web workflow does not read Core source or a Core version plan. Python publication neither
+selects nor waits for MF, and MF publication neither selects nor waits for Python. Host SDK ranges
+remain native loading requirements; they do not describe cross-distribution business compatibility.
+
+A plugin owns compatibility of its shared configuration, state, Source/Job parameters and stored
+information. Changesets record MF changes even when no Python change is necessary. Published native
+coordinates and saved candidate bytes are immutable; repairs require a new native version.
+
+## Native SDK 0.4 cutover
+
+The Peer-participation protocol removes the SDK's global Extension version and enabled array.
+New first-party MF releases therefore require `@inkcre/core >=0.4.0 <0.5.0`; historical MF releases
+keep their existing declared range and are not silently repinned or declared compatible. Shared
+configuration and business data remain preserved when the user chooses a supported native release.
+
+This breaking cutover prepares the SDK and its in-repository consumers in the same reviewed change.
+The existing `pnpm release:version` command consumes the already-admitted UI intents and the native
+participation intent once, generating SDK 0.4 and independent MF patch releases. The resulting
+Version outputs are committed; no duplicate pending intent remains for the next reconciliation.
+This is the one-time delivery boundary for this cutover. Ordinary feature work continues to submit
+Changesets and use the automated Version PR described above.
+
+Required database checks normally resolve the protected Core `stable` artifact. During this cutover,
+`contracts/core-release.json` can admit a `canonical_candidate` with an existing canonical Core
+image digest, its protected-main source SHA and exact database contract revision. The consumer
+checks the image-owned manifest against both expected values and rejects tags, other registries,
+source mismatches and contract mismatches. This reference is populated only after the existing Core
+canonical artifact lane publishes it; a local or preview image is qualification evidence and cannot
+be entered as that canonical candidate. Omitting the entry continues to use stable. This admission
+does not move stable, deploy Core or migrate a production database.
+
+## Registry Authority and Secret Boundary
+
+Publication runs only in the protected GitHub `production` environment. The scoped bearer secret
+`INKCRE_EXTENSION_REGISTRY_TOKEN` belongs only to the first-party Extension publish job; it must not be
+copied to a file, exposed to Pages or checks, or used for protected delivery from a developer
+machine. The public Registry defaults to `https://registry.inkcre.dev`; operators may override only
+the endpoint through repository variable `INKCRE_EXTENSION_REGISTRY_URL`.
+
+The workflow records `source_repository`, `source_revision`, and a release-workflow `build_id` in
+the Module Federation distribution before upload. These Web-distribution provenance facts remain
+independent of Python release provenance.
+
+Hosted documentation is discovered separately for the exact Release. Browser code follows the
+absolute entry or snapshot URL returned by Registry and never derives a content hostname from the
+Registry origin, Extension identity, or snapshot ID. The first-party deployment currently uses a
+broad `*.inkcre.dev` DNS/TLS catch-all while Registry admits only
+`registry-docs-{snapshot}.inkcre.dev`; therefore DNS resolution or a successful TLS handshake is
+not documentation availability. A 421 response is a rejected Host, not a URL pattern for the Web
+client to repair or retry under another subdomain.
+
+## Failure and Recovery
+
+An upload timeout is an unknown outcome, not proof of a rejected snapshot: a Registry behind Heroku
+may finish after its router returns H12. The publisher makes a bounded attempt to complete the
+existing publish operation and read back the Release. A new MF-only Release remains publicly
+invisible while preparing, so recovery cannot rely on public GET alone. Authentication failures,
+immutable conflicts, blocked/yanked Releases and byte mismatches fail rather than becoming retries
+or successful skips.
+
+After a transient publication failure, use **Re-run failed jobs** or re-run only
+**Publish first-party MF distributions**. These partial reruns retain the successful candidate
+job's artifact and output, so publication downloads the same exact artifact ID. Do not use
+**Re-run all jobs**: GitHub removes the original artifacts before executing the new attempt.
+Candidate discovery rejects a missing artifact on any attempt after the first, before build or
+Registry writes. An existing candidate is restored and checked, never silently replaced.
+Both first publication and recovery verify the full public
+snapshot, including candidates whose association appeared after an earlier timeout. A later,
+unrelated main push may classify those historical Releases as no-ops; it does not claim to verify
+them against a new build.
+
+Candidates are retained for 90 days. Do not delete the artifact of an unfinished release or start
+a new run to replace its prepared provenance. An expired or lost candidate requires operator
+investigation using the original run and Registry state; a fresh build is not equivalent evidence.
+The same conservative stop applies if the first attempt failed before saving any candidate. After
+confirming that publication never ran, the operator may proceed through a new normal main run.
+If publication did run, recover the original candidate; do not use a new build or new run to replace
+its bytes or prepared provenance.
+The original ZIP digest and all-file verification count are written to the publish job summary.
+
+`node --test scripts/test-extension-publication.mjs` exercises the publisher over an isolated HTTP
+fault-injection endpoint: an MF-only upload returns 503 while the saved snapshot becomes available,
+publish initially reports incomplete objects, and recovery verifies the original ZIP even after
+local build output changes. It also proves that an existing selected association cannot bypass
+byte verification, immutable conflicts stop immediately, and invalid saved candidates cause no
+Registry writes. It also checks that a rerun without its saved candidate stops before rebuilding.
+This is a publisher regression check, not evidence of production R2 latency.
+
+## Snapshot and Verification
+
+Each producer retains the relative artifact base `base: './'`, emits
+`dist/client-web/mf-manifest.json`, and declares its Registry association in package metadata. The
+distribution verifier checks the manifest Remote entry and every synchronous or asynchronous
+shared/exposed JavaScript and CSS reference, then compares every file in the uploaded snapshot,
+including transitive chunks and generated metadata. The uploaded snapshot is self-contained and
+relocatable; publication does not invent a generic target descriptor or rewrite the producer
+manifest.
+
+Public executable responses use `Cache-Control: public, no-cache` and an ETag. Immutable Release
+bytes do not imply an immutable HTTP cache policy: browsers must revalidate Registry readability
+so a blocked Release stops being served. Verification also checks CORS, the trusted Registry origin,
+manifest structure, and the exact bytes of every referenced asset.
+
+The executable contract is
+[`scripts/verify-native-extension-distribution.mjs`](../../scripts/verify-native-extension-distribution.mjs).
+Verify locally without publishing:
 
 ```bash
-node scripts/build-native-extension-candidates.mjs consume-plan \
-  --plan /absolute/path/to/plan.json --output /absolute/path/to/candidate
+pnpm --filter @inkcre/core build
+pnpm --filter './extensions/*' build
+node scripts/verify-native-extension-distribution.mjs inspect-local \
+  --package extensions/<extension>/package.json \
+  --core-package packages/core/package.json \
+  --artifact-directory extensions/<extension>/dist/client-web
 ```
-
-The plan contains `web_revision`, `build_id` and `candidates` selected by Core. Each candidate includes
-`directory`, canonical `name`, `version` and the Python `prepare` association. The consumer matches
-producer metadata by canonical name, generates all matching package versions, builds `@inkcre/core`
-and the selected MF producers, and checks the resulting snapshots. A candidate with no Web producer
-remains Python-only. A matching producer that cannot build or validate fails the whole assembly.
-
-The output `plan.json` retains Core's fields and adds `prepare.module_federation` and
-`module_federation: {file, sha256}` to matching candidates. ZIP paths are relative to the retained
-candidate directory. Provenance records the fixed Web SHA and Core workflow build ID. Existing
-candidate bytes cannot be overwritten by another capture.
-
-Core adds checked wheels, retains the complete candidate before any Registry write, prepares all
-associations once, uploads both formats and publishes once. Recovery restores that exact retained
-candidate rather than rebuilding it. Registry credentials belong only to the protected Core publish
-job. Web CI, Pages production, Pages preview and this local consumer never publish Extensions.
-
-## Snapshot Verification
-
-Producers retain `base: './'` and emit `dist/client-web/mf-manifest.json`. The existing
-[`distribution verifier`](../../scripts/verify-native-extension-distribution.mjs) checks the Remote
-entry, shared/exposed JavaScript and CSS references, Host SDK range and all snapshot files. Public
-verification compares every uploaded file, including transitive chunks and generated metadata,
-checks CORS, and confirms that Registry changes only the manifest's public path.
-
-Public executable responses use `Cache-Control: public, no-cache` and an ETag so browsers revalidate
-Registry readability when a Release is blocked. Hosted documentation is discovered independently
-for the exact Release; browser clients follow the returned absolute URL and never invent a hostname.
-
-`node --test scripts/test-native-extension-candidates.mjs` checks shared version generation, candidate
-capture, Python-only preservation, saved-candidate protection and provenance over an isolated fixture.
-This does not establish full Client Web enablement; that requires a real published preview Release
-and browser acceptance against the preview Registry.

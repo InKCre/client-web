@@ -1,6 +1,6 @@
 {
   "name": "@inkcre/client-web",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@inkcre/core": "workspace:*",
-    "@inkcre/extension-runtime-client-web": "github:InKCre/ext-reg#57dcd80289285620a1fd27a0a48027e56c4ce7b1&path:/runtimes/client-web",
+    "@inkcre/extension-runtime-client-web": "github:InKCre/ext-reg#ff599f32e8d6e186974cf342a95fee306d9e60f8&path:/runtimes/client-web",
     "@inkcre/ui-web": "2.2.1",
     "@module-federation/runtime": "^0.21.4",
     "@supabase/postgrest-js": "^2.84.0",
