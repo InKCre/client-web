@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@inkcre/core": "workspace:*",
-    "@inkcre/extension-runtime-client-web": "github:InKCre/ext-reg#6c83da6b1d4b145101a778f2eac5492cd59008f9&path:/runtimes/client-web",
+    "@inkcre/extension-runtime-client-web": "https://github.com/InKCre/ext-reg/releases/download/runtime-client-web-v0.4.0/inkcre-extension-runtime-client-web-0.4.0.tgz",
     "@inkcre/ui-web": "2.2.1",
     "@module-federation/runtime": "^0.21.4",
     "@supabase/postgrest-js": "^2.84.0",

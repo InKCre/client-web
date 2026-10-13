@@ -96,8 +96,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/core
       '@inkcre/extension-runtime-client-web':
-        specifier: github:InKCre/ext-reg#6c83da6b1d4b145101a778f2eac5492cd59008f9&path:/runtimes/client-web
-        version: https://codeload.github.com/InKCre/ext-reg/tar.gz/6c83da6b1d4b145101a778f2eac5492cd59008f9#path:/runtimes/client-web(@inkcre/core@packages+core)(@module-federation/runtime@0.21.6)
+        specifier: https://github.com/InKCre/ext-reg/releases/download/runtime-client-web-v0.4.0/inkcre-extension-runtime-client-web-0.4.0.tgz
+        version: https://github.com/InKCre/ext-reg/releases/download/runtime-client-web-v0.4.0/inkcre-extension-runtime-client-web-0.4.0.tgz(@inkcre/core@packages+core)(@module-federation/runtime@0.21.6)
       '@inkcre/ui-web':
         specifier: 2.2.1
         version: 2.2.1(unocss@66.7.5(vite@7.3.6(@types/node@22.17.2)(jiti@2.7.0)(lightningcss@1.33.0)(sass-embedded@1.90.0)(sass@1.101.6)(yaml@2.9.0)))(vue@3.5.40(typescript@5.9.3))
@@ -354,8 +354,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/core
       '@inkcre/extension-runtime-client-web':
-        specifier: github:InKCre/ext-reg#6c83da6b1d4b145101a778f2eac5492cd59008f9&path:/runtimes/client-web
-        version: https://codeload.github.com/InKCre/ext-reg/tar.gz/6c83da6b1d4b145101a778f2eac5492cd59008f9#path:/runtimes/client-web(@inkcre/core@packages+core)(@module-federation/runtime@0.22.1)
+        specifier: https://github.com/InKCre/ext-reg/releases/download/runtime-client-web-v0.4.0/inkcre-extension-runtime-client-web-0.4.0.tgz
+        version: https://github.com/InKCre/ext-reg/releases/download/runtime-client-web-v0.4.0/inkcre-extension-runtime-client-web-0.4.0.tgz(@inkcre/core@packages+core)(@module-federation/runtime@0.22.1)
       '@vueuse/core':
         specifier: ^14.0.0
         version: 14.3.0(vue@3.5.40(typescript@5.9.3))
@@ -403,8 +403,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/core
       '@inkcre/extension-runtime-client-web':
-        specifier: github:InKCre/ext-reg#6c83da6b1d4b145101a778f2eac5492cd59008f9&path:/runtimes/client-web
-        version: https://codeload.github.com/InKCre/ext-reg/tar.gz/6c83da6b1d4b145101a778f2eac5492cd59008f9#path:/runtimes/client-web(@inkcre/core@packages+core)(@module-federation/runtime@0.22.1)
+        specifier: https://github.com/InKCre/ext-reg/releases/download/runtime-client-web-v0.4.0/inkcre-extension-runtime-client-web-0.4.0.tgz
+        version: https://github.com/InKCre/ext-reg/releases/download/runtime-client-web-v0.4.0/inkcre-extension-runtime-client-web-0.4.0.tgz(@inkcre/core@packages+core)(@module-federation/runtime@0.22.1)
       '@vueuse/core':
         specifier: ^14.0.0
         version: 14.3.0(vue@3.5.40(typescript@5.9.3))
@@ -1402,8 +1402,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@inkcre/extension-runtime-client-web@https://codeload.github.com/InKCre/ext-reg/tar.gz/6c83da6b1d4b145101a778f2eac5492cd59008f9#path:/runtimes/client-web':
-    resolution: {gitHosted: true, integrity: sha512-kU1MrTytvfHyBdjm3H9AJL1EfqAifjo+opu8hG132Yo37N10O/0H5vFZuQ8JTJ3oymCx7pKP/3trttTGVDTzsQ==, path: /runtimes/client-web, tarball: https://codeload.github.com/InKCre/ext-reg/tar.gz/6c83da6b1d4b145101a778f2eac5492cd59008f9}
+  '@inkcre/extension-runtime-client-web@https://github.com/InKCre/ext-reg/releases/download/runtime-client-web-v0.4.0/inkcre-extension-runtime-client-web-0.4.0.tgz':
+    resolution: {integrity: sha512-MksnAY9JEYyRnkmESIo15lqbz4C+iCpF/WFlHiDhpcTlFaTW9R/Mtu/P4DmwocpTxLPbSHiVIED0gVhbfpldSw==, tarball: https://github.com/InKCre/ext-reg/releases/download/runtime-client-web-v0.4.0/inkcre-extension-runtime-client-web-0.4.0.tgz}
     version: 0.4.0
     peerDependencies:
       '@inkcre/core': '>=0.4.0 <0.5.0'
@@ -7418,14 +7418,14 @@ snapshots:
   '@img/sharp-win32-x64@0.35.2':
     optional: true
 
-  '@inkcre/extension-runtime-client-web@https://codeload.github.com/InKCre/ext-reg/tar.gz/6c83da6b1d4b145101a778f2eac5492cd59008f9#path:/runtimes/client-web(@inkcre/core@packages+core)(@module-federation/runtime@0.21.6)':
+  '@inkcre/extension-runtime-client-web@https://github.com/InKCre/ext-reg/releases/download/runtime-client-web-v0.4.0/inkcre-extension-runtime-client-web-0.4.0.tgz(@inkcre/core@packages+core)(@module-federation/runtime@0.21.6)':
     dependencies:
       '@inkcre/core': link:packages/core
       '@module-federation/runtime': 0.21.6
       semver: 7.8.5
       zod: 4.1.12
 
-  '@inkcre/extension-runtime-client-web@https://codeload.github.com/InKCre/ext-reg/tar.gz/6c83da6b1d4b145101a778f2eac5492cd59008f9#path:/runtimes/client-web(@inkcre/core@packages+core)(@module-federation/runtime@0.22.1)':
+  '@inkcre/extension-runtime-client-web@https://github.com/InKCre/ext-reg/releases/download/runtime-client-web-v0.4.0/inkcre-extension-runtime-client-web-0.4.0.tgz(@inkcre/core@packages+core)(@module-federation/runtime@0.22.1)':
     dependencies:
       '@inkcre/core': link:packages/core
       '@module-federation/runtime': 0.22.1

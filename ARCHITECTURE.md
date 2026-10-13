@@ -32,8 +32,9 @@ locations, not Unit boundaries.
    inbound → non-delegating local implementation.
 3. Content: `Block.getHydratedContent()` → exact Resolver → solved value or safe browser handle →
    registered renderer.
-4. Native Extension: durable enabled intent → exact Release and Host-range preflight → native
-   manifest → initialize/activate; disable reverses lifecycle before removing Peer intent.
+4. Native Extension: exact Peer selection and enabled intent → exact Release and Host-range preflight →
+   native manifest → initialize/activate; disable first records false intent, then releases native
+   runtime resources.
 
 ## Realization Surfaces
 

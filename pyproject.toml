@@ -5,7 +5,7 @@ description = "Repository-level development tooling for the InKCre Web monorepo"
 requires-python = ">=3.13,<3.14"
 # The exact Toolkit package source is admitted for this protocol cutover; canonical wheels remain the normal delivery boundary.
 dependencies = [
-  "inkcre-extension-toolkit[cli] @ git+https://github.com/InKCre/ext-reg.git@f43f464c91bed93c70c9ab3a746f4a78377ac939#subdirectory=toolkit",
+  "inkcre-extension-toolkit[cli] @ https://github.com/InKCre/ext-reg/releases/download/toolkit-v0.5.0/inkcre_extension_toolkit-0.5.0-py3-none-any.whl",
 ]
 
 [tool.pdm]

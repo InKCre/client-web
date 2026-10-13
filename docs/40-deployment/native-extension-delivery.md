@@ -63,13 +63,14 @@ Version outputs are committed; no duplicate pending intent remains for the next 
 This is the one-time delivery boundary for this cutover. Ordinary feature work continues to submit
 Changesets and use the automated Version PR described above.
 
-The cutover qualifies Runtime SDK 0.4 and Toolkit 0.5 with exact package-source pins while their
-canonical artifacts are not yet published. The Runtime preparation fetches only the pinned
-`packages/core` SDK and uses its own frozen tooling; it does not install a producer workspace or
-combine Python and MF source. Real SDK tarballs and Toolkit wheels are also checked in isolation.
-This bounded source-package transition is not a claim that the SDK artifact delivery layer is
-fully independent. Candidate qualification, canonical dependency publication and production
-Extension publication remain separate observable delivery boundaries.
+Client Web consumes the official Runtime SDK 0.4 tarball and Toolkit 0.5 wheel through exact GitHub
+Release asset URLs and lock-file integrity. Consumers install prebuilt packages without checking
+out Registry SDK source or running its SDK preparation. The Runtime SDK release publisher still
+qualifies its build with the pinned `packages/core` package source and its own frozen tooling; it
+does not install a producer workspace or combine Python and MF source. That bounded build-source
+transition does not establish complete SDK artifact independence. This repository's Core SDK 0.4
+remains workspace-owned until its own protected-main release. Dependency publication, candidate
+qualification and production Extension publication remain separate delivery boundaries.
 
 Required database checks normally resolve the protected Core `stable` artifact. During this cutover,
 `contracts/core-release.json` can admit a `canonical_candidate` with an existing canonical Core
