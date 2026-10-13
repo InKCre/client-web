@@ -1032,6 +1032,15 @@ test('failed remote enablement reads back persisted intent without claiming a ru
   const managementUrl = `${coreUrl}e2e-extension-management/v2`
   const selectionUrl = `${postgrestUrl}extension_peer_participations?name=eq.${encodeURIComponent(name)}&peer_id=eq.${peerId}`
   let enabled = false
+  let holdNextStatus = false
+  let releaseStaleStatus!: () => void
+  const staleGate = new Promise<void>((resolve) => {
+    releaseStaleStatus = resolve
+  })
+  let markStaleRequested!: () => void
+  const staleRequested = new Promise<void>((resolve) => {
+    markStaleRequested = resolve
+  })
   await page.route(managementUrl, async (route) => {
     if (route.request().method() === 'OPTIONS') {
       await route.fulfill({
@@ -1060,6 +1069,12 @@ test('failed remote enablement reads back persisted intent without claiming a ru
       return
     }
     expect(command.action).toBe('status')
+    const stale = holdNextStatus
+    if (stale) {
+      holdNextStatus = false
+      markStaleRequested()
+      await staleGate
+    }
     await route.fulfill({
       headers: { 'Access-Control-Allow-Origin': '*' },
       json: {
@@ -1074,8 +1089,8 @@ test('failed remote enablement reads back persisted intent without claiming a ru
             version: '1.0.0',
             enabled,
             config_schema: null,
-            loaded_version: null,
-            running: false,
+            loaded_version: stale ? '1.0.0' : null,
+            running: stale,
             restart_required: false,
             operation: null,
             error: enabled ? 'Native activation failed.' : null,
@@ -1140,14 +1155,30 @@ test('failed remote enablement reads back persisted intent without claiming a ru
     const peer = card
       .locator('.extension-card__peer-row')
       .filter({ hasText: 'Intent failure Peer' })
+    await expect(peer.getByRole('button', { name: 'Enable', exact: true })).toBeEnabled()
+    await expect(card.getByRole('button', { name: 'Refresh', exact: true })).toBeEnabled()
+    holdNextStatus = true
+    await card.getByRole('button', { name: 'Refresh', exact: true }).click()
+    await staleRequested
     await peer.getByRole('button', { name: 'Enable', exact: true }).click()
     await expect(peer.getByRole('alert')).toBeVisible()
     await expect(peer.getByRole('button', { name: 'Disable', exact: true })).toBeEnabled()
+    await expect(peer).not.toContainText('Running 1.0.0')
+    const staleResponse = page.waitForResponse(managementUrl)
+    releaseStaleStatus()
+    await (await staleResponse).finished()
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+        )
+    )
     await expect(peer).not.toContainText('Running 1.0.0')
     const persisted = await fetch(selectionUrl, { headers })
     expect(persisted.status).toBe(200)
     expect((await persisted.json())[0].enabled).toBe(true)
   } finally {
+    releaseStaleStatus()
     await fetch(selectionUrl, { method: 'DELETE', headers })
     await fetch(`${postgrestUrl}extensions?name=eq.${encodeURIComponent(name)}`, {
       method: 'DELETE',

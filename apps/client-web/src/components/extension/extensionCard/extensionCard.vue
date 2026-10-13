@@ -181,12 +181,14 @@ async function refreshCard(): Promise<void> {
   publishedFormats.value = {}
   await refreshRuntime()
 }
+let runtimeRequest = 0
 async function refreshRuntime(): Promise<void> {
-  if (refreshing.value) return
+  const request = ++runtimeRequest
   refreshing.value = true
   const meta = { ...configStore.metaConfig }
   const host = getExtensionHost()
-  const ownsRefresh = () => ownsConnection(meta) && getExtensionHost() === host
+  const ownsRefresh = () =>
+    request === runtimeRequest && ownsConnection(meta) && getExtensionHost() === host
   try {
     if (webPeerConnectionState.value === 'ready' && extensionHostRestoreState.value !== 'failed') {
       // Restore attempts every enabled module; a failure still leaves per-module status to inspect.
@@ -216,7 +218,7 @@ async function refreshRuntime(): Promise<void> {
     )
     if (ownsRefresh()) setupContribution.value = getExtensionSetupContribution(props.extension.name)
   } finally {
-    refreshing.value = false
+    if (request === runtimeRequest) refreshing.value = false
   }
 }
 function currentHostRestoring(peer: Peer): boolean {
@@ -225,6 +227,8 @@ function currentHostRestoring(peer: Peer): boolean {
 async function perform(peer: Peer, operation: () => Promise<unknown>): Promise<Error | null> {
   if (busyPeer.value) return null
   busyPeer.value = peer.id
+  // A pre-command sample must not replace the status observed after its completion.
+  runtimeRequest += 1
   delete errors.value[peer.id]
   let operationError: Error | null = null
   const meta = { ...configStore.metaConfig }
