@@ -9,7 +9,8 @@ catalog:
 
 allowBuilds:
   '@inkcre/extension-runtime-client-web@https://codeload.github.com/InKCre/ext-reg/tar.gz/57dcd80289285620a1fd27a0a48027e56c4ce7b1#path:/runtimes/client-web': false
-  '@inkcre/extension-runtime-client-web@https://codeload.github.com/InKCre/ext-reg/tar.gz/ff599f32e8d6e186974cf342a95fee306d9e60f8#path:/runtimes/client-web': true
+  '@inkcre/extension-runtime-client-web@https://codeload.github.com/InKCre/ext-reg/tar.gz/ff599f32e8d6e186974cf342a95fee306d9e60f8#path:/runtimes/client-web': false
+  '@inkcre/extension-runtime-client-web@https://codeload.github.com/InKCre/ext-reg/tar.gz/6c83da6b1d4b145101a778f2eac5492cd59008f9#path:/runtimes/client-web': true
   '@parcel/watcher': false
   esbuild: false
   sharp: false

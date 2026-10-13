@@ -935,6 +935,228 @@ test('Registry confirmation selects one Peer and offline enablement preserves ot
   }
 })
 
+test('Python-only availability is explicit and Registry read failures remain unknown', async ({
+  page,
+}) => {
+  const localName = `python-only-${Date.now()}`
+  const name = `e2e/${localName}`
+  const headers = { Authorization: `Bearer ${await token()}`, 'Content-Type': 'application/json' }
+  let catalogReads = 0
+  let fail = false
+  await page.route(`**/v2/extensions/e2e/${localName}/distributions/*`, async (route) => {
+    catalogReads++
+    if (route.request().url().endsWith('/module_federation')) {
+      await route.fulfill({
+        status: fail ? 503 : 404,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        json: { detail: fail ? 'Registry unavailable' : 'Native distribution not found' },
+      })
+    } else {
+      await route.fulfill({
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        json: {
+          name,
+          nickname: 'Python-only fixture',
+          releases: [
+            {
+              name,
+              nickname: 'Python-only fixture',
+              distribution: 'python',
+              version: '1.0.0',
+              state: 'published',
+              module_federation: null,
+              python: {
+                host_sdk: 'core-py',
+                host_sdk_version: '>=0.3.0',
+                project: 'inkcre-python-fixture',
+                simple_url: 'https://registry.example.invalid/simple/',
+                entry_point: {
+                  group: 'inkcre.extensions',
+                  name: 'fixture',
+                  object: 'fixture:Extension',
+                },
+              },
+            },
+          ],
+        },
+      })
+    }
+  })
+  try {
+    expect(
+      (
+        await fetch(`${postgrestUrl}extensions`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ name, nickname: 'Python-only fixture', config: {}, state: {} }),
+        })
+      ).status
+    ).toBe(201)
+    await page.goto('/extensions')
+    const card = page.getByRole('article', { name: 'Python-only fixture', exact: true })
+    const browser = card.locator('.extension-card__peer-row').filter({ hasText: 'This browser' })
+    await expect(browser).toBeVisible()
+    expect(catalogReads).toBe(0)
+    await browser.getByRole('button', { name: 'Install', exact: true }).click()
+    const unavailable = page.getByRole('dialog', { name: 'Unavailable on this Peer', exact: true })
+    await expect(unavailable).toContainText('Distribution: Module Federation')
+    await expect(unavailable).toContainText('Published distributions: Python')
+    await expect(unavailable.getByRole('button', { name: 'Save', exact: true })).toBeDisabled()
+    await expect(unavailable.getByText('Version', { exact: true })).toHaveCount(0)
+    await unavailable.getByRole('button', { name: 'Cancel', exact: true }).click()
+    await expect(
+      browser.getByRole('button', { name: 'Unavailable on this Peer', exact: true })
+    ).toBeDisabled()
+    fail = true
+    await card.getByRole('button', { name: 'Refresh', exact: true }).click()
+    await browser.getByRole('button', { name: 'Install', exact: true }).click()
+    const retry = page.getByRole('dialog', { name: 'Install', exact: true })
+    await expect(retry.getByRole('alert')).toContainText('503')
+    await expect(retry).not.toContainText('No published Module Federation releases.')
+    await expect(retry.getByRole('button', { name: 'Save', exact: true })).toBeDisabled()
+  } finally {
+    await fetch(`${postgrestUrl}extensions?name=eq.${encodeURIComponent(name)}`, {
+      method: 'DELETE',
+      headers,
+    })
+  }
+})
+
+test('failed remote enablement reads back persisted intent without claiming a running module', async ({
+  page,
+}) => {
+  const name = `e2e/failed-intent-${Date.now()}`
+  const peerId = crypto.randomUUID()
+  const authorization = `Bearer ${await token()}`
+  const headers = { Authorization: authorization, 'Content-Type': 'application/json' }
+  const managementUrl = `${coreUrl}e2e-extension-management/v2`
+  const selectionUrl = `${postgrestUrl}extension_peer_participations?name=eq.${encodeURIComponent(name)}&peer_id=eq.${peerId}`
+  let enabled = false
+  await page.route(managementUrl, async (route) => {
+    if (route.request().method() === 'OPTIONS') {
+      await route.fulfill({
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        },
+      })
+      return
+    }
+    const command = route.request().postDataJSON()
+    if (command.action === 'enable') {
+      const saved = await fetch(selectionUrl, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ enabled: true }),
+      })
+      expect(saved.status).toBe(204)
+      enabled = true
+      await route.fulfill({
+        status: 500,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        json: { message: 'Native activation failed after saving intent.' },
+      })
+      return
+    }
+    expect(command.action).toBe('status')
+    await route.fulfill({
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      json: {
+        peer_id: peerId,
+        supported_distributions: ['python'],
+        extensions: [
+          {
+            name,
+            peer_id: peerId,
+            supported_distributions: ['python'],
+            distribution: 'python',
+            version: '1.0.0',
+            enabled,
+            config_schema: null,
+            loaded_version: null,
+            running: false,
+            restart_required: false,
+            operation: null,
+            error: enabled ? 'Native activation failed.' : null,
+          },
+        ],
+      },
+    })
+  })
+  try {
+    expect(
+      (
+        await fetch(`${postgrestUrl}peers`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            id: peerId,
+            name: 'Intent failure Peer',
+            labels: ['e2e'],
+            config: {},
+            config_schema: {},
+            lease_expires_at: new Date(Date.now() + 60_000).toISOString(),
+            capabilities: [
+              {
+                id: 'core.extension.management.v2',
+                inbound: {
+                  protocol: 'core.peer.protocol.http.v1',
+                  parameters: { method: 'POST', url: managementUrl },
+                },
+              },
+            ],
+          }),
+        })
+      ).status
+    ).toBe(201)
+    expect(
+      (
+        await fetch(`${postgrestUrl}extensions`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ name, nickname: 'Intent failure', config: {}, state: {} }),
+        })
+      ).status
+    ).toBe(201)
+    expect(
+      (
+        await fetch(`${postgrestUrl}extension_peer_participations`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            name,
+            peer_id: peerId,
+            distribution: 'python',
+            version: '1.0.0',
+            enabled: false,
+            config_schema: null,
+          }),
+        })
+      ).status
+    ).toBe(201)
+    await page.goto('/extensions')
+    const card = page.getByRole('article', { name: 'Intent failure', exact: true })
+    const peer = card
+      .locator('.extension-card__peer-row')
+      .filter({ hasText: 'Intent failure Peer' })
+    await peer.getByRole('button', { name: 'Enable', exact: true }).click()
+    await expect(peer.getByRole('alert')).toBeVisible()
+    await expect(peer.getByRole('button', { name: 'Disable', exact: true })).toBeEnabled()
+    await expect(peer).not.toContainText('Running 1.0.0')
+    const persisted = await fetch(selectionUrl, { headers })
+    expect(persisted.status).toBe(200)
+    expect((await persisted.json())[0].enabled).toBe(true)
+  } finally {
+    await fetch(selectionUrl, { method: 'DELETE', headers })
+    await fetch(`${postgrestUrl}extensions?name=eq.${encodeURIComponent(name)}`, {
+      method: 'DELETE',
+      headers,
+    })
+    await fetch(`${postgrestUrl}peers?id=eq.${peerId}`, { method: 'DELETE', headers })
+  }
+})
+
 test('wrong and absent credentials are rejected', async ({ page }) => {
   const wrongAuthorization = `Bearer ${await token(
     'wrong-client-web-jwt-secret-at-least-32-bytes'
@@ -1017,6 +1239,19 @@ test('Settings export restores the complete browser experience', async ({ page }
   const alternateId = crypto.randomUUID()
   const authorization = `Bearer ${await token()}`
   const endpoint = `${postgrestUrl}peers?id=eq.${alternateId}`
+  const extensionName = `e2e/switch-${crypto.randomUUID()}`
+  const headers = { Authorization: authorization, 'Content-Type': 'application/json' }
+  const created = await fetch(`${postgrestUrl}extensions`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      name: extensionName,
+      nickname: 'Host identity switch',
+      config: {},
+      state: {},
+    }),
+  })
+  expect(created.status).toBe(201)
   try {
     await page.goto('/settings')
     const downloadPromise = page.waitForEvent('download')
@@ -1067,7 +1302,18 @@ test('Settings export restores the complete browser experience', async ({ page }
     await expect(
       page.getByRole('checkbox', { name: 'Enable telemetry', exact: true })
     ).not.toBeChecked()
+    // Import changes Peer identity without reloading this document: the Host must bind the new ID.
+    await page.getByRole('button', { name: 'Menu', exact: true }).click()
+    await page.getByRole('link', { name: 'Extensions', exact: true }).click()
+    const row = page
+      .getByRole('article', { name: 'Host identity switch', exact: true })
+      .getByRole('region', { name: /This browser/ })
+    await expect(row.getByRole('button', { name: 'Install', exact: true })).toBeEnabled()
+    await expect(
+      row.getByText('The runtime belongs to a different Peer.', { exact: true })
+    ).toHaveCount(0)
   } finally {
+    await fetch(`${postgrestUrl}extensions?name=eq.${extensionName}`, { method: 'DELETE', headers })
     const cleanup = await fetch(endpoint, {
       method: 'DELETE',
       headers: { Authorization: authorization },

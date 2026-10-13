@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, shallowRef, watch, type Component } from 'vue'
+import {
+  computed,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  ref,
+  shallowRef,
+  watch,
+  type Component,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   InkButton,
@@ -13,8 +22,10 @@ import {
   ExtensionRegistryOriginResolver,
   ExtensionModel,
   ExtensionParticipationModel,
+  PeerOutcomeUnknown,
   type ExtensionRuntimeStatus,
   type NativeDistribution,
+  type MetaConfig,
   type Peer,
 } from '@inkcre/core'
 import {
@@ -57,8 +68,27 @@ const versionModel = ref('')
 const distributionModel = ref<NativeDistribution>('module_federation')
 const versionOptions = ref<{ label: string; value: string }[]>([])
 const versionError = ref('')
+const publishedFormats = ref<Partial<Record<NativeDistribution, boolean>>>({})
+const knownPublishedFormats = computed(() =>
+  (['python', 'module_federation'] as const).filter((format) => publishedFormats.value[format])
+)
 let versionRequest = 0
 let documentationRequest = 0
+let active = true
+onUnmounted(() => {
+  active = false
+  versionRequest += 1
+  documentationRequest += 1
+})
+function ownsConnection(meta: MetaConfig): boolean {
+  const current = configStore.metaConfig
+  return (
+    active &&
+    meta.INKCRE_PGREST_URL === current.INKCRE_PGREST_URL &&
+    meta.INKCRE_PEER_ID === current.INKCRE_PEER_ID &&
+    meta.INKCRE_JWT_SECRET === current.INKCRE_JWT_SECRET
+  )
+}
 const documentation = ref<ExtensionDocumentationLink[]>([])
 const docsOpen = ref(false)
 const docsLoading = ref(false)
@@ -140,14 +170,29 @@ function statusText(peerId: string): string {
   if (status?.error) return t('extension.startFailed')
   return t('extension.notRunning')
 }
+function noPublishedDistributionForPeer(peer: Peer): boolean {
+  const supported = supportedFormats(peer)
+  return (
+    supported.length > 0 && supported.every((format) => publishedFormats.value[format] === false)
+  )
+}
+async function refreshCard(): Promise<void> {
+  // Catalog facts are populated only by an explicit version choice, never by initial card mounting.
+  publishedFormats.value = {}
+  await refreshRuntime()
+}
 async function refreshRuntime(): Promise<void> {
   if (refreshing.value) return
   refreshing.value = true
+  const meta = { ...configStore.metaConfig }
+  const host = getExtensionHost()
+  const ownsRefresh = () => ownsConnection(meta) && getExtensionHost() === host
   try {
     if (webPeerConnectionState.value === 'ready' && extensionHostRestoreState.value !== 'failed') {
       // Restore attempts every enabled module; a failure still leaves per-module status to inspect.
       await startExtensionHost().catch(() => {})
     }
+    if (!ownsRefresh()) return
     await Promise.all(
       props.peers.map(async (peer) => {
         try {
@@ -156,18 +201,20 @@ async function refreshRuntime(): Promise<void> {
             peer,
             currentPeerId: props.currentPeerId,
             livePeerIds: props.livePeerIds,
-            manager: getExtensionHost(),
+            manager: host,
           })
+          if (!ownsRefresh()) return
           formats.value[peer.id] = result.supported_distributions
           statuses.value[peer.id] = result.status
           delete errors.value[peer.id]
         } catch (error) {
+          if (!ownsRefresh()) return
           statuses.value[peer.id] = null
           errors.value[peer.id] = error instanceof Error ? error.message : String(error)
         }
       })
     )
-    setupContribution.value = getExtensionSetupContribution(props.extension.name)
+    if (ownsRefresh()) setupContribution.value = getExtensionSetupContribution(props.extension.name)
   } finally {
     refreshing.value = false
   }
@@ -175,26 +222,31 @@ async function refreshRuntime(): Promise<void> {
 function currentHostRestoring(peer: Peer): boolean {
   return peer.id === props.currentPeerId && extensionHostRestoreState.value === 'restoring'
 }
-async function perform(peer: Peer, operation: () => Promise<unknown>): Promise<void> {
-  if (busyPeer.value) return
+async function perform(peer: Peer, operation: () => Promise<unknown>): Promise<Error | null> {
+  if (busyPeer.value) return null
   busyPeer.value = peer.id
   delete errors.value[peer.id]
-  let operationError: string | undefined
+  let operationError: Error | null = null
+  const meta = { ...configStore.metaConfig }
+  const host = getExtensionHost()
+  const ownsOperation = () => ownsConnection(meta) && getExtensionHost() === host
   try {
     if (currentHostRestoring(peer)) await startExtensionHost().catch(() => {})
+    if (!ownsOperation()) return null
     await operation()
   } catch (error) {
-    operationError = error instanceof Error ? error.message : String(error)
+    operationError = error instanceof Error ? error : new Error(String(error))
   } finally {
     // A failed command may still have persisted its desired intent.
-    emit('participationChanged')
+    if (ownsOperation()) emit('participationChanged')
     try {
-      await refreshRuntime()
+      if (ownsOperation()) await refreshRuntime()
     } finally {
-      if (operationError) errors.value[peer.id] = operationError
+      if (operationError && ownsOperation()) errors.value[peer.id] = operationError.message
       busyPeer.value = ''
     }
   }
+  return operationError
 }
 
 async function togglePeer(peer: Peer, enabled: boolean): Promise<void> {
@@ -240,10 +292,25 @@ async function loadVersions(): Promise<void> {
   versionLoading.value = true
   versionOptions.value = []
   versionError.value = ''
+  const readPublished = async (format: NativeDistribution) => {
+    try {
+      const catalog = await getExtensionRegistry().getExtension(props.extension.name, format)
+      const releases = sortPublishedReleases(catalog.releases ?? [])
+      if (request === versionRequest) publishedFormats.value[format] = releases.length > 0
+      return releases
+    } catch (error) {
+      if (error instanceof RegistryReleaseError && error.status === 404) {
+        if (request === versionRequest) publishedFormats.value[format] = false
+        return []
+      }
+      if (request === versionRequest) delete publishedFormats.value[format]
+      throw error
+    }
+  }
   try {
-    const catalog = await getExtensionRegistry().getExtension(props.extension.name, distribution)
+    const releases = await readPublished(distribution)
     if (request !== versionRequest) return
-    versionOptions.value = sortPublishedReleases(catalog.releases ?? []).map((release) => ({
+    versionOptions.value = releases.map((release) => ({
       label: release.version,
       value: release.version,
     }))
@@ -252,37 +319,65 @@ async function loadVersions(): Promise<void> {
     )
     versionModel.value = versionOptions.value.some((option) => option.value === previous?.version)
       ? previous!.version
-      : (preferredPublishedRelease(catalog.releases ?? [])?.version ?? '')
-    if (!versionOptions.value.length) versionError.value = t('extension.noDistributionRelease')
+      : (preferredPublishedRelease(releases)?.version ?? '')
+    if (!releases.length) {
+      // On explicit install, show another published native format without implying this Peer supports it.
+      const other: NativeDistribution = distribution === 'python' ? 'module_federation' : 'python'
+      if (publishedFormats.value[other] === undefined) await readPublished(other)
+    }
   } catch (error) {
     if (request === versionRequest)
-      versionError.value =
-        error instanceof RegistryReleaseError && error.status === 404
-          ? t('extension.noDistributionRelease')
-          : error instanceof Error
-            ? error.message
-            : String(error)
+      versionError.value = error instanceof Error ? error.message : String(error)
   } finally {
     if (request === versionRequest) versionLoading.value = false
   }
 }
+
 async function saveVersion(): Promise<void> {
   const peer = selectedPeer.value
-  if (!peer || !versionModel.value || versionLoading.value) return
-  await perform(peer, () =>
+  if (!peer || !versionModel.value || versionLoading.value || busyPeer.value) return
+  const distribution = distributionModel.value
+  const version = versionModel.value
+  const name = props.extension.name
+  const meta = { ...configStore.metaConfig }
+  const host = getExtensionHost()
+  const ownsSelection = () =>
+    ownsConnection(meta) &&
+    getExtensionHost() === host &&
+    selectedPeer.value?.id === peer.id &&
+    distributionModel.value === distribution &&
+    versionModel.value === version
+  const commandError = await perform(peer, () =>
     selectExtensionPeerVersion({
       name: props.extension.name,
       nickname: props.extension.nickname ?? props.extension.name,
       releases: getExtensionRegistry(),
-      version: versionModel.value,
-      distribution: distributionModel.value,
+      version,
+      distribution,
       peer,
       currentPeerId: props.currentPeerId,
       livePeerIds: props.livePeerIds,
       manager: getExtensionHost(),
     })
   )
-  if (!errors.value[peer.id]) versionOpen.value = false
+  if (!ownsSelection()) return
+  if (!commandError) {
+    versionOpen.value = false
+  } else if (commandError instanceof PeerOutcomeUnknown) {
+    // This independent read can verify selection through a target Peer restart; never resend select.
+    try {
+      const observed = await ExtensionParticipationModel.readForConnection(meta, peer.id, name)
+      if (
+        ownsSelection() &&
+        observed?.distribution === distribution &&
+        observed.version === version
+      ) {
+        versionOpen.value = false
+      }
+    } catch {
+      // Keep the original unknown outcome until the exact selection can be observed.
+    }
+  }
 }
 async function openDocumentation(peer: Peer): Promise<void> {
   const pin = props.participations.find((row) => row.peer_id === peer.id)
@@ -374,7 +469,7 @@ onMounted(refreshRuntime)
           :text="t('common.refresh')"
           size="sm"
           :is-loading="refreshing"
-          @click="refreshRuntime"
+          @click="refreshCard"
         />
       </div>
     </header>
@@ -396,6 +491,9 @@ onMounted(refreshRuntime)
           }}
         </p>
         <p v-if="pin" class="extension-card__hint">{{ statusText(peer.id) }}</p>
+        <p v-else-if="noPublishedDistributionForPeer(peer)" class="extension-card__hint">
+          {{ t('extension.unavailableOnPeer') }}
+        </p>
         <p v-if="errors[peer.id] || status?.error" role="alert" class="extension-card__error">
           {{ errors[peer.id] || status?.error }}
         </p>
@@ -403,9 +501,22 @@ onMounted(refreshRuntime)
       <div class="extension-card__actions">
         <InkButton
           v-if="supportedFormats(peer).length"
-          :text="t(pin ? 'extension.changeVersion' : 'extension.install')"
+          :text="
+            t(
+              pin
+                ? 'extension.changeVersion'
+                : noPublishedDistributionForPeer(peer)
+                  ? 'extension.unavailableOnPeer'
+                  : 'extension.install'
+            )
+          "
           size="sm"
-          :disabled="!!busyPeer || peerSelectionDisabled || currentHostRestoring(peer)"
+          :disabled="
+            !!busyPeer ||
+            peerSelectionDisabled ||
+            currentHostRestoring(peer) ||
+            (!pin && noPublishedDistributionForPeer(peer))
+          "
           @click="openVersion(peer)"
         />
         <InkButton
@@ -466,7 +577,9 @@ onMounted(refreshRuntime)
         t(
           participations.some((row) => row.peer_id === selectedPeer?.id)
             ? 'extension.changeVersionTitle'
-            : 'extension.install'
+            : selectedPeer && noPublishedDistributionForPeer(selectedPeer)
+              ? 'extension.unavailableOnPeer'
+              : 'extension.install'
         )
       "
       :subtitle="selectedPeer?.name"
@@ -481,6 +594,9 @@ onMounted(refreshRuntime)
         :disabled="versionLoading || !!busyPeer"
         @change="loadVersions"
       />
+      <p v-else class="extension-card__hint">
+        {{ t('extension.distribution') }}: {{ distributionLabel(distributionModel) }}
+      </p>
       <InkLoading
         v-if="versionLoading"
         size="xs"
@@ -488,7 +604,7 @@ onMounted(refreshRuntime)
         :label="t('extension.versionsLoading')"
       />
       <InkDropdown
-        v-else
+        v-else-if="versionOptions.length"
         v-model="versionModel"
         :label="t('extension.version')"
         :options="versionOptions"
@@ -496,6 +612,24 @@ onMounted(refreshRuntime)
         :disabled="!!busyPeer"
         required
       />
+      <p
+        v-if="!versionLoading && publishedFormats[distributionModel] === false"
+        class="extension-card__hint"
+      >
+        {{
+          t('extension.noPublishedDistribution', {
+            distribution: distributionLabel(distributionModel),
+          })
+        }}
+      </p>
+      <p
+        v-if="!versionLoading && !versionOptions.length && knownPublishedFormats.length"
+        class="extension-card__hint"
+      >
+        {{ t('extension.publishedDistributions') }}:
+        {{ knownPublishedFormats.map(distributionLabel).join(', ') }}
+      </p>
+      <p v-if="versionError" role="alert" class="extension-card__error">{{ versionError }}</p>
       <p v-if="selectedPeer && errors[selectedPeer.id]" role="alert" class="extension-card__error">
         {{ errors[selectedPeer.id] }}
       </p>

@@ -210,7 +210,10 @@
     "jsonConfig": "JSON",
     "targetPeer": "Peer",
     "noSupportedPeer": "当前已连接的 Peer 不支持此分发。",
-    "runtimeUnknown": "运行状态未知"
+    "runtimeUnknown": "运行状态未知",
+    "unavailableOnPeer": "此 Peer 不可用",
+    "publishedDistributions": "已发布分发",
+    "noPublishedDistribution": "尚无已发布的 {distribution} 版本。"
   },
   "job": {
     "loadFailed": "无法读取此任务。",

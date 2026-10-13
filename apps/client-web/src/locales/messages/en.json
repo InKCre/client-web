@@ -209,7 +209,10 @@
     "jsonConfig": "JSON",
     "targetPeer": "Peer",
     "noSupportedPeer": "No connected Peer supports this distribution.",
-    "runtimeUnknown": "Runtime status unavailable"
+    "runtimeUnknown": "Runtime status unavailable",
+    "unavailableOnPeer": "Unavailable on this Peer",
+    "publishedDistributions": "Published distributions",
+    "noPublishedDistribution": "No published {distribution} releases."
   },
   "job": {
     "loadFailed": "Unable to load this job.",

@@ -119,16 +119,25 @@ start phase fails, it compensates through the available reverse lifecycle and pr
 original and cleanup failures when cleanup also fails. Stop deactivates only an active module and
 then disposes it; disposal releases the loaded runtime.
 
-Enable starts the exact runtime before setting that participation’s enabled intent. If
-persistence fails, the Host stops and removes that runtime. If the persisted version changed during
-enable, the Host rolls back that participation’s enabled intent and requires a retry against the new exact
-Release.
+An explicit enable or disable command saves its exact participation intent before scheduling native
+lifecycle work. Initial restore consumes enabled intent without rewriting it. The Host serializes
+local lifecycle work per Extension and rechecks the selected coordinate and enabled intent before
+and after executable loading, initialization and activation. A superseded candidate is disposed
+without entering the running projection. Local serialization does not make direct writes by other
+admitted clients atomic; fresh persistent observations remain necessary.
 
-Disable reverses the order: it stops the runtime before removing durable enabled intent. If state
-persistence fails, it restarts the previous exact installed runtime to restore correspondence.
-Combined failures retain both the persistence and compensation errors; they must not be flattened
-into apparent success. Startup isolates failures per enabled extension, retains each runtime error
-for inspection, and reports an aggregate after attempting the remaining entries.
+An operation can persist intent and still fail during activation or shutdown. The Extension card
+therefore reads both participation and actual runtime after success or failure and retains the
+operation error. If selection returns an unknown outcome, only an independent read of the original
+connection’s same name, Peer, distribution and version can complete the picker. This read never
+replays a mutation or enables the Peer. Configuration changes, unmount and a newer picker invalidate
+old callbacks; observing a pin does not establish loaded version or running state.
+
+Version catalogs are read only after an explicit version choice. A native format with no published
+release is distinguished from an unknown or failed read. The card shows an unavailable target only
+when all formats supported by that Peer are known to lack published releases. A Python-only
+catalog can explain why the browser has no compatible choice without guessing from application
+names. An explicit card refresh discards those catalog observations and allows another read.
 
 The Client Web shell opens database views before native Extension restore finishes. A cold deep link can therefore encounter an unregistered Extension resolver. The content popup retries that specific lookup failure after the Host completes restore, while preserving other read failures. Extension cards wait for the same restore before observing current-Peer runtime status; a persisted enabled intent alone does not establish that the module is running.
 
@@ -141,3 +150,5 @@ A restore attempt isolates module failures. Completing the attempt, including an
 - The exact Release and native manifest association remain stable through one start attempt.
 - Durable enabled intent and volatile runtime are reconciled with explicit compensation.
 - Producer identity and lifecycle are native Module Federation contracts, not deployment scripts.
+
+Settings 在切换数据库地址、数据库签名密钥或 Peer ID 之前排空旧 Host，连接成功后创建绑定新 Peer 的 Host。同一连接只调整租约选项时保留 Host；旧连接的恢复和管理回调不能改变新 Host 的状态。

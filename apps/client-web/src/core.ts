@@ -147,6 +147,7 @@ type ClientExtensionManager = ExtensionManager<ClientExtensionModule>
 
 let extensionHost: ClientExtensionManager | null = null
 let extensionHostStartup: Promise<void> | null = null
+let extensionHostConnection: MetaConfig | null = null
 export const extensionHostRestoreState = Vue.ref<'idle' | 'restoring' | 'restored' | 'failed'>(
   'idle'
 )
@@ -162,6 +163,7 @@ export const webPeerConnectionState = Vue.ref<
 export function initializeExtensionHost(): ClientExtensionManager {
   extensionHostStartup = null
   extensionHostRestoreState.value = 'idle'
+  extensionHostConnection = { ...configStore.metaConfig }
   extensionRegistryOrigin = new ExtensionRegistryOriginResolver(
     () => configStore.peerConfig.extension_registry_url
   )
@@ -242,6 +244,13 @@ export async function adoptWebPeerRuntime(runtime: WebPeerRuntime): Promise<void
 
 async function applyWebPeerParticipation(runtime: WebPeerRuntime, meta: MetaConfig): Promise<void> {
   if (!ownsWebPeerConnection(runtime, meta)) return
+  // Settings drains the old Host before changing database or Peer identity.
+  if (
+    extensionHostConnection?.INKCRE_PEER_ID !== meta.INKCRE_PEER_ID ||
+    extensionHostConnection?.INKCRE_PGREST_URL !== meta.INKCRE_PGREST_URL ||
+    extensionHostConnection?.INKCRE_JWT_SECRET !== meta.INKCRE_JWT_SECRET
+  )
+    initializeExtensionHost()
   if (meta.peer_lease_renew_interval_seconds === 0) {
     webPeerConnectionState.value = 'connecting'
     await JobManager.stopWorker()

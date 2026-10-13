@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@inkcre/core": "workspace:*",
-    "@inkcre/extension-runtime-client-web": "github:InKCre/ext-reg#ff599f32e8d6e186974cf342a95fee306d9e60f8&path:/runtimes/client-web",
+    "@inkcre/extension-runtime-client-web": "github:InKCre/ext-reg#6c83da6b1d4b145101a778f2eac5492cd59008f9&path:/runtimes/client-web",
     "@inkcre/ui-web": "2.2.1",
     "@module-federation/runtime": "^0.21.4",
     "@supabase/postgrest-js": "^2.84.0",
