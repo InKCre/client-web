@@ -51,7 +51,7 @@ or solved meaning.
 ## Exact Resolver Contracts
 
 `Resolver.getClass(id)` requires an exact registered class. Registration is idempotent only for
-the same class and rejects collisions; there is no default decoder. Core bootstrap independently
+the same class and rejects collisions; there is no default decoder. `Resolver.unregister(id, exactClass)` removes only that class’s registration and returns false when no matching owner remains. Stale module cleanup cannot remove another module’s class. Core bootstrap independently
 registers the versioned text, HTML, image, audio, video, PDF, EPUB, ZIP, and file contracts.
 Extensions register their own namespaced, versioned contracts rather than aliases for retired IDs.
 
@@ -87,7 +87,7 @@ exists while open/render/download remains supported.
 the registered component, and disposes its Resolver on unmount. Graph and editor surfaces use this
 path and never fall back to the persisted pointer string.
 
-`ResolverCache` reuses instances by Block identity plus `updated_at` snapshot. Replacement,
+`ResolverCache` first requires a currently registered class, then reuses instances by Block identity, `updated_at` snapshot, and that exact class identity. A disabled registration cannot return a cached instance; a replacement class disposes and replaces the old instance on the next read. Replacement,
 targeted invalidation, and clearing dispose old instances. Resolver-local hydration, relation, and
 solved-content caches still obey `refresh`; instance reuse does not change authority.
 
