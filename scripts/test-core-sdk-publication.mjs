@@ -8,6 +8,7 @@ import { main, savedCandidate, validateReceipt, verifyRelease } from './publish-
 
 test('partial reruns require the original unexpired SDK candidate', () => {
   assert.equal(savedCandidate([], '1'), undefined)
+  assert.throws(() => savedCandidate([], '1', true), /original workflow candidate/)
   assert.throws(() => savedCandidate([], '2'), /Missing SDK candidate/)
   assert.throws(
     () => savedCandidate([{ name: 'core-sdk-candidate', expired: true }], '2'),

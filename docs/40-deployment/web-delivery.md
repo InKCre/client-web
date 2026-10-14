@@ -61,6 +61,8 @@ to npm nor selects an App or Extension version.
 The candidate is retained before Release writes. Use **Re-run failed jobs** to recover publication
 with the original artifact; a rerun without those bytes stops rather than rebuilding. Draft recovery
 uploads only missing assets and compares existing bytes before completing the Release. An already
+existing draft requires the original run's saved candidate; a new run cannot rebuild it.
+An already
 published version is verified against its source tag and recorded archive digest, never overwritten.
 Keep unfinished candidates for their 90-day retention period; loss or expiry requires investigation.
 An exact-current-main manual dispatch uses the same checks and publication boundary.

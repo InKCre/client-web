@@ -37,10 +37,14 @@ export function validateReceipt(receipt) {
   return receipt
 }
 
-export function savedCandidate(artifacts, attempt) {
+export function savedCandidate(artifacts, attempt, hasDraft = false) {
   const matches = artifacts.filter((artifact) => artifact.name === artifactName)
   assert.ok(matches.length <= 1, 'Multiple SDK candidates in one run')
   assert.ok(!matches[0]?.expired, 'SDK candidate expired; do not rebuild published bytes')
+  assert.ok(
+    matches[0] || !hasDraft,
+    'Existing draft requires its original workflow candidate; do not rebuild in another run'
+  )
   assert.ok(matches[0] || attempt === '1', 'Missing SDK candidate on rerun; restore original bytes')
   return matches[0]
 }
@@ -107,7 +111,8 @@ export async function main(command) {
     )
     const saved = savedCandidate(
       pages.flatMap((page) => page.artifacts),
-      process.env.GITHUB_RUN_ATTEMPT
+      process.env.GITHUB_RUN_ATTEMPT,
+      Boolean(release?.draft)
     )
     await appendFile(process.env.GITHUB_OUTPUT, `artifact_id=${saved?.id ?? ''}\n`)
     return
