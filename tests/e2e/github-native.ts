@@ -162,9 +162,7 @@ export function registerGitHubNativeTests(): void {
       await expect(page.getByRole('heading', { name: 'GitHub', exact: true })).toBeVisible()
       await page.getByRole('button', { name: 'Install', exact: true }).click()
       await expect(page).toHaveURL(/\/extensions$/)
-      const card = page
-        .locator('.extension-card')
-        .filter({ has: page.getByRole('heading', { name: 'GitHub', exact: true }) })
+      const card = page.getByRole('article', { name: 'GitHub', exact: true })
       const row = card.locator('.extension-card__peer-row').filter({ hasText: 'This browser' })
       await row.getByRole('button', { name: 'Enable', exact: true }).click()
       await expect(row.getByText(`Running ${version}`, { exact: true })).toBeVisible()
@@ -232,7 +230,7 @@ export function registerGitHubNativeTests(): void {
           await fetch(`${postgrestUrl}blocks?select=updated_at&id=eq.${list}`, { headers })
         ).json()
       ).toEqual(focalBefore)
-      await page.goto(`/info-base/list/blocks/${list}/content`)
+      await page.getByRole('button', { name: 'Refresh', exact: true }).click()
       await expect(
         content.getByRole('button', { name: 'fixture-org/demo', exact: true })
       ).toHaveCount(0)
@@ -319,7 +317,8 @@ export function registerGitHubNativeTests(): void {
       ).toBeVisible()
       expect(githubApiCalls).toBe(0)
     } finally {
-      await page.goto('about:blank')
+      // Timeout teardown may already have closed the page; DB cleanup must still run.
+      if (!page.isClosed()) await page.goto('about:blank').catch(() => {})
       for (const id of createdRelations)
         await fetch(`${postgrestUrl}relations?id=eq.${id}`, { method: 'DELETE', headers })
       for (const id of createdBlocks)
