@@ -67,6 +67,20 @@ published version is verified against its source tag and recorded archive digest
 Keep unfinished candidates for their 90-day retention period; loss or expiry requires investigation.
 An exact-current-main manual dispatch uses the same checks and publication boundary.
 
+GitHub does not expose a draft through the release-by-tag endpoint. The trusted identity job reads
+the release list with the same `contents: write` authority as publication so it can detect drafts;
+that job installs no dependencies. Candidate builds retain read-only repository access.
+
+If a publisher implementation needs repair, its original run still retains the package bytes.
+Dispatch the corrected workflow on current main with `source_sha` selecting the controller and
+`recovery_run_id` selecting that original run. Recovery admits only a completed main-push run of
+this repository's Core SDK workflow whose source remains in current main history, with one
+unexpired candidate. The controller SHA and payload source SHA intentionally differ: the saved
+receipt, archive digest and original run source must agree, and publication retains the payload's
+own version and tag. This entry cannot select an arbitrary artifact, URL or rebuilt package.
+Creating a historical source tag after workflow files change may require an existing maintainer
+identity; never substitute the current controller SHA or overwrite an existing tag to bypass it.
+
 ## Pull-request Preview
 
 [`.github/workflows/pages-preview.yml`](../../.github/workflows/pages-preview.yml) owns previews for

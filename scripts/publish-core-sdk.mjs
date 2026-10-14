@@ -28,6 +28,30 @@ async function api(route) {
   return response.json()
 }
 
+async function releaseByTag(tag) {
+  // Draft releases have no tag lookup until publication; list includes authenticated drafts.
+  for (let page = 1; ; page += 1) {
+    const releases = await api(`releases?per_page=100&page=${page}`)
+    assert.ok(Array.isArray(releases), 'GitHub release inventory is unavailable')
+    const release = releases.find((item) => item.tag_name === tag)
+    if (release) return release
+    if (releases.length < 100) return null
+  }
+}
+
+export function validateRecoveryRun(run, comparison) {
+  assert.equal(run.event, 'push', 'Recovery source must be an admitted main push')
+  assert.equal(run.head_branch, 'main')
+  assert.equal(run.path, '.github/workflows/core-sdk-release.yml')
+  assert.equal(run.status, 'completed', 'Original SDK run must have completed')
+  assert.match(run.head_sha, /^[0-9a-f]{40}$/)
+  assert.ok(
+    ['ahead', 'identical'].includes(comparison?.status),
+    'Recovery source is not in current main history'
+  )
+  return run.head_sha
+}
+
 export function validateReceipt(receipt) {
   assert.equal(receipt.name, '@inkcre/core')
   assert.match(receipt.version, /^\d+\.\d+\.\d+$/)
@@ -95,7 +119,19 @@ export async function main(command) {
   assert.match(version, /^\d+\.\d+\.\d+$/)
   const tag = `core-v${version}`
   if (command === 'locate') {
-    const release = await api(`releases/tags/${tag}`)
+    const recoveryId = process.env.RECOVERY_RUN_ID
+    let payloadSource = process.env.SOURCE_REVISION
+    const runId = recoveryId || process.env.GITHUB_RUN_ID
+    if (recoveryId) {
+      assert.match(recoveryId, /^[1-9]\d*$/)
+      const run = await api(`actions/runs/${recoveryId}`)
+      assert.ok(run, 'Original SDK run is missing')
+      payloadSource = validateRecoveryRun(
+        run,
+        await api(`compare/${run.head_sha}...${payloadSource}`)
+      )
+    }
+    const release = recoveryId ? null : await releaseByTag(tag)
     if (release && !release.draft) {
       await verifyRelease(release, version)
       await appendFile(process.env.GITHUB_OUTPUT, 'published=true\n')
@@ -104,17 +140,26 @@ export async function main(command) {
     const pages = JSON.parse(
       gh([
         'api',
-        `repos/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}/artifacts`,
+        `repos/${process.env.GITHUB_REPOSITORY}/actions/runs/${runId}/artifacts`,
         '--paginate',
         '--slurp',
       ])
     )
     const saved = savedCandidate(
       pages.flatMap((page) => page.artifacts),
-      process.env.GITHUB_RUN_ATTEMPT,
+      recoveryId ? '2' : process.env.GITHUB_RUN_ATTEMPT,
       Boolean(release?.draft)
     )
-    await appendFile(process.env.GITHUB_OUTPUT, `artifact_id=${saved?.id ?? ''}\n`)
+    if (saved)
+      assert.equal(
+        saved.workflow_run?.head_sha,
+        payloadSource,
+        'Saved SDK artifact belongs to another source'
+      )
+    await appendFile(
+      process.env.GITHUB_OUTPUT,
+      `artifact_id=${saved?.id ?? ''}\nsource_revision=${payloadSource}\npayload_run_id=${runId}\n`
+    )
     return
   }
   if (command === 'capture') {
@@ -138,24 +183,29 @@ export async function main(command) {
   const receipt = await checkCandidate()
   if (command === 'check') return
   assert.equal(command, 'publish')
-  let release = await api(`releases/tags/${tag}`)
+  const payloadTag = `core-v${receipt.version}`
+  let release = await releaseByTag(payloadTag)
   if (!release) {
     gh([
       'release',
       'create',
-      tag,
+      payloadTag,
       '--draft',
       '--target',
       receipt.source_revision,
       '--title',
-      `Core SDK ${version}`,
+      `Core SDK ${receipt.version}`,
       '--notes',
       `预构建 ESM 与类型包；来源 ${receipt.source_revision}。source.json 记录 SHA256。`,
     ])
-    release = await api(`releases/tags/${tag}`)
+    release = await releaseByTag(payloadTag)
   }
+  assert.ok(
+    release,
+    'Draft is not visible after creation; preserve candidate and recover publication'
+  )
   if (release.draft) {
-    const tagRef = await api(`git/ref/tags/${tag}`)
+    const tagRef = await api(`git/ref/tags/${payloadTag}`)
     assert.equal(
       release.target_commitish,
       receipt.source_revision,
@@ -176,16 +226,16 @@ export async function main(command) {
           digest(local),
           'Existing draft asset differs; never overwrite'
         )
-      else gh(['release', 'upload', tag, `${directory}/${name}`])
+      else gh(['release', 'upload', payloadTag, `${directory}/${name}`])
     }
-    gh(['release', 'edit', tag, '--draft=false'])
+    gh(['release', 'edit', payloadTag, '--draft=false'])
   }
-  release = await api(`releases/tags/${tag}`)
-  await verifyRelease(release, version, receipt)
+  release = await releaseByTag(payloadTag)
+  await verifyRelease(release, receipt.version, receipt)
   if (process.env.GITHUB_STEP_SUMMARY)
     await appendFile(
       process.env.GITHUB_STEP_SUMMARY,
-      `Core SDK ${version}: ${receipt.source_revision}; SHA256 ${receipt.sha256}\n`
+      `Core SDK ${receipt.version}: ${receipt.source_revision}; SHA256 ${receipt.sha256}\n`
     )
 }
 
