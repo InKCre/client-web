@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { SignJWT } from 'jose'
 import { readFileSync } from 'node:fs'
+import { registerGitHubNativeTests } from './github-native'
 
 const postgrestUrl = process.env.INKCRE_E2E_POSTGREST_URL!
 const jwtSecret = process.env.INKCRE_E2E_JWT_SECRET!
@@ -1909,3 +1910,5 @@ test('Source titles follow saved names across navigation and refresh', async ({ 
     expect(removedType.status).toBe(204)
   }
 })
+
+registerGitHubNativeTests()

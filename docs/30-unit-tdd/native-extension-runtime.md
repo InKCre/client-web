@@ -152,3 +152,7 @@ A restore attempt isolates module failures. Completing the attempt, including an
 - Producer identity and lifecycle are native Module Federation contracts, not deployment scripts.
 
 Settings 在切换数据库地址、数据库签名密钥或 Peer ID 之前排空旧 Host，连接成功后创建绑定新 Peer 的 Host。同一连接只调整租约选项时保留 Host；旧连接的恢复和管理回调不能改变新 Host 的状态。
+
+## GitHub content producer
+
+The independently versioned [GitHub MF producer](../../extensions/github/README.md) reads stored v1 Account, Repository and List records and their owns/stars/contains relations. It owns browser projection and rendering, without calling GitHub or controlling collection. Its native SDK range is a Host compatibility boundary, not a version pairing with the Python distribution.

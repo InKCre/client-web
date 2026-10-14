@@ -95,6 +95,7 @@ try {
   const baseline = ownsRuntime ? developmentFingerprint(instance) : null
 
   run('pnpm', ['--filter', '@inkcre/client-web', 'build-only'])
+  run('pnpm', ['--filter', '@inkcre/ext-github', 'build'])
   const webPort = await availablePort()
   const webUrl = `http://127.0.0.1:${webPort}/`
   preview = spawn(
