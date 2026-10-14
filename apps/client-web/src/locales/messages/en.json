@@ -82,7 +82,7 @@
     "peerRuntime": "Peer runtime",
     "telemetry": "Telemetry",
     "telemetryRelayDefault": "Leave empty to use deployment telemetry endpoints.",
-    "backgroundDisabledEffect": "Saving stops local tasks and pauses automatic Extensions and telemetry."
+    "backgroundDisabledEffect": "Saving stops background tasks and telemetry; local extensions remain available."
   },
   "source": {
     "deleteConfirmTitle": "Delete Source",
