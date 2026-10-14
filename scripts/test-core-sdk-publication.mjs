@@ -4,7 +4,13 @@ import test from 'node:test'
 import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
-import { main, savedCandidate, validateReceipt, verifyRelease } from './publish-core-sdk.mjs'
+import {
+  main,
+  savedCandidate,
+  validateReceipt,
+  verifyRelease,
+  validateRecoveryRun,
+} from './publish-core-sdk.mjs'
 
 test('partial reruns require the original unexpired SDK candidate', () => {
   assert.equal(savedCandidate([], '1'), undefined)
@@ -36,14 +42,16 @@ test('draft recovery uploads missing saved assets without replacing an existing 
   try {
     await mkdir(`${root}/packages/core`, { recursive: true })
     await mkdir(`${root}/.core-sdk-delivery`)
-    await writeFile(`${root}/packages/core/package.json`, JSON.stringify({ version: '0.4.0' }))
+    await writeFile(`${root}/packages/core/package.json`, JSON.stringify({ version: '0.5.0' }))
     await writeFile(`${root}/.core-sdk-delivery/source.json`, JSON.stringify(receipt))
     await writeFile(`${root}/.core-sdk-delivery/${receipt.asset}`, bytes)
     await writeFile(
       `${root}/gh`,
-      `#!/usr/bin/env node\nconst fs=require('node:fs');const a=process.argv.slice(2);fs.appendFileSync('calls.jsonl',JSON.stringify(a)+'\\n');if(a[1]==='upload')fs.writeFileSync('uploaded', 'yes');if(a[1]==='edit')fs.writeFileSync('published', 'yes');\n`
+      `#!/usr/bin/env node\nconst fs=require('node:fs');const a=process.argv.slice(2);fs.appendFileSync('calls.jsonl',JSON.stringify(a)+'\\n');if(a[1]==='create')fs.writeFileSync('created', 'yes');if(a[1]==='upload')fs.writeFileSync(a[3].endsWith('.tgz')?'archiveUploaded':'uploaded', 'yes');if(a[1]==='edit')fs.writeFileSync('published', 'yes');\n`
     )
     await chmod(`${root}/gh`, 0o700)
+    await writeFile(`${root}/created`, 'yes')
+    await writeFile(`${root}/archiveUploaded`, 'yes')
     process.chdir(root)
     process.env.PATH = `${root}:${originalPath}`
     process.env.SOURCE_REVISION = source
@@ -57,15 +65,29 @@ test('draft recovery uploads missing saved assets without replacing an existing 
           () => true,
           () => false
         )
-      const assets = [{ name: receipt.asset, url: 'https://api.github.com/archive' }]
+      if (!(await exists('created'))) return Response.json([])
+      const assets = []
+      if (await exists('archiveUploaded'))
+        assets.push({
+          name: receipt.asset,
+          url: 'https://api.github.com/archive',
+          browser_download_url: 'https://api.github.com/archive',
+        })
       if (await exists('uploaded'))
-        assets.push({ name: 'source.json', url: 'https://api.github.com/receipt' })
-      return Response.json({
-        draft: !(await exists('published')),
-        prerelease: false,
-        target_commitish: source,
-        assets,
-      })
+        assets.push({
+          name: 'source.json',
+          url: 'https://api.github.com/receipt',
+          browser_download_url: 'https://api.github.com/receipt',
+        })
+      return Response.json([
+        {
+          tag_name: 'core-v0.4.0',
+          draft: !(await exists('published')),
+          prerelease: false,
+          target_commitish: source,
+          assets,
+        },
+      ])
     }
     await main('publish')
     const calls = (await readFile('calls.jsonl', 'utf8')).trim().split('\n').map(JSON.parse)
@@ -79,6 +101,15 @@ test('draft recovery uploads missing saved assets without replacing an existing 
       await readFile('calls.jsonl', 'utf8'),
       calls.map((args) => JSON.stringify(args)).join('\n') + '\n'
     )
+    for (const file of ['created', 'archiveUploaded', 'uploaded', 'published', 'calls.jsonl'])
+      await rm(file)
+    await main('publish')
+    const freshCalls = (await readFile('calls.jsonl', 'utf8')).trim().split('\n').map(JSON.parse)
+    assert.deepEqual(
+      freshCalls.map((args) => args[1]),
+      ['create', 'upload', 'upload', 'edit']
+    )
+    assert.equal(freshCalls[0][2], 'core-v0.4.0', 'Recovered payload keeps its own version')
   } finally {
     process.chdir(originalDirectory)
     process.env.PATH = originalPath
@@ -102,14 +133,28 @@ test('published SDK is verified against source tag and every saved package byte'
     draft: false,
     prerelease: false,
     assets: [
-      { name: 'source.json', url: 'https://api.github.com/receipt' },
-      { name: receipt.asset, url: 'https://api.github.com/archive' },
+      {
+        name: 'source.json',
+        url: 'https://api.github.com/receipt',
+        browser_download_url: 'https://api.github.com/receipt',
+      },
+      {
+        name: receipt.asset,
+        url: 'https://api.github.com/archive',
+        browser_download_url: 'https://api.github.com/archive',
+      },
     ],
   }
   const originalFetch = globalThis.fetch
   let archive = bytes
   let tag = receipt.source_revision
-  globalThis.fetch = async (url) => {
+  globalThis.fetch = async (url, options) => {
+    if (url.endsWith('/receipt') || url.endsWith('/archive'))
+      assert.equal(
+        options.headers.Authorization,
+        undefined,
+        'Published SDK bytes must be anonymously readable'
+      )
     if (url.endsWith('/receipt')) return new Response(JSON.stringify(receipt))
     if (url.endsWith('/archive')) return new Response(archive)
     return Response.json({ object: { type: 'commit', sha: tag } })
@@ -130,4 +175,18 @@ test('published SDK is verified against source tag and every saved package byte'
   } finally {
     globalThis.fetch = originalFetch
   }
+})
+
+test('recovery accepts only the same completed workflow from protected main history', () => {
+  const run = {
+    event: 'push',
+    head_branch: 'main',
+    path: '.github/workflows/core-sdk-release.yml',
+    status: 'completed',
+    head_sha: 'a'.repeat(40),
+  }
+  assert.equal(validateRecoveryRun(run, { status: 'ahead' }), run.head_sha)
+  for (const field of ['event', 'head_branch', 'path', 'status', 'head_sha'])
+    assert.throws(() => validateRecoveryRun({ ...run, [field]: 'invalid' }, { status: 'ahead' }))
+  assert.throws(() => validateRecoveryRun(run, { status: 'diverged' }), /main history/)
 })
