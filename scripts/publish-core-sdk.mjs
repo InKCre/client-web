@@ -73,12 +73,11 @@ export function savedCandidate(artifacts, attempt, hasDraft = false) {
   return matches[0]
 }
 
-async function assetBytes(asset) {
-  const response = await fetch(asset.url, {
-    headers: {
-      Authorization: `Bearer ${process.env.GH_TOKEN}`,
-      Accept: 'application/octet-stream',
-    },
+async function assetBytes(asset, authenticated = false) {
+  const response = await fetch(authenticated ? asset.url : asset.browser_download_url, {
+    headers: authenticated
+      ? { Authorization: `Bearer ${process.env.GH_TOKEN}`, Accept: 'application/octet-stream' }
+      : {},
     signal: AbortSignal.timeout(60_000),
   })
   assert.ok(response.ok, `SDK asset download returned HTTP ${response.status}`)
@@ -222,7 +221,7 @@ export async function main(command) {
       const existing = release.assets.find((asset) => asset.name === name)
       if (existing)
         assert.equal(
-          digest(await assetBytes(existing)),
+          digest(await assetBytes(existing, true)),
           digest(local),
           'Existing draft asset differs; never overwrite'
         )

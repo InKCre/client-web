@@ -68,9 +68,17 @@ test('draft recovery uploads missing saved assets without replacing an existing 
       if (!(await exists('created'))) return Response.json([])
       const assets = []
       if (await exists('archiveUploaded'))
-        assets.push({ name: receipt.asset, url: 'https://api.github.com/archive' })
+        assets.push({
+          name: receipt.asset,
+          url: 'https://api.github.com/archive',
+          browser_download_url: 'https://api.github.com/archive',
+        })
       if (await exists('uploaded'))
-        assets.push({ name: 'source.json', url: 'https://api.github.com/receipt' })
+        assets.push({
+          name: 'source.json',
+          url: 'https://api.github.com/receipt',
+          browser_download_url: 'https://api.github.com/receipt',
+        })
       return Response.json([
         {
           tag_name: 'core-v0.4.0',
@@ -125,14 +133,28 @@ test('published SDK is verified against source tag and every saved package byte'
     draft: false,
     prerelease: false,
     assets: [
-      { name: 'source.json', url: 'https://api.github.com/receipt' },
-      { name: receipt.asset, url: 'https://api.github.com/archive' },
+      {
+        name: 'source.json',
+        url: 'https://api.github.com/receipt',
+        browser_download_url: 'https://api.github.com/receipt',
+      },
+      {
+        name: receipt.asset,
+        url: 'https://api.github.com/archive',
+        browser_download_url: 'https://api.github.com/archive',
+      },
     ],
   }
   const originalFetch = globalThis.fetch
   let archive = bytes
   let tag = receipt.source_revision
-  globalThis.fetch = async (url) => {
+  globalThis.fetch = async (url, options) => {
+    if (url.endsWith('/receipt') || url.endsWith('/archive'))
+      assert.equal(
+        options.headers.Authorization,
+        undefined,
+        'Published SDK bytes must be anonymously readable'
+      )
     if (url.endsWith('/receipt')) return new Response(JSON.stringify(receipt))
     if (url.endsWith('/archive')) return new Response(archive)
     return Response.json({ object: { type: 'commit', sha: tag } })
