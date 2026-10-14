@@ -122,7 +122,7 @@ jobs:
           --artifact-directory extensions/twitter/dist/client-web
 
       - name: Verify publication recovery over HTTP
-        run: node --test scripts/test-extension-publication.mjs
+        run: node --test scripts/test-extension-publication.mjs scripts/test-core-sdk-publication.mjs
 
   peer-database:
     name: client-web E2E

@@ -42,6 +42,31 @@ The Pages project is selected by `CLOUDFLARE_PAGES_PROJECT`; deployment uses the
 Pages deployment URL and `https://app.inkcre.dev`. Production delivery has no Extension Registry
 token and no first-party Extension publication responsibility.
 
+`INKCRE_WEB_PRODUCTION_PAUSED=true` pauses automatic main-push Pages and MF publication jobs.
+It does not stop the currently deployed app, CI, previews or the independent Core SDK release.
+Set it before merging a breaking protocol cutover. After the deployment owner confirms database
+and service compatibility, explicitly dispatch `pages-deploy.yml` and `extension-release.yml`
+on `main` with `source_sha` equal to its full current SHA. Each dispatch permits one delivery
+while the variable remains true; it does not clear the pause or select a newer source silently.
+Restore automatic delivery only after the cutover has been verified.
+
+## Core SDK assets
+
+[`.github/workflows/core-sdk-release.yml`](../../.github/workflows/core-sdk-release.yml) independently
+publishes the version declared by `packages/core/package.json` from protected main. It packs the
+built ESM and type declarations as `inkcre-core-<version>.tgz`, alongside `source.json` containing
+the source SHA and package SHA256, in the `core-v<version>` GitHub Release. It neither publishes
+to npm nor selects an App or Extension version.
+
+The candidate is retained before Release writes. Use **Re-run failed jobs** to recover publication
+with the original artifact; a rerun without those bytes stops rather than rebuilding. Draft recovery
+uploads only missing assets and compares existing bytes before completing the Release. An already
+existing draft requires the original run's saved candidate; a new run cannot rebuild it.
+An already
+published version is verified against its source tag and recorded archive digest, never overwritten.
+Keep unfinished candidates for their 90-day retention period; loss or expiry requires investigation.
+An exact-current-main manual dispatch uses the same checks and publication boundary.
+
 ## Pull-request Preview
 
 [`.github/workflows/pages-preview.yml`](../../.github/workflows/pages-preview.yml) owns previews for
