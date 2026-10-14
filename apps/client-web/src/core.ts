@@ -147,6 +147,10 @@ type ClientExtensionManager = ExtensionManager<ClientExtensionModule>
 
 let extensionHost: ClientExtensionManager | null = null
 let extensionHostStartup: Promise<void> | null = null
+let extensionHostConnection: MetaConfig | null = null
+export const extensionHostRestoreState = Vue.ref<'idle' | 'restoring' | 'restored' | 'failed'>(
+  'idle'
+)
 let extensionRegistry: RegistryReleaseReader | null = null
 let extensionRegistryOrigin: ExtensionRegistryOriginResolver | null = null
 let moduleFederation: ReturnType<typeof createInstance> | null = null
@@ -158,6 +162,8 @@ export const webPeerConnectionState = Vue.ref<
 
 export function initializeExtensionHost(): ClientExtensionManager {
   extensionHostStartup = null
+  extensionHostRestoreState.value = 'idle'
+  extensionHostConnection = { ...configStore.metaConfig }
   extensionRegistryOrigin = new ExtensionRegistryOriginResolver(
     () => configStore.peerConfig.extension_registry_url
   )
@@ -167,6 +173,7 @@ export function initializeExtensionHost(): ClientExtensionManager {
     hostSdk: { name: '@inkcre/core', version: corePackageJson.version },
   })
   extensionHost = new ExtensionManager<ClientExtensionModule>({
+    peerId: configStore.metaConfig.INKCRE_PEER_ID,
     releases: extensionRegistry,
     moduleFederation,
   })
@@ -179,12 +186,24 @@ export function startExtensionHost(): Promise<void> {
     return Promise.reject(new Error('Web Peer lease is not ready for Extension Host startup.'))
   }
   if (extensionHostStartup) return extensionHostStartup
-  const startup = getExtensionHost().startup(configStore.metaConfig.INKCRE_PEER_ID)
-  extensionHostStartup = startup.catch((error: unknown) => {
-    extensionHostStartup = null
-    throw error
-  })
-  return extensionHostStartup
+  extensionHostRestoreState.value = 'restoring'
+  const host = getExtensionHost()
+  const startup = host.startup(configStore.metaConfig.INKCRE_PEER_ID)
+  const restore = startup.then(
+    () => {
+      if (extensionHost !== host || extensionHostStartup !== restore) return
+      extensionHostRestoreState.value = 'restored'
+    },
+    (error: unknown) => {
+      if (extensionHost === host && extensionHostStartup === restore) {
+        extensionHostRestoreState.value = 'failed'
+        extensionHostStartup = null
+      }
+      throw error
+    }
+  )
+  extensionHostStartup = restore
+  return restore
 }
 
 export function getExtensionHost(): ClientExtensionManager {
@@ -225,6 +244,13 @@ export async function adoptWebPeerRuntime(runtime: WebPeerRuntime): Promise<void
 
 async function applyWebPeerParticipation(runtime: WebPeerRuntime, meta: MetaConfig): Promise<void> {
   if (!ownsWebPeerConnection(runtime, meta)) return
+  // Settings drains the old Host before changing database or Peer identity.
+  if (
+    extensionHostConnection?.INKCRE_PEER_ID !== meta.INKCRE_PEER_ID ||
+    extensionHostConnection?.INKCRE_PGREST_URL !== meta.INKCRE_PGREST_URL ||
+    extensionHostConnection?.INKCRE_JWT_SECRET !== meta.INKCRE_JWT_SECRET
+  )
+    initializeExtensionHost()
   if (meta.peer_lease_renew_interval_seconds === 0) {
     webPeerConnectionState.value = 'connecting'
     await JobManager.stopWorker()
@@ -240,6 +266,7 @@ async function applyWebPeerParticipation(runtime: WebPeerRuntime, meta: MetaConf
     await extensionHost?.shutdown()
     if (!ownsWebPeerConnection(runtime, meta)) return
     extensionHostStartup = null
+    extensionHostRestoreState.value = 'idle'
     webPeerConnectionState.value = 'disabled'
     return
   }
@@ -302,6 +329,7 @@ export async function stopWebPeerRuntime(): Promise<void> {
   await extensionHost?.shutdown()
   if (webPeerRuntime !== null) return
   extensionHostStartup = null
+  extensionHostRestoreState.value = 'idle'
 }
 
 /** Drain work against the old connection before configuration changes its database authority. */

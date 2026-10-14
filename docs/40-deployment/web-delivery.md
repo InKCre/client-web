@@ -50,6 +50,27 @@ on `main` with `source_sha` equal to its full current SHA. Each dispatch permits
 while the variable remains true; it does not clear the pause or select a newer source silently.
 Restore automatic delivery only after the cutover has been verified.
 
+### Breaking database protocol upgrades
+
+Pages delivery changes the HTML and assets served to new visits; it does not replace JavaScript
+already running in an open tab. Client Web 0.1.2 and Core SDK 0.3 use the global Extension
+`version`, `enabled` and `config_schema` columns. The Peer-participation migration removes those
+columns, so an old tab can fail Extension reads and writes even while unrelated information remains
+readable. Reloading before the matching App is deployed still loads an incompatible client.
+
+The deployment owner coordinates a maintenance window across the affected Core/PostgREST deployment
+and Client Web. Pause browser writes and close old connected tabs before the database cutover. Keep
+the browser's connection settings and Peer ID. Resume use only after the deployment's
+`extension-peer-participation-v2` database and management endpoint are ready and Client Web 0.1.3
+has been deployed, then fully reload each connected tab. A startup error's Retry button performs
+that full reload; it cannot repair an incompatible database or update a tab while it remains open.
+The Core deployment documentation owns backup, migration and service recovery commands.
+
+This maintenance sequence does not install, upgrade or enable Extensions. The new Host restores
+existing enabled intent at the saved exact native version; it never substitutes latest. Historical
+MF releases retain their original SDK range and may require the user to select a supported release
+explicitly. Preserve shared configuration, state and stored information throughout the cutover.
+
 ## Core SDK assets
 
 [`.github/workflows/core-sdk-release.yml`](../../.github/workflows/core-sdk-release.yml) independently

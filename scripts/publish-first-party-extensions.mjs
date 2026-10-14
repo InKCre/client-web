@@ -73,12 +73,20 @@ async function request(url, options, fetchImplementation) {
 }
 
 function releaseUrl(registryUrl, name, version) {
-  return new URL(`/v1/extensions/${name}/releases/${version}`, registryUrl)
+  return new URL(
+    `/v2/extensions/${name}/distributions/module_federation/releases/${version}`,
+    registryUrl
+  )
 }
 
 async function publicRelease(url, fetchImplementation) {
   try {
     const release = await request(url, {}, fetchImplementation)
+    assert.equal(
+      release.distribution,
+      'module_federation',
+      'Registry returned a different native distribution'
+    )
     assert.equal(release.state, 'published', `cannot deliver a ${release.state} Release`)
     return release
   } catch (error) {
@@ -231,7 +239,10 @@ export async function publishCandidates(options) {
     const prepare = await readFile(path.join(candidateDirectory, 'prepare.json'))
     // prepare is idempotent and also checks immutable provenance before a resumed publication.
     await request(
-      new URL(`/v1/extensions/${candidate.name}/releases`, registryUrl),
+      new URL(
+        `/v2/extensions/${candidate.name}/distributions/module_federation/releases`,
+        registryUrl
+      ),
       {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },

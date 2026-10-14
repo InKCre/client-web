@@ -24,7 +24,7 @@ Extension packages. On a protected `main` push,
   snapshots and SHA-256 digests as the immutable `first-party-extension-candidate` Actions artifact.
   No Registry writes occur until that artifact is retained and checked.
 - Producers are discovered from package metadata. A published Release with an existing Module
-  Federation association is a historical no-op at candidate selection. Missing associations become
+  Federation association is a historical no-op at candidate selection. Missing MF native coordinates become
   fixed candidates; the publish job downloads this run's exact artifact, prepares them with their
   saved provenance, uploads, publishes, and verifies every candidate from the public Registry.
   It never consumes pull-request CI artifacts or rebuilds a publication candidate.
@@ -39,11 +39,47 @@ replace this gate with an empty-check merge or a broader credential.
 Client checks, Pages production, and Pages preview are separate application lifecycles. They cannot
 publish first-party Extensions. Local development and local verification must never publish either.
 
-Python and Module Federation producers for one Extension must target the same exact Release when
-both Hosts are needed. A published Python-only Release may receive its missing Module Federation
-association through the normal publish workflow; existing associations are not overwritten. Select
-the Changesets increment that reaches that Release rather than downgrading the shared installation
-or manually editing generated package versions.
+Python and Module Federation are independent native releases. Each producer owns
+`(extension name, distribution, version)` and publishes only that distribution through Registry v2.
+The Web workflow does not read Core source or a Core version plan. Python publication neither
+selects nor waits for MF, and MF publication neither selects nor waits for Python. Host SDK ranges
+remain native loading requirements; they do not describe cross-distribution business compatibility.
+
+A plugin owns compatibility of its shared configuration, state, Source/Job parameters and stored
+information. Changesets record MF changes even when no Python change is necessary. Published native
+coordinates and saved candidate bytes are immutable; repairs require a new native version.
+
+## Native SDK 0.4 cutover
+
+The Peer-participation protocol removes the SDK's global Extension version and enabled array.
+New first-party MF releases therefore require `@inkcre/core >=0.4.0 <0.5.0`; historical MF releases
+keep their existing declared range and are not silently repinned or declared compatible. Shared
+configuration and business data remain preserved when the user chooses a supported native release.
+
+This breaking cutover prepares the SDK and its in-repository consumers in the same reviewed change.
+The existing `pnpm release:version` command consumes the already-admitted UI intents and the native
+participation intent once, generating SDK 0.4 and independent MF patch releases. The resulting
+Version outputs are committed; no duplicate pending intent remains for the next reconciliation.
+This is the one-time delivery boundary for this cutover. Ordinary feature work continues to submit
+Changesets and use the automated Version PR described above.
+
+Client Web consumes the official Runtime SDK 0.4 tarball and Toolkit 0.5 wheel through exact GitHub
+Release asset URLs and lock-file integrity. Consumers install prebuilt packages without checking
+out Registry SDK source or running its SDK preparation. The Runtime SDK release publisher still
+qualifies its build with the pinned `packages/core` package source and its own frozen tooling; it
+does not install a producer workspace or combine Python and MF source. That bounded build-source
+transition does not establish complete SDK artifact independence. This repository's Core SDK 0.4
+remains workspace-owned until its own protected-main release. Dependency publication, candidate
+qualification and production Extension publication remain separate delivery boundaries.
+
+Required database checks normally resolve the protected Core `stable` artifact. During this cutover,
+`contracts/core-release.json` can admit a `canonical_candidate` with an existing canonical Core
+image digest, its protected-main source SHA and exact database contract revision. The consumer
+checks the image-owned manifest against both expected values and rejects tags, other registries,
+source mismatches and contract mismatches. This reference is populated only after the existing Core
+canonical artifact lane publishes it; a local or preview image is qualification evidence and cannot
+be entered as that canonical candidate. Omitting the entry continues to use stable. This admission
+does not move stable, deploy Core or migrate a production database.
 
 ## Registry Authority and Secret Boundary
 
@@ -55,7 +91,7 @@ the endpoint through repository variable `INKCRE_EXTENSION_REGISTRY_URL`.
 
 The workflow records `source_repository`, `source_revision`, and a release-workflow `build_id` in
 the Module Federation distribution before upload. These Web-distribution provenance facts remain
-independent of any Python distribution attached to the same Registry Release.
+independent of Python release provenance.
 
 Hosted documentation is discovered separately for the exact Release. Browser code follows the
 absolute entry or snapshot URL returned by Registry and never derives a content hostname from the

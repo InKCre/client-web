@@ -105,6 +105,13 @@ export abstract class Resolver<RawContentT = unknown, SolvedContentT = RawConten
     this.resolverClasses.set(type, resolverClass)
   }
 
+  /** Release only the exact class registered by this native module. */
+  static unregister(type: string, resolverClass: ResolverClass): boolean {
+    if (this.resolverClasses.get(type) !== resolverClass) return false
+    this.resolverClasses.delete(type)
+    return true
+  }
+
   static getClass(type: string): ResolverClass {
     const resolverClass = this.resolverClasses.get(type)
     if (!resolverClass) throw new UnknownResolverError(type)

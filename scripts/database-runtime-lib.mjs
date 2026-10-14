@@ -9,7 +9,7 @@ import { SignJWT } from 'jose'
 import {
   inspectCoreRelease,
   readJson,
-  resolveCoreRelease,
+  resolveConfiguredCoreRelease,
   stableJson,
   validateCoreReleaseConfig,
 } from './core-release-lib.mjs'
@@ -30,7 +30,7 @@ export const CORE_PEER_ID = '00000000-0000-4000-8000-000000000002'
 const CORE_CAPABILITIES = new Map([
   ['core.semantic_retrieval.v1', { method: 'POST', path: '/semantic-retrieval' }],
   ['core.organization.rumination.v1', { method: 'POST', path: '/organization/ruminate' }],
-  ['core.extension.management.v1', { method: 'POST', path: '/extension-management' }],
+  ['core.extension.management.v2', { method: 'POST', path: '/extension-management/v2' }],
 ])
 
 export function validateInstance(instance) {
@@ -229,7 +229,7 @@ export async function runtimeState(instance, { create = false } = {}) {
   const runDocker = (args, options) => runDatabaseDocker(provider, args, options)
   const release = process.env.INKCRE_CORE_IMAGE
     ? inspectCoreRelease(runDocker, process.env.INKCRE_CORE_IMAGE)
-    : resolveCoreRelease(runDocker, releaseConfig.stable_image)
+    : resolveConfiguredCoreRelease(runDocker, releaseConfig)
   const localPorts = {
     postgres: await availablePort(),
     core: await availablePort(),
