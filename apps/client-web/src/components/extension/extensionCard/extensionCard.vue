@@ -38,6 +38,7 @@ import {
 } from '@inkcre/extension-runtime-client-web'
 import {
   extensionHostRestoreState,
+  extensionHostConnectionReady,
   getExtensionHost,
   getExtensionRegistry,
   getExtensionSetupContribution,
@@ -190,7 +191,7 @@ async function refreshRuntime(): Promise<void> {
   const ownsRefresh = () =>
     request === runtimeRequest && ownsConnection(meta) && getExtensionHost() === host
   try {
-    if (webPeerConnectionState.value === 'ready' && extensionHostRestoreState.value !== 'failed') {
+    if (extensionHostConnectionReady.value && extensionHostRestoreState.value !== 'failed') {
       // Restore attempts every enabled module; a failure still leaves per-module status to inspect.
       await startExtensionHost().catch(() => {})
     }

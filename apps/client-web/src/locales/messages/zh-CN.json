@@ -25,7 +25,7 @@
     "failed": "无法启动 InKCre。请重试，或前往设置检查连接。",
     "peerConnecting": "正在连接此 Web Peer；数据库页面已可使用，本地任务尚未运行。",
     "peerFailed": "此 Web Peer 连接失败。数据库页面仍可使用，本地任务已停止。",
-    "peerDisabled": "此 Web Peer 的后台参与已关闭；数据库页面和能力委派仍可使用。"
+    "peerDisabled": "此 Web Peer 的后台参与已关闭；数据库页面、本地插件和能力委派仍可使用。"
   },
   "header": {
     "brand": "InKCre"

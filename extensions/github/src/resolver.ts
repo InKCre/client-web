@@ -41,10 +41,10 @@ interface Relationship {
 }
 async function relatedGroups(
   resolver: Resolver,
-  options: ProjectionOptions,
   relationships: Relationship[]
 ): Promise<RelatedGroup[]> {
-  const relations = await resolver.getRelations({ refresh: options.refresh })
+  // A graph scene can preload only a bounded incident fragment; membership needs stored edges.
+  const relations = await resolver.getRelations({ refresh: true })
   const groups: RelatedGroup[] = []
   for (const relationship of relationships) {
     const matches = relations.filter((relation) => {
@@ -73,7 +73,7 @@ export class AccountResolver extends Resolver<string, SolvedGitHub<Account>> {
   protected async _getSolvedContent(options: ProjectionOptions): Promise<SolvedGitHub<Account>> {
     return {
       record: AccountSchema.parse(JSON.parse(await this.getRawContent(options))),
-      groups: await relatedGroups(this, options, [
+      groups: await relatedGroups(this, [
         { title: 'Starred repositories', role: 'stars', type: 'repository' },
         { title: 'Owned repositories', role: 'owns', type: 'repository' },
         { title: 'Lists', role: 'owns', type: 'list' },
@@ -92,7 +92,7 @@ export class RepositoryResolver extends Resolver<string, SolvedGitHub<Repository
   protected async _getSolvedContent(options: ProjectionOptions): Promise<SolvedGitHub<Repository>> {
     return {
       record: RepositorySchema.parse(JSON.parse(await this.getRawContent(options))),
-      groups: await relatedGroups(this, options, [
+      groups: await relatedGroups(this, [
         { title: 'Owner', role: 'owns', incoming: true, type: 'account' },
       ]),
     }
@@ -116,7 +116,7 @@ export class ListResolver extends Resolver<string, SolvedGitHub<GitHubList>> {
   protected async _getSolvedContent(options: ProjectionOptions): Promise<SolvedGitHub<GitHubList>> {
     return {
       record: ListSchema.parse(JSON.parse(await this.getRawContent(options))),
-      groups: await relatedGroups(this, options, [
+      groups: await relatedGroups(this, [
         { title: 'Owner', role: 'owns', incoming: true, type: 'account' },
         { title: 'Repositories', role: 'contains', type: 'repository' },
       ]),

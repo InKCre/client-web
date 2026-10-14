@@ -287,8 +287,8 @@ test('a pending initial lease does not block pages or admit the browser worker',
     await expect(page.getByRole('main', { name: 'Sources', exact: true })).toBeVisible()
     await expect.poll(() => leasePending).toBe(true)
     expect(workerRequests).toBe(0)
-    expect(extensionReads).toBe(0)
-    expect(enabledReleaseReads).toBe(0)
+    await expect.poll(() => extensionReads).toBeGreaterThan(0)
+    await expect.poll(() => enabledReleaseReads).toBe(1)
     release()
     await expect.poll(() => workerRequests).toBeGreaterThan(0)
     await expect.poll(() => extensionReads).toBeGreaterThan(0)
@@ -544,17 +544,19 @@ test('zero participation persists, stays idle, and a custom interval resumes lea
   await expect(page.getByRole('main', { name: 'Sources', exact: true })).toBeVisible()
   await expect(
     page.getByText(
-      'Background participation is disabled for this Web Peer. Database pages and delegation remain available.'
+      'Background participation is disabled for this Web Peer. Database pages, local extensions, and delegation remain available.'
     )
   ).toBeVisible()
+  await expect.poll(() => extensionReads).toBeGreaterThan(0)
+  const initialExtensionReads = extensionReads
   await page.clock.fastForward(35_000)
   expect(leaseTtls).toEqual([])
   expect(scans).toBe(0)
-  expect(extensionReads).toBe(0)
+  expect(extensionReads).toBe(initialExtensionReads)
   await page.reload()
   await expect(
     page.getByText(
-      'Background participation is disabled for this Web Peer. Database pages and delegation remain available.'
+      'Background participation is disabled for this Web Peer. Database pages, local extensions, and delegation remain available.'
     )
   ).toBeVisible()
   await page.getByRole('button', { name: 'Menu', exact: true }).click()
@@ -587,7 +589,7 @@ test('zero participation persists, stays idle, and a custom interval resumes lea
   await page.getByRole('button', { name: 'Save', exact: true }).click()
   await expect(
     page.getByText(
-      'Background participation is disabled for this Web Peer. Database pages and delegation remain available.'
+      'Background participation is disabled for this Web Peer. Database pages, local extensions, and delegation remain available.'
     )
   ).toBeVisible()
   const stoppedScans = scans,
@@ -640,7 +642,7 @@ test('disabling while registration is pending prevents its later lease or worker
     await page.getByRole('button', { name: 'Save', exact: true }).click()
     await expect(
       page.getByText(
-        'Background participation is disabled for this Web Peer. Database pages and delegation remain available.'
+        'Background participation is disabled for this Web Peer. Database pages, local extensions, and delegation remain available.'
       )
     ).toBeVisible()
     release()
@@ -773,7 +775,7 @@ test('disabling participation drains a dispatched claim before saving configurat
     release()
     await expect(
       page.getByText(
-        'Background participation is disabled for this Web Peer. Database pages and delegation remain available.'
+        'Background participation is disabled for this Web Peer. Database pages, local extensions, and delegation remain available.'
       )
     ).toBeVisible()
     const closed = await fetch(`${postgrestUrl}jobs?id=eq.${id}&select=status`, { headers })

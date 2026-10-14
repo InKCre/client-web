@@ -38,7 +38,21 @@ export function registerGitHubNativeTests(): void {
       },
     }
     const cors = { 'Access-Control-Allow-Origin': '*' }
+    let leaseRenewals = 0
+    let jobScans = 0
+    page.on('request', (request) => {
+      const url = new URL(request.url())
+      if (url.pathname.endsWith('/rpc/renew_peer_lease')) leaseRenewals++
+      if (url.pathname.endsWith('/jobs') && url.searchParams.get('status') === 'eq.pending')
+        jobScans++
+    })
     let githubApiCalls = 0
+    let holdRemoteEntry = false
+    let remoteEntryPending = false
+    let releaseRemoteEntry!: () => void
+    const remoteEntryGate = new Promise<void>((resolve) => {
+      releaseRemoteEntry = resolve
+    })
     await page.route('https://api.github.com/**', async (route) => {
       githubApiCalls++
       await route.abort()
@@ -56,6 +70,10 @@ export function registerGitHubNativeTests(): void {
     )
     await page.route(`${assetBase}**`, async (route) => {
       const relative = new URL(route.request().url()).pathname.split('/module-federation/')[1]
+      if (holdRemoteEntry && relative === 'remoteEntry.js') {
+        remoteEntryPending = true
+        await remoteEntryGate
+      }
       const file = fileURLToPath(
         new URL(`../../extensions/github/dist/client-web/${relative}`, import.meta.url)
       )
@@ -74,13 +92,15 @@ export function registerGitHubNativeTests(): void {
     })
     await page.addInitScript(
       ({ postgrestUrl, jwtSecret, peerId }) => {
+        const previous = JSON.parse(localStorage.getItem('inkcre_app_config') ?? '{}')
+        if (previous.INKCRE_PEER_ID === peerId) return
         localStorage.setItem(
           'inkcre_app_config',
           JSON.stringify({
             INKCRE_PGREST_URL: postgrestUrl,
             INKCRE_JWT_SECRET: jwtSecret,
             INKCRE_PEER_ID: peerId,
-            peer_lease_renew_interval_seconds: 0,
+            peer_lease_renew_interval_seconds: 30,
           })
         )
       },
@@ -166,7 +186,14 @@ export function registerGitHubNativeTests(): void {
       const row = card.locator('.extension-card__peer-row').filter({ hasText: 'This browser' })
       await row.getByRole('button', { name: 'Enable', exact: true }).click()
       await expect(row.getByText(`Running ${version}`, { exact: true })).toBeVisible()
-      await page.goto(`/info-base/graph?focal_block=${list}`)
+      holdRemoteEntry = true
+      await page.goto(`/info-base/graph?focal_block=${list}`, { waitUntil: 'domcontentloaded' })
+      await expect.poll(() => remoteEntryPending).toBe(true)
+      await expect(
+        page.getByRole('button', { name: `Explore Block #${list}`, exact: true })
+      ).toBeVisible()
+      releaseRemoteEntry()
+      holdRemoteEntry = false
       await expect(
         page
           .getByRole('button', { name: `Explore Block #${list}`, exact: true })
@@ -315,8 +342,89 @@ export function registerGitHubNativeTests(): void {
       await expect(
         content.getByRole('heading', { name: 'fixture-org/demo', exact: true })
       ).toBeVisible()
+      // Background participation does not own the local reader Host.
+      async function openSettings(): Promise<void> {
+        await page.getByRole('button', { name: 'Menu', exact: true }).click()
+        await page.getByRole('button', { name: 'Settings', exact: true }).click()
+      }
+      async function setInterval(seconds: number): Promise<void> {
+        await page
+          .getByLabel('Lease renewal and job check interval (seconds; 0 disables)')
+          .fill(String(seconds))
+        await page.getByRole('button', { name: 'Save', exact: true }).click()
+        await expect(
+          page.getByText('Configuration saved successfully', { exact: true })
+        ).toBeVisible()
+      }
+      await openSettings()
+      await setInterval(0)
+      await page.goto(`/info-base/list/blocks/${repository}/content`)
+      await expect(
+        content.getByRole('heading', { name: 'fixture-org/demo', exact: true })
+      ).toBeVisible()
+      await page.clock.install()
+      const stoppedLeases = leaseRenewals
+      const stoppedScans = jobScans
+      await page.clock.fastForward(35_000)
+      expect(leaseRenewals).toBe(stoppedLeases)
+      expect(jobScans).toBe(stoppedScans)
+      const localHost = await page.evaluate(async () => {
+        type Sdk = typeof import('../../packages/core/src/index')
+        const state = globalThis as typeof globalThis & {
+          __FEDERATION__: {
+            __INSTANCES__: Array<{
+              options: { name: string }
+              loadShare(name: string): Promise<() => Sdk>
+            }>
+          }
+          githubReaderHost?: unknown
+          githubReaderClass?: unknown
+        }
+        const host = state.__FEDERATION__.__INSTANCES__.find(
+          (instance) => instance.options.name === 'host'
+        )!
+        const sdk = (await host.loadShare('@inkcre/core'))()
+        state.githubReaderHost = host
+        state.githubReaderClass = sdk.Resolver.getClass('extensions.github.repository.v1')
+        return !!state.githubReaderClass
+      })
+      expect(localHost).toBe(true)
+      await openSettings()
+      await setInterval(2)
+      await expect.poll(() => leaseRenewals).toBeGreaterThan(stoppedLeases)
+      await expect.poll(() => jobScans).toBeGreaterThan(stoppedScans)
+      await setInterval(0)
+      const finalLeases = leaseRenewals
+      const finalScans = jobScans
+      await page.clock.fastForward(35_000)
+      expect(leaseRenewals).toBe(finalLeases)
+      expect(jobScans).toBe(finalScans)
+      expect(
+        await page.evaluate(async () => {
+          type Sdk = typeof import('../../packages/core/src/index')
+          const state = globalThis as typeof globalThis & {
+            __FEDERATION__: {
+              __INSTANCES__: Array<{
+                options: { name: string }
+                loadShare(name: string): Promise<() => Sdk>
+              }>
+            }
+            githubReaderHost?: unknown
+            githubReaderClass?: unknown
+          }
+          const host = state.__FEDERATION__.__INSTANCES__.find(
+            (instance) => instance.options.name === 'host'
+          )!
+          const sdk = (await host.loadShare('@inkcre/core'))()
+          return (
+            host === state.githubReaderHost &&
+            sdk.Resolver.getClass('extensions.github.repository.v1') === state.githubReaderClass
+          )
+        })
+      ).toBe(true)
       expect(githubApiCalls).toBe(0)
     } finally {
+      releaseRemoteEntry()
       // Timeout teardown may already have closed the page; DB cleanup must still run.
       if (!page.isClosed()) await page.goto('about:blank').catch(() => {})
       for (const id of createdRelations)
