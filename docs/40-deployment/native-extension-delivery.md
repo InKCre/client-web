@@ -63,14 +63,21 @@ Version outputs are committed; no duplicate pending intent remains for the next 
 This is the one-time delivery boundary for this cutover. Ordinary feature work continues to submit
 Changesets and use the automated Version PR described above.
 
-Client Web consumes the official Runtime SDK 0.4 tarball and Toolkit 0.5 wheel through exact GitHub
+Client Web consumes the official Runtime SDK 0.4.1 tarball and Toolkit 0.5 wheel through exact GitHub
 Release asset URLs and lock-file integrity. Consumers install prebuilt packages without checking
-out Registry SDK source or running its SDK preparation. The Runtime SDK release publisher still
-qualifies its build with the pinned `packages/core` package source and its own frozen tooling; it
-does not install a producer workspace or combine Python and MF source. That bounded build-source
-transition does not establish complete SDK artifact independence. This repository's Core SDK 0.4
-remains workspace-owned until its own protected-main release. Dependency publication, candidate
-qualification and production Extension publication remain separate delivery boundaries.
+out Registry SDK source or running its SDK preparation. Runtime SDK 0.4.1 also qualifies its own
+build with the official Core SDK 0.4 prebuilt asset, removing the earlier Git-package bootstrap.
+The Core SDK publishes independently through its protected-main GitHub Release lane; its source
+remains a workspace dependency inside this repository, while external producers consume the
+prebuilt package. Runtime 0.4.1 preserves the 0.4 API and Host SDK range. Dependency publication,
+candidate qualification and production Extension publication remain separate delivery boundaries.
+
+The first production candidate for this cutover uses that final Runtime 0.4.1 qualification input.
+Its API and Host SDK range are unchanged, and the prepared App and MF versions still carry the
+already-consumed cutover intent. This dependency substitution occurs before those MF coordinates
+are published or have a saved production candidate; it does not create a second version intent.
+If either a published coordinate or a saved candidate exists, preserve its original bytes instead
+of rebuilding the same version. Subsequent producer changes continue to use ordinary Changesets.
 
 Required database checks normally resolve the protected Core `stable` artifact. During this cutover,
 `contracts/core-release.json` can admit a `canonical_candidate` with an existing canonical Core
