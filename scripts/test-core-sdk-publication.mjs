@@ -29,6 +29,7 @@ test('draft recovery uploads missing saved assets without replacing an existing 
   const originalDirectory = process.cwd()
   const originalPath = process.env.PATH
   const originalSource = process.env.SOURCE_REVISION
+  const originalSummary = process.env.GITHUB_STEP_SUMMARY
   const originalFetch = globalThis.fetch
   const source = 'c'.repeat(40)
   const bytes = Buffer.from('saved SDK package')
@@ -47,7 +48,28 @@ test('draft recovery uploads missing saved assets without replacing an existing 
     await writeFile(`${root}/.core-sdk-delivery/${receipt.asset}`, bytes)
     await writeFile(
       `${root}/gh`,
-      `#!/usr/bin/env node\nconst fs=require('node:fs');const a=process.argv.slice(2);fs.appendFileSync('calls.jsonl',JSON.stringify(a)+'\\n');if(a[1]==='create')fs.writeFileSync('created', 'yes');if(a[1]==='upload')fs.writeFileSync(a[3].endsWith('.tgz')?'archiveUploaded':'uploaded', 'yes');if(a[1]==='edit')fs.writeFileSync('published', 'yes');\n`
+      `#!/usr/bin/env node
+const fs = require('node:fs');
+const args = process.argv.slice(2);
+fs.appendFileSync('calls.jsonl', JSON.stringify(args) + '\\n');
+const route = args[1];
+const method = args[args.indexOf('--method') + 1];
+let response;
+const asset = (name) => ({ name, url: 'https://api.github.com/' + (name.endsWith('.tgz') ? 'archive' : 'receipt'), browser_download_url: 'https://api.github.com/' + (name.endsWith('.tgz') ? 'archive' : 'receipt') });
+const release = () => ({ id: 12, tag_name: 'core-v0.4.0', target_commitish: process.env.SOURCE_REVISION, draft: !fs.existsSync('published'), assets: [fs.existsSync('archiveUploaded') && asset('inkcre-core-0.4.0.tgz'), fs.existsSync('uploaded') && asset('source.json')].filter(Boolean) });
+if (route.startsWith('https://uploads.github.com/')) {
+  const name = new URL(route).searchParams.get('name');
+  fs.writeFileSync(name.endsWith('.tgz') ? 'archiveUploaded' : 'uploaded', 'yes');
+  response = asset(name);
+} else if (method === 'POST') {
+  fs.writeFileSync('created', 'yes');
+  response = release();
+} else if (method === 'PATCH') {
+  fs.writeFileSync('published', 'yes');
+  response = release();
+}
+process.stdout.write(JSON.stringify(response));
+`
     )
     await chmod(`${root}/gh`, 0o700)
     await writeFile(`${root}/created`, 'yes')
@@ -55,6 +77,7 @@ test('draft recovery uploads missing saved assets without replacing an existing 
     process.chdir(root)
     process.env.PATH = `${root}:${originalPath}`
     process.env.SOURCE_REVISION = source
+    delete process.env.GITHUB_STEP_SUMMARY
     globalThis.fetch = async (url) => {
       if (url.endsWith('/archive')) return new Response(bytes)
       if (url.endsWith('/receipt')) return new Response(JSON.stringify(receipt))
@@ -65,7 +88,7 @@ test('draft recovery uploads missing saved assets without replacing an existing 
           () => true,
           () => false
         )
-      if (!(await exists('created'))) return Response.json([])
+      if (!(await exists('created')) || (await exists('invisibleList'))) return Response.json([])
       const assets = []
       if (await exists('archiveUploaded'))
         assets.push({
@@ -81,6 +104,7 @@ test('draft recovery uploads missing saved assets without replacing an existing 
         })
       return Response.json([
         {
+          id: 12,
           tag_name: 'core-v0.4.0',
           draft: !(await exists('published')),
           prerelease: false,
@@ -91,11 +115,9 @@ test('draft recovery uploads missing saved assets without replacing an existing 
     }
     await main('publish')
     const calls = (await readFile('calls.jsonl', 'utf8')).trim().split('\n').map(JSON.parse)
-    assert.deepEqual(
-      calls.map((args) => args[1]),
-      ['upload', 'edit']
-    )
-    assert.match(calls[0][3], /source.json$/)
+    assert.equal(calls.length, 2)
+    assert.match(calls[0][1], /releases\/12\/assets\?name=source.json$/)
+    assert.ok(calls[1].includes('PATCH'))
     await main('publish')
     assert.equal(
       await readFile('calls.jsonl', 'utf8'),
@@ -103,18 +125,24 @@ test('draft recovery uploads missing saved assets without replacing an existing 
     )
     for (const file of ['created', 'archiveUploaded', 'uploaded', 'published', 'calls.jsonl'])
       await rm(file)
+    await writeFile('invisibleList', 'yes')
     await main('publish')
     const freshCalls = (await readFile('calls.jsonl', 'utf8')).trim().split('\n').map(JSON.parse)
-    assert.deepEqual(
-      freshCalls.map((args) => args[1]),
-      ['create', 'upload', 'upload', 'edit']
+    assert.equal(freshCalls.length, 4)
+    assert.ok(
+      freshCalls[0].includes('tag_name=core-v0.4.0'),
+      'Recovered payload keeps its own version'
     )
-    assert.equal(freshCalls[0][2], 'core-v0.4.0', 'Recovered payload keeps its own version')
+    assert.match(freshCalls[1][1], /releases\/12\/assets/)
+    assert.match(freshCalls[2][1], /releases\/12\/assets/)
+    assert.ok(freshCalls[3].includes('PATCH'))
   } finally {
     process.chdir(originalDirectory)
     process.env.PATH = originalPath
     if (originalSource === undefined) delete process.env.SOURCE_REVISION
     else process.env.SOURCE_REVISION = originalSource
+    if (originalSummary === undefined) delete process.env.GITHUB_STEP_SUMMARY
+    else process.env.GITHUB_STEP_SUMMARY = originalSummary
     globalThis.fetch = originalFetch
     await rm(root, { recursive: true, force: true })
   }
