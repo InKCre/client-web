@@ -363,6 +363,7 @@ export function registerGitHubNativeTests(): void {
         content.getByRole('heading', { name: 'fixture-org/demo', exact: true })
       ).toBeVisible()
       await page.clock.install()
+      await page.clock.setFixedTime(new Date())
       const stoppedLeases = leaseRenewals
       const stoppedScans = jobScans
       await page.clock.fastForward(35_000)
