@@ -91,6 +91,10 @@ An exact-current-main manual dispatch uses the same checks and publication bound
 GitHub does not expose a draft through the release-by-tag endpoint. The trusted identity job reads
 the release list with the same `contents: write` authority as publication so it can detect drafts;
 that job installs no dependencies. Candidate builds retain read-only repository access.
+Creation consumes the REST `201` response as the new Release identity, and asset uploads and
+publication address that exact ID through the existing GitHub CLI. The publisher does not rediscover
+a just-created draft through a potentially stale release list. Public verification still downloads
+assets anonymously; comparisons of existing draft assets use authenticated reads.
 
 If a publisher implementation needs repair, its original run still retains the package bytes.
 Dispatch the corrected workflow on current main with `source_sha` selecting the controller and

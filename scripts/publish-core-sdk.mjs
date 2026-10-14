@@ -185,24 +185,28 @@ export async function main(command) {
   const payloadTag = `core-v${receipt.version}`
   let release = await releaseByTag(payloadTag)
   if (!release) {
-    gh([
-      'release',
-      'create',
-      payloadTag,
-      '--draft',
-      '--target',
-      receipt.source_revision,
-      '--title',
-      `Core SDK ${receipt.version}`,
-      '--notes',
-      `预构建 ESM 与类型包；来源 ${receipt.source_revision}。source.json 记录 SHA256。`,
-    ])
-    release = await releaseByTag(payloadTag)
+    // The create response owns the new identity; immediate list reads can still omit it.
+    release = JSON.parse(
+      gh([
+        'api',
+        `repos/${process.env.GITHUB_REPOSITORY}/releases`,
+        '--method',
+        'POST',
+        '-f',
+        `tag_name=${payloadTag}`,
+        '-f',
+        `target_commitish=${receipt.source_revision}`,
+        '-f',
+        `name=Core SDK ${receipt.version}`,
+        '-f',
+        `body=预构建 ESM 与类型包；来源 ${receipt.source_revision}。source.json 记录 SHA256。`,
+        '-F',
+        'draft=true',
+      ])
+    )
   }
-  assert.ok(
-    release,
-    'Draft is not visible after creation; preserve candidate and recover publication'
-  )
+  assert.ok(Number.isSafeInteger(release.id) && release.id > 0, 'GitHub release ID is invalid')
+  assert.equal(release.tag_name, payloadTag)
   if (release.draft) {
     const tagRef = await api(`git/ref/tags/${payloadTag}`)
     assert.equal(
@@ -225,11 +229,38 @@ export async function main(command) {
           digest(local),
           'Existing draft asset differs; never overwrite'
         )
-      else gh(['release', 'upload', payloadTag, `${directory}/${name}`])
+      else {
+        const upload = `https://uploads.github.com/repos/${process.env.GITHUB_REPOSITORY}/releases/${release.id}/assets?name=${encodeURIComponent(name)}`
+        const asset = JSON.parse(
+          gh([
+            'api',
+            upload,
+            '--method',
+            'POST',
+            '-H',
+            'Content-Type: application/octet-stream',
+            '--input',
+            `${directory}/${name}`,
+          ])
+        )
+        assert.equal(asset.name, name)
+        release.assets.push(asset)
+      }
     }
-    gh(['release', 'edit', payloadTag, '--draft=false'])
+    const releaseId = release.id
+    release = JSON.parse(
+      gh([
+        'api',
+        `repos/${process.env.GITHUB_REPOSITORY}/releases/${releaseId}`,
+        '--method',
+        'PATCH',
+        '-F',
+        'draft=false',
+      ])
+    )
+    assert.equal(release.id, releaseId)
+    assert.equal(release.tag_name, payloadTag)
   }
-  release = await releaseByTag(payloadTag)
   await verifyRelease(release, receipt.version, receipt)
   if (process.env.GITHUB_STEP_SUMMARY)
     await appendFile(
