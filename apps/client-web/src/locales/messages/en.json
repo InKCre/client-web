@@ -25,7 +25,7 @@
     "failed": "Unable to start InKCre. Retry or check your connection in Settings.",
     "peerConnecting": "Connecting this Web Peer; database pages are available, local jobs are not running yet.",
     "peerFailed": "This Web Peer could not connect. Database pages remain available; local jobs are stopped.",
-    "peerDisabled": "Background participation is disabled for this Web Peer. Database pages and delegation remain available."
+    "peerDisabled": "Background participation is disabled for this Web Peer. Database pages, local extensions, and delegation remain available."
   },
   "header": {
     "brand": "InKCre"
@@ -82,7 +82,7 @@
     "peerRuntime": "Peer runtime",
     "telemetry": "Telemetry",
     "telemetryRelayDefault": "Leave empty to use deployment telemetry endpoints.",
-    "backgroundDisabledEffect": "Saving stops local tasks and pauses automatic Extensions and telemetry."
+    "backgroundDisabledEffect": "Saving stops background tasks and telemetry; local extensions remain available."
   },
   "source": {
     "deleteConfirmTitle": "Delete Source",

@@ -139,7 +139,7 @@ when all formats supported by that Peer are known to lack published releases. A 
 catalog can explain why the browser has no compatible choice without guessing from application
 names. An explicit card refresh discards those catalog observations and allows another read.
 
-The Client Web shell opens database views before native Extension restore finishes. A cold deep link can therefore encounter an unregistered Extension resolver. The content popup retries that specific lookup failure after the Host completes restore, while preserving other read failures. Extension cards wait for the same restore before observing current-Peer runtime status; a persisted enabled intent alone does not establish that the module is running.
+The Client Web shell opens database views before native Extension restore finishes. A cold deep link can therefore encounter an unregistered Extension resolver. The content popup and graph preview retry only that early lookup failure once after the Host completes restore, while preserving other read failures. Graph pending additions and restore completion both check the retry condition; scene generation, connection and Host ownership reject stale callbacks. A missing resolver after that attempt stays visibly unavailable. Extension cards wait for the same restore before observing current-Peer runtime status; a persisted enabled intent alone does not establish that the module is running.
 
 A restore attempt isolates module failures. Completing the attempt, including an aggregate failure, allows registered resolvers to serve content and exposes each module’s actual status; an unknown resolver after that attempt remains a visible error.
 
@@ -152,3 +152,13 @@ A restore attempt isolates module failures. Completing the attempt, including an
 - Producer identity and lifecycle are native Module Federation contracts, not deployment scripts.
 
 Settings 在切换数据库地址、数据库签名密钥或 Peer ID 之前排空旧 Host，连接成功后创建绑定新 Peer 的 Host。同一连接只调整租约选项时保留 Host；旧连接的恢复和管理回调不能改变新 Host 的状态。
+
+## GitHub content producer
+
+The independently versioned [GitHub MF producer](../../extensions/github/README.md) reads stored v1 Account, Repository and List records and their owns/stars/contains relations. It owns browser projection and rendering, without calling GitHub or controlling collection. Its native SDK range is a Host compatibility boundary, not a version pairing with the Python distribution.
+
+Local MF restore depends on a prepared canonical Peer identity and initialized Host, independently
+of periodic background lease, Job scans and telemetry. Turning background participation off or
+changing only its interval preserves this Host; changing connection authority or Peer identity
+and explicit shutdown dispose it. Initial restore still consumes exact enabled intent without
+rewriting it.

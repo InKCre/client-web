@@ -31,6 +31,12 @@ const workspaces = [
     builder: 'wxt',
   },
   {
+    path: 'extensions/github',
+    name: '@inkcre/ext-github',
+    requiredScripts: ['build', 'dev', 'type-check'],
+    builder: 'vite',
+  },
+  {
     path: 'extensions/mail',
     name: '@inkcre/ext-mail',
     requiredScripts: ['build', 'dev', 'type-check'],
