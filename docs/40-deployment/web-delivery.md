@@ -135,7 +135,7 @@ explicit positive PR number and applies the same closed internal-PR identity che
 
 ## 浏览器可选观测出口
 
-部署 owner 先通过 core-py 的部署配置流程创建 `inkcre.observability.v1`，保留稳定的
+部署 owner 先通过 impl-py 的部署配置流程创建 `inkcre.observability.v1`，保留稳定的
 `deployment_id`，并按需填写 traces、logs、metrics 完整 OTLP/HTTP URL 与诊断入口。
 浏览器不会因这些 URL 存在而自动启用；在连接设置中勾选遥测并保存后才接入。
 只启用部分信号时其余信号不远端导出；没有有效共享配置时保留本地固定原因诊断，
