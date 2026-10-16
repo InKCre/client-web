@@ -293,7 +293,7 @@ if (remoteCompose.includes('eval ') || !remoteCompose.includes('"$docker_bin" co
 }
 const databaseRuntime = await readFile(`${repoRoot}/scripts/database-runtime-lib.mjs`, 'utf8')
 for (const required of [
-  "owner_repository !== 'InKCre/core-py'",
+  "owner_repository !== 'InKCre/impl-py'",
   'runtime_instance: descriptor.identity',
   'external database runtime provenance is incomplete',
   'external database readiness and runtime descriptor differ',

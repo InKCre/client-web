@@ -153,7 +153,7 @@ test('an unknown MF-only upload resumes the saved ZIP and verifies even an exist
       deliveryDirectory: path.join(workspace, 'candidate'),
       token: 'test-only',
       provenance: {
-        source_repository: 'https://github.com/InKCre/client-web',
+        source_repository: 'https://github.com/InKCre/impl-ts',
         source_revision: 'exact-source',
         build_id: 'same-run',
       },

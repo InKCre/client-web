@@ -101,7 +101,7 @@ async function writeRuntimeFiles(state, credentials) {
     },
     runtime: {
       instance: state.runtime_instance ?? state.identity,
-      owner_repository: state.owner_repository ?? 'InKCre/client-web',
+      owner_repository: state.owner_repository ?? 'InKCre/impl-ts',
       compose_project: state.project,
       docker_daemon_id: state.docker?.daemon_id ?? null,
     },
@@ -154,7 +154,7 @@ async function externalRuntimeState(instance, provider) {
   const descriptor = await readJson(provider.descriptor)
   if (
     descriptor.format !== 1 ||
-    descriptor.owner_repository !== 'InKCre/core-py' ||
+    descriptor.owner_repository !== 'InKCre/impl-py' ||
     !/^[a-f0-9]{16}$/.test(descriptor.identity) ||
     descriptor.profile !== 'development'
   ) {
@@ -239,7 +239,7 @@ export async function runtimeState(instance, { create = false } = {}) {
     format: 3,
     identity: validateInstance(instance),
     runtime_instance: validateInstance(instance),
-    owner_repository: 'InKCre/client-web',
+    owner_repository: 'InKCre/impl-ts',
     project: projectName(instance),
     provider,
     contract_revision: release.manifest.contract_revision,
@@ -342,7 +342,7 @@ export async function stopDatabaseRuntime(instance, options = {}) {
   const state = await runtimeState(instance)
   if (state.provider.kind === 'external') {
     throw new Error(
-      `runtime ${state.runtime_instance} is owned by core-py; client-web cannot stop it`
+      `runtime ${state.runtime_instance} is owned by impl-py; impl-ts cannot stop it`
     )
   }
   try {
@@ -490,7 +490,7 @@ export function readiness(instance) {
     if (
       result.status !== 'ok' ||
       result.runtime?.instance !== descriptor.identity ||
-      result.runtime?.owner_repository !== 'InKCre/core-py' ||
+      result.runtime?.owner_repository !== 'InKCre/impl-py' ||
       result.runtime?.compose_project !== descriptor.project ||
       result.runtime?.docker_daemon_id !== descriptor.docker?.daemon_id ||
       result.runtime?.source_revision !== descriptor.source_revision ||
