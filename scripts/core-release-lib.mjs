@@ -2,8 +2,8 @@ import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 
-const stableImagePattern = /^ghcr\.io\/inkcre\/core-py:stable$/
-const digestPattern = /^ghcr\.io\/inkcre\/core-py@sha256:[0-9a-f]{64}$/
+const stableImagePattern = /^ghcr\.io\/inkcre\/impl-py:stable$/
+const digestPattern = /^ghcr\.io\/inkcre\/impl-py@sha256:[0-9a-f]{64}$/
 const sourceRevisionPattern = /^[0-9a-f]{40}$/
 const sha256Pattern = /^[0-9a-f]{64}$/
 
@@ -18,10 +18,10 @@ export async function readJson(path) {
 export function validateCoreReleaseConfig(config) {
   if (
     config?.format !== 1 ||
-    config.repository !== 'InKCre/core-py' ||
+    config.repository !== 'InKCre/impl-py' ||
     !stableImagePattern.test(config.stable_image)
   ) {
-    throw new Error('core release config must select InKCre/core-py stable')
+    throw new Error('core release config must select InKCre/impl-py stable')
   }
   if (config.canonical_candidate !== undefined) {
     const candidate = config.canonical_candidate

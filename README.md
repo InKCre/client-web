@@ -28,7 +28,7 @@ pnpm config set --global //npm.pkg.github.com/:_authToken '${NODE_AUTH_TOKEN}'
 
 Authenticate the selected Docker engine separately when the database runtime needs GHCR access.
 See [Development Runtime](docs/40-deployment/development-runtime.md) for local, SSH, external
-core-py, Portless, browser, and sibling UI setup.
+impl-py, Portless, browser, and sibling UI setup.
 
 ## Commands
 

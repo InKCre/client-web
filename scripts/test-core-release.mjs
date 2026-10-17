@@ -3,12 +3,12 @@ import { test } from 'node:test'
 import { resolveConfiguredCoreRelease, validateCoreReleaseConfig } from './core-release-lib.mjs'
 
 const source = 'a'.repeat(40)
-const image = `ghcr.io/inkcre/core-py@sha256:${'b'.repeat(64)}`
+const image = `ghcr.io/inkcre/impl-py@sha256:${'b'.repeat(64)}`
 const revision = 'extension-peer-participation-v2'
 const config = {
   format: 1,
-  repository: 'InKCre/core-py',
-  stable_image: 'ghcr.io/inkcre/core-py:stable',
+  repository: 'InKCre/impl-py',
+  stable_image: 'ghcr.io/inkcre/impl-py:stable',
   runtime_images: { pgvector: 'pgvector@sha256:1', postgrest: 'postgrest@sha256:2' },
   canonical_candidate: { image, source_revision: source, contract_revision: revision },
 }
@@ -46,7 +46,7 @@ test('consumer admission rejects unknown candidate origin, source and contract',
     /source or database contract/
   )
   for (const invalid of [
-    'ghcr.io/inkcre/core-py:preview',
+    'ghcr.io/inkcre/impl-py:preview',
     image.replace('ghcr.io', 'other.example'),
   ]) {
     assert.throws(

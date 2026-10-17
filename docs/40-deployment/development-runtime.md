@@ -79,18 +79,18 @@ owns provider parsing and transport safety.
 - `ssh` uses one alias from the user's SSH configuration. The repository owns no hostname, user,
   key path, or remote Docker path. The remote engine allocates ports, and an instance-owned OpenSSH
   control tunnel exposes them locally; the optional forwarding host defaults to remote loopback.
-- `external` attaches to one absolute, machine-local core-py `runtime.json` descriptor. Attachment
-  succeeds only for a development runtime owned by `InKCre/core-py` when its runtime instance,
+- `external` attaches to one absolute, machine-local impl-py `runtime.json` descriptor. Attachment
+  succeeds only for a development runtime owned by `InKCre/impl-py` when its runtime instance,
   Compose project, Docker daemon, contract revision, migration head, source fingerprint, descriptor,
   and live readiness agree.
 
-For a client-owned `local` or `ssh` runtime, the database provisioner resolves core-py's admitted
+For a client-owned `local` or `ssh` runtime, the database provisioner resolves impl-py's admitted
 `stable` channel once to an immutable digest. The selected image supplies the raw schema and role
 artifact; fresh pgvector PostgreSQL is restored before that exact core service reconciles runtime
 credentials and development data, with PostgREST serving the resulting database. The PostgreSQL
 health check uses TCP so the temporary socket-only initialization server cannot release the restore
 step before the final server is listening. Client-web owns no
-migration SQL, role definitions, seed ordering, or startup sleeps. Those semantics remain a core-py
+migration SQL, role definitions, seed ordering, or startup sleeps. Those semantics remain an impl-py
 capability boundary. [`runtime/database.compose.yml`](../../runtime/database.compose.yml),
 [`contracts/core-release.json`](../../contracts/core-release.json), and
 [`scripts/database-runtime-lib.mjs`](../../scripts/database-runtime-lib.mjs) are the executable

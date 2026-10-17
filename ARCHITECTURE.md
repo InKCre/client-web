@@ -47,7 +47,7 @@ locations, not Unit boundaries.
 
 The package graph is ESM-first. Workspace Vite and WXT applications consume `@inkcre/core` source
 aliases, while external package consumers resolve its tsdown `dist` contract. Generated database
-types and runtime metadata project the admitted core-py contract through stable local adapters.
+types and runtime metadata project the admitted impl-py contract through stable local adapters.
 
 ## Runtime and Delivery
 
