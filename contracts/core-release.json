@@ -9,6 +9,6 @@
   "canonical_candidate": {
     "image": "ghcr.io/inkcre/impl-py@sha256:c30502e05c0fe6fdd2eeca91b4dd431d0ab1dcc305f6a68feef3cc72b8f57440",
     "source_revision": "93316dc01f6ddfb6fb629ba59f8267a0a6264a26",
-    "contract_revision": "peer-runtime-identity-v1"
+    "contract_revision": "extension-peer-participation-v2"
   }
 }
