@@ -341,7 +341,7 @@ export async function ensureDatabaseRuntime(instance, options = {}) {
 export async function stopDatabaseRuntime(instance, options = {}) {
   const state = await runtimeState(instance)
   if (state.provider.kind === 'external') {
-    throw new Error(`runtime ${state.runtime_instance} is owned by impl-py; impl-ts cannot stop it`)
+    throw new Error(`runtime ${state.runtime_instance} is owned by impl-py; client-web cannot stop it`)
   }
   try {
     compose(instance, ['down', '--volumes', '--remove-orphans'], {
