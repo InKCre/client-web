@@ -7,8 +7,8 @@
     "postgrest": "postgrest/postgrest:v14.15@sha256:2f8e7b656f09db697a8875177694b417b35cb76c21370de07fc54e711e902326"
   },
   "canonical_candidate": {
-    "image": "ghcr.io/inkcre/impl-py@sha256:c31a852f60b2aed5e4ad3df1352b135884a44fb15d156f08354baf8f468e8071",
-    "source_revision": "c5a8429307442f446adb8816c6cc5c9fa1eb2a58",
-    "contract_revision": "extension-peer-participation-v2"
+    "image": "ghcr.io/inkcre/impl-py@sha256:c30502e05c0fe6fdd2eeca91b4dd431d0ab1dcc305f6a68feef3cc72b8f57440",
+    "source_revision": "93316dc01f6ddfb6fb629ba59f8267a0a6264a26",
+    "contract_revision": "peer-runtime-identity-v1"
   }
 }
